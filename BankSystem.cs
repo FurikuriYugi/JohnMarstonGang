@@ -1,139 +1,422 @@
-﻿// BankSystem.cs
-using Newtonsoft.Json;
-using RDR2;
-using RDR2.UI;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Xml;
-
-public class BankAccount
-{
-    public string OwnerId { get; set; }
-    public double Cash { get; set; }
-    public double Gold { get; set; }
-    public double CreditLimit { get; set; }
-    public double Suspicion { get; set; }
-}
 
 public class BankSystem
 {
-    private readonly Dictionary<string, BankAccount> _accounts = new Dictionary<string, BankAccount>();
-    private const string DefaultBankId = "SaintDenisBank";
+    private readonly Dictionary<string, BankAccount> accounts = new Dictionary<string, BankAccount>();
+    private readonly List<BankTransaction> ledger = new List<BankTransaction>();
 
-    public void Deposit(string ownerId, double cash, double gold)
+    public event Action<BankTransaction> OnTransactionRecorded;
+    public event Action<BankAccount, BankTransaction> OnVaultRobbed;
+    public event Action<BankAccount> OnSuspicionChanged;
+
+    public BankAccount GetOrCreatePlayerAccount(string playerId)
     {
-        BankAccount acc = GetOrCreate(ownerId);
-        acc.Cash += Math.Max(0, cash);
-        acc.Gold += Math.Max(0, gold);
-        Save();
+        return GetOrCreateAccount("player:" + playerId, playerId, BankAccountType.Player);
     }
 
-    public bool Withdraw(string ownerId, double cash, double gold)
+    public BankAccount GetOrCreateGangAccount(string gangId)
     {
-        BankAccount acc = GetOrCreate(ownerId);
-        if (acc.Cash < cash || acc.Gold < gold)
-            return false;
+        return GetOrCreateAccount("gang:" + gangId, gangId, BankAccountType.Gang);
+    }
 
-        acc.Cash -= cash;
-        acc.Gold -= gold;
-        Save();
+    public BankAccount GetOrCreateNPCAccount(string npcId)
+    {
+        return GetOrCreateAccount("npc:" + npcId, npcId, BankAccountType.NPC);
+    }
+
+    public BankAccount GetOrCreateBusinessAccount(string businessId)
+    {
+        return GetOrCreateAccount("business:" + businessId, businessId, BankAccountType.Business);
+    }
+
+    public BankAccount GetOrCreateVaultAccount(string bankId)
+    {
+        return GetOrCreateAccount("vault:" + bankId, bankId, BankAccountType.Vault);
+    }
+
+    public BankAccount GetAccount(string accountId)
+    {
+        BankAccount account;
+        accounts.TryGetValue(accountId, out account);
+        return account;
+    }
+
+    public bool Deposit(string accountId, int cash, int gold = 0, string reason = null, string sourceAccountId = null)
+    {
+        if (cash < 0 || gold < 0) return false;
+
+        BankAccount account = GetAccount(accountId);
+        if (account == null || account.Frozen) return false;
+
+        account.Cash += cash;
+        account.Gold += gold;
+
+        RecordTransaction(new BankTransaction
+        {
+            FromAccountId = sourceAccountId,
+            ToAccountId = accountId,
+            Type = BankTransactionType.Deposit,
+            Cash = cash,
+            Gold = gold,
+            Reason = reason ?? "Deposit"
+        });
+
         return true;
     }
 
-    public bool TakeLoan(string ownerId, double amount)
+    public bool Withdraw(string accountId, int cash, int gold = 0, string reason = null, string targetAccountId = null)
     {
-        BankAccount acc = GetOrCreate(ownerId);
-        if (amount <= 0) return false;
-        if (amount > acc.CreditLimit) return false;
+        if (cash < 0 || gold < 0) return false;
 
-        acc.Cash += amount;
-        acc.Suspicion += amount * 0.05;
-        Save();
+        BankAccount account = GetAccount(accountId);
+        if (account == null || account.Frozen) return false;
+        if (!CanAfford(account, cash, gold)) return false;
+
+        account.Cash -= cash;
+        account.Gold -= gold;
+
+        RecordTransaction(new BankTransaction
+        {
+            FromAccountId = accountId,
+            ToAccountId = targetAccountId,
+            Type = BankTransactionType.Withdrawal,
+            Cash = cash,
+            Gold = gold,
+            Reason = reason ?? "Withdrawal"
+        });
+
         return true;
     }
 
-    public bool RobBank(string ownerId, out double cashTaken, out double goldTaken)
+    public bool Transfer(string fromAccountId, string toAccountId, int cash, int gold = 0, string reason = null)
     {
-        BankAccount acc = GetOrCreate(DefaultBankId);
-        cashTaken = Math.Min(acc.Cash, 5000.0);
-        goldTaken = Math.Min(acc.Gold, 50.0);
+        if (cash < 0 || gold < 0) return false;
+        if (fromAccountId == toAccountId) return false;
 
-        acc.Cash -= cashTaken;
-        acc.Gold -= goldTaken;
-        acc.Suspicion += 25.0;
-        Save();
+        BankAccount from = GetAccount(fromAccountId);
+        BankAccount to = GetAccount(toAccountId);
 
-        if (!string.IsNullOrEmpty(ownerId))
+        if (from == null || to == null) return false;
+        if (from.Frozen || to.Frozen) return false;
+        if (!CanAfford(from, cash, gold)) return false;
+
+        from.Cash -= cash;
+        from.Gold -= gold;
+
+        to.Cash += cash;
+        to.Gold += gold;
+
+        RecordTransaction(new BankTransaction
         {
-            BankAccount thief = GetOrCreate(ownerId);
-            thief.Cash += cashTaken;
-            thief.Gold += goldTaken;
-            Save();
+            FromAccountId = fromAccountId,
+            ToAccountId = toAccountId,
+            Type = BankTransactionType.Transfer,
+            Cash = cash,
+            Gold = gold,
+            Reason = reason ?? "Transfer"
+        });
+
+        return true;
+    }
+
+    public bool PayGangMember(string gangId, string memberId, int cash, int gold = 0)
+    {
+        BankAccount gang = GetOrCreateGangAccount(gangId);
+        BankAccount member = GetOrCreateNPCAccount(memberId);
+
+        if (!CanAfford(gang, cash, gold)) return false;
+
+        gang.Cash -= cash;
+        gang.Gold -= gold;
+
+        member.Cash += cash;
+        member.Gold += gold;
+
+        RecordTransaction(new BankTransaction
+        {
+            FromAccountId = gang.AccountId,
+            ToAccountId = member.AccountId,
+            Type = BankTransactionType.Payroll,
+            Cash = cash,
+            Gold = gold,
+            Reason = "Gang payroll",
+            RelatedEntityId = memberId
+        });
+
+        return true;
+    }
+
+    public void AddBusinessIncome(string businessId, int cash, int gold = 0)
+    {
+        BankAccount business = GetOrCreateBusinessAccount(businessId);
+        business.Cash += cash;
+        business.Gold += gold;
+
+        RecordTransaction(new BankTransaction
+        {
+            FromAccountId = null,
+            ToAccountId = business.AccountId,
+            Type = BankTransactionType.Income,
+            Cash = cash,
+            Gold = gold,
+            Reason = "Business income",
+            RelatedEntityId = businessId
+        });
+    }
+
+    public void StoreBusinessMoneyInVault(string businessId, string bankId, float ratio)
+    {
+        if (ratio < 0f) ratio = 0f;
+        if (ratio > 1f) ratio = 1f;
+
+        BankAccount business = GetOrCreateBusinessAccount(businessId);
+        BankAccount vault = GetOrCreateVaultAccount(bankId);
+
+        int cash = (int)(business.Cash * ratio);
+        int gold = (int)(business.Gold * ratio);
+
+        if (cash <= 0 && gold <= 0) return;
+
+        business.Cash -= cash;
+        business.Gold -= gold;
+        vault.Cash += cash;
+        vault.Gold += gold;
+
+        RecordTransaction(new BankTransaction
+        {
+            FromAccountId = business.AccountId,
+            ToAccountId = vault.AccountId,
+            Type = BankTransactionType.Transfer,
+            Cash = cash,
+            Gold = gold,
+            Reason = "Business vault deposit",
+            RelatedEntityId = businessId
+        });
+    }
+
+    public bool RobVault(string bankId, int cash, int gold = 0, string robberId = null)
+    {
+        BankAccount vault = GetOrCreateVaultAccount(bankId);
+        if (vault.Frozen) return false;
+        if (!CanAfford(vault, cash, gold)) return false;
+
+        vault.Cash -= cash;
+        vault.Gold -= gold;
+
+        IncreaseSuspicion(vault.AccountId, 0.35f);
+
+        BankTransaction tx = new BankTransaction
+        {
+            FromAccountId = vault.AccountId,
+            ToAccountId = robberId,
+            Type = BankTransactionType.Robbery,
+            Cash = cash,
+            Gold = gold,
+            Reason = "Vault robbery",
+            RelatedEntityId = robberId
+        };
+
+        RecordTransaction(tx);
+        OnVaultRobbed?.Invoke(vault, tx);
+
+        return true;
+    }
+
+    public void IncreaseSuspicion(string accountId, float amount)
+    {
+        BankAccount account = GetAccount(accountId);
+        if (account == null) return;
+
+        account.Suspicion += amount;
+        if (account.Suspicion > 1f) account.Suspicion = 1f;
+
+        OnSuspicionChanged?.Invoke(account);
+    }
+
+    public void DecreaseSuspicion(string accountId, float amount)
+    {
+        BankAccount account = GetAccount(accountId);
+        if (account == null) return;
+
+        account.Suspicion -= amount;
+        if (account.Suspicion < 0f) account.Suspicion = 0f;
+
+        OnSuspicionChanged?.Invoke(account);
+    }
+
+    public void FreezeAccount(string accountId, bool frozen = true)
+    {
+        BankAccount account = GetAccount(accountId);
+        if (account != null)
+        {
+            account.Frozen = frozen;
         }
-
-        return cashTaken > 0 || goldTaken > 0;
     }
 
-    public void TransferBusinessRevenue(string businessId, string bankId, double cash, double gold)
+    public int GetVaultCash(string bankId)
     {
-        Withdraw(businessId, cash, gold);
-        Deposit(bankId, cash, gold);
+        return GetOrCreateVaultAccount(bankId).Cash;
     }
 
-    public BankAccount GetOrCreate(string ownerId)
+    public int GetVaultGold(string bankId)
     {
-        if (string.IsNullOrWhiteSpace(ownerId))
-            ownerId = "Unknown";
+        return GetOrCreateVaultAccount(bankId).Gold;
+    }
 
-        if (!_accounts.TryGetValue(ownerId, out BankAccount acc))
+    public IReadOnlyList<BankTransaction> GetLedger()
+    {
+        return ledger;
+    }
+
+    public IReadOnlyList<BankTransaction> GetAccountTransactions(string accountId)
+    {
+        BankAccount account = GetAccount(accountId);
+        if (account != null)
         {
-            acc = new BankAccount
+            return account.Transactions;
+        }
+        else
+        {
+            return Array.Empty<BankTransaction>();
+        }
+    }
+
+    public BankSystemData SaveData()
+    {
+        return new BankSystemData
+        {
+            Accounts = accounts.Values.ToList(),
+            Ledger = ledger.ToList()
+        };
+    }
+
+    public void LoadData(BankSystemData data)
+    {
+        accounts.Clear();
+        ledger.Clear();
+
+        if (data == null) return;
+
+        if (data.Accounts != null)
+        {
+            foreach (BankAccount account in data.Accounts)
             {
-                OwnerId = ownerId,
-                Cash = 0,
-                Gold = 0,
-                CreditLimit = 1000,
-                Suspicion = 0
-            };
-            _accounts[ownerId] = acc;
-        }
-        return acc;
-    }
-
-    public double GetBankLootAmount()
-    {
-        BankAccount acc = GetOrCreate(DefaultBankId);
-        return acc.Cash + (acc.Gold * 150.0);
-    }
-
-    public void Save()
-    {
-        try
-        {
-            string path = "scripts\\JohnsGangBank.json";
-            string dir = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(path, JsonConvert.SerializeObject(_accounts, Formatting.Indented));
-        }
-        catch { }
-    }
-
-    public void Load()
-    {
-        try
-        {
-            string path = "scripts\\JohnsGangBank.json";
-            if (!File.Exists(path)) return;
-            var loaded = JsonConvert.DeserializeObject<Dictionary<string, BankAccount>>(File.ReadAllText(path));
-            if (loaded != null)
-            {
-                _accounts.Clear();
-                foreach (var kv in loaded)
-                    _accounts[kv.Key] = kv.Value;
+                accounts[account.AccountId] = account;
             }
         }
-        catch { }
+
+        if (data.Ledger != null)
+        {
+            ledger.AddRange(data.Ledger);
+        }
+    }
+
+    private BankAccount GetOrCreateAccount(string accountId, string ownerId, BankAccountType accountType)
+    {
+        BankAccount existing;
+        if (accounts.TryGetValue(accountId, out existing))
+        {
+            return existing;
+        }
+
+        BankAccount created = new BankAccount(accountId, ownerId, accountType);
+        accounts[accountId] = created;
+        return created;
+    }
+
+    private bool CanAfford(BankAccount account, int cash, int gold)
+    {
+        return account.Cash >= cash && account.Gold >= gold;
+    }
+
+    private void RecordTransaction(BankTransaction transaction)
+    {
+        ledger.Add(transaction);
+
+        if (!string.IsNullOrEmpty(transaction.FromAccountId))
+        {
+            BankAccount from;
+            if (accounts.TryGetValue(transaction.FromAccountId, out from))
+            {
+                from.Transactions.Add(transaction);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(transaction.ToAccountId))
+        {
+            BankAccount to;
+            if (accounts.TryGetValue(transaction.ToAccountId, out to))
+            {
+                to.Transactions.Add(transaction);
+            }
+        }
+
+        OnTransactionRecorded?.Invoke(transaction);
+    }
+}
+
+public enum BankAccountType
+{
+    Player,
+    Gang,
+    NPC,
+    Business,
+    Vault
+}
+
+public enum BankTransactionType
+{
+    Deposit,
+    Withdrawal,
+    Transfer,
+    Robbery,
+    Income,
+    Payroll,
+    Interest,
+    Fee
+}
+
+public class BankTransaction
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public DateTime TimeUtc { get; set; } = DateTime.UtcNow;
+
+    public string FromAccountId { get; set; }
+    public string ToAccountId { get; set; }
+
+    public BankTransactionType Type { get; set; }
+    public int Cash { get; set; }
+    public int Gold { get; set; }
+
+    public string Reason { get; set; }
+    public string RelatedEntityId { get; set; }
+}
+
+public class BankAccount
+{
+    public string AccountId { get; set; }
+    public string OwnerId { get; set; }
+    public BankAccountType AccountType { get; set; }
+
+    public int Cash { get; set; }
+    public int Gold { get; set; }
+
+    public int CreditLimit { get; set; }
+    public int Debt { get; set; }
+
+    public float Suspicion { get; set; }
+    public bool Frozen { get; set; }
+
+    public List<BankTransaction> Transactions { get; set; } = new List<BankTransaction>();
+
+    public BankAccount() { }
+
+    public BankAccount(string accountId, string ownerId, BankAccountType accountType)
+    {
+        AccountId = accountId;
+        OwnerId = ownerId;
+        AccountType = accountType;
     }
 }
