@@ -1,129 +1,118 @@
-﻿using System;
+﻿// GangManager.cs
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
+using System.Runtime.Serialization;
+using System.IO;
 
 public class GangManager
 {
-    private const string SavePath = @"scripts\JohnMorstonGang\gang.json";
+    private readonly List<GangMember> _members = new List<GangMember>();
+    private const string SaveFileName = "JohnMarstonGang_Save.xml";
 
-    public List<GangMember> Members { get; private set; }
-    public GangOrder CurrentOrder { get; private set; }
-    public GangCombatStyle CurrentCombatStyle { get; private set; }
-
-    public GangManager()
+    public static GangManager Load()
     {
-        Members = new List<GangMember>();
-        CurrentOrder = GangOrder.Follow;
-        CurrentCombatStyle = GangCombatStyle.RangedShort;
+        var manager = new GangManager();
+
+        if (!File.Exists(SaveFileName))
+            return manager;
+
+        try
+        {
+            using (var fs = File.OpenRead(SaveFileName))
+            {
+                var serializer = new DataContractSerializer(typeof(GangSaveData));
+                var data = (GangSaveData)serializer.ReadObject(fs);
+
+                if (data != null && data.Members != null)
+                {
+                    foreach (var memberData in data.Members)
+                    {
+                        manager._members.Add(new GangMember
+                        {
+                            Name = memberData.Name,
+                            Relationship = memberData.Relationship,
+                            CombatStyle = (CombatStyle)memberData.CombatStyle,
+                            IsFollowing = memberData.IsFollowing
+                        });
+                    }
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        return manager;
+    }
+
+    public void Save()
+    {
+        try
+        {
+            var data = new GangSaveData
+            {
+                Members = _members.Select(m => new GangMemberData
+                {
+                    Name = m.Name,
+                    Relationship = m.Relationship,
+                    CombatStyle = (int)m.CombatStyle,
+                    IsFollowing = m.IsFollowing
+                }).ToList()
+            };
+
+            using (var fs = File.Create(SaveFileName))
+            {
+                var serializer = new DataContractSerializer(typeof(GangSaveData));
+                serializer.WriteObject(fs, data);
+            }
+        }
+        catch
+        {
+        }
     }
 
     public void Update()
     {
-        foreach (var member in Members)
+        foreach (var member in _members)
         {
-            if (member == null || !member.IsAlive)
-                continue;
-
-            member.CurrentOrder = CurrentOrder;
-            member.CombatStyle = CurrentCombatStyle;
+            member.Update();
         }
     }
 
     public void RecruitNearby()
     {
-        // placeholder: hook nearby NPC recruitment later
+        var newMember = new GangMember
+        {
+            Name = "Recruit",
+            Relationship = 0,
+            CombatStyle = CombatStyle.RangedMedium,
+            IsFollowing = true
+        };
+
+        _members.Add(newMember);
     }
 
-    public void OrderFollow()
+    public void FollowPlayer()
     {
-        CurrentOrder = GangOrder.Follow;
+        foreach (var member in _members)
+        {
+            member.IsFollowing = true;
+        }
     }
 
-    public void OrderWait()
+    public void Wait()
     {
-        CurrentOrder = GangOrder.Wait;
+        foreach (var member in _members)
+        {
+            member.IsFollowing = false;
+        }
     }
 
     public void CycleCombatStyle()
     {
-        var values = Enum.GetValues(typeof(GangCombatStyle)).Cast<GangCombatStyle>().ToList();
-        int index = values.IndexOf(CurrentCombatStyle);
-        index = (index + 1) % values.Count;
-        CurrentCombatStyle = values[index];
-    }
-
-    public void AddMember(GangMember member)
-    {
-        if (member == null)
-            return;
-
-        if (Members.Any(m => m.MemberId == member.MemberId))
-            return;
-
-        Members.Add(member);
-    }
-
-    public void RemoveMember(string memberId)
-    {
-        Members.RemoveAll(m => m.MemberId == memberId);
-    }
-
-    public GangMember GetMember(string memberId)
-    {
-        return Members.FirstOrDefault(m => m.MemberId == memberId);
-    }
-
-    public void Save()
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(SavePath));
-
-        var data = new GangSaveData
+        foreach (var member in _members)
         {
-            Members = Members,
-            CurrentOrder = CurrentOrder,
-            CurrentCombatStyle = CurrentCombatStyle
-        };
-
-        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        });
-
-        File.WriteAllText(SavePath, json);
-    }
-
-    public static GangManager Load()
-    {
-        if (!File.Exists(SavePath))
-            return new GangManager();
-
-        try
-        {
-            var json = File.ReadAllText(SavePath);
-            var data = JsonSerializer.Deserialize<GangSaveData>(json);
-
-            var manager = new GangManager();
-            if (data != null)
-            {
-                manager.Members = data.Members ?? new List<GangMember>();
-                manager.CurrentOrder = data.CurrentOrder;
-                manager.CurrentCombatStyle = data.CurrentCombatStyle;
-            }
-
-            return manager;
+            member.CombatStyle = member.CombatStyle.Next();
         }
-        catch
-        {
-            return new GangManager();
-        }
-    }
-
-    private class GangSaveData
-    {
-        public List<GangMember> Members { get; set; }
-        public GangOrder CurrentOrder { get; set; }
-        public GangCombatStyle CurrentCombatStyle { get; set; }
     }
 }

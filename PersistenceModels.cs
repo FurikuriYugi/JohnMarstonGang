@@ -1,14 +1,32 @@
-﻿using System.Collections.Generic;
+﻿// PersistenceModels.cs
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 
+[DataContract]
 public class GangSaveData
 {
-    public List<GangMember> Members { get; set; } = new List<GangMember>();
-    public GangOrder CurrentOrder { get; set; } = GangOrder.Follow;
-    public GangCombatStyle CurrentCombatStyle { get; set; } = GangCombatStyle.RangedShort;
+    [DataMember] public List<GangMemberData> Members { get; set; } = new List<GangMemberData>();
 }
 
-public class BankSystemData
+[DataContract]
+public class GangMemberData
 {
-    public List<BankAccount> Accounts { get; set; } = new List<BankAccount>();
-    public List<BankTransaction> Ledger { get; set; } = new List<BankTransaction>();
+    [DataMember] public string Name { get; set; }
+    [DataMember] public int Relationship { get; set; }
+    [DataMember] public int CombatStyle { get; set; }
+    [DataMember] public bool IsFollowing { get; set; }
+}
+
+[DataContract]
+public class BankSaveData
+{
+    [DataMember] public List<BankAccountData> Accounts { get; set; } = new List<BankAccountData>();
+}
+
+[DataContract]
+public class BankAccountData
+{
+    [DataMember] public string OwnerId { get; set; }
+    [DataMember] public decimal Cash { get; set; }
+    [DataMember] public decimal Gold { get; set; }
 }
