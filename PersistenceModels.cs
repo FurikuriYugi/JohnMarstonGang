@@ -10,6 +10,9 @@ public class GangSaveData
 
     [DataMember]
     public BankSaveData Bank { get; set; } = new BankSaveData();
+
+    [DataMember]
+    public List<WagonData> Wagons { get; set; } = new List<WagonData>();
 }
 
 [DataContract]
@@ -83,4 +86,48 @@ public class BankTransactionData
 
     [DataMember]
     public string Reason { get; set; }
+}
+
+[DataContract]
+public class WagonData
+{
+    [DataMember]
+    public string WagonId { get; set; }
+
+    [DataMember]
+    public string Name { get; set; }
+
+    [DataMember]
+    public string OwnerId { get; set; }
+
+    [DataMember]
+    public string HorseId { get; set; }
+
+    [DataMember]
+    public int Type { get; set; }
+
+    [DataMember]
+    public bool IsOwned { get; set; }
+
+    [DataMember]
+    public bool IsHitched { get; set; }
+
+    [DataMember]
+    public bool IsPersistent { get; set; }
+
+    [DataMember]
+    public bool IsDestroyed { get; set; }
+
+    [DataMember]
+    public List<WagonCargoData> Cargo { get; set; } = new List<WagonCargoData>();
+}
+
+[DataContract]
+public class WagonCargoData
+{
+    [DataMember]
+    public string ItemName { get; set; }
+
+    [DataMember]
+    public int Amount { get; set; }
 }

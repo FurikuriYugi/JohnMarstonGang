@@ -1,117 +1,221 @@
 ﻿// WagonSystem.cs
-using Newtonsoft.Json;
-using RDR2;
-using RDR2.Native;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml;
-
-public class SavedWagon
-{
-    public string ModelName { get; set; }
-    public Vector3 Position { get; set; }
-    public float Heading { get; set; }
-    public int Handle { get; set; }
-    public List<string> Inventory { get; set; } = new List<string>();
-}
+using System.Linq;
 
 public class WagonSystem
 {
-    private readonly Dictionary<string, SavedWagon> _wagons = new Dictionary<string, SavedWagon>();
+    private readonly List<Wagon> _wagons = new List<Wagon>();
 
-    public void RegisterOwnedWagon(string wagonId, Vehicle vehicle)
+    public IReadOnlyList<Wagon> Wagons => _wagons;
+
+    public Wagon CreateWagon(string name, string ownerId, WagonType type)
     {
-        if (vehicle == null || !vehicle.Exists()) return;
-
-        _wagons[wagonId] = new SavedWagon
+        var wagon = new Wagon
         {
-            Handle = vehicle.Handle,
-            ModelName = vehicle.Model.Hash.ToString(),
-            Position = vehicle.Position,
-            Heading = vehicle.Heading,
-            Inventory = new List<string>()
+            WagonId = Guid.NewGuid().ToString("N"),
+            Name = name,
+            OwnerId = ownerId,
+            Type = type,
+            IsOwned = true,
+            IsHitched = false,
+            IsPersistent = true
         };
-        Save();
-    }
 
-    public void AddItem(string wagonId, string item)
-    {
-        if (!_wagons.TryGetValue(wagonId, out SavedWagon wagon))
-            return;
-
-        wagon.Inventory.Add(item);
-        Save();
-    }
-
-    public bool RemoveItem(string wagonId, string item)
-    {
-        if (!_wagons.TryGetValue(wagonId, out SavedWagon wagon))
-            return false;
-
-        bool removed = wagon.Inventory.Remove(item);
-        if (removed) Save();
-        return removed;
-    }
-
-    public SavedWagon GetWagon(string wagonId)
-    {
-        _wagons.TryGetValue(wagonId, out SavedWagon wagon);
+        _wagons.Add(wagon);
         return wagon;
     }
 
-    public void RespawnNearPlayer(string wagonId, Model model)
+    public Wagon GetWagon(string wagonId)
     {
-        if (!_wagons.TryGetValue(wagonId, out SavedWagon wagon))
-            return;
-
-        Ped player = Game.Player.Character;
-        if (player == null || !player.Exists())
-            return;
-
-        if (!model.IsLoaded)
-            model.Request(500);
-
-        if (!model.IsLoaded)
-            return;
-
-        Vector3 spawnPos = player.Position + player.ForwardVector * 6f;
-        Vehicle spawned = World.CreateVehicle(model, spawnPos, player.Heading);
-        if (spawned != null && spawned.Exists())
-        {
-            wagon.Handle = spawned.Handle;
-            wagon.Position = spawned.Position;
-            wagon.Heading = spawned.Heading;
-            Save();
-        }
+        return _wagons.FirstOrDefault(x => x.WagonId == wagonId);
     }
 
-    public void Save()
+    public bool HitchWagon(string wagonId)
     {
-        try
-        {
-            string path = "scripts\\JohnsGangWagons.json";
-            string dir = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(path, JsonConvert.SerializeObject(_wagons, Formatting.Indented));
-        }
-        catch { }
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return false;
+
+        wagon.IsHitched = true;
+        return true;
     }
 
-    public void Load()
+    public bool UnhitchWagon(string wagonId)
     {
-        try
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return false;
+
+        wagon.IsHitched = false;
+        return true;
+    }
+
+    public bool StoreItem(string wagonId, string itemName, int amount)
+    {
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return false;
+        if (string.IsNullOrEmpty(itemName)) return false;
+        if (amount <= 0) return false;
+
+        var stack = wagon.Cargo.FirstOrDefault(x => x.ItemName == itemName);
+        if (stack == null)
         {
-            string path = "scripts\\JohnsGangWagons.json";
-            if (!File.Exists(path)) return;
-            var loaded = JsonConvert.DeserializeObject<Dictionary<string, SavedWagon>>(File.ReadAllText(path));
-            if (loaded != null)
+            stack = new WagonCargoItem
             {
-                _wagons.Clear();
-                foreach (var kv in loaded)
-                    _wagons[kv.Key] = kv.Value;
-            }
+                ItemName = itemName,
+                Amount = 0
+            };
+            wagon.Cargo.Add(stack);
         }
-        catch { }
+
+        stack.Amount += amount;
+        return true;
     }
+
+    public bool RemoveItem(string wagonId, string itemName, int amount)
+    {
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return false;
+        if (string.IsNullOrEmpty(itemName)) return false;
+        if (amount <= 0) return false;
+
+        var stack = wagon.Cargo.FirstOrDefault(x => x.ItemName == itemName);
+        if (stack == null) return false;
+        if (stack.Amount < amount) return false;
+
+        stack.Amount -= amount;
+        if (stack.Amount <= 0)
+            wagon.Cargo.Remove(stack);
+
+        return true;
+    }
+
+    public bool CanCarryWagonType(WagonType type)
+    {
+        return type == WagonType.Cargo || type == WagonType.Combat || type == WagonType.Artillery;
+    }
+
+    public bool IsOwnedBy(string wagonId, string ownerId)
+    {
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return false;
+        return wagon.OwnerId == ownerId;
+    }
+
+    public void AttachHorse(string wagonId, string horseId)
+    {
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return;
+
+        wagon.HorseId = horseId;
+        wagon.IsHitched = true;
+    }
+
+    public void DetachHorse(string wagonId)
+    {
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return;
+
+        wagon.HorseId = null;
+        wagon.IsHitched = false;
+    }
+
+    public void MakePersistent(string wagonId)
+    {
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return;
+
+        wagon.IsPersistent = true;
+    }
+
+    public void ClearDestroyedWagons()
+    {
+        _wagons.RemoveAll(x => x.IsDestroyed);
+    }
+
+    public void MarkDestroyed(string wagonId)
+    {
+        var wagon = GetWagon(wagonId);
+        if (wagon == null) return;
+
+        wagon.IsDestroyed = true;
+    }
+
+    public void RestoreFromPersistence(IEnumerable<WagonData> wagons)
+    {
+        _wagons.Clear();
+
+        if (wagons == null)
+            return;
+
+        foreach (var data in wagons)
+        {
+            _wagons.Add(new Wagon
+            {
+                WagonId = data.WagonId,
+                Name = data.Name,
+                OwnerId = data.OwnerId,
+                HorseId = data.HorseId,
+                Type = (WagonType)data.Type,
+                IsOwned = data.IsOwned,
+                IsHitched = data.IsHitched,
+                IsPersistent = data.IsPersistent,
+                IsDestroyed = data.IsDestroyed,
+                Cargo = data.Cargo != null
+                    ? data.Cargo.Select(x => new WagonCargoItem
+                    {
+                        ItemName = x.ItemName,
+                        Amount = x.Amount
+                    }).ToList()
+                    : new List<WagonCargoItem>()
+            });
+        }
+    }
+
+    public List<WagonData> BuildPersistence()
+    {
+        return _wagons.Select(w => new WagonData
+        {
+            WagonId = w.WagonId,
+            Name = w.Name,
+            OwnerId = w.OwnerId,
+            HorseId = w.HorseId,
+            Type = (int)w.Type,
+            IsOwned = w.IsOwned,
+            IsHitched = w.IsHitched,
+            IsPersistent = w.IsPersistent,
+            IsDestroyed = w.IsDestroyed,
+            Cargo = w.Cargo.Select(c => new WagonCargoData
+            {
+                ItemName = c.ItemName,
+                Amount = c.Amount
+            }).ToList()
+        }).ToList();
+    }
+}
+
+public class Wagon
+{
+    public string WagonId { get; set; }
+    public string Name { get; set; }
+    public string OwnerId { get; set; }
+    public string HorseId { get; set; }
+    public WagonType Type { get; set; }
+    public bool IsOwned { get; set; }
+    public bool IsHitched { get; set; }
+    public bool IsPersistent { get; set; }
+    public bool IsDestroyed { get; set; }
+    public List<WagonCargoItem> Cargo { get; set; } = new List<WagonCargoItem>();
+}
+
+public class WagonCargoItem
+{
+    public string ItemName { get; set; }
+    public int Amount { get; set; }
+}
+
+public enum WagonType
+{
+    Cargo = 0,
+    Combat = 1,
+    Artillery = 2
 }
