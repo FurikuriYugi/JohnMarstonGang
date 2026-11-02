@@ -1,11 +1,15 @@
-﻿// GangTypes.cs
+﻿using System;
+
 public enum GangOrder
 {
-    FollowPlayer,
-    WaitHere
+    Follow,
+    Wait,
+    Defensive,
+    Aggressive,
+    Stealth
 }
 
-public enum CombatStyle
+public enum GangCombatStyle
 {
     NonLethalMelee,
     LethalMelee,
@@ -13,4 +17,15 @@ public enum CombatStyle
     RangedMedium,
     RangedLong,
     Stealth
+}
+
+public enum GangMemberRole
+{
+    None,
+    Scout,
+    Guard,
+    Hunter,
+    Worker,
+    Driver,
+    Gunner
 }

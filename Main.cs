@@ -1,69 +1,82 @@
-﻿// Main.cs
-using System;
+﻿using System;
 using System.Windows.Forms;
 using RDR2;
-using RDR2.Native;
-using RDR2.UI;
-using ScriptHookRDRNetAPI;
 
 public class Main : Script
 {
     private GangManager _gang;
-    private const string SavePath = "scripts\\JohnsGangSave.json";
 
     public Main()
     {
         Interval = 0;
         Tick += OnTick;
         KeyDown += OnKeyDown;
-        _gang = GangManager.Load(SavePath);
+
+        try
+        {
+            _gang = GangManager.Load();
+            RDR2.UI.Screen.PrintSubtitle("JohnMorstonGang loaded.");
+        }
+        catch (Exception ex)
+        {
+            RDR2.UI.Screen.PrintSubtitle("Load failed: " + ex.Message);
+        }
     }
 
     private void OnTick(object sender, EventArgs e)
     {
-        _gang.Update();
+        if (_gang == null) return;
+
+        try
+        {
+            _gang.Update();
+        }
+        catch (Exception ex)
+        {
+            RDR2.UI.Screen.PrintSubtitle("Tick error: " + ex.Message);
+        }
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.KeyCode == Keys.F5)
+        if (_gang == null) return;
+
+        try
         {
-            Ped nearest = GangManager.GetNearestRecruitablePed(8.0f);
-            if (nearest != null)
+            if (e.KeyCode == Keys.F6)
             {
-                _gang.Recruit(nearest);
-                UI.Notify("Recruited.");
+                _gang.RecruitNearby();
+                RDR2.UI.Screen.PrintSubtitle("Recruit nearby.");
+            }
+            else if (e.KeyCode == Keys.F7)
+            {
+                _gang.OrderFollow();
+                RDR2.UI.Screen.PrintSubtitle("Follow.");
+            }
+            else if (e.KeyCode == Keys.F8)
+            {
+                _gang.OrderWait();
+                RDR2.UI.Screen.PrintSubtitle("Wait.");
+            }
+            else if (e.KeyCode == Keys.F9)
+            {
+                _gang.CycleCombatStyle();
+                RDR2.UI.Screen.PrintSubtitle("Combat style changed.");
+            }
+            else if (e.KeyCode == Keys.F5)
+            {
+                _gang.Save();
+                RDR2.UI.Screen.PrintSubtitle("Saved.");
+            }
+            else if (e.KeyCode == Keys.F10)
+            {
+                _gang = GangManager.Load();
+                RDR2.UI.Screen.PrintSubtitle("Reloaded.");
             }
         }
-
-        if (e.KeyCode == Keys.F6)
+        catch (Exception ex)
         {
-            _gang.IssueOrder(GangOrder.FollowPlayer);
-            UI.Notify("Gang: follow.");
-        }
-
-        if (e.KeyCode == Keys.F7)
-        {
-            _gang.IssueOrder(GangOrder.WaitHere);
-            UI.Notify("Gang: wait.");
-        }
-
-        if (e.KeyCode == Keys.F8)
-        {
-            _gang.SetCombatStyle(CombatStyle.Stealth);
-            UI.Notify("Gang combat style: stealth.");
-        }
-
-        if (e.KeyCode == Keys.F9)
-        {
-            _gang.Save(SavePath);
-            UI.Notify("Saved.");
-        }
-
-        if (e.KeyCode == Keys.F10)
-        {
-            _gang = GangManager.Load(SavePath);
-            UI.Notify("Loaded.");
+            RDR2.UI.Screen.PrintSubtitle("Key error: " + ex.Message);
         }
     }
 }
