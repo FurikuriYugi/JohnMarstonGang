@@ -7,7 +7,10 @@ using System.IO;
 public class GangManager
 {
     private readonly List<GangMember> _members = new List<GangMember>();
+    private readonly TacticalSquadAiSystem _tacticalAi = new TacticalSquadAiSystem();
     private const string SaveFileName = "JohnMarstonGang_Save.xml";
+
+    public IReadOnlyList<GangMember> Members => _members;
 
     public static GangManager Load()
     {
@@ -73,6 +76,33 @@ public class GangManager
 
     public void Update()
     {
+        var context = new TacticalContext
+        {
+            IsCombatActive = false,
+            IsHostileNearby = false,
+            IsStealthMode = false,
+            IsShoppingOrTown = false,
+            IsTraveling = true,
+            IsCloseQuarters = false,
+            IsMediumRangeCombat = false,
+            IsLongRangeCombat = false,
+            FollowMode = true
+        };
+
+        _tacticalAi.UpdateGangTactics(_members, context);
+        _tacticalAi.ApplyFormationSpacing(_members, context);
+
+        foreach (var member in _members)
+        {
+            member.Update();
+        }
+    }
+
+    public void UpdateWithContext(TacticalContext context)
+    {
+        _tacticalAi.UpdateGangTactics(_members, context);
+        _tacticalAi.ApplyFormationSpacing(_members, context);
+
         foreach (var member in _members)
         {
             member.Update();
@@ -92,6 +122,17 @@ public class GangManager
         _members.Add(newMember);
     }
 
+    public void Recruit(string name, int relationship, CombatStyle style, bool following)
+    {
+        _members.Add(new GangMember
+        {
+            Name = name,
+            Relationship = relationship,
+            CombatStyle = style,
+            IsFollowing = following
+        });
+    }
+
     public void FollowPlayer()
     {
         foreach (var member in _members)
@@ -105,6 +146,14 @@ public class GangManager
         foreach (var member in _members)
         {
             member.IsFollowing = false;
+        }
+    }
+
+    public void SetCombatStyleForAll(CombatStyle style)
+    {
+        foreach (var member in _members)
+        {
+            member.CombatStyle = style;
         }
     }
 

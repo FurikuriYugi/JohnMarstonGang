@@ -1,226 +1,323 @@
-﻿using System;
+﻿// TacticalSquadAiSystem.cs
+using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 
 public class TacticalSquadAiSystem
 {
-    private readonly string _savePath;
-    private readonly Random _rng = new Random();
-    private readonly List<SquadDirective> _directives = new List<SquadDirective>();
+    private readonly Random _random = new Random();
 
-    public bool Enabled { get; set; } = true;
-    public float EngageRange { get; set; } = 45f;
-    public float HoldRange { get; set; } = 18f;
-    public float RegroupRange { get; set; } = 30f;
-    public int ReissueIntervalMs { get; set; } = 1500;
-    public bool UseCoverPreference { get; set; } = true;
-
-    private long _nextThinkAt;
-
-    public IReadOnlyList<SquadDirective> Directives => _directives;
-
-    public TacticalSquadAiSystem(string saveFileName = "TacticalSquadAiSystem.json")
+    public void UpdateGangTactics(IEnumerable<GangMember> members, TacticalContext context)
     {
-        _savePath = Path.Combine("scripts", saveFileName);
-        Load();
+        if (members == null) return;
+
+        foreach (var member in members)
+        {
+            if (member == null) continue;
+            UpdateMemberTactics(member, context);
+        }
     }
 
-    public void Update(Vector3 leaderPosition, IReadOnlyList<GangMember> squadMembers, Func<GangMember, bool> memberIsDown = null, Action<GangMember, SquadOrder> issueOrder = null)
+    public void UpdateMemberTactics(GangMember member, TacticalContext context)
     {
-        if (!Enabled || squadMembers == null || squadMembers.Count == 0)
-            return;
+        if (member == null) return;
 
-        long now = Environment.TickCount64;
-        if (now < _nextThinkAt)
-            return;
+        var desiredStyle = DetermineCombatStyle(member, context);
+        member.CombatStyle = desiredStyle;
+        member.IsFollowing = ShouldFollowPlayer(context);
+    }
 
-        _nextThinkAt = now + ReissueIntervalMs;
+    public CombatStyle DetermineCombatStyle(GangMember member, TacticalContext context)
+    {
+        if (context == null)
+            return member.CombatStyle;
 
-        CleanupStaleDirectives(squadMembers);
-
-        bool enemyNear = IsEnemyThreatNear(leaderPosition);
-        bool regroupNeeded = HasSpreadOutSquad(leaderPosition, squadMembers, memberIsDown);
-        bool holdPosition = !enemyNear && !regroupNeeded;
-
-        foreach (var member in squadMembers)
+        if (context.IsStealthMode)
         {
-            if (member == null)
-                continue;
+            if (member.Relationship >= 50)
+                return CombatStyle.Stealth;
 
-            if (memberIsDown != null && memberIsDown(member))
-            {
-                SetDirective(member, SquadOrder.ReviveOrRetreat, issueOrder);
-                continue;
-            }
-
-            float dist = Vector3.Distance(leaderPosition, member.CurrentPosition);
-
-            if (regroupNeeded && dist > RegroupRange)
-            {
-                SetDirective(member, SquadOrder.Regroup, issueOrder);
-                continue;
-            }
-
-            if (enemyNear && dist <= EngageRange)
-            {
-                SetDirective(member, UseCoverPreference && _rng.NextDouble() < 0.7 ? SquadOrder.TakeCoverAndEngage : SquadOrder.Engage, issueOrder);
-                continue;
-            }
-
-            if (holdPosition || dist <= HoldRange)
-            {
-                SetDirective(member, SquadOrder.HoldPosition, issueOrder);
-                continue;
-            }
-
-            SetDirective(member, SquadOrder.FollowLeader, issueOrder);
+            return CombatStyle.NonLethalMelee;
         }
 
-        Save();
+        if (context.IsCloseQuarters)
+        {
+            if (context.IsHostileNearby)
+                return member.Relationship < 0 ? CombatStyle.LethalMelee : CombatStyle.RangedShort;
+
+            return CombatStyle.RangedShort;
+        }
+
+        if (context.IsLongRangeCombat)
+            return CombatStyle.RangedLong;
+
+        if (context.IsMediumRangeCombat)
+            return CombatStyle.RangedMedium;
+
+        if (context.IsShoppingOrTown)
+            return CombatStyle.RangedShort;
+
+        return member.CombatStyle;
     }
 
-    public void ForceOrder(GangMember member, SquadOrder order, Action<GangMember, SquadOrder> issueOrder = null)
+    public bool ShouldFollowPlayer(TacticalContext context)
+    {
+        if (context == null)
+            return true;
+
+        if (context.IsShoppingOrTown)
+            return true;
+
+        if (context.IsStealthMode)
+            return true;
+
+        if (context.IsCombatActive)
+            return true;
+
+        return context.FollowMode;
+    }
+
+    public GangRole DetermineRole(GangMember member, TacticalContext context)
     {
         if (member == null)
+            return GangRole.Follower;
+
+        if (context != null && context.IsCombatActive)
+        {
+            if (member.CombatStyle == CombatStyle.RangedLong)
+                return GangRole.Support;
+            if (member.CombatStyle == CombatStyle.Stealth || member.CombatStyle == CombatStyle.NonLethalMelee)
+                return GangRole.Scout;
+            if (member.CombatStyle == CombatStyle.LethalMelee)
+                return GangRole.Brawler;
+
+            return GangRole.Follower;
+        }
+
+        if (context != null && context.IsShoppingOrTown)
+            return GangRole.Supplier;
+
+        return GangRole.Follower;
+    }
+
+    public TacticalOrder DetermineOrder(TacticalContext context)
+    {
+        if (context == null)
+            return TacticalOrder.Follow;
+
+        if (context.IsStealthMode)
+            return TacticalOrder.HoldAndStealth;
+
+        if (context.IsCombatActive)
+            return TacticalOrder.Assault;
+
+        if (context.IsShoppingOrTown)
+            return TacticalOrder.HoldPosition;
+
+        if (context.IsTraveling)
+            return TacticalOrder.Follow;
+
+        return TacticalOrder.Follow;
+    }
+
+    public void ApplyFormationSpacing(IEnumerable<GangMember> members, TacticalContext context)
+    {
+        if (members == null || context == null)
             return;
 
-        UpsertDirective(member, order);
-        issueOrder?.Invoke(member, order);
-        Save();
-    }
-
-    public bool RemoveDirective(string memberId)
-    {
-        bool removed = _directives.RemoveAll(x => x.MemberId == memberId) > 0;
-        if (removed)
-            Save();
-        return removed;
-    }
-
-    public void Clear()
-    {
-        _directives.Clear();
-        Save();
-    }
-
-    public void Save()
-    {
-        try
+        var index = 0;
+        foreach (var member in members)
         {
-            Directory.CreateDirectory("scripts");
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            File.WriteAllText(_savePath, JsonSerializer.Serialize(_directives, options));
-        }
-        catch
-        {
+            if (member == null) continue;
+            var role = DetermineRole(member, context);
+
+            if (role == GangRole.Scout)
+                member.IsFollowing = true;
+            else if (role == GangRole.Supplier)
+                member.IsFollowing = false;
+            else if (role == GangRole.Support)
+                member.IsFollowing = true;
+
+            index++;
         }
     }
 
-    public void Load()
+    public CombatStyle SelectStyleForThreatLevel(int threatLevel, bool stealthPreferred)
     {
-        try
-        {
-            if (!File.Exists(_savePath))
-                return;
+        if (stealthPreferred)
+            return threatLevel > 5 ? CombatStyle.Stealth : CombatStyle.NonLethalMelee;
 
-            var json = File.ReadAllText(_savePath);
-            var loaded = JsonSerializer.Deserialize<List<SquadDirective>>(json);
+        if (threatLevel <= 2)
+            return CombatStyle.RangedShort;
 
-            _directives.Clear();
-            if (loaded != null)
-                _directives.AddRange(loaded.Where(x => !string.IsNullOrWhiteSpace(x.MemberId)));
-        }
-        catch
+        if (threatLevel <= 4)
+            return CombatStyle.RangedMedium;
+
+        if (threatLevel <= 6)
+            return CombatStyle.RangedLong;
+
+        return CombatStyle.RangedLong;
+    }
+
+    public string GetBehaviorLabel(CombatStyle style)
+    {
+        switch (style)
         {
-            _directives.Clear();
+            case CombatStyle.NonLethalMelee: return "NonLethalMelee";
+            case CombatStyle.LethalMelee: return "LethalMelee";
+            case CombatStyle.RangedShort: return "RangedShort";
+            case CombatStyle.RangedMedium: return "RangedMedium";
+            case CombatStyle.RangedLong: return "RangedLong";
+            case CombatStyle.Stealth: return "Stealth";
+            default: return "Unknown";
         }
     }
 
-    private void SetDirective(GangMember member, SquadOrder order, Action<GangMember, SquadOrder> issueOrder)
+    public TacticalContext BuildContext(
+        bool isCombatActive,
+        bool isHostileNearby,
+        bool isStealthMode,
+        bool isShoppingOrTown,
+        bool isTraveling,
+        bool isCloseQuarters,
+        bool isMediumRangeCombat,
+        bool isLongRangeCombat,
+        bool followMode)
     {
-        var existing = _directives.FirstOrDefault(x => x.MemberId == member.MemberId);
-        if (existing == null)
+        return new TacticalContext
         {
-            existing = new SquadDirective
-            {
-                MemberId = member.MemberId,
-                LastAssignedUtc = DateTime.UtcNow
-            };
-            _directives.Add(existing);
-        }
-
-        if (existing.Order != order)
-        {
-            existing.Order = order;
-            existing.LastAssignedUtc = DateTime.UtcNow;
-            issueOrder?.Invoke(member, order);
-        }
+            IsCombatActive = isCombatActive,
+            IsHostileNearby = isHostileNearby,
+            IsStealthMode = isStealthMode,
+            IsShoppingOrTown = isShoppingOrTown,
+            IsTraveling = isTraveling,
+            IsCloseQuarters = isCloseQuarters,
+            IsMediumRangeCombat = isMediumRangeCombat,
+            IsLongRangeCombat = isLongRangeCombat,
+            FollowMode = followMode
+        };
     }
 
-    private void UpsertDirective(GangMember member, SquadOrder order)
+    public bool TryChooseSupportAction(TacticalContext context, out SupportAction action)
     {
-        var existing = _directives.FirstOrDefault(x => x.MemberId == member.MemberId);
-        if (existing == null)
+        action = SupportAction.None;
+
+        if (context == null)
+            return false;
+
+        if (context.IsShoppingOrTown)
         {
-            _directives.Add(new SquadDirective
-            {
-                MemberId = member.MemberId,
-                Order = order,
-                LastAssignedUtc = DateTime.UtcNow
-            });
-            return;
+            action = SupportAction.Supplier;
+            return true;
         }
 
-        existing.Order = order;
-        existing.LastAssignedUtc = DateTime.UtcNow;
-    }
-
-    private void CleanupStaleDirectives(IReadOnlyList<GangMember> squadMembers)
-    {
-        var validIds = new HashSet<string>(squadMembers.Where(x => x != null).Select(x => x.MemberId));
-        _directives.RemoveAll(x => !validIds.Contains(x.MemberId));
-    }
-
-    private bool HasSpreadOutSquad(Vector3 leaderPosition, IReadOnlyList<GangMember> squadMembers, Func<GangMember, bool> memberIsDown)
-    {
-        int farCount = 0;
-
-        foreach (var member in squadMembers)
+        if (context.IsCombatActive && context.IsStealthMode)
         {
-            if (member == null)
-                continue;
-
-            if (memberIsDown != null && memberIsDown(member))
-                continue;
-
-            if (Vector3.Distance(leaderPosition, member.CurrentPosition) > RegroupRange)
-                farCount++;
+            action = SupportAction.Suppress;
+            return true;
         }
 
-        return farCount >= Math.Max(1, squadMembers.Count / 2);
+        if (context.IsCombatActive)
+        {
+            action = SupportAction.Cover;
+            return true;
+        }
+
+        if (context.IsTraveling)
+        {
+            action = SupportAction.Regroup;
+            return true;
+        }
+
+        return false;
     }
 
-    private bool IsEnemyThreatNear(Vector3 leaderPosition)
+    public int GetSpacingOffset(GangMember member, TacticalContext context)
     {
-        return _rng.NextDouble() < 0.45;
+        if (member == null)
+            return 0;
+
+        var baseOffset = 2;
+
+        if (context != null && context.IsStealthMode)
+            baseOffset = 4;
+
+        if (member.CombatStyle == CombatStyle.RangedLong)
+            baseOffset += 2;
+
+        if (member.CombatStyle == CombatStyle.LethalMelee || member.CombatStyle == CombatStyle.NonLethalMelee)
+            baseOffset -= 1;
+
+        return Math.Max(1, baseOffset);
+    }
+
+    public bool ShouldUseStealthWeapon(CombatStyle style)
+    {
+        return style == CombatStyle.Stealth || style == CombatStyle.NonLethalMelee;
+    }
+
+    public int GetAggressionScore(GangMember member, TacticalContext context)
+    {
+        if (member == null)
+            return 0;
+
+        var score = 0;
+
+        if (member.Relationship < 0)
+            score += 2;
+        if (member.Relationship > 50)
+            score += 1;
+
+        if (context != null)
+        {
+            if (context.IsCombatActive) score += 2;
+            if (context.IsStealthMode) score -= 1;
+            if (context.IsShoppingOrTown) score -= 1;
+            if (context.IsHostileNearby) score += 1;
+        }
+
+        if (member.CombatStyle == CombatStyle.RangedLong) score += 1;
+        if (member.CombatStyle == CombatStyle.LethalMelee) score += 2;
+
+        return score;
     }
 }
 
-public class SquadDirective
+public class TacticalContext
 {
-    public string MemberId { get; set; }
-    public SquadOrder Order { get; set; }
-    public DateTime LastAssignedUtc { get; set; }
+    public bool IsCombatActive { get; set; }
+    public bool IsHostileNearby { get; set; }
+    public bool IsStealthMode { get; set; }
+    public bool IsShoppingOrTown { get; set; }
+    public bool IsTraveling { get; set; }
+    public bool IsCloseQuarters { get; set; }
+    public bool IsMediumRangeCombat { get; set; }
+    public bool IsLongRangeCombat { get; set; }
+    public bool FollowMode { get; set; } = true;
 }
 
-public enum SquadOrder
+public enum GangRole
 {
-    FollowLeader,
-    HoldPosition,
-    Engage,
-    TakeCoverAndEngage,
-    Regroup,
-    ReviveOrRetreat
+    Follower = 0,
+    Scout = 1,
+    Support = 2,
+    Supplier = 3,
+    Brawler = 4
+}
+
+public enum TacticalOrder
+{
+    Follow = 0,
+    HoldPosition = 1,
+    HoldAndStealth = 2,
+    Assault = 3,
+    Regroup = 4
+}
+
+public enum SupportAction
+{
+    None = 0,
+    Cover = 1,
+    Suppress = 2,
+    Regroup = 3,
+    Supplier = 4
 }
