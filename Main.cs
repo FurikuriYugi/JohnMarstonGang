@@ -7,11 +7,13 @@ public class Main : Script
 {
     private GangManager _gang;
     private BankSystem _bank;
+    private TacticalSquadAiSystem _tacticalAi;
 
     public Main()
     {
         _gang = GangManager.Load();
         _bank = BankSystem.Load();
+        _tacticalAi = new TacticalSquadAiSystem();
 
         Tick += OnTick;
         KeyDown += OnKeyDown;
@@ -21,7 +23,20 @@ public class Main : Script
     {
         try
         {
-            _gang.Update();
+            var context = new TacticalContext
+            {
+                IsCombatActive = false,
+                IsHostileNearby = false,
+                IsStealthMode = false,
+                IsShoppingOrTown = false,
+                IsTraveling = true,
+                IsCloseQuarters = false,
+                IsMediumRangeCombat = false,
+                IsLongRangeCombat = false,
+                FollowMode = true
+            };
+
+            _gang.UpdateWithContext(context);
         }
         catch
         {
@@ -32,19 +47,64 @@ public class Main : Script
     {
         try
         {
-            if (e.KeyCode == Keys.F6) _gang.RecruitNearby();
-            if (e.KeyCode == Keys.F7) _gang.FollowPlayer();
-            if (e.KeyCode == Keys.F8) _gang.Wait();
-            if (e.KeyCode == Keys.F9) _gang.CycleCombatStyle();
+            if (e.KeyCode == Keys.F6)
+                _gang.RecruitNearby();
+
+            if (e.KeyCode == Keys.F7)
+                _gang.FollowPlayer();
+
+            if (e.KeyCode == Keys.F8)
+                _gang.Wait();
+
+            if (e.KeyCode == Keys.F9)
+                _gang.CycleCombatStyle();
+
             if (e.KeyCode == Keys.F5)
             {
                 _gang.Save();
                 _bank.Save();
             }
+
             if (e.KeyCode == Keys.F10)
             {
                 _gang = GangManager.Load();
                 _bank = BankSystem.Load();
+            }
+
+            if (e.KeyCode == Keys.F11)
+            {
+                var context = new TacticalContext
+                {
+                    IsCombatActive = true,
+                    IsHostileNearby = true,
+                    IsStealthMode = false,
+                    IsShoppingOrTown = false,
+                    IsTraveling = false,
+                    IsCloseQuarters = true,
+                    IsMediumRangeCombat = false,
+                    IsLongRangeCombat = false,
+                    FollowMode = true
+                };
+
+                _gang.UpdateWithContext(context);
+            }
+
+            if (e.KeyCode == Keys.F12)
+            {
+                var context = new TacticalContext
+                {
+                    IsCombatActive = false,
+                    IsHostileNearby = false,
+                    IsStealthMode = true,
+                    IsShoppingOrTown = false,
+                    IsTraveling = false,
+                    IsCloseQuarters = true,
+                    IsMediumRangeCombat = false,
+                    IsLongRangeCombat = false,
+                    FollowMode = true
+                };
+
+                _gang.UpdateWithContext(context);
             }
         }
         catch
