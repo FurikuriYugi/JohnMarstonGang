@@ -16,6 +16,7 @@ public class PlayerGangSaveData
 
 public class GangMemberSaveData
 {
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Name { get; set; } = string.Empty;
     public CompanionType CompanionType { get; set; }
     public GangMemberRole Role { get; set; }

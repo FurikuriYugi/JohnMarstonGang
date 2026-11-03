@@ -3,133 +3,90 @@ using System.Collections.Generic;
 
 public class GangMember
 {
-    public string MemberId { get; set; }
-    public string Name { get; set; }
-    public CompanionType CompanionType { get; set; }
-    public GangMemberRole Role { get; set; }
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Name { get; set; } = string.Empty;
+    public CompanionType CompanionType { get; set; } = CompanionType.Human;
+    public GangMemberRole Role { get; set; } = GangMemberRole.Fighter;
+    public RelationshipAlignment Alignment { get; set; } = RelationshipAlignment.Neutral;
+    public CombatStyle CombatStyle { get; set; } = CombatStyle.RangedShort;
+    public TacticalState TacticalState { get; set; } = TacticalState.Idle;
 
-    public bool IsActive { get; set; }
-    public bool IsShopping { get; set; }
-    public bool IsStealthing { get; set; }
-    public bool IsInCombatMode { get; set; }
-
-    public int Loyalty { get; set; }
-    public int Trust { get; set; }
-    public int Honor { get; set; }
-    public int Money { get; set; }
+    public int Loyalty { get; set; } = 50;
     public int Experience { get; set; }
+    public int Health { get; set; } = 100;
+    public int Hunger { get; set; }
+    public int AmmoReserve { get; set; } = 50;
 
-    public GangMode CurrentGangMode { get; set; }
-    public GangTaskType CurrentTask { get; set; }
-    public string CurrentTargetId { get; set; }
-    public string CurrentTaskDescription { get; set; }
+    public bool NeedsFood { get; set; }
+    public bool NeedsAmmo { get; set; }
+    public bool NeedsMedicine { get; set; }
 
-    public List<string> KnownGoals { get; set; } = new List<string>();
-    public List<string> Memories { get; set; } = new List<string>();
-    public List<string> Skills { get; set; } = new List<string>();
+    public string ModelName { get; set; } = string.Empty;
+    public List<string> Weapons { get; set; } = new List<string>();
+    public List<string> MemoryTags { get; set; } = new List<string>();
+    public List<string> Goals { get; set; } = new List<string>();
 
-    public string CurrentWeaponPreference { get; set; }
-
-    public void UpdateState()
+    public void UpdateCombatStyleFromRole()
     {
-        if (Loyalty < 0) Loyalty = 0;
-        if (Loyalty > 100) Loyalty = 100;
-
-        if (Trust < 0) Trust = 0;
-        if (Trust > 100) Trust = 100;
-
-        if (Honor < -100) Honor = -100;
-        if (Honor > 100) Honor = 100;
-
-        if (Experience < 0) Experience = 0;
-    }
-
-    public string GetSuggestedWeapon()
-    {
-        if (IsStealthing || CurrentGangMode == GangMode.Stealth)
+        switch (Role)
         {
-            if (Skills.Contains("Bow"))
-                return "Bow";
-
-            if (Skills.Contains("Knife"))
-                return "Knife";
-
-            return "Bow";
+            case GangMemberRole.Scout:
+                CombatStyle = CombatStyle.Stealth;
+                break;
+            case GangMemberRole.Hunter:
+                CombatStyle = CombatStyle.RangedMedium;
+                break;
+            case GangMemberRole.Guard:
+                CombatStyle = CombatStyle.RangedShort;
+                break;
+            case GangMemberRole.Medic:
+                CombatStyle = CombatStyle.RangedShort;
+                break;
+            case GangMemberRole.Driver:
+                CombatStyle = CombatStyle.RangedShort;
+                break;
+            case GangMemberRole.Gunner:
+                CombatStyle = CombatStyle.RangedLong;
+                break;
+            case GangMemberRole.Engineer:
+                CombatStyle = CombatStyle.RangedShort;
+                break;
+            default:
+                CombatStyle = CombatStyle.RangedShort;
+                break;
         }
-
-        if (IsInCombatMode || CurrentGangMode == GangMode.Combat)
-        {
-            if (Role == GangMemberRole.Scout)
-                return "Repeater";
-
-            if (Role == GangMemberRole.Enforcer)
-                return "Rifle";
-
-            if (Role == GangMemberRole.Leader)
-                return "Revolver";
-
-            return "Rifle";
-        }
-
-        if (IsShopping || CurrentGangMode == GangMode.Shopping)
-            return "Sidearm";
-
-        return CurrentWeaponPreference ?? "Revolver";
     }
 
-    public GangMemberSaveData ToSaveData()
+    public void ApplyNeedTick()
     {
-        return new GangMemberSaveData
-        {
-            MemberId = MemberId,
-            Name = Name,
-            CompanionType = CompanionType,
-            Role = Role,
-            IsActive = IsActive,
-            IsShopping = IsShopping,
-            IsStealthing = IsStealthing,
-            IsInCombatMode = IsInCombatMode,
-            Loyalty = Loyalty,
-            Trust = Trust,
-            Honor = Honor,
-            Money = Money,
-            Experience = Experience,
-            CurrentGangMode = CurrentGangMode,
-            CurrentTask = CurrentTask,
-            CurrentTargetId = CurrentTargetId,
-            CurrentTaskDescription = CurrentTaskDescription,
-            KnownGoals = new List<string>(KnownGoals ?? new List<string>()),
-            Memories = new List<string>(Memories ?? new List<string>()),
-            Skills = new List<string>(Skills ?? new List<string>()),
-            CurrentWeaponPreference = CurrentWeaponPreference
-        };
+        Hunger = Math.Min(100, Hunger + 1);
+        if (Hunger >= 70)
+            NeedsFood = true;
+
+        if (AmmoReserve <= 10)
+            NeedsAmmo = true;
+
+        if (Health <= 35)
+            NeedsMedicine = true;
     }
 
-    public void FromSaveData(GangMemberSaveData data)
+    public void Feed()
     {
-        if (data == null)
-            return;
+        Hunger = 0;
+        NeedsFood = false;
+    }
 
-        MemberId = data.MemberId;
-        Name = data.Name;
-        CompanionType = data.CompanionType;
-        Role = data.Role;
-        IsActive = data.IsActive;
-        IsShopping = data.IsShopping;
-        IsStealthing = data.IsStealthing;
-        IsInCombatMode = data.IsInCombatMode;
-        Loyalty = data.Loyalty;
-        Trust = data.Trust;
-        Honor = data.Honor;
-        Money = data.Money;
-        Experience = data.Experience;
-        CurrentGangMode = data.CurrentGangMode;
-        CurrentTask = data.CurrentTask;
-        CurrentTargetId = data.CurrentTargetId;
-        CurrentTaskDescription = data.CurrentTaskDescription;
-        KnownGoals = data.KnownGoals ?? new List<string>();
-        Memories = data.Memories ?? new List<string>();
-        Skills = data.Skills ?? new List<string>();
-        CurrentWeaponPreference = data.CurrentWeaponPreference;
+    public void ResupplyAmmo(int amount)
+    {
+        AmmoReserve += Math.Max(0, amount);
+        if (AmmoReserve > 10)
+            NeedsAmmo = false;
+    }
+
+    public void Heal(int amount)
+    {
+        Health = Math.Min(100, Health + Math.Max(0, amount));
+        if (Health > 35)
+            NeedsMedicine = false;
     }
 }

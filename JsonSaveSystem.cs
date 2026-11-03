@@ -25,6 +25,10 @@ public static class JsonSaveSystem
         if (string.IsNullOrWhiteSpace(json))
             return new T();
 
-        return JsonConvert.DeserializeObject<T>(json, Settings) ?? new T();
+        var data = JsonConvert.DeserializeObject<T>(json, Settings);
+        if (data == null)
+            return new T();
+
+        return data;
     }
 }

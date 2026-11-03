@@ -4,121 +4,88 @@ using System.Linq;
 
 public class LockSystem
 {
-    private readonly List<LockTarget> _targets = new List<LockTarget>();
+    private readonly HashSet<string> _pickableTargets = new HashSet<string>();
 
-    public List<LockTarget> Targets => _targets;
-
-    public void RegisterTarget(string targetId, LockTargetType targetType, bool requiresBreakerTool)
+    public void RegisterPickableTarget(string targetId)
     {
-        LockTarget target = _targets.FirstOrDefault(t => t.TargetId == targetId);
-        if (target != null)
-        {
-            target.TargetType = targetType;
-            target.RequiresBreakerTool = requiresBreakerTool;
+        if (string.IsNullOrWhiteSpace(targetId))
             return;
-        }
 
-        _targets.Add(new LockTarget
-        {
-            TargetId = targetId,
-            TargetType = targetType,
-            IsLocked = true,
-            IsPicked = false,
-            RequiresBreakerTool = requiresBreakerTool
-        });
+        _pickableTargets.Add(targetId);
     }
 
-    public bool CanPick(string targetId, bool hasBreakerTool)
+    public void UnregisterPickableTarget(string targetId)
     {
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
+        if (string.IsNullOrWhiteSpace(targetId))
+            return;
+
+        _pickableTargets.Remove(targetId);
+    }
+
+    public bool IsPickable(string targetId)
+    {
+        if (string.IsNullOrWhiteSpace(targetId))
             return false;
 
-        if (target.RequiresBreakerTool && !hasBreakerTool)
+        return _pickableTargets.Contains(targetId);
+    }
+
+    public InteractionResult TryPickLock(GangMember member, string targetId, bool isLocked)
+    {
+        if (!isLocked)
+            return InteractionResult.Succeeded("Already unlocked.");
+
+        if (member == null)
+            return InteractionResult.Failed("No actor.");
+
+        if (CanPick(member))
+            return InteractionResult.Succeeded("Lock picked.");
+
+        return InteractionResult.Failed("Cannot pick lock.");
+    }
+
+    public InteractionResult TryCrackSafe(GangMember member, string safeId, bool isLocked)
+    {
+        if (!isLocked)
+            return InteractionResult.Succeeded("Safe already open.");
+
+        if (member == null)
+            return InteractionResult.Failed("No actor.");
+
+        if (CanPick(member))
+            return InteractionResult.Succeeded("Safe cracked.");
+
+        if (CanBlowOpen(member))
+            return InteractionResult.Succeeded("Safe blasted open.");
+
+        return InteractionResult.Failed("Cannot open safe.");
+    }
+
+    public bool CanPick(GangMember member)
+    {
+        if (member == null)
             return false;
 
-        return target.IsLocked && !target.IsPicked;
+        if (member.MemoryTags.Contains("HasLockpick"))
+            return true;
+
+        if (member.Goals.Contains("BreakerTool"))
+            return true;
+
+        return member.Role == GangMemberRole.Engineer || member.Role == GangMemberRole.Scout;
     }
 
-    public void PickLock(string targetId, bool hasBreakerTool)
+    public bool CanBlowOpen(GangMember member)
     {
-        if (!CanPick(targetId, hasBreakerTool))
-            return;
+        if (member == null)
+            return false;
 
-        LockTarget target = GetTarget(targetId);
-        target.IsLocked = false;
-        target.IsPicked = true;
+        if (member.Weapons.Contains("Dynamite"))
+            return true;
+
+        if (member.MemoryTags.Contains("CanBlowOpen"))
+            return true;
+
+        return member.Role == GangMemberRole.Engineer;
     }
-
-    public void ForceOpen(string targetId)
-    {
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return;
-
-        target.IsLocked = false;
-        target.IsPicked = false;
-    }
-
-    public bool IsUnlocked(string targetId)
-    {
-        LockTarget target = GetTarget(targetId);
-        return target != null && !target.IsLocked;
-    }
-
-    public LockTarget GetTarget(string targetId)
-    {
-        return _targets.FirstOrDefault(t => t.TargetId == targetId);
-    }
-
-    public List<LockTarget> CreateSaveData()
-    {
-        return _targets.Select(t => new LockTarget
-        {
-            TargetId = t.TargetId,
-            TargetType = t.TargetType,
-            IsLocked = t.IsLocked,
-            IsPicked = t.IsPicked,
-            RequiresBreakerTool = t.RequiresBreakerTool
-        }).ToList();
-    }
-
-    public void LoadFromSave(List<LockTarget> targets)
-    {
-        _targets.Clear();
-
-        if (targets == null)
-            return;
-
-        foreach (LockTarget target in targets)
-        {
-            _targets.Add(new LockTarget
-            {
-                TargetId = target.TargetId,
-                TargetType = target.TargetType,
-                IsLocked = target.IsLocked,
-                IsPicked = target.IsPicked,
-                RequiresBreakerTool = target.RequiresBreakerTool
-            });
-        }
-    }
-}
-
-public class LockTarget
-{
-    public string TargetId { get; set; }
-    public LockTargetType TargetType { get; set; }
-    public bool IsLocked { get; set; }
-    public bool IsPicked { get; set; }
-    public bool RequiresBreakerTool { get; set; }
-}
-
-public enum LockTargetType
-{
-    Door,
-    Safe,
-    Chest,
-    Strongbox,
-    Wagon,
-    Object
 }

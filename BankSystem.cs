@@ -5,244 +5,109 @@ using System.Linq;
 public class BankSystem
 {
     private readonly List<BankAccount> _accounts = new List<BankAccount>();
-    private readonly List<BankVault> _vaults = new List<BankVault>();
-    private readonly List<BusinessLedger> _businessLedgers = new List<BusinessLedger>();
 
-    public List<BankAccount> Accounts => _accounts;
-    public List<BankVault> Vaults => _vaults;
-    public List<BusinessLedger> BusinessLedgers => _businessLedgers;
+    public decimal VaultCash { get; private set; }
+    public decimal VaultGold { get; private set; }
 
-    public BankAccount GetOrCreateAccount(string ownerId)
+    public IReadOnlyList<BankAccount> Accounts => _accounts;
+
+    public BankAccount GetOrCreateAccount(string ownerId, string ownerName)
     {
-        BankAccount account = _accounts.FirstOrDefault(a => a.OwnerId == ownerId);
+        var account = _accounts.FirstOrDefault(x => x.OwnerId == ownerId);
         if (account != null)
             return account;
 
         account = new BankAccount
         {
             OwnerId = ownerId,
-            Cash = 0,
-            Gold = 0,
-            Trust = 50,
-            Suspicion = 0
+            OwnerName = ownerName
         };
 
         _accounts.Add(account);
         return account;
     }
 
-    public BankVault GetOrCreateVault(string bankName)
+    public void Deposit(string ownerId, string ownerName, decimal cash, decimal gold)
     {
-        BankVault vault = _vaults.FirstOrDefault(v => v.BankName == bankName);
-        if (vault != null)
-            return vault;
-
-        vault = new BankVault
+        var account = GetOrCreateAccount(ownerId, ownerName);
+        if (cash > 0)
         {
-            BankName = bankName,
-            StoredCash = 0,
-            StoredGold = 0,
-            RecentWithdrawals = 0
-        };
+            account.Cash += cash;
+            VaultCash += cash;
+        }
 
-        _vaults.Add(vault);
-        return vault;
-    }
-
-    public BusinessLedger GetOrCreateBusinessLedger(string ownerId, string businessName)
-    {
-        BusinessLedger ledger = _businessLedgers.FirstOrDefault(b => b.OwnerId == ownerId && b.BusinessName == businessName);
-        if (ledger != null)
-            return ledger;
-
-        ledger = new BusinessLedger
+        if (gold > 0)
         {
-            OwnerId = ownerId,
-            BusinessName = businessName,
-            CashOnHand = 0,
-            GoldOnHand = 0
-        };
+            account.Gold += gold;
+            VaultGold += gold;
+        }
 
-        _businessLedgers.Add(ledger);
-        return ledger;
+        account.Reputation += 1;
+        account.Suspicion = Math.Max(0, account.Suspicion - 1);
     }
 
-    public void DepositToAccount(string ownerId, int cash, int gold)
+    public bool Withdraw(string ownerId, decimal cash, decimal gold)
     {
-        BankAccount account = GetOrCreateAccount(ownerId);
-        account.Cash += cash;
-        account.Gold += gold;
-        account.Trust += 1;
-    }
+        var account = _accounts.FirstOrDefault(x => x.OwnerId == ownerId);
+        if (account == null)
+            return false;
 
-    public bool WithdrawFromAccount(string ownerId, int cash, int gold)
-    {
-        BankAccount account = GetOrCreateAccount(ownerId);
         if (account.Cash < cash || account.Gold < gold)
             return false;
 
         account.Cash -= cash;
         account.Gold -= gold;
-        account.Suspicion += 1;
+
+        VaultCash = Math.Max(0, VaultCash - cash);
+        VaultGold = Math.Max(0, VaultGold - gold);
+
         return true;
     }
 
-    public void DepositToVault(string bankName, int cash, int gold)
+    public void RegisterRobbery(decimal cashTaken, decimal goldTaken)
     {
-        BankVault vault = GetOrCreateVault(bankName);
-        vault.StoredCash += cash;
-        vault.StoredGold += gold;
+        VaultCash = Math.Max(0, VaultCash - cashTaken);
+        VaultGold = Math.Max(0, VaultGold - goldTaken);
+
+        foreach (var account in _accounts)
+        {
+            account.Suspicion += 3;
+        }
     }
 
-    public bool WithdrawFromVault(string bankName, int cash, int gold)
+    public decimal GetTotalStoredCash()
     {
-        BankVault vault = GetOrCreateVault(bankName);
-        if (vault.StoredCash < cash || vault.StoredGold < gold)
-            return false;
-
-        vault.StoredCash -= cash;
-        vault.StoredGold -= gold;
-        vault.RecentWithdrawals += 1;
-        return true;
+        return _accounts.Sum(x => x.Cash);
     }
 
-    public void AddBusinessIncome(string ownerId, string businessName, int cash, int gold)
+    public decimal GetTotalStoredGold()
     {
-        BusinessLedger ledger = GetOrCreateBusinessLedger(ownerId, businessName);
-        ledger.CashOnHand += cash;
-        ledger.GoldOnHand += gold;
+        return _accounts.Sum(x => x.Gold);
     }
 
-    public void TransferBusinessToBank(string ownerId, string businessName, string bankName, int cash, int gold)
-    {
-        BusinessLedger ledger = GetOrCreateBusinessLedger(ownerId, businessName);
-        BankVault vault = GetOrCreateVault(bankName);
-
-        if (ledger.CashOnHand < cash || ledger.GoldOnHand < gold)
-            return;
-
-        ledger.CashOnHand -= cash;
-        ledger.GoldOnHand -= gold;
-        vault.StoredCash += cash;
-        vault.StoredGold += gold;
-    }
-
-    public int GetSuspicionLevel(string ownerId)
-    {
-        BankAccount account = GetOrCreateAccount(ownerId);
-        return account.Suspicion;
-    }
-
-    public int GetTrustLevel(string ownerId)
-    {
-        BankAccount account = GetOrCreateAccount(ownerId);
-        return account.Trust;
-    }
-
-    public BankSaveData CreateSaveData()
+    public BankSaveData ToSaveData()
     {
         return new BankSaveData
         {
-            Accounts = _accounts.Select(a => new BankAccountSaveData
-            {
-                OwnerId = a.OwnerId,
-                Cash = a.Cash,
-                Gold = a.Gold,
-                Trust = a.Trust,
-                Suspicion = a.Suspicion
-            }).ToList(),
-            Vaults = _vaults.Select(v => new BankVaultSaveData
-            {
-                BankName = v.BankName,
-                StoredCash = v.StoredCash,
-                StoredGold = v.StoredGold,
-                RecentWithdrawals = v.RecentWithdrawals
-            }).ToList(),
-            BusinessLedgers = _businessLedgers.Select(b => new BusinessLedgerSaveData
-            {
-                OwnerId = b.OwnerId,
-                BusinessName = b.BusinessName,
-                CashOnHand = b.CashOnHand,
-                GoldOnHand = b.GoldOnHand
-            }).ToList()
+            VaultCash = VaultCash,
+            VaultGold = VaultGold,
+            Accounts = _accounts.Select(x => x.ToSaveData()).ToList()
         };
     }
 
-    public void LoadFromSave(BankSaveData data)
+    public void LoadFromSaveData(BankSaveData data)
     {
         _accounts.Clear();
-        _vaults.Clear();
-        _businessLedgers.Clear();
 
         if (data == null)
             return;
 
-        if (data.Accounts != null)
-        {
-            foreach (BankAccountSaveData accountData in data.Accounts)
-            {
-                _accounts.Add(new BankAccount
-                {
-                    OwnerId = accountData.OwnerId,
-                    Cash = accountData.Cash,
-                    Gold = accountData.Gold,
-                    Trust = accountData.Trust,
-                    Suspicion = accountData.Suspicion
-                });
-            }
-        }
+        VaultCash = data.VaultCash;
+        VaultGold = data.VaultGold;
 
-        if (data.Vaults != null)
+        foreach (var saved in data.Accounts)
         {
-            foreach (BankVaultSaveData vaultData in data.Vaults)
-            {
-                _vaults.Add(new BankVault
-                {
-                    BankName = vaultData.BankName,
-                    StoredCash = vaultData.StoredCash,
-                    StoredGold = vaultData.StoredGold,
-                    RecentWithdrawals = vaultData.RecentWithdrawals
-                });
-            }
-        }
-
-        if (data.BusinessLedgers != null)
-        {
-            foreach (BusinessLedgerSaveData ledgerData in data.BusinessLedgers)
-            {
-                _businessLedgers.Add(new BusinessLedger
-                {
-                    OwnerId = ledgerData.OwnerId,
-                    BusinessName = ledgerData.BusinessName,
-                    CashOnHand = ledgerData.CashOnHand,
-                    GoldOnHand = ledgerData.GoldOnHand
-                });
-            }
+            _accounts.Add(BankAccount.FromSaveData(saved));
         }
     }
-}
-
-public class BankAccount
-{
-    public string OwnerId { get; set; }
-    public int Cash { get; set; }
-    public int Gold { get; set; }
-    public int Trust { get; set; }
-    public int Suspicion { get; set; }
-}
-
-public class BankVault
-{
-    public string BankName { get; set; }
-    public int StoredCash { get; set; }
-    public int StoredGold { get; set; }
-    public int RecentWithdrawals { get; set; }
-}
-
-public class BusinessLedger
-{
-    public string OwnerId { get; set; }
-    public string BusinessName { get; set; }
-    public int CashOnHand { get; set; }
-    public int GoldOnHand { get; set; }
 }

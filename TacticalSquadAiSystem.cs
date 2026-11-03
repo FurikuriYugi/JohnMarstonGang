@@ -4,147 +4,104 @@ using System.Linq;
 
 public class TacticalSquadAiSystem
 {
-    public void Update(GangManager gangManager)
+    public void UpdateSquadTactics(IEnumerable<GangMember> members, TacticalContext context)
     {
-        if (gangManager == null)
+        if (members == null || context == null)
             return;
 
-        List<GangMember> members = gangManager.GetActiveMembers().ToList();
-
-        foreach (GangMember member in members)
+        foreach (var member in members)
         {
-            UpdateMemberState(member, gangManager);
-            AssignBehavior(member, gangManager, members);
+            if (member == null)
+                continue;
+
+            ApplyContextToMember(member, context);
         }
     }
 
-    private void UpdateMemberState(GangMember member, GangManager gangManager)
+    private void ApplyContextToMember(GangMember member, TacticalContext context)
     {
-        if (member == null)
-            return;
-
-        member.UpdateState();
-
-        if (member.IsStealthing || member.CurrentGangMode == GangMode.Stealth)
+        if (context.IsUnderFire)
         {
-            member.IsInCombatMode = false;
-            member.IsShopping = false;
-            member.CurrentWeaponPreference = member.GetSuggestedWeapon();
+            member.TacticalState = TacticalState.Combat;
+            member.CombatStyle = ChooseCombatStyleForThreat(member, context);
             return;
         }
 
-        if (member.IsInCombatMode || member.CurrentGangMode == GangMode.Combat)
+        if (context.IsStealthMission)
         {
-            member.IsShopping = false;
-            member.CurrentWeaponPreference = member.GetSuggestedWeapon();
+            member.TacticalState = TacticalState.Stealth;
+            member.CombatStyle = CombatStyle.Stealth;
             return;
         }
 
-        if (member.IsShopping || member.CurrentGangMode == GangMode.Shopping)
+        if (context.IsShoppingOrTown)
         {
-            member.IsStealthing = false;
-            member.IsInCombatMode = false;
-            member.CurrentWeaponPreference = member.GetSuggestedWeapon();
+            member.TacticalState = TacticalState.Guarding;
+            member.CombatStyle = CombatStyle.RangedShort;
             return;
         }
 
-        member.CurrentWeaponPreference = member.GetSuggestedWeapon();
+        if (context.IsTraveling)
+        {
+            member.TacticalState = TacticalState.Following;
+            member.CombatStyle = ChooseTravelCombatStyle(member);
+            return;
+        }
+
+        if (context.RequiresWork)
+        {
+            member.TacticalState = TacticalState.Working;
+            member.CombatStyle = ChooseWorkCombatStyle(member);
+            return;
+        }
+
+        member.TacticalState = TacticalState.Idle;
     }
 
-    private void AssignBehavior(GangMember member, GangManager gangManager, List<GangMember> allMembers)
+    private CombatStyle ChooseCombatStyleForThreat(GangMember member, TacticalContext context)
     {
-        if (member == null)
-            return;
-
-        if (member.CurrentTask != GangTaskType.None)
-            return;
-
-        if (member.IsStealthing || member.CurrentGangMode == GangMode.Stealth)
+        if (context.IsCloseQuarters)
         {
-            member.CurrentTask = GangTaskType.StealthMove;
-            member.CurrentTaskDescription = "Move quietly and support stealth actions.";
-            return;
+            if (member.Role == GangMemberRole.Scout || member.Role == GangMemberRole.Hunter)
+                return CombatStyle.LethalMelee;
+
+            return CombatStyle.RangedShort;
         }
 
-        if (member.IsShopping || member.CurrentGangMode == GangMode.Shopping)
+        if (context.IsLongRange)
+            return CombatStyle.RangedLong;
+
+        if (context.IsSilentApproach)
+            return CombatStyle.Stealth;
+
+        return member.CombatStyle;
+    }
+
+    private CombatStyle ChooseTravelCombatStyle(GangMember member)
+    {
+        switch (member.Role)
         {
-            member.CurrentTask = GangTaskType.Shop;
-            member.CurrentTaskDescription = "Handle purchases, supplies, or errands.";
-            return;
+            case GangMemberRole.Scout:
+                return CombatStyle.Stealth;
+            case GangMemberRole.Hunter:
+                return CombatStyle.RangedMedium;
+            case GangMemberRole.Gunner:
+                return CombatStyle.RangedLong;
+            case GangMemberRole.Medic:
+                return CombatStyle.RangedShort;
+            default:
+                return CombatStyle.RangedShort;
         }
-
-        if (member.IsInCombatMode || member.CurrentGangMode == GangMode.Combat)
-        {
-            member.CurrentTask = GangTaskType.Attack;
-            member.CurrentTaskDescription = "Support combat and tactical positioning.";
-            return;
-        }
-
-        if (member.Role == GangMemberRole.Support)
-        {
-            member.CurrentTask = GangTaskType.GatherSupplies;
-            member.CurrentTaskDescription = "Gather supplies for the gang.";
-            return;
-        }
-
-        if (member.Role == GangMemberRole.Scout)
-        {
-            member.CurrentTask = GangTaskType.Escort;
-            member.CurrentTaskDescription = "Scout ahead and stay near the player.";
-            return;
-        }
-
-        member.CurrentTask = GangTaskType.FollowPlayer;
-        member.CurrentTaskDescription = "Follow the player and remain available.";
     }
 
-    public void SetStealthMode(GangManager gangManager, bool enabled)
+    private CombatStyle ChooseWorkCombatStyle(GangMember member)
     {
-        if (gangManager == null)
-            return;
+        if (member.Role == GangMemberRole.Engineer)
+            return CombatStyle.RangedShort;
 
-        gangManager.SetStealthMode(enabled);
-        if (enabled)
-            gangManager.SetGangMode(GangMode.Stealth);
-    }
+        if (member.Role == GangMemberRole.Driver)
+            return CombatStyle.RangedShort;
 
-    public void SetCombatMode(GangManager gangManager, bool enabled)
-    {
-        if (gangManager == null)
-            return;
-
-        gangManager.SetCombatMode(enabled);
-        if (enabled)
-            gangManager.SetGangMode(GangMode.Combat);
-    }
-
-    public void SetShoppingMode(GangManager gangManager, bool enabled)
-    {
-        if (gangManager == null)
-            return;
-
-        gangManager.SetShoppingMode(enabled);
-        if (enabled)
-            gangManager.SetGangMode(GangMode.Shopping);
-    }
-
-    public void ClearTemporaryTask(GangMember member)
-    {
-        if (member == null)
-            return;
-
-        member.CurrentTask = GangTaskType.None;
-        member.CurrentTargetId = null;
-        member.CurrentTaskDescription = null;
-    }
-
-    public void SetTask(GangMember member, GangTaskType taskType, string targetId = null, string description = null)
-    {
-        if (member == null)
-            return;
-
-        member.CurrentTask = taskType;
-        member.CurrentTargetId = targetId;
-        member.CurrentTaskDescription = description;
+        return CombatStyle.RangedMedium;
     }
 }

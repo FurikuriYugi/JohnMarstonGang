@@ -1,131 +1,83 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class DynamiteSystem
 {
-    private readonly List<DestructibleTarget> _targets = new List<DestructibleTarget>();
+    private readonly Dictionary<string, DestructibleTarget> _targets = new Dictionary<string, DestructibleTarget>();
 
-    public List<DestructibleTarget> Targets => _targets;
-
-    public void RegisterTarget(string targetId, DestructibleTargetType targetType, int health, bool lootable = false)
+    public void RegisterTarget(string targetId, float health, bool canBeBlasted)
     {
-        DestructibleTarget target = _targets.FirstOrDefault(t => t.TargetId == targetId);
-        if (target != null)
-        {
-            target.TargetType = targetType;
-            target.Health = health;
-            target.IsLootable = lootable;
+        if (string.IsNullOrWhiteSpace(targetId))
             return;
-        }
 
-        _targets.Add(new DestructibleTarget
+        _targets[targetId] = new DestructibleTarget
         {
             TargetId = targetId,
-            TargetType = targetType,
             Health = health,
-            IsDestroyed = false,
-            IsLootable = lootable
-        });
+            CanBeBlasted = canBeBlasted
+        };
     }
 
-    public bool CanBlowOpen(string targetId)
+    public void UnregisterTarget(string targetId)
     {
-        DestructibleTarget target = GetTarget(targetId);
-        return target != null && !target.IsDestroyed;
-    }
-
-    public void ApplyExplosion(string targetId, int damage)
-    {
-        DestructibleTarget target = GetTarget(targetId);
-        if (target == null || target.IsDestroyed)
+        if (string.IsNullOrWhiteSpace(targetId))
             return;
 
-        target.Health -= damage;
-
-        if (target.Health <= 0)
-        {
-            target.Health = 0;
-            target.IsDestroyed = true;
-        }
-    }
-
-    public bool IsDestroyed(string targetId)
-    {
-        DestructibleTarget target = GetTarget(targetId);
-        return target != null && target.IsDestroyed;
-    }
-
-    public bool IsLootable(string targetId)
-    {
-        DestructibleTarget target = GetTarget(targetId);
-        return target != null && target.IsLootable && target.IsDestroyed;
-    }
-
-    public void Repair(string targetId, int health)
-    {
-        DestructibleTarget target = GetTarget(targetId);
-        if (target == null)
-            return;
-
-        target.Health += health;
-        if (target.Health > 0)
-            target.IsDestroyed = false;
+        _targets.Remove(targetId);
     }
 
     public DestructibleTarget GetTarget(string targetId)
     {
-        return _targets.FirstOrDefault(t => t.TargetId == targetId);
+        if (string.IsNullOrWhiteSpace(targetId))
+            return null;
+
+        DestructibleTarget target;
+        if (_targets.TryGetValue(targetId, out target))
+            return target;
+
+        return null;
     }
 
-    public List<DestructibleTarget> CreateSaveData()
+    public InteractionResult ApplyExplosion(string targetId, float damage)
     {
-        return _targets.Select(t => new DestructibleTarget
-        {
-            TargetId = t.TargetId,
-            TargetType = t.TargetType,
-            Health = t.Health,
-            IsDestroyed = t.IsDestroyed,
-            IsLootable = t.IsLootable
-        }).ToList();
+        var target = GetTarget(targetId);
+        if (target == null)
+            return InteractionResult.Failed("No target.");
+
+        if (!target.CanBeBlasted)
+            return InteractionResult.Failed("Target cannot be blasted.");
+
+        target.Health = Math.Max(0f, target.Health - Math.Max(0f, damage));
+
+        if (target.Health <= 0f)
+            return InteractionResult.Succeeded("Target destroyed.");
+
+        return InteractionResult.Succeeded("Target damaged.");
     }
 
-    public void LoadFromSave(List<DestructibleTarget> targets)
+    public InteractionResult BlowDoorOpen(string doorId)
     {
-        _targets.Clear();
+        var target = GetTarget(doorId);
+        if (target == null)
+            return InteractionResult.Failed("No door.");
 
-        if (targets == null)
-            return;
+        if (!target.CanBeBlasted)
+            return InteractionResult.Failed("Door is blast-resistant.");
 
-        foreach (DestructibleTarget target in targets)
-        {
-            _targets.Add(new DestructibleTarget
-            {
-                TargetId = target.TargetId,
-                TargetType = target.TargetType,
-                Health = target.Health,
-                IsDestroyed = target.IsDestroyed,
-                IsLootable = target.IsLootable
-            });
-        }
+        target.Health = 0f;
+        return InteractionResult.Succeeded("Door blown open.");
     }
-}
 
-public class DestructibleTarget
-{
-    public string TargetId { get; set; }
-    public DestructibleTargetType TargetType { get; set; }
-    public int Health { get; set; }
-    public bool IsDestroyed { get; set; }
-    public bool IsLootable { get; set; }
-}
+    public InteractionResult BlowSafeOpen(string safeId)
+    {
+        var target = GetTarget(safeId);
+        if (target == null)
+            return InteractionResult.Failed("No safe.");
 
-public enum DestructibleTargetType
-{
-    Door,
-    Safe,
-    Wall,
-    Chest,
-    Strongbox,
-    Object
+        if (!target.CanBeBlasted)
+            return InteractionResult.Failed("Safe is blast-resistant.");
+
+        target.Health = 0f;
+        return InteractionResult.Succeeded("Safe blown open.");
+    }
 }

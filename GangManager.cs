@@ -6,146 +6,90 @@ public class GangManager
 {
     private readonly List<GangMember> _members = new List<GangMember>();
 
-    public List<GangMember> Members => _members;
+    public IReadOnlyList<GangMember> Members => _members;
 
-    public GangMember AddMember(string name, CompanionType companionType, GangMemberRole role)
+    public void AddMember(GangMember member)
     {
-        GangMember member = new GangMember
-        {
-            MemberId = Guid.NewGuid().ToString(),
-            Name = name,
-            CompanionType = companionType,
-            Role = role,
-            IsActive = true,
-            Loyalty = 50,
-            Trust = 50
-        };
-
-        _members.Add(member);
-        return member;
-    }
-
-    public void RemoveMember(string memberId)
-    {
-        GangMember member = _members.FirstOrDefault(m => m.MemberId == memberId);
-        if (member != null)
-            _members.Remove(member);
-    }
-
-    public GangMember GetMember(string memberId)
-    {
-        return _members.FirstOrDefault(m => m.MemberId == memberId);
-    }
-
-    public IEnumerable<GangMember> GetActiveMembers()
-    {
-        return _members.Where(m => m.IsActive);
-    }
-
-    public void UpdateAll()
-    {
-        foreach (GangMember member in _members)
-        {
-            member.UpdateState();
-        }
-    }
-
-    public void AssignTask(string memberId, GangTaskType taskType, string targetId = null, string description = null)
-    {
-        GangMember member = GetMember(memberId);
         if (member == null)
             return;
 
-        member.CurrentTask = taskType;
-        member.CurrentTargetId = targetId;
-        member.CurrentTaskDescription = description;
+        if (_members.Any(x => x.Id == member.Id))
+            return;
+
+        _members.Add(member);
     }
 
-    public void SetGangMode(GangMode mode)
+    public bool RemoveMember(string id)
     {
-        foreach (GangMember member in _members)
+        var member = _members.FirstOrDefault(x => x.Id == id);
+        if (member == null)
+            return false;
+
+        return _members.Remove(member);
+    }
+
+    public GangMember GetMember(string id)
+    {
+        return _members.FirstOrDefault(x => x.Id == id);
+    }
+
+    public IEnumerable<GangMember> GetMembersByRole(GangMemberRole role)
+    {
+        return _members.Where(x => x.Role == role);
+    }
+
+    public void SetFollowingMode(bool enabled)
+    {
+        foreach (var member in _members)
         {
-            member.CurrentGangMode = mode;
+            member.TacticalState = enabled ? TacticalState.Following : TacticalState.Idle;
         }
     }
 
     public void SetStealthMode(bool enabled)
     {
-        foreach (GangMember member in _members)
+        foreach (var member in _members)
         {
-            member.IsStealthing = enabled;
-            if (enabled)
-                member.CurrentGangMode = GangMode.Stealth;
+            member.TacticalState = enabled ? TacticalState.Stealth : TacticalState.Idle;
+            member.CombatStyle = enabled ? CombatStyle.Stealth : member.CombatStyle;
         }
     }
 
-    public void SetCombatMode(bool enabled)
+    public void SetCombatAlert()
     {
-        foreach (GangMember member in _members)
+        foreach (var member in _members)
         {
-            member.IsInCombatMode = enabled;
-            if (enabled)
-                member.CurrentGangMode = GangMode.Combat;
+            member.TacticalState = TacticalState.Combat;
         }
     }
 
-    public void SetShoppingMode(bool enabled)
+    public void UpdateMemberNeeds()
     {
-        foreach (GangMember member in _members)
+        foreach (var member in _members)
         {
-            member.IsShopping = enabled;
-            if (enabled)
-                member.CurrentGangMode = GangMode.Shopping;
+            member.NeedsFood = member.NeedsFood || member.Hunger >= 70;
+            member.NeedsAmmo = member.NeedsAmmo || member.AmmoReserve <= 10;
+            member.NeedsMedicine = member.NeedsMedicine || member.Health <= 35;
         }
     }
 
-    public void DistributeReward(int amount)
+    public void AssignRole(string id, GangMemberRole role)
     {
-        if (_members.Count == 0 || amount <= 0)
+        var member = GetMember(id);
+        if (member == null)
             return;
 
-        int share = amount / _members.Count;
-
-        foreach (GangMember member in _members)
-        {
-            member.Money += share;
-            member.Loyalty += 1;
-            member.Trust += 1;
-        }
+        member.Role = role;
+        member.UpdateCombatStyleFromRole();
     }
 
-    public void AdjustHonorForGang(int amount)
+    public void RewardMember(string id, int loyaltyDelta, int experienceDelta)
     {
-        foreach (GangMember member in _members)
-        {
-            member.Honor += amount;
-        }
-    }
-
-    public List<GangMemberSaveData> CreateSaveData()
-    {
-        List<GangMemberSaveData> saveData = new List<GangMemberSaveData>();
-
-        foreach (GangMember member in _members)
-        {
-            saveData.Add(member.ToSaveData());
-        }
-
-        return saveData;
-    }
-
-    public void LoadFromSave(List<GangMemberSaveData> saveData)
-    {
-        _members.Clear();
-
-        if (saveData == null)
+        var member = GetMember(id);
+        if (member == null)
             return;
 
-        foreach (GangMemberSaveData data in saveData)
-        {
-            GangMember member = new GangMember();
-            member.FromSaveData(data);
-            _members.Add(member);
-        }
+        member.Loyalty = Math.Max(0, member.Loyalty + loyaltyDelta);
+        member.Experience = Math.Max(0, member.Experience + experienceDelta);
     }
 }
