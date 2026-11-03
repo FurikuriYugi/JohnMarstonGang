@@ -30,9 +30,43 @@ public class WagonSystem
         return wagon;
     }
 
-    public bool TryGetWagon(string wagonId, out WagonState wagon)
+    public Wagon CreateWagon(string wagonName, string ownerId, WagonType type)
     {
-        return _wagons.TryGetValue(wagonId, out wagon);
+        WagonState state = CreateOrGetWagon(wagonName, type.ToString(), ownerId);
+        return new Wagon(state);
+    }
+
+    public bool StoreItem(string wagonId, string itemName, int amount)
+    {
+        if (string.IsNullOrWhiteSpace(itemName) || amount <= 0)
+            return false;
+
+        WagonState wagon = CreateOrGetWagon(wagonId, "UnknownWagon", "Unknown");
+        for (int i = 0; i < amount; i++)
+            wagon.Contents.Add(itemName);
+
+        return true;
+    }
+
+    public bool RemoveItem(string wagonId, string itemName, int amount)
+    {
+        if (string.IsNullOrWhiteSpace(itemName) || amount <= 0)
+            return false;
+
+        if (!_wagons.TryGetValue(wagonId, out WagonState wagon))
+            return false;
+
+        int removed = 0;
+        for (int i = wagon.Contents.Count - 1; i >= 0 && removed < amount; i--)
+        {
+            if (string.Equals(wagon.Contents[i], itemName, StringComparison.OrdinalIgnoreCase))
+            {
+                wagon.Contents.RemoveAt(i);
+                removed++;
+            }
+        }
+
+        return removed > 0;
     }
 
     public void SetOwned(string wagonId, bool isOwned, string ownerName = null)
@@ -155,4 +189,23 @@ public class WagonState
     public double X { get; set; }
     public double Y { get; set; }
     public double Z { get; set; }
+}
+
+public enum WagonType
+{
+    Standard,
+    Cargo,
+    Supply,
+    Cannon,
+    Maxim
+}
+
+public class Wagon
+{
+    public WagonState State { get; private set; }
+
+    public Wagon(WagonState state)
+    {
+        State = state;
+    }
 }

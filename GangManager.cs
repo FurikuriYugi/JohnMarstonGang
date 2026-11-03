@@ -47,6 +47,11 @@ public class GangManager
         return _members.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 
+    public List<GangMember> GetActiveMembers()
+    {
+        return _members.Where(m => m != null && m.IsActive).ToList();
+    }
+
     public void UpdateAll()
     {
         foreach (GangMember member in _members)

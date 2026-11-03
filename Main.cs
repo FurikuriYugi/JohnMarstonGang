@@ -15,7 +15,6 @@ public class Main : Script
     private DynamiteSystem _dynamiteSystem;
     private LockSystem _lockSystem;
     private CompanionSystem _companionSystem;
-
     private readonly string _savePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JohnMorstonGangSave.json");
     private bool _initialized;
 
@@ -107,7 +106,6 @@ public class Main : Script
 
         string json = File.ReadAllText(_savePath);
         GangSaveData data = JsonConvert.DeserializeObject<GangSaveData>(json);
-
         if (data == null)
             return;
 

@@ -30,7 +30,7 @@ public class GangMemberData
 public class BankSaveData
 {
     public List<BankAccountData> Accounts { get; set; } = new List<BankAccountData>();
-    public List<BankVaultRecord> VaultRecords { get; set; } = new List<BankVaultRecord>();
+    public List<BankVaultRecordData> VaultRecords { get; set; } = new List<BankVaultRecordData>();
 }
 
 public class BankAccountData
@@ -43,7 +43,7 @@ public class BankAccountData
     public bool IsSuspicious { get; set; }
 }
 
-public class BankVaultRecord
+public class BankVaultRecordData
 {
     public string BankName { get; set; }
     public decimal CashStored { get; set; }
@@ -74,21 +74,31 @@ public class JobOffer
 {
     public string JobId { get; set; }
     public string Title { get; set; }
-    public string Location { get; set; }
-    public string EmployerName { get; set; }
     public string Description { get; set; }
-    public decimal CashReward { get; set; }
-    public decimal GoldReward { get; set; }
+    public string LocationName { get; set; }
+    public decimal PaymentCash { get; set; }
+    public decimal PaymentGold { get; set; }
     public int HonorChange { get; set; }
-    public bool IsIllegal { get; set; }
+    public bool IsCriminal { get; set; }
     public bool IsAvailable { get; set; } = true;
+}
+
+public enum JobStatus
+{
+    Active = 0,
+    Completed = 1,
+    Failed = 2
 }
 
 public class JobAssignment
 {
+    public string AssignmentId { get; set; }
     public string JobId { get; set; }
-    public string AssignedTo { get; set; }
-    public DateTime AcceptedAt { get; set; }
-    public bool IsCompleted { get; set; }
-    public bool IsFailed { get; set; }
+    public string Title { get; set; }
+    public string GangMemberName { get; set; }
+    public JobStatus Status { get; set; }
+    public decimal PaymentCash { get; set; }
+    public decimal PaymentGold { get; set; }
+    public int HonorChange { get; set; }
+    public bool IsCriminal { get; set; }
 }

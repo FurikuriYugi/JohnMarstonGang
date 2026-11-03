@@ -5,7 +5,7 @@ using System.Linq;
 public class BankSystem
 {
     private readonly Dictionary<string, BankAccount> _accounts = new Dictionary<string, BankAccount>(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, BankVaultRecord> _vaultRecords = new Dictionary<string, BankVaultRecord>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, BankVaultRecordData> _vaultRecords = new Dictionary<string, BankVaultRecordData>(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyCollection<BankAccount> Accounts => _accounts.Values.ToList().AsReadOnly();
 
@@ -24,64 +24,47 @@ public class BankSystem
 
     public void DepositCash(string ownerName, decimal amount)
     {
-        if (amount <= 0m)
-            return;
-
-        BankAccount account = GetOrCreateAccount(ownerName);
-        account.Cash += amount;
+        if (amount <= 0m) return;
+        GetOrCreateAccount(ownerName).Cash += amount;
     }
 
     public bool WithdrawCash(string ownerName, decimal amount)
     {
-        if (amount <= 0m)
-            return false;
-
+        if (amount <= 0m) return false;
         BankAccount account = GetOrCreateAccount(ownerName);
-        if (account.Cash < amount)
-            return false;
-
+        if (account.Cash < amount) return false;
         account.Cash -= amount;
         return true;
     }
 
     public void DepositGold(string ownerName, decimal amount)
     {
-        if (amount <= 0m)
-            return;
-
-        BankAccount account = GetOrCreateAccount(ownerName);
-        account.Gold += amount;
+        if (amount <= 0m) return;
+        GetOrCreateAccount(ownerName).Gold += amount;
     }
 
     public bool WithdrawGold(string ownerName, decimal amount)
     {
-        if (amount <= 0m)
-            return false;
-
+        if (amount <= 0m) return false;
         BankAccount account = GetOrCreateAccount(ownerName);
-        if (account.Gold < amount)
-            return false;
-
+        if (account.Gold < amount) return false;
         account.Gold -= amount;
         return true;
     }
 
     public void AddCreditLimit(string ownerName, decimal amount)
     {
-        if (amount <= 0m)
-            return;
-
-        BankAccount account = GetOrCreateAccount(ownerName);
-        account.CreditLimit += amount;
+        if (amount <= 0m) return;
+        GetOrCreateAccount(ownerName).CreditLimit += amount;
     }
 
     public bool BorrowAgainstCredit(string ownerName, decimal amount)
     {
-        if (amount <= 0m)
-            return false;
+        if (amount <= 0m) return false;
 
         BankAccount account = GetOrCreateAccount(ownerName);
         decimal availableCredit = account.CreditLimit - account.Debt;
+
         if (availableCredit < amount)
             return false;
 
@@ -92,8 +75,7 @@ public class BankSystem
 
     public bool RepayDebt(string ownerName, decimal amount)
     {
-        if (amount <= 0m)
-            return false;
+        if (amount <= 0m) return false;
 
         BankAccount account = GetOrCreateAccount(ownerName);
         if (account.Cash < amount || account.Debt <= 0m)
@@ -107,8 +89,7 @@ public class BankSystem
 
     public void MarkSuspicious(string ownerName, bool suspicious)
     {
-        BankAccount account = GetOrCreateAccount(ownerName);
-        account.IsSuspicious = suspicious;
+        GetOrCreateAccount(ownerName).IsSuspicious = suspicious;
     }
 
     public void StoreVault(string bankName, decimal cash, decimal gold)
@@ -116,9 +97,9 @@ public class BankSystem
         if (string.IsNullOrWhiteSpace(bankName))
             bankName = "Unknown Bank";
 
-        if (!_vaultRecords.TryGetValue(bankName, out BankVaultRecord record))
+        if (!_vaultRecords.TryGetValue(bankName, out BankVaultRecordData record))
         {
-            record = new BankVaultRecord
+            record = new BankVaultRecordData
             {
                 BankName = bankName,
                 CashStored = 0m,
@@ -138,7 +119,7 @@ public class BankSystem
         if (string.IsNullOrWhiteSpace(bankName))
             bankName = "Unknown Bank";
 
-        if (!_vaultRecords.TryGetValue(bankName, out BankVaultRecord record))
+        if (!_vaultRecords.TryGetValue(bankName, out BankVaultRecordData record))
             return false;
 
         if (record.CashStored < cash || record.GoldStored < gold)
@@ -167,9 +148,9 @@ public class BankSystem
             });
         }
 
-        foreach (BankVaultRecord record in _vaultRecords.Values)
+        foreach (BankVaultRecordData record in _vaultRecords.Values)
         {
-            data.VaultRecords.Add(new BankVaultRecord
+            data.VaultRecords.Add(new BankVaultRecordData
             {
                 BankName = record.BankName,
                 CashStored = record.CashStored,
@@ -211,12 +192,12 @@ public class BankSystem
 
         if (data.VaultRecords != null)
         {
-            foreach (BankVaultRecord record in data.VaultRecords)
+            foreach (BankVaultRecordData record in data.VaultRecords)
             {
                 if (record == null)
                     continue;
 
-                _vaultRecords[record.BankName] = new BankVaultRecord
+                _vaultRecords[record.BankName] = new BankVaultRecordData
                 {
                     BankName = record.BankName,
                     CashStored = record.CashStored,

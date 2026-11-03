@@ -9,7 +9,7 @@ public class LockSystem
 
     public LockTarget RegisterTarget(string targetId, LockTargetType type, bool isLocked, bool canBeBlasted)
     {
-        LockTarget existing = GetTarget(targetId);
+        var existing = GetTarget(targetId);
         if (existing != null)
         {
             existing.Type = type;
@@ -18,7 +18,7 @@ public class LockSystem
             return existing;
         }
 
-        LockTarget target = new LockTarget
+        var target = new LockTarget
         {
             TargetId = targetId,
             Type = type,
@@ -32,24 +32,17 @@ public class LockSystem
 
     public bool CanPickLock(string targetId, bool hasBreakerTool)
     {
-        if (!hasBreakerTool)
-            return false;
-
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return false;
-
+        if (!hasBreakerTool) return false;
+        var target = GetTarget(targetId);
+        if (target == null) return false;
         return target.IsLocked && target.Type != LockTargetType.Wall;
     }
 
     public bool PickLock(string targetId, bool hasBreakerTool)
     {
-        if (!CanPickLock(targetId, hasBreakerTool))
-            return false;
-
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return false;
+        var target = GetTarget(targetId);
+        if (target == null) return false;
+        if (!CanPickLock(targetId, hasBreakerTool)) return false;
 
         target.IsLocked = false;
         target.WasPicked = true;
@@ -58,24 +51,17 @@ public class LockSystem
 
     public bool CanBlastOpen(string targetId, bool hasDynamite)
     {
-        if (!hasDynamite)
-            return false;
-
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return false;
-
+        if (!hasDynamite) return false;
+        var target = GetTarget(targetId);
+        if (target == null) return false;
         return target.IsLocked && target.CanBeBlasted;
     }
 
     public bool BlastOpen(string targetId, bool hasDynamite)
     {
-        if (!CanBlastOpen(targetId, hasDynamite))
-            return false;
-
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return false;
+        var target = GetTarget(targetId);
+        if (target == null) return false;
+        if (!CanBlastOpen(targetId, hasDynamite)) return false;
 
         target.IsLocked = false;
         target.WasBlasted = true;
@@ -85,9 +71,8 @@ public class LockSystem
 
     public bool ForceOpen(string targetId)
     {
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return false;
+        var target = GetTarget(targetId);
+        if (target == null) return false;
 
         target.IsLocked = false;
         target.WasForced = true;
@@ -96,18 +81,13 @@ public class LockSystem
 
     public LockTarget GetTarget(string targetId)
     {
-        if (string.IsNullOrWhiteSpace(targetId))
-            return null;
-
         return _targets.FirstOrDefault(x => x.TargetId == targetId);
     }
 
     public bool IsUnlocked(string targetId)
     {
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return false;
-
+        var target = GetTarget(targetId);
+        if (target == null) return false;
         return !target.IsLocked;
     }
 
@@ -118,19 +98,15 @@ public class LockSystem
 
     public void MarkAsLocked(string targetId)
     {
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return;
-
+        var target = GetTarget(targetId);
+        if (target == null) return;
         target.IsLocked = true;
     }
 
     public void MarkAsUnlocked(string targetId)
     {
-        LockTarget target = GetTarget(targetId);
-        if (target == null)
-            return;
-
+        var target = GetTarget(targetId);
+        if (target == null) return;
         target.IsLocked = false;
     }
 }

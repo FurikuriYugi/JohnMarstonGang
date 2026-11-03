@@ -1,7 +1,7 @@
-﻿// TacticalSquadAiSystem.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 public class TacticalSquadAiSystem
 {
     public void Update(GangManager gangManager)
@@ -9,14 +9,12 @@ public class TacticalSquadAiSystem
         if (gangManager == null)
             return;
 
-        var activeMembers = gangManager.GetActiveMembers().ToList();
+        List<GangMember> activeMembers = gangManager.GetActiveMembers();
         if (activeMembers.Count == 0)
             return;
 
-        foreach (var member in activeMembers)
-        {
+        foreach (GangMember member in activeMembers)
             UpdateMember(member, activeMembers);
-        }
     }
 
     private void UpdateMember(GangMember member, List<GangMember> squad)
@@ -50,7 +48,7 @@ public class TacticalSquadAiSystem
         member.IsOnJob = true;
         member.IsShopping = false;
 
-        var style = SelectCombatStyle(member, squad);
+        CombatStyle style = SelectCombatStyle(member, squad);
         member.SetCombatStyle(style, member.GetSuggestedWeapon());
 
         if (member.Loyalty < 25)
@@ -66,16 +64,19 @@ public class TacticalSquadAiSystem
         if (member.ShouldUseStealth())
             return CombatStyle.Stealth;
 
-        var stealthCount = squad.Count(x => x != null && x.ShouldUseStealth());
+        int stealthCount = squad.Count(x => x != null && x.ShouldUseStealth());
         if (stealthCount > squad.Count / 2)
             return CombatStyle.Stealth;
 
         if (member.SkillCombat >= 75)
             return CombatStyle.LongRange;
+
         if (member.SkillStealth >= 60)
             return CombatStyle.MediumRange;
+
         if (member.Role == GangMemberRole.Gunner)
             return CombatStyle.LongRange;
+
         if (member.Role == GangMemberRole.Guard)
             return CombatStyle.ShortRange;
 

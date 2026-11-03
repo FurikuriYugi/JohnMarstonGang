@@ -31,7 +31,8 @@ public class JobSystem
             PaymentCash = cash,
             PaymentGold = gold,
             HonorChange = honorChange,
-            IsCriminal = criminal
+            IsCriminal = criminal,
+            IsAvailable = true
         };
     }
 
@@ -50,7 +51,6 @@ public class JobSystem
             return false;
 
         _offers.Remove(offer);
-
         _assignments.Add(new JobAssignment
         {
             AssignmentId = Guid.NewGuid().ToString("N"),
@@ -73,15 +73,14 @@ public class JobSystem
         if (offer == null || gangManager == null)
             return false;
 
-        List<GangMember> activeMembers = gangManager.GetActiveMembers().ToList();
+        List<GangMember> activeMembers = gangManager.GetActiveMembers();
         if (activeMembers.Count == 0)
             return AcceptJob(jobId, gangMemberName);
 
         int yesVotes = 0;
 
-        for (int i = 0; i < activeMembers.Count; i++)
+        foreach (GangMember member in activeMembers)
         {
-            GangMember member = activeMembers[i];
             if (member == null)
                 continue;
 
@@ -131,26 +130,22 @@ public class JobSystem
 
         List<JobAssignment> completed = _assignments.Where(x => x.Status == JobStatus.Completed).ToList();
 
-        for (int i = 0; i < completed.Count; i++)
+        foreach (JobAssignment assignment in completed)
         {
-            JobAssignment assignment = completed[i];
             if (assignment == null)
                 continue;
 
             if (assignment.PaymentCash > 0m || assignment.PaymentGold > 0m)
             {
-                List<GangMember> splitMembers = gangManager != null
-                    ? gangManager.GetActiveMembers().ToList()
-                    : new List<GangMember>();
+                List<GangMember> splitMembers = gangManager != null ? gangManager.GetActiveMembers() : new List<GangMember>();
 
                 if (splitMembers.Count > 0)
                 {
                     decimal memberShareCash = assignment.PaymentCash / (splitMembers.Count + 1);
                     decimal memberShareGold = assignment.PaymentGold / (splitMembers.Count + 1);
 
-                    for (int m = 0; m < splitMembers.Count; m++)
+                    foreach (GangMember member in splitMembers)
                     {
-                        GangMember member = splitMembers[m];
                         if (member == null)
                             continue;
 
@@ -196,36 +191,4 @@ public class JobSystem
     {
         return _assignments.FirstOrDefault(x => x.AssignmentId == assignmentId);
     }
-}
-
-public class JobOffer
-{
-    public string JobId { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public string LocationName { get; set; }
-    public decimal PaymentCash { get; set; }
-    public decimal PaymentGold { get; set; }
-    public int HonorChange { get; set; }
-    public bool IsCriminal { get; set; }
-}
-
-public class JobAssignment
-{
-    public string AssignmentId { get; set; }
-    public string JobId { get; set; }
-    public string Title { get; set; }
-    public string GangMemberName { get; set; }
-    public JobStatus Status { get; set; }
-    public decimal PaymentCash { get; set; }
-    public decimal PaymentGold { get; set; }
-    public int HonorChange { get; set; }
-    public bool IsCriminal { get; set; }
-}
-
-public enum JobStatus
-{
-    Active = 0,
-    Completed = 1,
-    Failed = 2
 }

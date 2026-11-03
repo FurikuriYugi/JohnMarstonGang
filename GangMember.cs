@@ -33,7 +33,10 @@ public class GangMember
         MemberId = Guid.NewGuid().ToString("N");
         Mood = GangMood.Neutral;
         Loyalty = 50;
-        PreferredCombatStyle = CombatStyle.RangedShort;
+        PreferredCombatStyle = CombatStyle.ShortRange;
+        Type = CompanionType.Human;
+        Role = GangMemberRole.Recruit;
+        IsActive = true;
     }
 
     public void AddMemory(string memory)
@@ -78,11 +81,11 @@ public class GangMember
                 return "Lasso";
             case CombatStyle.LethalMelee:
                 return "Knife";
-            case CombatStyle.RangedShort:
+            case CombatStyle.ShortRange:
                 return "Revolver";
-            case CombatStyle.RangedMedium:
+            case CombatStyle.MediumRange:
                 return "Repeater";
-            case CombatStyle.RangedLong:
+            case CombatStyle.LongRange:
                 return "Rifle";
             default:
                 return string.IsNullOrWhiteSpace(WeaponChoice) ? "Revolver" : WeaponChoice;

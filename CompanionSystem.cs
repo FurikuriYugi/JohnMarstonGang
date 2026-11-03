@@ -23,7 +23,7 @@ public class CompanionSystem
             Experience = 0,
             Loyalty = 50,
             CurrentMood = GangMood.Neutral,
-            PreferredCombatStyle = CombatStyle.RangedShort
+            PreferredCombatStyle = CombatStyle.ShortRange
         };
 
         _records[memberId] = record;
