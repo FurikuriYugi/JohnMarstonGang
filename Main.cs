@@ -48,6 +48,7 @@ public class Main : Script
         Initialize();
 
         _tacticalAi?.Update(_gangManager);
+        _companionSystem?.Update(_gangManager);
     }
 
     private void OnAborted(object sender, EventArgs e)

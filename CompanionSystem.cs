@@ -15,6 +15,26 @@ public class CompanionSystem
         Load();
     }
 
+    public void Update(GangManager gangManager)
+    {
+        if (gangManager == null)
+            return;
+
+        foreach (var member in gangManager.GetActiveMembers())
+        {
+            if (member == null || string.IsNullOrWhiteSpace(member.Name))
+                continue;
+
+            var companion = GetOrCreate(member.Name);
+            companion.Loyalty = member.Loyalty;
+            companion.Experience += member.IsInCombat ? 1 : 0;
+            companion.PreferredStyle = member.PreferredCombatStyle;
+            companion.LastKnownMood = member.Mood.ToString();
+        }
+
+        Save();
+    }
+
     public CompanionRecord GetOrCreate(string name)
     {
         var companion = _companions.FirstOrDefault(x => x.Name == name);
