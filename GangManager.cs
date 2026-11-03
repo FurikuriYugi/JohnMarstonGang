@@ -7,10 +7,11 @@ public class GangManager
 {
     private readonly List<GangMember> _members = new List<GangMember>();
     private readonly TacticalSquadAiSystem _tacticalAi = new TacticalSquadAiSystem();
-
+    private readonly WagonSystem _wagonSystem = new WagonSystem();
     private const string SaveFileName = "JohnMarstonGang_Save.xml";
 
     public IReadOnlyList<GangMember> Members => _members;
+    public WagonSystem Wagons => _wagonSystem;
 
     public static GangManager Load()
     {
@@ -26,20 +27,28 @@ public class GangManager
                 var serializer = new DataContractSerializer(typeof(GangSaveData));
                 var data = serializer.ReadObject(fs) as GangSaveData;
 
-                if (data != null && data.Members != null)
+                if (data != null)
                 {
-                    foreach (var memberData in data.Members)
+                    if (data.Members != null)
                     {
-                        if (memberData == null)
-                            continue;
-
-                        manager._members.Add(new GangMember
+                        foreach (var memberData in data.Members)
                         {
-                            Name = string.IsNullOrWhiteSpace(memberData.Name) ? "Member" : memberData.Name,
-                            Relationship = memberData.Relationship,
-                            CombatStyle = (CombatStyle)memberData.CombatStyle,
-                            IsFollowing = memberData.IsFollowing
-                        });
+                            if (memberData == null)
+                                continue;
+
+                            manager._members.Add(new GangMember
+                            {
+                                Name = string.IsNullOrWhiteSpace(memberData.Name) ? "Member" : memberData.Name,
+                                Relationship = memberData.Relationship,
+                                CombatStyle = (CombatStyle)memberData.CombatStyle,
+                                IsFollowing = memberData.IsFollowing
+                            });
+                        }
+                    }
+
+                    if (data.Wagons != null)
+                    {
+                        manager._wagonSystem.RestoreFromPersistence(data.Wagons);
                     }
                 }
             }
@@ -63,7 +72,8 @@ public class GangManager
                     Relationship = m.Relationship,
                     CombatStyle = (int)m.CombatStyle,
                     IsFollowing = m.IsFollowing
-                }).ToList()
+                }).ToList(),
+                Wagons = _wagonSystem.BuildPersistence()
             };
 
             using (var fs = File.Create(SaveFileName))
