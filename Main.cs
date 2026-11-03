@@ -1,140 +1,40 @@
-﻿using Newtonsoft.Json;
-using RDR2;
+﻿using RDR2;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 public class Main : Script
 {
-    private GangManager _gangManager;
-    private BankSystem _bankSystem;
-    private TacticalSquadAiSystem _tacticalAiSystem;
-    private JobSystem _jobSystem;
-    private InteractionSystem _interactionSystem;
-    private WagonSystem _wagonSystem;
-    private DynamiteSystem _dynamiteSystem;
-    private LockSystem _lockSystem;
-    private CompanionSystem _companionSystem;
-
-    private readonly string _savePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JohnMorstonGangSave.json");
-    private bool _initialized;
+    private const string SaveFileName = "JohnMarstonGang_Save.json";
+    private PlayerGangSaveData _saveData = new PlayerGangSaveData();
 
     public Main()
     {
         Tick += OnTick;
-        Aborted += OnAborted;
-    }
-
-    private void Initialize()
-    {
-        if (_initialized)
-            return;
-
-        _gangManager = new GangManager();
-        _bankSystem = new BankSystem();
-        _tacticalAiSystem = new TacticalSquadAiSystem();
-        _jobSystem = new JobSystem();
-        _wagonSystem = new WagonSystem();
-        _dynamiteSystem = new DynamiteSystem();
-        _lockSystem = new LockSystem();
-        _companionSystem = new CompanionSystem();
-
-        _interactionSystem = new InteractionSystem(
-            _lockSystem,
-            _dynamiteSystem,
-            _wagonSystem,
-            _bankSystem,
-            _jobSystem
-        );
-
+        Interval = 250;
         LoadState();
-
-        if (_gangManager != null && _gangManager.Members.Count == 0)
-        {
-            _gangManager.AddMember("John", CompanionType.Human, GangMemberRole.Leader);
-            _gangManager.AddMember("Arthur", CompanionType.Human, GangMemberRole.Enforcer);
-        }
-
-        if (_jobSystem != null && _jobSystem.Offers.Count == 0)
-        {
-            _jobSystem.GenerateTownJobs("Saint Denis");
-            _jobSystem.GenerateTownJobs("Valentine");
-        }
-
-        _initialized = true;
     }
 
     private void OnTick(object sender, EventArgs e)
     {
-        Initialize();
-
-        if (_gangManager == null)
-            return;
-
-        _tacticalAiSystem?.Update(_gangManager);
-        _gangManager.UpdateAll();
-
-        foreach (GangMember member in _gangManager.GetActiveMembers())
-        {
-            _companionSystem?.UpdateFromGangMember(member);
-            _companionSystem?.ApplyPersonalGoal(member);
-        }
-
-        if (_jobSystem != null && _bankSystem != null)
-        {
-            _jobSystem.PayOutCompletedJobs(_bankSystem, "Player", _gangManager);
-        }
-    }
-
-    private void OnAborted(object sender, EventArgs e)
-    {
-        SaveState();
-    }
-
-    private void SaveState()
-    {
-        if (_gangManager == null || _bankSystem == null || _wagonSystem == null || _jobSystem == null || _companionSystem == null)
-            return;
-
-        GangSaveData data = new GangSaveData
-        {
-            Members = _gangManager.CreateSaveData(),
-            Bank = _bankSystem.CreateSaveData(),
-            Wagons = new WagonSaveData
-            {
-                Wagons = _wagonSystem.CreateSaveData()
-            },
-            JobOffers = new List<JobOffer>(_jobSystem.Offers),
-            JobAssignments = new List<JobAssignment>(_jobSystem.Assignments),
-            Companions = _companionSystem.CreateSaveData()
-        };
-
-        File.WriteAllText(_savePath, JsonConvert.SerializeObject(data, Formatting.Indented));
+        // hook systems here next: companions, bank, jobs, wagons, combat
     }
 
     private void LoadState()
     {
-        if (!File.Exists(_savePath))
-            return;
+        var path = GetSavePath();
+        _saveData = JsonSaveSystem.Load<PlayerGangSaveData>(path);
+    }
 
-        string json = File.ReadAllText(_savePath);
-        GangSaveData data = JsonConvert.DeserializeObject<GangSaveData>(json);
+    private void SaveState()
+    {
+        var path = GetSavePath();
+        JsonSaveSystem.Save(path, _saveData);
+    }
 
-        if (data == null)
-            return;
-
-        if (data.Members != null)
-            _gangManager.LoadFromSave(data.Members);
-
-        if (data.Bank != null)
-            _bankSystem.LoadFromSave(data.Bank);
-
-        if (data.Wagons != null)
-            _wagonSystem.LoadFromSave(data.Wagons);
-
-        _jobSystem.LoadFromSave(data.JobOffers, data.JobAssignments);
-
-        if (data.Companions != null)
-            _companionSystem.LoadFromSave(data.Companions);
+    private string GetSavePath()
+    {
+        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, SaveFileName);
     }
 }

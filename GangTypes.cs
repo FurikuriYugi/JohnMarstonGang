@@ -1,19 +1,14 @@
-﻿using System;
-
-public enum GangMemberRole
+﻿public enum GangMemberRole
 {
-    None,
-    Recruit,
+    Fighter,
     Scout,
-    Gunman,
     Hunter,
     Guard,
-    Driver,
-    Trader,
     Medic,
-    Quartermaster,
+    Trader,
+    Driver,
     Gunner,
-    Assistant
+    Engineer
 }
 
 public enum CompanionType
@@ -21,77 +16,61 @@ public enum CompanionType
     Human,
     Horse,
     Dog,
-    Bird,
-    Other
+    OtherAnimal
+}
+
+public enum JobType
+{
+    None,
+    Escort,
+    Robbery,
+    Defense,
+    Delivery,
+    Hunting,
+    SupplyRun,
+    BankDeposit,
+    BankRobbery,
+    WagonRun
 }
 
 public enum CombatStyle
 {
     NonLethalMelee,
     LethalMelee,
-    ShortRange,
-    MediumRange,
-    LongRange,
+    RangedShort,
+    RangedMedium,
+    RangedLong,
     Stealth
 }
 
-public enum GangOrderType
-{
-    Follow,
-    HoldPosition,
-    Guard,
-    Scout,
-    Attack,
-    Defend,
-    Loot,
-    SupplyRun,
-    StayClose,
-    Wait
-}
-
-public enum GangMood
+public enum RelationshipAlignment
 {
     Loyal,
-    Neutral,
-    Nervous,
-    Aggressive,
-    Tired
-}
-
-public enum CompanionDisposition
-{
-    Loyal,
+    Friendly,
     Neutral,
     Wary,
-    Hostile,
-    Familiar
+    Hostile
 }
 
-public enum JobType
+public enum TacticalState
 {
-    Legal,
-    Illegal,
-    Protection,
-    Escort,
-    Robbery,
-    Delivery,
-    Hunting,
-    Gathering,
-    Investigation
+    Idle,
+    Following,
+    Guarding,
+    Shopping,
+    Working,
+    Stealth,
+    Combat,
+    Fleeing
 }
 
-public static class GangTypeHelpers
+public enum InventoryItemType
 {
-    public static CombatStyle ParseCombatStyle(string value)
-    {
-        if (Enum.TryParse(value, true, out CombatStyle style))
-            return style;
-
-        return CombatStyle.ShortRange;
-    }
-
-    public static string ToSaveString(CombatStyle style)
-    {
-        return style.ToString();
-    }
+    Food,
+    Ammo,
+    Medicine,
+    Valuables,
+    Supplies,
+    WeaponPart,
+    KeyItem
 }
