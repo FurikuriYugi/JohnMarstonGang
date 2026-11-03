@@ -1,116 +1,131 @@
 ﻿// LockSystem.cs
-using Newtonsoft.Json;
-using RDR2;
-using RDR2.Native;
-using RDR2.UI;
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Security.Policy;
-using System.Xml;
-
-public class LockedTarget
-{
-    public int EntityHandle { get; set; }
-    public string TargetType { get; set; } // Door, Safe, Chest
-    public bool IsLocked { get; set; }
-    public bool IsBroken { get; set; }
-}
+using System.Linq;
 
 public class LockSystem
 {
-    private readonly Dictionary<int, LockedTarget> _targets = new Dictionary<int, LockedTarget>();
+    private readonly List<LockTarget> _targets = new List<LockTarget>();
 
-    public void RegisterTarget(int entityHandle, string type, bool locked = true)
+    public IReadOnlyList<LockTarget> Targets => _targets;
+
+    public LockTarget RegisterTarget(string targetId, LockTargetType type, bool isLocked, bool canBeBlasted)
     {
-        if (entityHandle == 0) return;
-
-        _targets[entityHandle] = new LockedTarget
+        var target = new LockTarget
         {
-            EntityHandle = entityHandle,
-            TargetType = type,
-            IsLocked = locked,
-            IsBroken = false
+            TargetId = targetId,
+            Type = type,
+            IsLocked = isLocked,
+            CanBeBlasted = canBeBlasted
         };
+
+        _targets.Add(target);
+        return target;
     }
 
-    public bool TryPickLock(Ped player, int entityHandle)
+    public bool CanPickLock(string targetId, bool hasBreakerTool)
     {
-        if (player == null || !player.Exists()) return false;
-        if (!_targets.TryGetValue(entityHandle, out LockedTarget target)) return false;
-        if (!target.IsLocked || target.IsBroken) return false;
+        if (!hasBreakerTool) return false;
 
-        int breakerTool = Game.GenerateHash("p_breaker_tool01x");
-        if (!player.Inventory.HasItem(breakerTool))
-        {
-            UI.Notify("You need a breaker tool.");
-            return false;
-        }
+        var target = GetTarget(targetId);
+        if (target == null) return false;
 
-        player.Task.PlayAnimation("script_re@crouch@", "lockpick_idle", 2.0f, -1, AnimationFlags.None);
+        return target.IsLocked && target.Type != LockTargetType.Wall;
+    }
+
+    public bool PickLock(string targetId, bool hasBreakerTool)
+    {
+        var target = GetTarget(targetId);
+        if (target == null) return false;
+        if (!CanPickLock(targetId, hasBreakerTool)) return false;
+
         target.IsLocked = false;
-        UI.Notify($"{target.TargetType} unlocked.");
-        Save();
+        target.WasPicked = true;
         return true;
     }
 
-    public bool ForceOpenWithDynamite(Ped player, int entityHandle)
+    public bool CanBlastOpen(string targetId, bool hasDynamite)
     {
-        if (player == null || !player.Exists()) return false;
-        if (!_targets.TryGetValue(entityHandle, out LockedTarget target)) return false;
-        if (target.IsBroken) return false;
+        if (!hasDynamite) return false;
 
-        int dynamiteHash = Game.GenerateHash("weapon_thrown_dynamite");
-        if (!player.Inventory.HasItem(dynamiteHash))
-        {
-            UI.Notify("You need dynamite.");
-            return false;
-        }
+        var target = GetTarget(targetId);
+        if (target == null) return false;
+
+        return target.IsLocked && target.CanBeBlasted;
+    }
+
+    public bool BlastOpen(string targetId, bool hasDynamite)
+    {
+        var target = GetTarget(targetId);
+        if (target == null) return false;
+        if (!CanBlastOpen(targetId, hasDynamite)) return false;
 
         target.IsLocked = false;
-        target.IsBroken = true;
-
-        Vector3 pos = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, entityHandle, true, true);
-        Function.Call(Hash.ADD_EXPLOSION, pos.X, pos.Y, pos.Z, 23, 1.0f, true, false, 1.0f);
-
-        UI.Notify($"{target.TargetType} destroyed.");
-        Save();
+        target.WasBlasted = true;
+        target.IsDestroyed = target.Type == LockTargetType.Wall;
         return true;
     }
 
-    public bool IsLocked(int entityHandle)
+    public bool ForceOpen(string targetId)
     {
-        if (_targets.TryGetValue(entityHandle, out LockedTarget target))
-            return target.IsLocked && !target.IsBroken;
-        return false;
+        var target = GetTarget(targetId);
+        if (target == null) return false;
+
+        target.IsLocked = false;
+        target.WasForced = true;
+        return true;
     }
 
-    public void Save()
+    public LockTarget GetTarget(string targetId)
     {
-        try
-        {
-            string path = "scripts\\JohnsGangLocks.json";
-            string dir = Path.GetDirectoryName(path);
-            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            File.WriteAllText(path, JsonConvert.SerializeObject(_targets, Formatting.Indented));
-        }
-        catch { }
+        return _targets.FirstOrDefault(x => x.TargetId == targetId);
     }
 
-    public void Load()
+    public bool IsUnlocked(string targetId)
     {
-        try
-        {
-            string path = "scripts\\JohnsGangLocks.json";
-            if (!File.Exists(path)) return;
-
-            var loaded = JsonConvert.DeserializeObject<Dictionary<int, LockedTarget>>(File.ReadAllText(path));
-            if (loaded == null) return;
-
-            _targets.Clear();
-            foreach (var kv in loaded)
-                _targets[kv.Key] = kv.Value;
-        }
-        catch { }
+        var target = GetTarget(targetId);
+        if (target == null) return false;
+        return !target.IsLocked;
     }
+
+    public void RemoveDestroyedTargets()
+    {
+        _targets.RemoveAll(x => x.IsDestroyed);
+    }
+
+    public void MarkAsLocked(string targetId)
+    {
+        var target = GetTarget(targetId);
+        if (target == null) return;
+
+        target.IsLocked = true;
+    }
+
+    public void MarkAsUnlocked(string targetId)
+    {
+        var target = GetTarget(targetId);
+        if (target == null) return;
+
+        target.IsLocked = false;
+    }
+}
+
+public class LockTarget
+{
+    public string TargetId { get; set; }
+    public LockTargetType Type { get; set; }
+    public bool IsLocked { get; set; }
+    public bool CanBeBlasted { get; set; }
+    public bool WasPicked { get; set; }
+    public bool WasBlasted { get; set; }
+    public bool WasForced { get; set; }
+    public bool IsDestroyed { get; set; }
+}
+
+public enum LockTargetType
+{
+    Door = 0,
+    Safe = 1,
+    Wall = 2,
+    Chest = 3,
+    Strongbox = 4
 }
