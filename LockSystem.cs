@@ -10,6 +10,15 @@ public class LockSystem
 
     public LockTarget RegisterTarget(string targetId, LockTargetType type, bool isLocked, bool canBeBlasted)
     {
+        var existing = GetTarget(targetId);
+        if (existing != null)
+        {
+            existing.Type = type;
+            existing.IsLocked = isLocked;
+            existing.CanBeBlasted = canBeBlasted;
+            return existing;
+        }
+
         var target = new LockTarget
         {
             TargetId = targetId,
@@ -96,7 +105,6 @@ public class LockSystem
     {
         var target = GetTarget(targetId);
         if (target == null) return;
-
         target.IsLocked = true;
     }
 
@@ -104,7 +112,6 @@ public class LockSystem
     {
         var target = GetTarget(targetId);
         if (target == null) return;
-
         target.IsLocked = false;
     }
 }

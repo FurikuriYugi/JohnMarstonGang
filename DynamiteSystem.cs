@@ -1,5 +1,4 @@
 ﻿// DynamiteSystem.cs
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,6 +10,15 @@ public class DynamiteSystem
 
     public DynamiteTarget RegisterTarget(string targetId, DynamiteTargetType type, bool isDestructible, bool isExplodable)
     {
+        var existing = GetTarget(targetId);
+        if (existing != null)
+        {
+            existing.Type = type;
+            existing.IsDestructible = isDestructible;
+            existing.IsExplodable = isExplodable;
+            return existing;
+        }
+
         var target = new DynamiteTarget
         {
             TargetId = targetId,

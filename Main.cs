@@ -1,176 +1,101 @@
-﻿using RDR2;
+﻿// Main.cs
+using RDR2;
 using System;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
+using System.IO;
+using Newtonsoft.Json;
 
 public class Main : Script
 {
-    private static GangManager _gangManager;
+    private GangManager _gangManager;
+    private BankSystem _bankSystem;
+    private TacticalSquadAiSystem _tacticalAi;
+    private JobSystem _jobSystem;
+    private InteractionSystem _interactionSystem;
+    private WagonSystem _wagonSystem;
+    private DynamiteSystem _dynamiteSystem;
+    private LockSystem _lockSystem;
+    private CompanionSystem _companionSystem;
+
+    private string _savePath = "JohnMorstonGangSave.json";
+    private bool _initialized;
 
     public Main()
     {
-        _gangManager = GangManager.Load();
         Tick += OnTick;
+        Aborted += OnAborted;
+    }
+
+    private void Initialize()
+    {
+        if (_initialized) return;
+
+        _gangManager = new GangManager();
+        _bankSystem = new BankSystem();
+        _tacticalAi = new TacticalSquadAiSystem();
+        _jobSystem = new JobSystem();
+        _wagonSystem = new WagonSystem();
+        _dynamiteSystem = new DynamiteSystem();
+        _lockSystem = new LockSystem();
+        _companionSystem = new CompanionSystem(_gangManager);
+
+        _interactionSystem = new InteractionSystem(
+            _lockSystem,
+            _dynamiteSystem,
+            _wagonSystem,
+            _bankSystem,
+            _jobSystem);
+
+        LoadState();
+        _initialized = true;
     }
 
     private void OnTick(object sender, EventArgs e)
     {
-        if (_gangManager != null)
-            _gangManager.Update();
+        Initialize();
+
+        _tacticalAi?.Update(_gangManager);
+        _companionSystem?.Update();
     }
 
-    public static GangManager GetGangManager()
+    private void OnAborted(object sender, EventArgs e)
     {
-        return _gangManager;
+        SaveState();
     }
 
-    public static void SaveGang()
+    private void SaveState()
     {
-        if (_gangManager != null)
-            _gangManager.Save();
-    }
-
-    public static void RecruitMember(string name, int relationship, CombatStyle style, bool following)
-    {
-        if (_gangManager == null)
-            _gangManager = new GangManager();
-
-        _gangManager.Recruit(name, relationship, style, following);
-        _gangManager.Save();
-    }
-
-    public static void FollowPlayer()
-    {
-        if (_gangManager == null)
+        if (_gangManager == null || _bankSystem == null || _wagonSystem == null || _jobSystem == null)
             return;
 
-        _gangManager.FollowPlayer();
-        _gangManager.Save();
+        var data = new GangSaveData
+        {
+            Members = _gangManager.CreateSaveData(),
+            Bank = _bankSystem.CreateSaveData(),
+            Wagons = _wagonSystem.CreateSaveData(),
+            JobOffers = new System.Collections.Generic.List<JobOffer>(_jobSystem.Offers),
+            JobAssignments = new System.Collections.Generic.List<JobAssignment>(_jobSystem.Assignments)
+        };
+
+        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
+
+        File.WriteAllText(_savePath, json);
     }
 
-    public static void WaitGang()
+    private void LoadState()
     {
-        if (_gangManager == null)
+        if (!File.Exists(_savePath))
             return;
 
-        _gangManager.Wait();
-        _gangManager.Save();
-    }
+        var json = File.ReadAllText(_savePath);
+        var data = JsonSerializer.Deserialize<GangSaveData>(json);
+        if (data == null) return;
 
-    public static void CycleCombatStyles()
-    {
-        if (_gangManager == null)
-            return;
-
-        _gangManager.CycleCombatStyle();
-        _gangManager.Save();
-    }
-
-    public static void SetCombatStyleForAll(CombatStyle style)
-    {
-        if (_gangManager == null)
-            return;
-
-        _gangManager.SetCombatStyleForAll(style);
-        _gangManager.Save();
-    }
-
-    public static Wagon CreateWagon(string name, string ownerId, WagonType type)
-    {
-        if (_gangManager == null)
-            _gangManager = new GangManager();
-
-        var wagon = _gangManager.Wagons.CreateWagon(name, ownerId, type);
-        _gangManager.Save();
-        return wagon;
-    }
-
-    public static bool ClaimWagon(string wagonId, string ownerId)
-    {
-        if (_gangManager == null)
-            return false;
-
-        var result = _gangManager.Wagons.ClaimWagon(wagonId, ownerId);
-        if (result)
-            _gangManager.Save();
-
-        return result;
-    }
-
-    public static bool ReleaseWagon(string wagonId, string ownerId = null)
-    {
-        if (_gangManager == null)
-            return false;
-
-        var result = _gangManager.Wagons.ReleaseWagon(wagonId, ownerId);
-        if (result)
-            _gangManager.Save();
-
-        return result;
-    }
-
-    public static bool HitchWagon(string wagonId)
-    {
-        if (_gangManager == null)
-            return false;
-
-        var result = _gangManager.Wagons.HitchWagon(wagonId);
-        if (result)
-            _gangManager.Save();
-
-        return result;
-    }
-
-    public static bool UnhitchWagon(string wagonId)
-    {
-        if (_gangManager == null)
-            return false;
-
-        var result = _gangManager.Wagons.UnhitchWagon(wagonId);
-        if (result)
-            _gangManager.Save();
-
-        return result;
-    }
-
-    public static bool StoreItemInWagon(string wagonId, string itemName, int amount)
-    {
-        if (_gangManager == null)
-            return false;
-
-        var result = _gangManager.Wagons.StoreItem(wagonId, itemName, amount);
-        if (result)
-            _gangManager.Save();
-
-        return result;
-    }
-
-    public static bool RemoveItemFromWagon(string wagonId, string itemName, int amount)
-    {
-        if (_gangManager == null)
-            return false;
-
-        var result = _gangManager.Wagons.RemoveItem(wagonId, itemName, amount);
-        if (result)
-            _gangManager.Save();
-
-        return result;
-    }
-
-    public static void MarkWagonDestroyed(string wagonId)
-    {
-        if (_gangManager == null)
-            return;
-
-        _gangManager.Wagons.MarkDestroyed(wagonId);
-        _gangManager.Save();
-    }
-
-    public static void RepairWagon(string wagonId)
-    {
-        if (_gangManager == null)
-            return;
-
-        _gangManager.Wagons.RepairWagon(wagonId);
-        _gangManager.Save();
+        _gangManager.LoadFromSave(data.Members);
+        _bankSystem.LoadFromSave(data.Bank);
+        _wagonSystem.LoadFromSave(data.Wagons);
+        _jobSystem.LoadFromSave(data.JobOffers, data.JobAssignments);
     }
 }

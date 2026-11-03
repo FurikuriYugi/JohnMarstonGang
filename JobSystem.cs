@@ -13,7 +13,7 @@ public class JobSystem
 
     public void GenerateTownJobs(string townName)
     {
-        if (string.IsNullOrEmpty(townName))
+        if (string.IsNullOrWhiteSpace(townName))
             return;
 
         _offers.Add(new JobOffer
@@ -120,7 +120,7 @@ public class JobSystem
 
     public void PayOutCompletedJobs(BankSystem bank, string playerAccountId)
     {
-        if (bank == null || string.IsNullOrEmpty(playerAccountId))
+        if (bank == null || string.IsNullOrWhiteSpace(playerAccountId))
             return;
 
         foreach (var assignment in _assignments.Where(x => x.Status == JobStatus.Completed).ToList())

@@ -1,44 +1,37 @@
-﻿public enum CombatStyle
+﻿// GangTypes.cs
+public enum GangMemberRole
+{
+    None = 0,
+    Leader = 1,
+    Scout = 2,
+    Guard = 3,
+    Gunner = 4,
+    Driver = 5,
+    Trader = 6,
+    Medic = 7
+}
+
+public enum CombatStyle
 {
     NonLethalMelee = 0,
     LethalMelee = 1,
-    RangedShort = 2,
-    RangedMedium = 3,
-    RangedLong = 4,
+    ShortRange = 2,
+    MediumRange = 3,
+    LongRange = 4,
     Stealth = 5
 }
 
-public static class CombatStyleExtensions
+public enum GangMood
 {
-    public static CombatStyle Next(this CombatStyle style)
-    {
-        switch (style)
-        {
-            case CombatStyle.NonLethalMelee:
-                return CombatStyle.LethalMelee;
-            case CombatStyle.LethalMelee:
-                return CombatStyle.RangedShort;
-            case CombatStyle.RangedShort:
-                return CombatStyle.RangedMedium;
-            case CombatStyle.RangedMedium:
-                return CombatStyle.RangedLong;
-            case CombatStyle.RangedLong:
-                return CombatStyle.Stealth;
-            default:
-                return CombatStyle.NonLethalMelee;
-        }
-    }
+    Neutral = 0,
+    Loyal = 1,
+    Nervous = 2,
+    Aggressive = 3,
+    Tired = 4
 }
 
-public class TacticalContext
+public enum CompanionType
 {
-    public bool IsCombatActive { get; set; }
-    public bool IsHostileNearby { get; set; }
-    public bool IsStealthMode { get; set; }
-    public bool IsShoppingOrTown { get; set; }
-    public bool IsTraveling { get; set; }
-    public bool IsCloseQuarters { get; set; }
-    public bool IsMediumRangeCombat { get; set; }
-    public bool IsLongRangeCombat { get; set; }
-    public bool FollowMode { get; set; }
+    Human = 0,
+    Animal = 1
 }

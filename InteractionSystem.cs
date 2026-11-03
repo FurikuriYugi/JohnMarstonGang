@@ -1,7 +1,5 @@
 ﻿// InteractionSystem.cs
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 public class InteractionSystem
 {
@@ -43,6 +41,20 @@ public class InteractionSystem
     public bool TryForceOpen(string targetId)
     {
         return _lockSystem != null && _lockSystem.ForceOpen(targetId);
+    }
+
+    public bool RegisterLockTarget(string targetId, LockTargetType type, bool isLocked, bool canBeBlasted)
+    {
+        if (_lockSystem == null) return false;
+        _lockSystem.RegisterTarget(targetId, type, isLocked, canBeBlasted);
+        return true;
+    }
+
+    public bool RegisterDynamiteTarget(string targetId, DynamiteTargetType type, bool isDestructible, bool isExplodable)
+    {
+        if (_dynamiteSystem == null) return false;
+        _dynamiteSystem.RegisterTarget(targetId, type, isDestructible, isExplodable);
+        return true;
     }
 
     public Wagon CreateOrClaimWagon(string wagonName, string ownerId, WagonType type)

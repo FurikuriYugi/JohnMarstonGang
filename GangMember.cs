@@ -1,38 +1,70 @@
-﻿public class GangMember
+﻿// GangMember.cs
+using System;
+using System.Collections.Generic;
+
+public class GangMember
 {
-    public string Name { get; set; } = "Member";
-    public int Relationship { get; set; }
-    public CombatStyle CombatStyle { get; set; } = CombatStyle.RangedMedium;
-    public bool IsFollowing { get; set; }
+    public string MemberId { get; set; }
+    public string Name { get; set; }
+    public CompanionType Type { get; set; }
+    public GangMemberRole Role { get; set; }
+    public CombatStyle PreferredCombatStyle { get; set; }
+    public GangMood Mood { get; set; }
 
-    public string AssignedWagonId { get; set; }
-    public WagonRole WagonRole { get; set; } = WagonRole.None;
+    public int Loyalty { get; set; }
+    public int SkillCombat { get; set; }
+    public int SkillStealth { get; set; }
+    public int SkillHandling { get; set; }
+    public int SkillTrading { get; set; }
 
-    public void AssignToWagon(string wagonId, WagonRole role)
+    public string WeaponChoice { get; set; }
+    public string Outfit { get; set; }
+
+    public decimal PersonalCash { get; set; }
+    public decimal PersonalGold { get; set; }
+
+    public List<string> Memories { get; set; } = new List<string>();
+    public List<string> Goals { get; set; } = new List<string>();
+
+    public bool FollowingPlayer { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsInCombat { get; set; }
+
+    public GangMember()
     {
-        AssignedWagonId = wagonId;
-        WagonRole = role;
+        MemberId = Guid.NewGuid().ToString("N");
+        Mood = GangMood.Neutral;
+        Loyalty = 50;
     }
 
-    public void ClearWagonAssignment()
+    public void AddMemory(string memory)
     {
-        AssignedWagonId = null;
-        WagonRole = WagonRole.None;
+        if (!string.IsNullOrWhiteSpace(memory))
+            Memories.Add(memory);
     }
 
-    public void Update()
+    public void AddGoal(string goal)
     {
-        if (IsFollowing)
-        {
-        }
+        if (!string.IsNullOrWhiteSpace(goal))
+            Goals.Add(goal);
     }
-}
 
-public enum WagonRole
-{
-    None = 0,
-    Driver = 1,
-    Gunner = 2,
-    Loader = 3,
-    Guard = 4
+    public void AdjustLoyalty(int amount)
+    {
+        Loyalty += amount;
+        if (Loyalty < 0) Loyalty = 0;
+        if (Loyalty > 100) Loyalty = 100;
+    }
+
+    public void SetCombatStyle(CombatStyle style, string weaponChoice = null)
+    {
+        PreferredCombatStyle = style;
+        if (!string.IsNullOrWhiteSpace(weaponChoice))
+            WeaponChoice = weaponChoice;
+    }
+
+    public bool ShouldUseStealth()
+    {
+        return PreferredCombatStyle == CombatStyle.Stealth || Mood == GangMood.Nervous;
+    }
 }

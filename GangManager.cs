@@ -1,200 +1,163 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿// GangManager.cs
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 
 public class GangManager
 {
     private readonly List<GangMember> _members = new List<GangMember>();
-    private readonly TacticalSquadAiSystem _tacticalAi = new TacticalSquadAiSystem();
-    private readonly WagonSystem _wagonSystem = new WagonSystem();
-    private const string SaveFileName = "JohnMarstonGang_Save.xml";
 
     public IReadOnlyList<GangMember> Members => _members;
-    public WagonSystem Wagons => _wagonSystem;
 
-    public static GangManager Load()
+    public GangMember CreateMember(string name, CompanionType type = CompanionType.Human)
     {
-        var manager = new GangManager();
-
-        if (!File.Exists(SaveFileName))
-            return manager;
-
-        try
-        {
-            using (var fs = File.OpenRead(SaveFileName))
-            {
-                var serializer = new DataContractSerializer(typeof(GangSaveData));
-                var data = serializer.ReadObject(fs) as GangSaveData;
-
-                if (data != null)
-                {
-                    if (data.Members != null)
-                    {
-                        foreach (var memberData in data.Members)
-                        {
-                            if (memberData == null)
-                                continue;
-
-                            manager._members.Add(new GangMember
-                            {
-                                Name = string.IsNullOrWhiteSpace(memberData.Name) ? "Member" : memberData.Name,
-                                Relationship = memberData.Relationship,
-                                CombatStyle = (CombatStyle)memberData.CombatStyle,
-                                IsFollowing = memberData.IsFollowing
-                            });
-                        }
-                    }
-
-                    if (data.Wagons != null)
-                    {
-                        manager._wagonSystem.RestoreFromPersistence(data.Wagons);
-                    }
-                }
-            }
-        }
-        catch
-        {
-        }
-
-        return manager;
-    }
-
-    public void Save()
-    {
-        try
-        {
-            var data = new GangSaveData
-            {
-                Members = _members.Select(m => new GangMemberData
-                {
-                    Name = m.Name,
-                    Relationship = m.Relationship,
-                    CombatStyle = (int)m.CombatStyle,
-                    IsFollowing = m.IsFollowing
-                }).ToList(),
-                Wagons = _wagonSystem.BuildPersistence()
-            };
-
-            using (var fs = File.Create(SaveFileName))
-            {
-                var serializer = new DataContractSerializer(typeof(GangSaveData));
-                serializer.WriteObject(fs, data);
-            }
-        }
-        catch
-        {
-        }
-    }
-
-    public void Update()
-    {
-        UpdateWithContext(GetDefaultContext());
-    }
-
-    public void UpdateWithContext(TacticalContext context)
-    {
-        if (context == null)
-            context = GetDefaultContext();
-
-        _tacticalAi.UpdateGangTactics(_members, context);
-        _tacticalAi.ApplyFormationSpacing(_members, context);
-
-        foreach (var member in _members)
-        {
-            if (member != null)
-                member.Update();
-        }
-    }
-
-    public void RecruitNearby()
-    {
-        Recruit("Recruit", 0, CombatStyle.RangedMedium, true);
-    }
-
-    public void Recruit(string name, int relationship, CombatStyle style, bool following)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            name = "Member";
-
-        if (_members.Any(x => x != null && x.Name == name))
-            return;
-
-        _members.Add(new GangMember
+        var member = new GangMember
         {
             Name = name,
-            Relationship = relationship,
-            CombatStyle = style,
-            IsFollowing = following
-        });
-    }
-
-    public void FollowPlayer()
-    {
-        foreach (var member in _members)
-        {
-            if (member != null)
-                member.IsFollowing = true;
-        }
-    }
-
-    public void Wait()
-    {
-        foreach (var member in _members)
-        {
-            if (member != null)
-                member.IsFollowing = false;
-        }
-    }
-
-    public void SetCombatStyleForAll(CombatStyle style)
-    {
-        foreach (var member in _members)
-        {
-            if (member != null)
-                member.CombatStyle = style;
-        }
-    }
-
-    public void CycleCombatStyle()
-    {
-        foreach (var member in _members)
-        {
-            if (member != null)
-                member.CombatStyle = member.CombatStyle.Next();
-        }
-    }
-
-    public GangMember GetMember(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            return null;
-
-        return _members.FirstOrDefault(m => m != null && m.Name == name);
-    }
-
-    public bool RemoveMember(string name)
-    {
-        var member = GetMember(name);
-        if (member == null)
-            return false;
-
-        return _members.Remove(member);
-    }
-
-    private TacticalContext GetDefaultContext()
-    {
-        return new TacticalContext
-        {
-            IsCombatActive = false,
-            IsHostileNearby = false,
-            IsStealthMode = false,
-            IsShoppingOrTown = false,
-            IsTraveling = true,
-            IsCloseQuarters = false,
-            IsMediumRangeCombat = false,
-            IsLongRangeCombat = false,
-            FollowMode = true
+            Type = type,
+            IsActive = true
         };
+
+        _members.Add(member);
+        return member;
+    }
+
+    public GangMember GetMember(string memberId)
+    {
+        return _members.FirstOrDefault(x => x.MemberId == memberId);
+    }
+
+    public GangMember GetMemberByName(string name)
+    {
+        return _members.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public bool RemoveMember(string memberId)
+    {
+        var member = GetMember(memberId);
+        if (member == null) return false;
+
+        _members.Remove(member);
+        return true;
+    }
+
+    public void AssignRole(string memberId, GangMemberRole role)
+    {
+        var member = GetMember(memberId);
+        if (member == null) return;
+
+        member.Role = role;
+    }
+
+    public void SetCombatStyle(string memberId, CombatStyle style, string weaponChoice = null)
+    {
+        var member = GetMember(memberId);
+        if (member == null) return;
+
+        member.SetCombatStyle(style, weaponChoice);
+    }
+
+    public void SetFollowingPlayer(string memberId, bool following)
+    {
+        var member = GetMember(memberId);
+        if (member == null) return;
+
+        member.FollowingPlayer = following;
+    }
+
+    public void AddMemory(string memberId, string memory)
+    {
+        var member = GetMember(memberId);
+        if (member == null) return;
+
+        member.AddMemory(memory);
+    }
+
+    public void AddGoal(string memberId, string goal)
+    {
+        var member = GetMember(memberId);
+        if (member == null) return;
+
+        member.AddGoal(goal);
+    }
+
+    public void AdjustLoyalty(string memberId, int amount)
+    {
+        var member = GetMember(memberId);
+        if (member == null) return;
+
+        member.AdjustLoyalty(amount);
+    }
+
+    public IEnumerable<GangMember> GetActiveMembers()
+    {
+        return _members.Where(x => x.IsActive);
+    }
+
+    public IEnumerable<GangMember> GetFollowers()
+    {
+        return _members.Where(x => x.IsActive && x.FollowingPlayer);
+    }
+
+    public void LoadFromSave(List<GangMemberSaveData> savedMembers)
+    {
+        _members.Clear();
+        if (savedMembers == null) return;
+
+        foreach (var saved in savedMembers)
+        {
+            _members.Add(new GangMember
+            {
+                MemberId = saved.MemberId,
+                Name = saved.Name,
+                Type = saved.Type,
+                Role = saved.Role,
+                PreferredCombatStyle = saved.PreferredCombatStyle,
+                Mood = saved.Mood,
+                Loyalty = saved.Loyalty,
+                SkillCombat = saved.SkillCombat,
+                SkillStealth = saved.SkillStealth,
+                SkillHandling = saved.SkillHandling,
+                SkillTrading = saved.SkillTrading,
+                WeaponChoice = saved.WeaponChoice,
+                Outfit = saved.Outfit,
+                PersonalCash = saved.PersonalCash,
+                PersonalGold = saved.PersonalGold,
+                Memories = saved.Memories ?? new List<string>(),
+                Goals = saved.Goals ?? new List<string>(),
+                IsActive = true
+            });
+        }
+    }
+
+    public List<GangMemberSaveData> CreateSaveData()
+    {
+        var result = new List<GangMemberSaveData>();
+
+        foreach (var member in _members)
+        {
+            result.Add(new GangMemberSaveData
+            {
+                MemberId = member.MemberId,
+                Name = member.Name,
+                Type = member.Type,
+                Role = member.Role,
+                PreferredCombatStyle = member.PreferredCombatStyle,
+                Mood = member.Mood,
+                Loyalty = member.Loyalty,
+                SkillCombat = member.SkillCombat,
+                SkillStealth = member.SkillStealth,
+                SkillHandling = member.SkillHandling,
+                SkillTrading = member.SkillTrading,
+                WeaponChoice = member.WeaponChoice,
+                Outfit = member.Outfit,
+                PersonalCash = member.PersonalCash,
+                PersonalGold = member.PersonalGold,
+                Memories = new List<string>(member.Memories),
+                Goals = new List<string>(member.Goals)
+            });
+        }
+
+        return result;
     }
 }

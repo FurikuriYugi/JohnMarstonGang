@@ -1,72 +1,50 @@
-﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+﻿// PersistenceModels.cs
+using System;
+using System.Collections.Generic;
 
-[DataContract]
 public class GangSaveData
 {
-    [DataMember(Order = 1)]
-    public List<GangMemberData> Members { get; set; } = new List<GangMemberData>();
-
-    [DataMember(Order = 2)]
-    public List<WagonData> Wagons { get; set; } = new List<WagonData>();
+    public List<GangMemberSaveData> Members { get; set; } = new List<GangMemberSaveData>();
+    public BankSaveData Bank { get; set; } = new BankSaveData();
+    public List<WagonSaveData> Wagons { get; set; } = new List<WagonSaveData>();
+    public List<JobOffer> JobOffers { get; set; } = new List<JobOffer>();
+    public List<JobAssignment> JobAssignments { get; set; } = new List<JobAssignment>();
 }
 
-[DataContract]
-public class GangMemberData
+public class GangMemberSaveData
 {
-    [DataMember(Order = 1)]
+    public string MemberId { get; set; }
     public string Name { get; set; }
-
-    [DataMember(Order = 2)]
-    public int Relationship { get; set; }
-
-    [DataMember(Order = 3)]
-    public int CombatStyle { get; set; }
-
-    [DataMember(Order = 4)]
-    public bool IsFollowing { get; set; }
+    public CompanionType Type { get; set; }
+    public GangMemberRole Role { get; set; }
+    public CombatStyle PreferredCombatStyle { get; set; }
+    public GangMood Mood { get; set; }
+    public int Loyalty { get; set; }
+    public int SkillCombat { get; set; }
+    public int SkillStealth { get; set; }
+    public int SkillHandling { get; set; }
+    public int SkillTrading { get; set; }
+    public string WeaponChoice { get; set; }
+    public string Outfit { get; set; }
+    public decimal PersonalCash { get; set; }
+    public decimal PersonalGold { get; set; }
+    public List<string> Memories { get; set; } = new List<string>();
+    public List<string> Goals { get; set; } = new List<string>();
 }
 
-[DataContract]
-public class WagonData
+public class BankSaveData
 {
-    [DataMember(Order = 1)]
+    public decimal CashOnHand { get; set; }
+    public decimal GoldOnHand { get; set; }
+    public Dictionary<string, decimal> CashAccounts { get; set; } = new Dictionary<string, decimal>();
+    public Dictionary<string, decimal> GoldAccounts { get; set; } = new Dictionary<string, decimal>();
+}
+
+public class WagonSaveData
+{
     public string WagonId { get; set; }
-
-    [DataMember(Order = 2)]
-    public string Name { get; set; }
-
-    [DataMember(Order = 3)]
+    public string WagonName { get; set; }
     public string OwnerId { get; set; }
-
-    [DataMember(Order = 4)]
-    public string HorseId { get; set; }
-
-    [DataMember(Order = 5)]
-    public int Type { get; set; }
-
-    [DataMember(Order = 6)]
-    public bool IsOwned { get; set; }
-
-    [DataMember(Order = 7)]
-    public bool IsHitched { get; set; }
-
-    [DataMember(Order = 8)]
-    public bool IsPersistent { get; set; }
-
-    [DataMember(Order = 9)]
-    public bool IsDestroyed { get; set; }
-
-    [DataMember(Order = 10)]
-    public List<WagonCargoData> Cargo { get; set; } = new List<WagonCargoData>();
-}
-
-[DataContract]
-public class WagonCargoData
-{
-    [DataMember(Order = 1)]
-    public string ItemName { get; set; }
-
-    [DataMember(Order = 2)]
-    public int Amount { get; set; }
+    public WagonType Type { get; set; }
+    public Dictionary<string, int> StoredItems { get; set; } = new Dictionary<string, int>();
 }

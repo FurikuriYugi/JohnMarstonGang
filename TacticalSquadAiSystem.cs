@@ -53,6 +53,11 @@ public class TacticalSquadAiSystem
                 member.CombatStyle = CombatStyle.RangedMedium;
                 continue;
             }
+
+            if (member.WagonRole == WagonRole.Gunner || member.WagonRole == WagonRole.Driver || member.WagonRole == WagonRole.Loader)
+            {
+                member.CombatStyle = CombatStyle.RangedShort;
+            }
         }
     }
 
@@ -69,6 +74,42 @@ public class TacticalSquadAiSystem
 
             if (!member.IsFollowing)
                 continue;
+        }
+    }
+
+    public void AssignWagonSupport(List<GangMember> members, string wagonId)
+    {
+        if (members == null)
+            return;
+
+        for (int i = 0; i < members.Count; i++)
+        {
+            var member = members[i];
+            if (member == null)
+                continue;
+
+            if (i == 0)
+                member.AssignToWagon(wagonId, WagonRole.Driver);
+            else if (i == 1)
+                member.AssignToWagon(wagonId, WagonRole.Gunner);
+            else if (i == 2)
+                member.AssignToWagon(wagonId, WagonRole.Loader);
+            else
+                member.AssignToWagon(wagonId, WagonRole.Guard);
+        }
+    }
+
+    public void ClearWagonSupport(List<GangMember> members)
+    {
+        if (members == null)
+            return;
+
+        foreach (var member in members)
+        {
+            if (member == null)
+                continue;
+
+            member.ClearWagonAssignment();
         }
     }
 }
