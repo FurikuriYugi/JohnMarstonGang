@@ -15,8 +15,12 @@ public class Main : Script
     private DynamiteSystem _dynamiteSystem;
     private LockSystem _lockSystem;
     private CompanionSystem _companionSystem;
+
     private readonly string _savePath = "JohnMorstonGangSave.json";
+    private readonly string _playerAccountId = "Player";
+
     private bool _initialized;
+    private DateTime _lastTownJobGeneration = DateTime.MinValue;
 
     public Main()
     {
@@ -37,9 +41,17 @@ public class Main : Script
         _dynamiteSystem = new DynamiteSystem();
         _lockSystem = new LockSystem();
         _companionSystem = new CompanionSystem();
+
         _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem, _wagonSystem, _bankSystem, _jobSystem);
 
         LoadState();
+
+        if (_jobSystem.Offers.Count == 0)
+        {
+            _jobSystem.GenerateTownJobs("Saint Denis");
+            _jobSystem.GenerateTownJobs("Valentine");
+        }
+
         _initialized = true;
     }
 
@@ -47,8 +59,20 @@ public class Main : Script
     {
         Initialize();
 
+        if (_gangManager == null)
+            return;
+
         _tacticalAi?.Update(_gangManager);
         _companionSystem?.Update(_gangManager);
+
+        if (_jobSystem != null && (DateTime.UtcNow - _lastTownJobGeneration).TotalMinutes >= 10)
+        {
+            _jobSystem.GenerateTownJobs("Saint Denis");
+            _jobSystem.GenerateTownJobs("Valentine");
+            _lastTownJobGeneration = DateTime.UtcNow;
+        }
+
+        _jobSystem?.PayOutCompletedJobs(_bankSystem, _playerAccountId);
     }
 
     private void OnAborted(object sender, EventArgs e)
