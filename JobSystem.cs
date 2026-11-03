@@ -1,5 +1,4 @@
-﻿// JobSystem.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -51,6 +50,7 @@ public class JobSystem
             return false;
 
         _offers.Remove(offer);
+
         _assignments.Add(new JobAssignment
         {
             AssignmentId = Guid.NewGuid().ToString("N"),
@@ -63,6 +63,7 @@ public class JobSystem
             HonorChange = offer.HonorChange,
             IsCriminal = offer.IsCriminal
         });
+
         return true;
     }
 
@@ -77,6 +78,7 @@ public class JobSystem
             return AcceptJob(jobId, gangMemberName);
 
         int yesVotes = 0;
+
         for (int i = 0; i < activeMembers.Count; i++)
         {
             GangMember member = activeMembers[i];
@@ -128,6 +130,7 @@ public class JobSystem
             return;
 
         List<JobAssignment> completed = _assignments.Where(x => x.Status == JobStatus.Completed).ToList();
+
         for (int i = 0; i < completed.Count; i++)
         {
             JobAssignment assignment = completed[i];
@@ -137,8 +140,8 @@ public class JobSystem
             if (assignment.PaymentCash > 0m || assignment.PaymentGold > 0m)
             {
                 List<GangMember> splitMembers = gangManager != null
-                ? gangManager.GetActiveMembers().ToList()
-                : new List<GangMember>();
+                    ? gangManager.GetActiveMembers().ToList()
+                    : new List<GangMember>();
 
                 if (splitMembers.Count > 0)
                 {
@@ -157,6 +160,7 @@ public class JobSystem
 
                     decimal playerCash = assignment.PaymentCash - (memberShareCash * splitMembers.Count);
                     decimal playerGold = assignment.PaymentGold - (memberShareGold * splitMembers.Count);
+
                     bank.DepositCash(playerAccountId, playerCash);
                     bank.DepositGold(playerAccountId, playerGold);
                 }

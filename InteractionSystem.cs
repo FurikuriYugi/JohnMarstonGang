@@ -1,5 +1,4 @@
-﻿// InteractionSystem.cs
-using System;
+﻿using System;
 
 public class InteractionSystem
 {
@@ -10,11 +9,11 @@ public class InteractionSystem
     private readonly JobSystem _jobSystem;
 
     public InteractionSystem(
-    LockSystem lockSystem,
-    DynamiteSystem dynamiteSystem,
-    WagonSystem wagonSystem,
-    BankSystem bankSystem,
-    JobSystem jobSystem)
+        LockSystem lockSystem,
+        DynamiteSystem dynamiteSystem,
+        WagonSystem wagonSystem,
+        BankSystem bankSystem,
+        JobSystem jobSystem)
     {
         _lockSystem = lockSystem;
         _dynamiteSystem = dynamiteSystem;

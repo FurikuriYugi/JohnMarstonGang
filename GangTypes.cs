@@ -1,36 +1,77 @@
-﻿public enum GangMemberRole
+﻿using System;
+
+public enum GangRole
 {
-    None = 0,
-    Leader = 1,
-    Scout = 2,
-    Guard = 3,
-    Gunner = 4,
-    Driver = 5,
-    Trader = 6,
-    Medic = 7
+    None,
+    Recruit,
+    Scout,
+    Gunman,
+    Hunter,
+    Guard,
+    Driver,
+    Trader,
+    Medic,
+    Quartermaster
 }
 
 public enum CombatStyle
 {
-    NonLethalMelee = 0,
-    LethalMelee = 1,
-    ShortRange = 2,
-    MediumRange = 3,
-    LongRange = 4,
-    Stealth = 5
+    NonLethalMelee,
+    LethalMelee,
+    RangedShort,
+    RangedMedium,
+    RangedLong,
+    Stealth
 }
 
-public enum GangMood
+public enum GangOrderType
 {
-    Neutral = 0,
-    Loyal = 1,
-    Nervous = 2,
-    Aggressive = 3,
-    Tired = 4
+    Follow,
+    HoldPosition,
+    Guard,
+    Scout,
+    Attack,
+    Defend,
+    Loot,
+    SupplyRun,
+    StayClose,
+    Wait
 }
 
-public enum CompanionType
+public enum JobType
 {
-    Human = 0,
-    Animal = 1
+    Legal,
+    Illegal,
+    Protection,
+    Escort,
+    Robbery,
+    Delivery,
+    Hunting,
+    Gathering,
+    Investigation
+}
+
+public enum CompanionDisposition
+{
+    Loyal,
+    Neutral,
+    Wary,
+    Hostile,
+    Familiar
+}
+
+public static class GangTypeHelpers
+{
+    public static CombatStyle ParseCombatStyle(string value)
+    {
+        if (Enum.TryParse(value, true, out CombatStyle style))
+            return style;
+
+        return CombatStyle.RangedShort;
+    }
+
+    public static string ToSaveString(CombatStyle style)
+    {
+        return style.ToString();
+    }
 }

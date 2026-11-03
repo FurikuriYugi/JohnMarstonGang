@@ -1,105 +1,111 @@
-﻿// WagonSystem.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
 public class WagonSystem
 {
-    private readonly List<Wagon> _wagons = new List<Wagon>();
+    private readonly Dictionary<string, WagonState> _wagons = new Dictionary<string, WagonState>(StringComparer.OrdinalIgnoreCase);
 
-    public IReadOnlyList<Wagon> Wagons => _wagons;
+    public IReadOnlyCollection<WagonState> Wagons => _wagons.Values.ToList().AsReadOnly();
 
-    public Wagon CreateWagon(string wagonName, string ownerId, WagonType type)
+    public WagonState CreateOrGetWagon(string wagonId, string modelName, string ownerName)
     {
-        var wagon = new Wagon
+        if (string.IsNullOrWhiteSpace(wagonId))
+            wagonId = Guid.NewGuid().ToString("N");
+
+        if (_wagons.TryGetValue(wagonId, out WagonState existing))
+            return existing;
+
+        WagonState wagon = new WagonState
         {
-            WagonId = Guid.NewGuid().ToString("N"),
-            WagonName = wagonName,
-            OwnerId = ownerId,
-            Type = type
+            WagonId = wagonId,
+            ModelName = string.IsNullOrWhiteSpace(modelName) ? "UnknownWagon" : modelName,
+            OwnerName = string.IsNullOrWhiteSpace(ownerName) ? "Unknown" : ownerName,
+            IsOwned = true,
+            IsPersistent = true,
+            IsHookedToHorse = false
         };
 
-        _wagons.Add(wagon);
+        _wagons[wagonId] = wagon;
         return wagon;
     }
 
-    public Wagon GetWagon(string wagonId)
+    public bool TryGetWagon(string wagonId, out WagonState wagon)
     {
-        return _wagons.FirstOrDefault(x => x.WagonId == wagonId);
+        return _wagons.TryGetValue(wagonId, out wagon);
     }
 
-    public bool StoreItem(string wagonId, string itemName, int amount)
+    public void SetOwned(string wagonId, bool isOwned, string ownerName = null)
     {
-        if (string.IsNullOrWhiteSpace(itemName) || amount <= 0) return false;
-
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-
-        if (!wagon.StoredItems.ContainsKey(itemName))
-            wagon.StoredItems[itemName] = 0;
-
-        wagon.StoredItems[itemName] += amount;
-        return true;
+        WagonState wagon = CreateOrGetWagon(wagonId, "UnknownWagon", ownerName ?? "Unknown");
+        wagon.IsOwned = isOwned;
+        if (!string.IsNullOrWhiteSpace(ownerName))
+            wagon.OwnerName = ownerName;
     }
 
-    public bool RemoveItem(string wagonId, string itemName, int amount)
+    public void SetPersistent(string wagonId, bool persistent)
     {
-        if (string.IsNullOrWhiteSpace(itemName) || amount <= 0) return false;
+        WagonState wagon = CreateOrGetWagon(wagonId, "UnknownWagon", "Unknown");
+        wagon.IsPersistent = persistent;
+    }
 
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
+    public void SetHooked(string wagonId, bool hooked)
+    {
+        WagonState wagon = CreateOrGetWagon(wagonId, "UnknownWagon", "Unknown");
+        wagon.IsHookedToHorse = hooked;
+    }
 
-        if (!wagon.StoredItems.ContainsKey(itemName))
+    public void MoveWagon(string wagonId, double x, double y, double z)
+    {
+        WagonState wagon = CreateOrGetWagon(wagonId, "UnknownWagon", "Unknown");
+        wagon.X = x;
+        wagon.Y = y;
+        wagon.Z = z;
+    }
+
+    public void AddContent(string wagonId, string itemName)
+    {
+        if (string.IsNullOrWhiteSpace(itemName))
+            return;
+
+        WagonState wagon = CreateOrGetWagon(wagonId, "UnknownWagon", "Unknown");
+        wagon.Contents.Add(itemName);
+    }
+
+    public bool RemoveContent(string wagonId, string itemName)
+    {
+        if (!_wagons.TryGetValue(wagonId, out WagonState wagon))
             return false;
 
-        if (wagon.StoredItems[itemName] < amount)
-            return false;
-
-        wagon.StoredItems[itemName] -= amount;
-
-        if (wagon.StoredItems[itemName] <= 0)
-            wagon.StoredItems.Remove(itemName);
-
-        return true;
+        return wagon.Contents.Remove(itemName);
     }
 
-    public bool HasItem(string wagonId, string itemName, int amount)
+    public void ClearContents(string wagonId)
     {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-        if (!wagon.StoredItems.ContainsKey(itemName)) return false;
-        return wagon.StoredItems[itemName] >= amount;
-    }
+        if (!_wagons.TryGetValue(wagonId, out WagonState wagon))
+            return;
 
-    public int GetItemCount(string wagonId, string itemName)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return 0;
-        return wagon.StoredItems.ContainsKey(itemName) ? wagon.StoredItems[itemName] : 0;
-    }
-
-    public bool SetOwner(string wagonId, string ownerId)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-
-        wagon.OwnerId = ownerId;
-        return true;
+        wagon.Contents.Clear();
     }
 
     public WagonSaveData CreateSaveData()
     {
-        var data = new WagonSaveData();
+        WagonSaveData data = new WagonSaveData();
 
-        foreach (var wagon in _wagons)
+        foreach (WagonState wagon in _wagons.Values)
         {
-            data.Wagons.Add(new WagonSaveEntry
+            data.Wagons.Add(new WagonData
             {
                 WagonId = wagon.WagonId,
-                WagonName = wagon.WagonName,
-                OwnerId = wagon.OwnerId,
-                Type = wagon.Type,
-                StoredItems = new Dictionary<string, int>(wagon.StoredItems)
+                ModelName = wagon.ModelName,
+                OwnerName = wagon.OwnerName,
+                IsOwned = wagon.IsOwned,
+                IsPersistent = wagon.IsPersistent,
+                IsHookedToHorse = wagon.IsHookedToHorse,
+                Contents = new List<string>(wagon.Contents),
+                X = wagon.X,
+                Y = wagon.Y,
+                Z = wagon.Z
             });
         }
 
@@ -113,47 +119,40 @@ public class WagonSystem
         if (data == null || data.Wagons == null)
             return;
 
-        foreach (var entry in data.Wagons)
+        foreach (WagonData wagonData in data.Wagons)
         {
-            _wagons.Add(new Wagon
+            if (wagonData == null)
+                continue;
+
+            WagonState wagon = new WagonState
             {
-                WagonId = entry.WagonId,
-                WagonName = entry.WagonName,
-                OwnerId = entry.OwnerId,
-                Type = entry.Type,
-                StoredItems = entry.StoredItems ?? new Dictionary<string, int>()
-            });
+                WagonId = string.IsNullOrWhiteSpace(wagonData.WagonId) ? Guid.NewGuid().ToString("N") : wagonData.WagonId,
+                ModelName = string.IsNullOrWhiteSpace(wagonData.ModelName) ? "UnknownWagon" : wagonData.ModelName,
+                OwnerName = string.IsNullOrWhiteSpace(wagonData.OwnerName) ? "Unknown" : wagonData.OwnerName,
+                IsOwned = wagonData.IsOwned,
+                IsPersistent = wagonData.IsPersistent,
+                IsHookedToHorse = wagonData.IsHookedToHorse,
+                X = wagonData.X,
+                Y = wagonData.Y,
+                Z = wagonData.Z,
+                Contents = wagonData.Contents != null ? new List<string>(wagonData.Contents) : new List<string>()
+            };
+
+            _wagons[wagon.WagonId] = wagon;
         }
     }
 }
 
-public class Wagon
+public class WagonState
 {
     public string WagonId { get; set; }
-    public string WagonName { get; set; }
-    public string OwnerId { get; set; }
-    public WagonType Type { get; set; }
-    public Dictionary<string, int> StoredItems { get; set; } = new Dictionary<string, int>();
-}
-
-public enum WagonType
-{
-    Cargo = 0,
-    Hunting = 1,
-    Trading = 2,
-    Artillery = 3
-}
-
-public class WagonSaveData
-{
-    public List<WagonSaveEntry> Wagons { get; set; } = new List<WagonSaveEntry>();
-}
-
-public class WagonSaveEntry
-{
-    public string WagonId { get; set; }
-    public string WagonName { get; set; }
-    public string OwnerId { get; set; }
-    public WagonType Type { get; set; }
-    public Dictionary<string, int> StoredItems { get; set; } = new Dictionary<string, int>();
+    public string ModelName { get; set; }
+    public string OwnerName { get; set; }
+    public bool IsOwned { get; set; }
+    public bool IsPersistent { get; set; }
+    public bool IsHookedToHorse { get; set; }
+    public List<string> Contents { get; set; } = new List<string>();
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Z { get; set; }
 }

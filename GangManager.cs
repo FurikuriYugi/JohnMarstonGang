@@ -6,14 +6,15 @@ public class GangManager
 {
     private readonly List<GangMember> _members = new List<GangMember>();
 
-    public IReadOnlyList<GangMember> Members => _members;
+    public IReadOnlyList<GangMember> Members => _members.AsReadOnly();
 
-    public GangMember CreateMember(string name, CompanionType type = CompanionType.Human)
+    public GangMember AddMember(string name, CompanionType type = CompanionType.Human, GangMemberRole role = GangMemberRole.Recruit)
     {
-        var member = new GangMember
+        GangMember member = new GangMember
         {
-            Name = name,
+            Name = string.IsNullOrWhiteSpace(name) ? "Unknown" : name,
             Type = type,
+            Role = role,
             IsActive = true
         };
 
@@ -21,176 +22,112 @@ public class GangManager
         return member;
     }
 
-    public GangMember RecruitMember(string name, CompanionType type = CompanionType.Human)
+    public bool RemoveMember(string memberId)
     {
-        var existing = GetMemberByName(name);
-        if (existing != null)
-            return existing;
+        GangMember member = GetMember(memberId);
+        if (member == null)
+            return false;
 
-        var member = CreateMember(name, type);
-        member.AddMemory("Recruited into the gang.");
-        member.AddGoal("Prove loyalty to the gang.");
-        return member;
+        return _members.Remove(member);
     }
 
     public GangMember GetMember(string memberId)
     {
-        return _members.FirstOrDefault(x => x.MemberId == memberId);
+        if (string.IsNullOrWhiteSpace(memberId))
+            return null;
+
+        return _members.FirstOrDefault(m => string.Equals(m.MemberId, memberId, StringComparison.OrdinalIgnoreCase));
     }
 
     public GangMember GetMemberByName(string name)
     {
-        return _members.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        return _members.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 
-    public bool RemoveMember(string memberId)
+    public void UpdateAll()
     {
-        var member = GetMember(memberId);
-        if (member == null) return false;
-        _members.Remove(member);
-        return true;
-    }
-
-    public void AssignRole(string memberId, GangMemberRole role)
-    {
-        var member = GetMember(memberId);
-        if (member == null) return;
-        member.Role = role;
-    }
-
-    public void SetCombatStyle(string memberId, CombatStyle style, string weaponChoice = null)
-    {
-        var member = GetMember(memberId);
-        if (member == null) return;
-        member.SetCombatStyle(style, weaponChoice);
-    }
-
-    public void SetFollowingPlayer(string memberId, bool following)
-    {
-        var member = GetMember(memberId);
-        if (member == null) return;
-        member.FollowingPlayer = following;
-    }
-
-    public void SetActive(string memberId, bool active)
-    {
-        var member = GetMember(memberId);
-        if (member == null) return;
-        member.IsActive = active;
-    }
-
-    public void SetInCombat(string memberId, bool inCombat)
-    {
-        var member = GetMember(memberId);
-        if (member == null) return;
-        member.IsInCombat = inCombat;
-    }
-
-    public void AddMemory(string memberId, string memory)
-    {
-        var member = GetMember(memberId);
-        if (member == null) return;
-        member.AddMemory(memory);
-    }
-
-    public void AddGoal(string memberId, string goal)
-    {
-        var member = GetMember(memberId);
-        if (member == null) return;
-        member.AddGoal(goal);
-    }
-
-    public void AdjustLoyalty(string memberId, int amount)
-    {
-        var member = GetMember(memberId);
-        if (member == null) return;
-        member.AdjustLoyalty(amount);
-    }
-
-    public void GivePersonalCash(string memberId, decimal amount)
-    {
-        var member = GetMember(memberId);
-        if (member == null || amount <= 0m) return;
-        member.PersonalCash += amount;
-    }
-
-    public void GivePersonalGold(string memberId, decimal amount)
-    {
-        var member = GetMember(memberId);
-        if (member == null || amount <= 0m) return;
-        member.PersonalGold += amount;
-    }
-
-    public IEnumerable<GangMember> GetActiveMembers()
-    {
-        return _members.Where(x => x.IsActive);
-    }
-
-    public IEnumerable<GangMember> GetFollowers()
-    {
-        return _members.Where(x => x.IsActive && x.FollowingPlayer);
-    }
-
-    public List<GangMemberSaveData> CreateSaveData()
-    {
-        var result = new List<GangMemberSaveData>();
-
-        foreach (var member in _members)
+        foreach (GangMember member in _members)
         {
-            result.Add(new GangMemberSaveData
+            if (member == null || !member.IsActive)
+                continue;
+
+            if (member.NeedsSupplies)
+                member.AddGoal("Acquire supplies");
+
+            if (member.IsShopping)
+                member.AddMemory("Went shopping with the player");
+
+            if (member.IsStealthing)
+                member.SetCombatStyle(CombatStyle.Stealth);
+
+            if (member.IsInCombat && member.Loyalty < 25)
+                member.AdjustLoyalty(-1);
+        }
+    }
+
+    public List<GangMemberData> CreateSaveData()
+    {
+        List<GangMemberData> data = new List<GangMemberData>();
+
+        foreach (GangMember member in _members)
+        {
+            if (member == null)
+                continue;
+
+            data.Add(new GangMemberData
             {
-                MemberId = member.MemberId,
                 Name = member.Name,
-                Type = member.Type,
-                Role = member.Role,
-                PreferredCombatStyle = member.PreferredCombatStyle,
-                Mood = member.Mood,
-                Loyalty = member.Loyalty,
-                SkillCombat = member.SkillCombat,
-                SkillStealth = member.SkillStealth,
-                SkillHandling = member.SkillHandling,
-                SkillTrading = member.SkillTrading,
-                WeaponChoice = member.WeaponChoice,
-                Outfit = member.Outfit,
-                PersonalCash = member.PersonalCash,
-                PersonalGold = member.PersonalGold,
+                ModelName = member.Type.ToString(),
+                Role = member.Role.ToString(),
+                Health = 100f,
+                Stamina = 100f,
+                DeadEye = 100f,
+                Honor = member.Loyalty,
+                IsAlive = true,
+                IsFollowing = member.FollowingPlayer,
+                CombatStyle = member.PreferredCombatStyle.ToString(),
+                Goals = new List<string>(member.Goals),
                 Memories = new List<string>(member.Memories),
-                Goals = new List<string>(member.Goals)
+                InventoryItems = new List<string>()
             });
         }
 
-        return result;
+        return data;
     }
 
-    public void LoadFromSave(List<GangMemberSaveData> savedMembers)
+    public void LoadFromSave(List<GangMemberData> data)
     {
         _members.Clear();
 
-        if (savedMembers == null) return;
+        if (data == null)
+            return;
 
-        foreach (var saved in savedMembers)
+        foreach (GangMemberData saved in data)
         {
-            _members.Add(new GangMember
+            if (saved == null)
+                continue;
+
+            GangMember member = new GangMember
             {
-                MemberId = saved.MemberId,
                 Name = saved.Name,
-                Type = saved.Type,
-                Role = saved.Role,
-                PreferredCombatStyle = saved.PreferredCombatStyle,
-                Mood = saved.Mood,
-                Loyalty = saved.Loyalty,
-                SkillCombat = saved.SkillCombat,
-                SkillStealth = saved.SkillStealth,
-                SkillHandling = saved.SkillHandling,
-                SkillTrading = saved.SkillTrading,
-                WeaponChoice = saved.WeaponChoice,
-                Outfit = saved.Outfit,
-                PersonalCash = saved.PersonalCash,
-                PersonalGold = saved.PersonalGold,
-                Memories = saved.Memories ?? new List<string>(),
-                Goals = saved.Goals ?? new List<string>(),
-                IsActive = true
-            });
+                Type = Enum.TryParse(saved.ModelName, true, out CompanionType type) ? type : CompanionType.Human,
+                Role = Enum.TryParse(saved.Role, true, out GangMemberRole role) ? role : GangMemberRole.Recruit,
+                PreferredCombatStyle = GangTypeHelpers.ParseCombatStyle(saved.CombatStyle),
+                Loyalty = saved.Honor,
+                FollowingPlayer = saved.IsFollowing,
+                IsActive = saved.IsAlive
+            };
+
+            if (saved.Goals != null)
+                member.Goals.AddRange(saved.Goals);
+
+            if (saved.Memories != null)
+                member.Memories.AddRange(saved.Memories);
+
+            _members.Add(member);
         }
     }
 }

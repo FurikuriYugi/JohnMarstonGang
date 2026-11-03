@@ -1,95 +1,94 @@
-﻿// PersistenceModels.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 public class GangSaveData
 {
-    public List<GangMemberSaveData> Members { get; set; } = new List<GangMemberSaveData>();
+    public List<GangMemberData> Members { get; set; } = new List<GangMemberData>();
     public BankSaveData Bank { get; set; } = new BankSaveData();
-    public List<WagonSaveData> Wagons { get; set; } = new List<WagonSaveData>();
+    public WagonSaveData Wagons { get; set; } = new WagonSaveData();
     public List<JobOffer> JobOffers { get; set; } = new List<JobOffer>();
     public List<JobAssignment> JobAssignments { get; set; } = new List<JobAssignment>();
-    public List<CompanionSaveData> Companions { get; set; } = new List<CompanionSaveData>();
 }
 
-public class GangMemberSaveData
+public class GangMemberData
 {
-    public string MemberId { get; set; }
     public string Name { get; set; }
-    public CompanionType Type { get; set; }
-    public GangMemberRole Role { get; set; }
-    public CombatStyle PreferredCombatStyle { get; set; }
-    public GangMood Mood { get; set; }
-    public int Loyalty { get; set; }
-    public int SkillCombat { get; set; }
-    public int SkillStealth { get; set; }
-    public int SkillHandling { get; set; }
-    public int SkillTrading { get; set; }
-    public string WeaponChoice { get; set; }
-    public string Outfit { get; set; }
-    public decimal PersonalCash { get; set; }
-    public decimal PersonalGold { get; set; }
-    public List<string> Memories { get; set; } = new List<string>();
+    public string ModelName { get; set; }
+    public string Role { get; set; }
+    public float Health { get; set; }
+    public float Stamina { get; set; }
+    public float DeadEye { get; set; }
+    public int Honor { get; set; }
+    public bool IsAlive { get; set; }
+    public bool IsFollowing { get; set; }
+    public string CombatStyle { get; set; }
     public List<string> Goals { get; set; } = new List<string>();
-    public bool FollowingPlayer { get; set; }
-    public bool IsActive { get; set; }
-    public bool IsInCombat { get; set; }
-    public bool IsStealthing { get; set; }
-    public bool IsShopping { get; set; }
-    public bool IsOnJob { get; set; }
-    public bool NeedsSupplies { get; set; }
+    public List<string> Memories { get; set; } = new List<string>();
+    public List<string> InventoryItems { get; set; } = new List<string>();
 }
 
 public class BankSaveData
 {
-    public List<BankAccountSaveData> Accounts { get; set; } = new List<BankAccountSaveData>();
-    public decimal VaultCash { get; set; }
-    public decimal VaultGold { get; set; }
-    public decimal TotalDepositedCash { get; set; }
-    public decimal TotalDepositedGold { get; set; }
+    public List<BankAccountData> Accounts { get; set; } = new List<BankAccountData>();
+    public List<BankVaultRecord> VaultRecords { get; set; } = new List<BankVaultRecord>();
 }
 
-public class BankAccountSaveData
+public class BankAccountData
 {
-    public string AccountId { get; set; }
-    public string OwnerId { get; set; }
+    public string OwnerName { get; set; }
     public decimal Cash { get; set; }
     public decimal Gold { get; set; }
+    public decimal CreditLimit { get; set; }
+    public decimal Debt { get; set; }
     public bool IsSuspicious { get; set; }
-    public decimal LifetimeDepositedCash { get; set; }
-    public decimal LifetimeDepositedGold { get; set; }
+}
+
+public class BankVaultRecord
+{
+    public string BankName { get; set; }
+    public decimal CashStored { get; set; }
+    public decimal GoldStored { get; set; }
+    public DateTime LastUpdated { get; set; }
 }
 
 public class WagonSaveData
 {
+    public List<WagonData> Wagons { get; set; } = new List<WagonData>();
+}
+
+public class WagonData
+{
     public string WagonId { get; set; }
-    public string Name { get; set; }
-    public string OwnerId { get; set; }
-    public WagonType Type { get; set; }
+    public string ModelName { get; set; }
+    public string OwnerName { get; set; }
     public bool IsOwned { get; set; }
     public bool IsPersistent { get; set; }
-    public List<WagonInventoryItemSaveData> Inventory { get; set; } = new List<WagonInventoryItemSaveData>();
+    public bool IsHookedToHorse { get; set; }
+    public List<string> Contents { get; set; } = new List<string>();
+    public double X { get; set; }
+    public double Y { get; set; }
+    public double Z { get; set; }
 }
 
-public class WagonInventoryItemSaveData
+public class JobOffer
 {
-    public string ItemName { get; set; }
-    public int Amount { get; set; }
+    public string JobId { get; set; }
+    public string Title { get; set; }
+    public string Location { get; set; }
+    public string EmployerName { get; set; }
+    public string Description { get; set; }
+    public decimal CashReward { get; set; }
+    public decimal GoldReward { get; set; }
+    public int HonorChange { get; set; }
+    public bool IsIllegal { get; set; }
+    public bool IsAvailable { get; set; } = true;
 }
 
-public class CompanionSaveData
+public class JobAssignment
 {
-    public string MemberId { get; set; }
-    public string Name { get; set; }
-    public CompanionType Type { get; set; }
-    public int Trust { get; set; }
-    public int Loyalty { get; set; }
-    public int Experience { get; set; }
-    public GangMood CurrentMood { get; set; }
-    public CombatStyle PreferredCombatStyle { get; set; }
-    public string LastKnownWeapon { get; set; }
-    public List<string> Memories { get; set; } = new List<string>();
-    public List<string> Goals { get; set; } = new List<string>();
-    public decimal PersonalCash { get; set; }
-    public decimal PersonalGold { get; set; }
+    public string JobId { get; set; }
+    public string AssignedTo { get; set; }
+    public DateTime AcceptedAt { get; set; }
+    public bool IsCompleted { get; set; }
+    public bool IsFailed { get; set; }
 }

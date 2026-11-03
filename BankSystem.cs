@@ -1,137 +1,244 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class BankSystem
 {
-    private decimal _vaultCash;
-    private decimal _vaultGold;
+    private readonly Dictionary<string, BankAccount> _accounts = new Dictionary<string, BankAccount>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, BankVaultRecord> _vaultRecords = new Dictionary<string, BankVaultRecord>(StringComparer.OrdinalIgnoreCase);
 
-    private readonly Dictionary<string, decimal> _cashAccounts = new Dictionary<string, decimal>();
-    private readonly Dictionary<string, decimal> _goldAccounts = new Dictionary<string, decimal>();
+    public IReadOnlyCollection<BankAccount> Accounts => _accounts.Values.ToList().AsReadOnly();
 
-    public decimal VaultCash => _vaultCash;
-    public decimal VaultGold => _vaultGold;
-
-    public decimal GetCashBalance(string accountId)
+    public BankAccount GetOrCreateAccount(string ownerName)
     {
-        if (string.IsNullOrWhiteSpace(accountId))
-            return 0m;
+        if (string.IsNullOrWhiteSpace(ownerName))
+            ownerName = "Unknown";
 
-        return _cashAccounts.TryGetValue(accountId, out var balance) ? balance : 0m;
+        if (_accounts.TryGetValue(ownerName, out BankAccount account))
+            return account;
+
+        account = new BankAccount(ownerName);
+        _accounts[ownerName] = account;
+        return account;
     }
 
-    public decimal GetGoldBalance(string accountId)
-    {
-        if (string.IsNullOrWhiteSpace(accountId))
-            return 0m;
-
-        return _goldAccounts.TryGetValue(accountId, out var balance) ? balance : 0m;
-    }
-
-    public void DepositCash(string accountId, decimal amount)
-    {
-        if (string.IsNullOrWhiteSpace(accountId) || amount <= 0m)
-            return;
-
-        if (!_cashAccounts.ContainsKey(accountId))
-            _cashAccounts[accountId] = 0m;
-
-        _cashAccounts[accountId] += amount;
-        _vaultCash += amount;
-    }
-
-    public void DepositGold(string accountId, decimal amount)
-    {
-        if (string.IsNullOrWhiteSpace(accountId) || amount <= 0m)
-            return;
-
-        if (!_goldAccounts.ContainsKey(accountId))
-            _goldAccounts[accountId] = 0m;
-
-        _goldAccounts[accountId] += amount;
-        _vaultGold += amount;
-    }
-
-    public bool WithdrawCash(string accountId, decimal amount)
-    {
-        if (string.IsNullOrWhiteSpace(accountId) || amount <= 0m)
-            return false;
-
-        var current = GetCashBalance(accountId);
-        if (current < amount)
-            return false;
-
-        _cashAccounts[accountId] = current - amount;
-        _vaultCash -= amount;
-        if (_vaultCash < 0m) _vaultCash = 0m;
-        return true;
-    }
-
-    public bool WithdrawGold(string accountId, decimal amount)
-    {
-        if (string.IsNullOrWhiteSpace(accountId) || amount <= 0m)
-            return false;
-
-        var current = GetGoldBalance(accountId);
-        if (current < amount)
-            return false;
-
-        _goldAccounts[accountId] = current - amount;
-        _vaultGold -= amount;
-        if (_vaultGold < 0m) _vaultGold = 0m;
-        return true;
-    }
-
-    public void AddVaultCash(decimal amount)
+    public void DepositCash(string ownerName, decimal amount)
     {
         if (amount <= 0m)
             return;
 
-        _vaultCash += amount;
+        BankAccount account = GetOrCreateAccount(ownerName);
+        account.Cash += amount;
     }
 
-    public void AddVaultGold(decimal amount)
+    public bool WithdrawCash(string ownerName, decimal amount)
+    {
+        if (amount <= 0m)
+            return false;
+
+        BankAccount account = GetOrCreateAccount(ownerName);
+        if (account.Cash < amount)
+            return false;
+
+        account.Cash -= amount;
+        return true;
+    }
+
+    public void DepositGold(string ownerName, decimal amount)
     {
         if (amount <= 0m)
             return;
 
-        _vaultGold += amount;
+        BankAccount account = GetOrCreateAccount(ownerName);
+        account.Gold += amount;
+    }
+
+    public bool WithdrawGold(string ownerName, decimal amount)
+    {
+        if (amount <= 0m)
+            return false;
+
+        BankAccount account = GetOrCreateAccount(ownerName);
+        if (account.Gold < amount)
+            return false;
+
+        account.Gold -= amount;
+        return true;
+    }
+
+    public void AddCreditLimit(string ownerName, decimal amount)
+    {
+        if (amount <= 0m)
+            return;
+
+        BankAccount account = GetOrCreateAccount(ownerName);
+        account.CreditLimit += amount;
+    }
+
+    public bool BorrowAgainstCredit(string ownerName, decimal amount)
+    {
+        if (amount <= 0m)
+            return false;
+
+        BankAccount account = GetOrCreateAccount(ownerName);
+        decimal availableCredit = account.CreditLimit - account.Debt;
+        if (availableCredit < amount)
+            return false;
+
+        account.Debt += amount;
+        account.Cash += amount;
+        return true;
+    }
+
+    public bool RepayDebt(string ownerName, decimal amount)
+    {
+        if (amount <= 0m)
+            return false;
+
+        BankAccount account = GetOrCreateAccount(ownerName);
+        if (account.Cash < amount || account.Debt <= 0m)
+            return false;
+
+        decimal payment = Math.Min(amount, account.Debt);
+        account.Cash -= payment;
+        account.Debt -= payment;
+        return true;
+    }
+
+    public void MarkSuspicious(string ownerName, bool suspicious)
+    {
+        BankAccount account = GetOrCreateAccount(ownerName);
+        account.IsSuspicious = suspicious;
+    }
+
+    public void StoreVault(string bankName, decimal cash, decimal gold)
+    {
+        if (string.IsNullOrWhiteSpace(bankName))
+            bankName = "Unknown Bank";
+
+        if (!_vaultRecords.TryGetValue(bankName, out BankVaultRecord record))
+        {
+            record = new BankVaultRecord
+            {
+                BankName = bankName,
+                CashStored = 0m,
+                GoldStored = 0m,
+                LastUpdated = DateTime.UtcNow
+            };
+            _vaultRecords[bankName] = record;
+        }
+
+        record.CashStored += Math.Max(0m, cash);
+        record.GoldStored += Math.Max(0m, gold);
+        record.LastUpdated = DateTime.UtcNow;
+    }
+
+    public bool RemoveFromVault(string bankName, decimal cash, decimal gold)
+    {
+        if (string.IsNullOrWhiteSpace(bankName))
+            bankName = "Unknown Bank";
+
+        if (!_vaultRecords.TryGetValue(bankName, out BankVaultRecord record))
+            return false;
+
+        if (record.CashStored < cash || record.GoldStored < gold)
+            return false;
+
+        record.CashStored -= Math.Max(0m, cash);
+        record.GoldStored -= Math.Max(0m, gold);
+        record.LastUpdated = DateTime.UtcNow;
+        return true;
     }
 
     public BankSaveData CreateSaveData()
     {
-        return new BankSaveData
+        BankSaveData data = new BankSaveData();
+
+        foreach (BankAccount account in _accounts.Values)
         {
-            VaultCash = _vaultCash,
-            VaultGold = _vaultGold,
-            CashAccounts = new Dictionary<string, decimal>(_cashAccounts),
-            GoldAccounts = new Dictionary<string, decimal>(_goldAccounts)
-        };
+            data.Accounts.Add(new BankAccountData
+            {
+                OwnerName = account.OwnerName,
+                Cash = account.Cash,
+                Gold = account.Gold,
+                CreditLimit = account.CreditLimit,
+                Debt = account.Debt,
+                IsSuspicious = account.IsSuspicious
+            });
+        }
+
+        foreach (BankVaultRecord record in _vaultRecords.Values)
+        {
+            data.VaultRecords.Add(new BankVaultRecord
+            {
+                BankName = record.BankName,
+                CashStored = record.CashStored,
+                GoldStored = record.GoldStored,
+                LastUpdated = record.LastUpdated
+            });
+        }
+
+        return data;
     }
 
     public void LoadFromSave(BankSaveData data)
     {
-        _cashAccounts.Clear();
-        _goldAccounts.Clear();
-        _vaultCash = 0m;
-        _vaultGold = 0m;
+        _accounts.Clear();
+        _vaultRecords.Clear();
 
         if (data == null)
             return;
 
-        _vaultCash = data.VaultCash;
-        _vaultGold = data.VaultGold;
-
-        if (data.CashAccounts != null)
+        if (data.Accounts != null)
         {
-            foreach (var kvp in data.CashAccounts)
-                _cashAccounts[kvp.Key] = kvp.Value;
+            foreach (BankAccountData accountData in data.Accounts)
+            {
+                if (accountData == null)
+                    continue;
+
+                BankAccount account = new BankAccount(accountData.OwnerName)
+                {
+                    Cash = accountData.Cash,
+                    Gold = accountData.Gold,
+                    CreditLimit = accountData.CreditLimit,
+                    Debt = accountData.Debt,
+                    IsSuspicious = accountData.IsSuspicious
+                };
+
+                _accounts[account.OwnerName] = account;
+            }
         }
 
-        if (data.GoldAccounts != null)
+        if (data.VaultRecords != null)
         {
-            foreach (var kvp in data.GoldAccounts)
-                _goldAccounts[kvp.Key] = kvp.Value;
+            foreach (BankVaultRecord record in data.VaultRecords)
+            {
+                if (record == null)
+                    continue;
+
+                _vaultRecords[record.BankName] = new BankVaultRecord
+                {
+                    BankName = record.BankName,
+                    CashStored = record.CashStored,
+                    GoldStored = record.GoldStored,
+                    LastUpdated = record.LastUpdated
+                };
+            }
         }
+    }
+}
+
+public class BankAccount
+{
+    public string OwnerName { get; private set; }
+    public decimal Cash { get; set; }
+    public decimal Gold { get; set; }
+    public decimal CreditLimit { get; set; }
+    public decimal Debt { get; set; }
+    public bool IsSuspicious { get; set; }
+
+    public BankAccount(string ownerName)
+    {
+        OwnerName = string.IsNullOrWhiteSpace(ownerName) ? "Unknown" : ownerName.Trim();
     }
 }

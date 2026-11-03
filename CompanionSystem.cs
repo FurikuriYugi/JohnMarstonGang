@@ -1,5 +1,4 @@
-﻿// CompanionSystem.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,13 +14,16 @@ public class CompanionSystem
         if (_records.ContainsKey(memberId))
             return _records[memberId];
 
-        var record = new CompanionRecord
+        CompanionRecord record = new CompanionRecord
         {
             MemberId = memberId,
             Name = name,
             Type = type,
             Trust = 50,
-            Experience = 0
+            Experience = 0,
+            Loyalty = 50,
+            CurrentMood = GangMood.Neutral,
+            PreferredCombatStyle = CombatStyle.RangedShort
         };
 
         _records[memberId] = record;
@@ -33,7 +35,7 @@ public class CompanionSystem
         if (member == null)
             return;
 
-        var record = GetOrCreateRecord(member.MemberId, member.Name, member.Type);
+        CompanionRecord record = GetOrCreateRecord(member.MemberId, member.Name, member.Type);
         if (record == null)
             return;
 
@@ -43,8 +45,8 @@ public class CompanionSystem
         record.PreferredCombatStyle = member.PreferredCombatStyle;
         record.CurrentMood = member.Mood;
         record.LastKnownWeapon = member.GetSuggestedWeapon();
-        record.Memories = new List<string>(member.Memories);
-        record.Goals = new List<string>(member.Goals);
+        record.Memories = new List<string>(member.Memories ?? new List<string>());
+        record.Goals = new List<string>(member.Goals ?? new List<string>());
         record.PersonalCash = member.PersonalCash;
         record.PersonalGold = member.PersonalGold;
     }
@@ -56,10 +58,13 @@ public class CompanionSystem
 
         if (member.SkillTrading > 65)
             member.AddGoal("Find profitable trade opportunities.");
+
         if (member.SkillCombat > 65)
             member.AddGoal("Improve combat readiness.");
+
         if (member.SkillStealth > 65)
             member.AddGoal("Stay quiet and avoid detection.");
+
         if (member.NeedsSupplies)
             member.AddGoal("Gather supplies.");
     }
@@ -70,6 +75,20 @@ public class CompanionSystem
             return;
 
         _records[memberId].Experience += Math.Max(0, amount);
+    }
+
+    public CompanionRecord GetRecord(string memberId)
+    {
+        if (string.IsNullOrWhiteSpace(memberId))
+            return null;
+
+        _records.TryGetValue(memberId, out CompanionRecord record);
+        return record;
+    }
+
+    public IReadOnlyCollection<CompanionRecord> GetAllRecords()
+    {
+        return _records.Values.ToList().AsReadOnly();
     }
 }
 

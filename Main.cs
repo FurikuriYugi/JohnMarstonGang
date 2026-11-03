@@ -1,8 +1,8 @@
-﻿// Main.cs
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using RDR2;
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 public class Main : Script
 {
@@ -15,6 +15,7 @@ public class Main : Script
     private DynamiteSystem _dynamiteSystem;
     private LockSystem _lockSystem;
     private CompanionSystem _companionSystem;
+
     private readonly string _savePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JohnMorstonGangSave.json");
     private bool _initialized;
 
@@ -39,11 +40,11 @@ public class Main : Script
         _companionSystem = new CompanionSystem();
 
         _interactionSystem = new InteractionSystem(
-        _lockSystem,
-        _dynamiteSystem,
-        _wagonSystem,
-        _bankSystem,
-        _jobSystem
+            _lockSystem,
+            _dynamiteSystem,
+            _wagonSystem,
+            _bankSystem,
+            _jobSystem
         );
 
         LoadState();
@@ -92,8 +93,8 @@ public class Main : Script
             Members = _gangManager.CreateSaveData(),
             Bank = _bankSystem.CreateSaveData(),
             Wagons = _wagonSystem.CreateSaveData(),
-            JobOffers = new System.Collections.Generic.List<JobOffer>(_jobSystem.Offers),
-            JobAssignments = new System.Collections.Generic.List<JobAssignment>(_jobSystem.Assignments)
+            JobOffers = new List<JobOffer>(_jobSystem.Offers),
+            JobAssignments = new List<JobAssignment>(_jobSystem.Assignments)
         };
 
         File.WriteAllText(_savePath, JsonConvert.SerializeObject(data, Formatting.Indented));

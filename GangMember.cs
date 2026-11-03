@@ -1,6 +1,6 @@
-﻿// GangMember.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
+
 public class GangMember
 {
     public string MemberId { get; set; }
@@ -33,6 +33,7 @@ public class GangMember
         MemberId = Guid.NewGuid().ToString("N");
         Mood = GangMood.Neutral;
         Loyalty = 50;
+        PreferredCombatStyle = CombatStyle.RangedShort;
     }
 
     public void AddMemory(string memory)
@@ -70,17 +71,18 @@ public class GangMember
     {
         if (ShouldUseStealth())
             return "Bow";
+
         switch (PreferredCombatStyle)
         {
             case CombatStyle.NonLethalMelee:
                 return "Lasso";
             case CombatStyle.LethalMelee:
                 return "Knife";
-            case CombatStyle.ShortRange:
+            case CombatStyle.RangedShort:
                 return "Revolver";
-            case CombatStyle.MediumRange:
+            case CombatStyle.RangedMedium:
                 return "Repeater";
-            case CombatStyle.LongRange:
+            case CombatStyle.RangedLong:
                 return "Rifle";
             default:
                 return string.IsNullOrWhiteSpace(WeaponChoice) ? "Revolver" : WeaponChoice;

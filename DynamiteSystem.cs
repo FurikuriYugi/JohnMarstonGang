@@ -1,5 +1,4 @@
-﻿// DynamiteSystem.cs
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 public class DynamiteSystem
@@ -10,7 +9,7 @@ public class DynamiteSystem
 
     public DynamiteTarget RegisterTarget(string targetId, DynamiteTargetType type, bool isDestructible, bool isExplodable)
     {
-        var existing = GetTarget(targetId);
+        DynamiteTarget existing = GetTarget(targetId);
         if (existing != null)
         {
             existing.Type = type;
@@ -19,7 +18,7 @@ public class DynamiteSystem
             return existing;
         }
 
-        var target = new DynamiteTarget
+        DynamiteTarget target = new DynamiteTarget
         {
             TargetId = targetId,
             Type = type,
@@ -38,19 +37,24 @@ public class DynamiteSystem
 
     public bool CanBlowOpen(string targetId, bool hasDynamite)
     {
-        if (!hasDynamite) return false;
+        if (!hasDynamite)
+            return false;
 
-        var target = GetTarget(targetId);
-        if (target == null) return false;
+        DynamiteTarget target = GetTarget(targetId);
+        if (target == null)
+            return false;
 
         return target.IsExplodable && !target.IsDestroyed;
     }
 
     public bool BlowOpen(string targetId, bool hasDynamite)
     {
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-        if (!CanBlowOpen(targetId, hasDynamite)) return false;
+        DynamiteTarget target = GetTarget(targetId);
+        if (target == null)
+            return false;
+
+        if (!CanBlowOpen(targetId, hasDynamite))
+            return false;
 
         target.IsDestroyed = true;
         target.WasBlown = true;
@@ -60,10 +64,12 @@ public class DynamiteSystem
 
     public bool DamageTarget(string targetId, int damage)
     {
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-        if (!target.IsDestructible) return false;
-        if (damage <= 0) return false;
+        DynamiteTarget target = GetTarget(targetId);
+        if (target == null)
+            return false;
+
+        if (!target.IsDestructible || damage <= 0)
+            return false;
 
         target.DamageLevel += damage;
         if (target.DamageLevel >= 100)
@@ -77,9 +83,12 @@ public class DynamiteSystem
 
     public bool RepairTarget(string targetId, int amount)
     {
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-        if (amount <= 0) return false;
+        DynamiteTarget target = GetTarget(targetId);
+        if (target == null)
+            return false;
+
+        if (amount <= 0)
+            return false;
 
         target.DamageLevel -= amount;
         if (target.DamageLevel < 0)
@@ -98,7 +107,7 @@ public class DynamiteSystem
 
     public int GetDamageLevel(string targetId)
     {
-        var target = GetTarget(targetId);
+        DynamiteTarget target = GetTarget(targetId);
         return target == null ? 0 : target.DamageLevel;
     }
 }
