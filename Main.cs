@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿// Main.cs
+using Newtonsoft.Json;
 using RDR2;
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 public class Main : Script
@@ -65,7 +65,16 @@ public class Main : Script
             return;
 
         _tacticalAi?.Update(_gangManager);
-        _companionSystem?.Update(_gangManager);
+
+        if (_gangManager.Members != null)
+        {
+            for (int i = 0; i < _gangManager.Members.Count; i++)
+            {
+                GangMember member = _gangManager.Members[i];
+                if (member != null)
+                    _companionSystem?.UpdateFromGangMember(member);
+            }
+        }
     }
 
     private void OnAborted(object sender, EventArgs e)
@@ -75,17 +84,16 @@ public class Main : Script
 
     private void SaveState()
     {
-        if (_gangManager == null || _bankSystem == null || _wagonSystem == null || _jobSystem == null || _companionSystem == null)
+        if (_gangManager == null || _bankSystem == null || _wagonSystem == null || _jobSystem == null)
             return;
 
-        var data = new GangSaveData
+        GangSaveData data = new GangSaveData
         {
             Members = _gangManager.CreateSaveData(),
             Bank = _bankSystem.CreateSaveData(),
             Wagons = _wagonSystem.CreateSaveData(),
-            JobOffers = new List<JobOffer>(_jobSystem.Offers),
-            JobAssignments = new List<JobAssignment>(_jobSystem.Assignments),
-            Companions = _companionSystem.CreateSaveData()
+            JobOffers = new System.Collections.Generic.List<JobOffer>(_jobSystem.Offers),
+            JobAssignments = new System.Collections.Generic.List<JobAssignment>(_jobSystem.Assignments)
         };
 
         File.WriteAllText(_savePath, JsonConvert.SerializeObject(data, Formatting.Indented));
@@ -96,8 +104,8 @@ public class Main : Script
         if (!File.Exists(_savePath))
             return;
 
-        var json = File.ReadAllText(_savePath);
-        var data = JsonConvert.DeserializeObject<GangSaveData>(json);
+        string json = File.ReadAllText(_savePath);
+        GangSaveData data = JsonConvert.DeserializeObject<GangSaveData>(json);
 
         if (data == null)
             return;
@@ -112,8 +120,5 @@ public class Main : Script
             _wagonSystem.LoadFromSave(data.Wagons);
 
         _jobSystem.LoadFromSave(data.JobOffers, data.JobAssignments);
-
-        if (data.Companions != null)
-            _companionSystem.LoadFromSave(data.Companions);
     }
 }
