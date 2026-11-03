@@ -52,3 +52,12 @@ public class WagonSaveEntry
     public WagonType Type { get; set; }
     public Dictionary<string, int> StoredItems { get; set; } = new Dictionary<string, int>();
 }
+
+public class CompanionRecord
+{
+    public string Name { get; set; }
+    public int Loyalty { get; set; }
+    public int Experience { get; set; }
+    public CombatStyle PreferredStyle { get; set; }
+    public string LastKnownMood { get; set; }
+}

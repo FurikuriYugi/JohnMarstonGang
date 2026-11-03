@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using RDR2;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 public class Main : Script
@@ -25,7 +26,8 @@ public class Main : Script
 
     private void Initialize()
     {
-        if (_initialized) return;
+        if (_initialized)
+            return;
 
         _gangManager = new GangManager();
         _bankSystem = new BankSystem();
@@ -35,12 +37,7 @@ public class Main : Script
         _dynamiteSystem = new DynamiteSystem();
         _lockSystem = new LockSystem();
         _companionSystem = new CompanionSystem();
-        _interactionSystem = new InteractionSystem(
-            _lockSystem,
-            _dynamiteSystem,
-            _wagonSystem,
-            _bankSystem,
-            _jobSystem);
+        _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem, _wagonSystem, _bankSystem, _jobSystem);
 
         LoadState();
         _initialized = true;
@@ -68,12 +65,11 @@ public class Main : Script
             Members = _gangManager.CreateSaveData(),
             Bank = _bankSystem.CreateSaveData(),
             Wagons = _wagonSystem.CreateSaveData(),
-            JobOffers = new System.Collections.Generic.List<JobOffer>(_jobSystem.Offers),
-            JobAssignments = new System.Collections.Generic.List<JobAssignment>(_jobSystem.Assignments)
+            JobOffers = new List<JobOffer>(_jobSystem.Offers),
+            JobAssignments = new List<JobAssignment>(_jobSystem.Assignments)
         };
 
-        var json = JsonConvert.SerializeObject(data, Formatting.Indented);
-        File.WriteAllText(_savePath, json);
+        File.WriteAllText(_savePath, JsonConvert.SerializeObject(data, Formatting.Indented));
     }
 
     private void LoadState()
