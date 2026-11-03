@@ -37,7 +37,6 @@ public class Main : Script
         _dynamiteSystem = new DynamiteSystem();
         _lockSystem = new LockSystem();
         _companionSystem = new CompanionSystem();
-
         _interactionSystem = new InteractionSystem(
             _lockSystem,
             _dynamiteSystem,
@@ -72,7 +71,10 @@ public class Main : Script
             {
                 GangMember member = _gangManager.Members[i];
                 if (member != null)
+                {
                     _companionSystem?.UpdateFromGangMember(member);
+                    _companionSystem?.ApplyPersonalGoal(member);
+                }
             }
         }
     }
@@ -84,7 +86,7 @@ public class Main : Script
 
     private void SaveState()
     {
-        if (_gangManager == null || _bankSystem == null || _wagonSystem == null || _jobSystem == null)
+        if (_gangManager == null || _bankSystem == null || _wagonSystem == null || _jobSystem == null || _companionSystem == null)
             return;
 
         GangSaveData data = new GangSaveData
@@ -93,7 +95,8 @@ public class Main : Script
             Bank = _bankSystem.CreateSaveData(),
             Wagons = _wagonSystem.CreateSaveData(),
             JobOffers = new List<JobOffer>(_jobSystem.Offers),
-            JobAssignments = new List<JobAssignment>(_jobSystem.Assignments)
+            JobAssignments = new List<JobAssignment>(_jobSystem.Assignments),
+            Companions = _companionSystem.CreateSaveData()
         };
 
         File.WriteAllText(_savePath, JsonConvert.SerializeObject(data, Formatting.Indented));
@@ -106,6 +109,7 @@ public class Main : Script
 
         string json = File.ReadAllText(_savePath);
         GangSaveData data = JsonConvert.DeserializeObject<GangSaveData>(json);
+
         if (data == null)
             return;
 
@@ -119,5 +123,8 @@ public class Main : Script
             _wagonSystem.LoadFromSave(data.Wagons);
 
         _jobSystem.LoadFromSave(data.JobOffers, data.JobAssignments);
+
+        if (data.Companions != null)
+            _companionSystem.LoadFromSave(data.Companions);
     }
 }

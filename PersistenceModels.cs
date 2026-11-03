@@ -8,6 +8,7 @@ public class GangSaveData
     public WagonSaveData Wagons { get; set; } = new WagonSaveData();
     public List<JobOffer> JobOffers { get; set; } = new List<JobOffer>();
     public List<JobAssignment> JobAssignments { get; set; } = new List<JobAssignment>();
+    public List<CompanionRecordData> Companions { get; set; } = new List<CompanionRecordData>();
 }
 
 public class GangMemberData
@@ -101,4 +102,21 @@ public class JobAssignment
     public decimal PaymentGold { get; set; }
     public int HonorChange { get; set; }
     public bool IsCriminal { get; set; }
+}
+
+public class CompanionRecordData
+{
+    public string MemberId { get; set; }
+    public string Name { get; set; }
+    public string Type { get; set; }
+    public int Loyalty { get; set; }
+    public int Trust { get; set; }
+    public int Experience { get; set; }
+    public string CurrentMood { get; set; }
+    public string PreferredCombatStyle { get; set; }
+    public string LastKnownWeapon { get; set; }
+    public List<string> Memories { get; set; } = new List<string>();
+    public List<string> Goals { get; set; } = new List<string>();
+    public decimal PersonalCash { get; set; }
+    public decimal PersonalGold { get; set; }
 }
