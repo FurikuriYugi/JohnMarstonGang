@@ -39,7 +39,13 @@ public class Main : Script
         _lockSystem = new LockSystem();
         _companionSystem = new CompanionSystem();
 
-        _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem, _wagonSystem, _bankSystem, _jobSystem);
+        _interactionSystem = new InteractionSystem(
+            _lockSystem,
+            _dynamiteSystem,
+            _wagonSystem,
+            _bankSystem,
+            _jobSystem
+        );
 
         LoadState();
 
@@ -55,6 +61,9 @@ public class Main : Script
     private void OnTick(object sender, EventArgs e)
     {
         Initialize();
+
+        if (_gangManager == null)
+            return;
 
         _tacticalAi?.Update(_gangManager);
         _companionSystem?.Update(_gangManager);
