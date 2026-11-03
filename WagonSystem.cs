@@ -15,11 +15,13 @@ public class WagonSystem
             WagonId = Guid.NewGuid().ToString("N"),
             Name = string.IsNullOrWhiteSpace(name) ? "Wagon" : name,
             OwnerId = ownerId,
+            HorseId = null,
             Type = type,
             IsOwned = !string.IsNullOrWhiteSpace(ownerId),
             IsHitched = false,
             IsPersistent = true,
-            IsDestroyed = false
+            IsDestroyed = false,
+            Cargo = new List<WagonCargoItem>()
         };
 
         _wagons.Add(wagon);
@@ -45,8 +47,8 @@ public class WagonSystem
     public bool ClaimWagon(string wagonId, string ownerId)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-        if (string.IsNullOrWhiteSpace(ownerId)) return false;
+        if (wagon == null || string.IsNullOrWhiteSpace(ownerId))
+            return false;
 
         wagon.OwnerId = ownerId;
         wagon.IsOwned = true;
@@ -57,8 +59,11 @@ public class WagonSystem
     public bool ReleaseWagon(string wagonId, string ownerId = null)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-        if (!string.IsNullOrWhiteSpace(ownerId) && wagon.OwnerId != ownerId) return false;
+        if (wagon == null)
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(ownerId) && wagon.OwnerId != ownerId)
+            return false;
 
         wagon.OwnerId = null;
         wagon.IsOwned = false;
@@ -67,52 +72,35 @@ public class WagonSystem
         return true;
     }
 
-    public bool HitchWagon(string wagonId)
+    public bool HitchWagon(string wagonId, string horseId = null)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-        if (wagon.IsDestroyed) return false;
+        if (wagon == null || wagon.IsDestroyed)
+            return false;
 
         wagon.IsHitched = true;
+        if (!string.IsNullOrWhiteSpace(horseId))
+            wagon.HorseId = horseId;
+
         return true;
     }
 
     public bool UnhitchWagon(string wagonId)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
+        if (wagon == null)
+            return false;
 
         wagon.IsHitched = false;
         wagon.HorseId = null;
         return true;
     }
 
-    public void AttachHorse(string wagonId, string horseId)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return;
-        if (wagon.IsDestroyed) return;
-
-        wagon.HorseId = horseId;
-        wagon.IsHitched = true;
-    }
-
-    public void DetachHorse(string wagonId)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return;
-
-        wagon.HorseId = null;
-        wagon.IsHitched = false;
-    }
-
     public bool StoreItem(string wagonId, string itemName, int amount)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-        if (wagon.IsDestroyed) return false;
-        if (string.IsNullOrWhiteSpace(itemName)) return false;
-        if (amount <= 0) return false;
+        if (wagon == null || wagon.IsDestroyed || string.IsNullOrWhiteSpace(itemName) || amount <= 0)
+            return false;
 
         var stack = wagon.Cargo.FirstOrDefault(x => x.ItemName == itemName);
         if (stack == null)
@@ -132,14 +120,12 @@ public class WagonSystem
     public bool RemoveItem(string wagonId, string itemName, int amount)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-        if (wagon.IsDestroyed) return false;
-        if (string.IsNullOrWhiteSpace(itemName)) return false;
-        if (amount <= 0) return false;
+        if (wagon == null || wagon.IsDestroyed || string.IsNullOrWhiteSpace(itemName) || amount <= 0)
+            return false;
 
         var stack = wagon.Cargo.FirstOrDefault(x => x.ItemName == itemName);
-        if (stack == null) return false;
-        if (stack.Amount < amount) return false;
+        if (stack == null || stack.Amount < amount)
+            return false;
 
         stack.Amount -= amount;
         if (stack.Amount <= 0)
@@ -151,9 +137,8 @@ public class WagonSystem
     public bool HasItem(string wagonId, string itemName, int amount = 1)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-        if (string.IsNullOrWhiteSpace(itemName)) return false;
-        if (amount <= 0) return false;
+        if (wagon == null || string.IsNullOrWhiteSpace(itemName) || amount <= 0)
+            return false;
 
         var stack = wagon.Cargo.FirstOrDefault(x => x.ItemName == itemName);
         return stack != null && stack.Amount >= amount;
@@ -162,47 +147,18 @@ public class WagonSystem
     public int GetItemCount(string wagonId, string itemName)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return 0;
-        if (string.IsNullOrWhiteSpace(itemName)) return 0;
+        if (wagon == null || string.IsNullOrWhiteSpace(itemName))
+            return 0;
 
         var stack = wagon.Cargo.FirstOrDefault(x => x.ItemName == itemName);
-        return stack?.Amount ?? 0;
-    }
-
-    public bool CanCarryWagonType(WagonType type)
-    {
-        return type == WagonType.Cargo || type == WagonType.Combat || type == WagonType.Artillery;
-    }
-
-    public bool IsOwnedBy(string wagonId, string ownerId)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return false;
-        if (string.IsNullOrWhiteSpace(ownerId)) return false;
-
-        return wagon.OwnerId == ownerId;
-    }
-
-    public void MakePersistent(string wagonId)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return;
-
-        wagon.IsPersistent = true;
-    }
-
-    public void MakeTemporary(string wagonId)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null) return;
-
-        wagon.IsPersistent = false;
+        return stack != null ? stack.Amount : 0;
     }
 
     public void MarkDestroyed(string wagonId)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return;
+        if (wagon == null)
+            return;
 
         wagon.IsDestroyed = true;
         wagon.IsHitched = false;
@@ -212,7 +168,8 @@ public class WagonSystem
     public void RepairWagon(string wagonId)
     {
         var wagon = GetWagon(wagonId);
-        if (wagon == null) return;
+        if (wagon == null)
+            return;
 
         wagon.IsDestroyed = false;
     }
