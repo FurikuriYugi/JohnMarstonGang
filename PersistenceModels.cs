@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 public class GangSaveData
 {
@@ -7,7 +8,6 @@ public class GangSaveData
     public WagonSaveData Wagons { get; set; }
     public List<JobOffer> JobOffers { get; set; }
     public List<JobAssignment> JobAssignments { get; set; }
-    public List<CompanionSaveData> Companions { get; set; }
 }
 
 public class GangMemberSaveData
@@ -27,25 +27,16 @@ public class GangMemberSaveData
     public string Outfit { get; set; }
     public decimal PersonalCash { get; set; }
     public decimal PersonalGold { get; set; }
-    public List<string> Memories { get; set; } = new List<string>();
-    public List<string> Goals { get; set; } = new List<string>();
+    public List<string> Memories { get; set; }
+    public List<string> Goals { get; set; }
 }
 
 public class BankSaveData
 {
     public decimal VaultCash { get; set; }
     public decimal VaultGold { get; set; }
-    public Dictionary<string, decimal> CashAccounts { get; set; } = new Dictionary<string, decimal>();
-    public Dictionary<string, decimal> GoldAccounts { get; set; } = new Dictionary<string, decimal>();
-}
-
-public class CompanionRecord
-{
-    public string Name { get; set; }
-    public int Loyalty { get; set; }
-    public int Experience { get; set; }
-    public CombatStyle PreferredStyle { get; set; }
-    public string LastKnownMood { get; set; }
+    public Dictionary<string, decimal> CashAccounts { get; set; }
+    public Dictionary<string, decimal> GoldAccounts { get; set; }
 }
 
 public class CompanionSaveData
