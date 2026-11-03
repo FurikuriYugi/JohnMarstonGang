@@ -1,4 +1,5 @@
 ﻿// BankSystem.cs
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ public class BankSystem
 {
     private readonly Dictionary<string, BankAccount> _accounts = new Dictionary<string, BankAccount>();
     private readonly List<BankTransaction> _transactions = new List<BankTransaction>();
-    private const string SaveFileName = "JohnMarstonGang_Bank_Save.xml";
+    private const string SaveFileName = "JohnMarstonGang_Save.xml";
 
     public static BankSystem Load()
     {
@@ -21,14 +22,14 @@ public class BankSystem
         {
             using (var fs = File.OpenRead(SaveFileName))
             {
-                var serializer = new DataContractSerializer(typeof(BankSaveData));
-                var data = (BankSaveData)serializer.ReadObject(fs);
+                var serializer = new DataContractSerializer(typeof(GangSaveData));
+                var data = (GangSaveData)serializer.ReadObject(fs);
 
-                if (data != null)
+                if (data != null && data.Bank != null)
                 {
-                    if (data.Accounts != null)
+                    if (data.Bank.Accounts != null)
                     {
-                        foreach (var account in data.Accounts)
+                        foreach (var account in data.Bank.Accounts)
                         {
                             bank._accounts[account.OwnerId] = new BankAccount
                             {
@@ -41,9 +42,9 @@ public class BankSystem
                         }
                     }
 
-                    if (data.Transactions != null)
+                    if (data.Bank.Transactions != null)
                     {
-                        foreach (var tx in data.Transactions)
+                        foreach (var tx in data.Bank.Transactions)
                         {
                             bank._transactions.Add(new BankTransaction
                             {
@@ -70,8 +71,12 @@ public class BankSystem
     {
         try
         {
-            var data = new BankSaveData
+            GangSaveData data = LoadOrCreateSaveData();
+
+            data.Bank = new BankSaveData
             {
+                PlayerCash = GetCash("player"),
+                PlayerGold = GetGold("player"),
                 Accounts = _accounts.Values.Select(a => new BankAccountData
                 {
                     OwnerId = a.OwnerId,
@@ -93,12 +98,32 @@ public class BankSystem
 
             using (var fs = File.Create(SaveFileName))
             {
-                var serializer = new DataContractSerializer(typeof(BankSaveData));
+                var serializer = new DataContractSerializer(typeof(GangSaveData));
                 serializer.WriteObject(fs, data);
             }
         }
         catch
         {
+        }
+    }
+
+    private GangSaveData LoadOrCreateSaveData()
+    {
+        if (!File.Exists(SaveFileName))
+            return new GangSaveData();
+
+        try
+        {
+            using (var fs = File.OpenRead(SaveFileName))
+            {
+                var serializer = new DataContractSerializer(typeof(GangSaveData));
+                var data = (GangSaveData)serializer.ReadObject(fs);
+                return data ?? new GangSaveData();
+            }
+        }
+        catch
+        {
+            return new GangSaveData();
         }
     }
 
@@ -190,7 +215,7 @@ public class BankSystem
     {
         _transactions.Add(new BankTransaction
         {
-            TransactionId = System.Guid.NewGuid().ToString("N"),
+            TransactionId = Guid.NewGuid().ToString("N"),
             FromId = fromId,
             ToId = toId,
             CashAmount = cashAmount,
