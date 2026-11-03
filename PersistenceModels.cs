@@ -1,133 +1,72 @@
-﻿// PersistenceModels.cs
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 [DataContract]
 public class GangSaveData
 {
-    [DataMember]
+    [DataMember(Order = 1)]
     public List<GangMemberData> Members { get; set; } = new List<GangMemberData>();
 
-    [DataMember]
-    public BankSaveData Bank { get; set; } = new BankSaveData();
-
-    [DataMember]
+    [DataMember(Order = 2)]
     public List<WagonData> Wagons { get; set; } = new List<WagonData>();
 }
 
 [DataContract]
 public class GangMemberData
 {
-    [DataMember]
+    [DataMember(Order = 1)]
     public string Name { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 2)]
     public int Relationship { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 3)]
     public int CombatStyle { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 4)]
     public bool IsFollowing { get; set; }
-}
-
-[DataContract]
-public class BankSaveData
-{
-    [DataMember]
-    public decimal PlayerCash { get; set; }
-
-    [DataMember]
-    public decimal PlayerGold { get; set; }
-
-    [DataMember]
-    public List<BankAccountData> Accounts { get; set; } = new List<BankAccountData>();
-
-    [DataMember]
-    public List<BankTransactionData> Transactions { get; set; } = new List<BankTransactionData>();
-}
-
-[DataContract]
-public class BankAccountData
-{
-    [DataMember]
-    public string OwnerId { get; set; }
-
-    [DataMember]
-    public string OwnerName { get; set; }
-
-    [DataMember]
-    public decimal Cash { get; set; }
-
-    [DataMember]
-    public decimal Gold { get; set; }
-
-    [DataMember]
-    public bool IsBusinessAccount { get; set; }
-}
-
-[DataContract]
-public class BankTransactionData
-{
-    [DataMember]
-    public string TransactionId { get; set; }
-
-    [DataMember]
-    public string FromId { get; set; }
-
-    [DataMember]
-    public string ToId { get; set; }
-
-    [DataMember]
-    public decimal CashAmount { get; set; }
-
-    [DataMember]
-    public decimal GoldAmount { get; set; }
-
-    [DataMember]
-    public string Reason { get; set; }
 }
 
 [DataContract]
 public class WagonData
 {
-    [DataMember]
+    [DataMember(Order = 1)]
     public string WagonId { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 2)]
     public string Name { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 3)]
     public string OwnerId { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 4)]
     public string HorseId { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 5)]
     public int Type { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 6)]
     public bool IsOwned { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 7)]
     public bool IsHitched { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 8)]
     public bool IsPersistent { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 9)]
     public bool IsDestroyed { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 10)]
     public List<WagonCargoData> Cargo { get; set; } = new List<WagonCargoData>();
 }
 
 [DataContract]
 public class WagonCargoData
 {
-    [DataMember]
+    [DataMember(Order = 1)]
     public string ItemName { get; set; }
 
-    [DataMember]
+    [DataMember(Order = 2)]
     public int Amount { get; set; }
 }
