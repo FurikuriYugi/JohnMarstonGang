@@ -1,7 +1,6 @@
 ﻿// InteractionSystem.cs
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class InteractionSystem
 {
@@ -10,11 +9,14 @@ public class InteractionSystem
         if (gangManager == null || string.IsNullOrWhiteSpace(interactionType))
             return;
 
-        var members = gangManager.GetAllMembers();
+        List<GangMember> members = gangManager.GetAllMembers();
+        if (members == null)
+            return;
 
-        foreach (var member in members)
+        for (int i = 0; i < members.Count; i++)
         {
-            if (member == null || !member.IsActive)
+            GangMember member = members[i];
+            if (member == null)
                 continue;
 
             switch (interactionType.ToLowerInvariant())
@@ -23,6 +25,7 @@ public class InteractionSystem
                     member.FollowingPlayer = true;
                     member.IsShopping = false;
                     member.IsStealthing = false;
+                    member.IsInCombat = false;
                     member.AddMemory("Agreed to follow the player.");
                     break;
 
@@ -34,7 +37,7 @@ public class InteractionSystem
                 case "shop":
                     member.IsShopping = true;
                     member.FollowingPlayer = false;
-                    member.AddGoal("Buy needed supplies.");
+                    member.AddMemory("Sent to handle shopping.");
                     break;
 
                 case "stealth":
@@ -47,6 +50,7 @@ public class InteractionSystem
                 case "combat":
                     member.IsInCombat = true;
                     member.IsStealthing = false;
+                    member.IsShopping = false;
                     member.AddMemory("Prepared for combat.");
                     break;
 
@@ -80,9 +84,14 @@ public class InteractionSystem
         if (gangManager == null)
             return;
 
-        foreach (var member in gangManager.GetAllMembers())
+        List<GangMember> members = gangManager.GetAllMembers();
+        if (members == null)
+            return;
+
+        for (int i = 0; i < members.Count; i++)
         {
-            if (member == null || !member.IsActive)
+            GangMember member = members[i];
+            if (member == null)
                 continue;
 
             member.IsStealthing = isStealth;
@@ -90,11 +99,16 @@ public class InteractionSystem
             member.IsShopping = isShopping;
 
             if (isStealth)
+            {
                 member.SetCombatStyle(CombatStyle.Stealth, "Bow");
-            else if (isCombat && member.SkillCombat > 70)
-                member.SetCombatStyle(CombatStyle.LongRange, "Rifle");
+            }
             else if (isCombat)
-                member.SetCombatStyle(CombatStyle.ShortRange, "Revolver");
+            {
+                if (member.SkillCombat > 70)
+                    member.SetCombatStyle(CombatStyle.LongRange, "Rifle");
+                else
+                    member.SetCombatStyle(CombatStyle.ShortRange, "Revolver");
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿// JobSystem.cs
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class JobSystem
 {
@@ -17,7 +16,16 @@ public class JobSystem
 
     public List<JobOffer> GetAvailableJobs()
     {
-        return _jobs.Where(x => x != null && !x.IsCompleted).ToList();
+        List<JobOffer> availableJobs = new List<JobOffer>();
+
+        for (int i = 0; i < _jobs.Count; i++)
+        {
+            JobOffer job = _jobs[i];
+            if (job != null && !job.IsCompleted)
+                availableJobs.Add(job);
+        }
+
+        return availableJobs;
     }
 
     public JobOffer GetBestJobForGang(GangManager gangManager)
@@ -25,24 +33,30 @@ public class JobSystem
         if (gangManager == null)
             return null;
 
-        var members = gangManager.GetAllMembers().Where(x => x != null && x.IsActive).ToList();
-        if (members.Count == 0)
-            return GetAvailableJobs().FirstOrDefault();
+        List<GangMember> members = gangManager.GetAllMembers();
+        if (members == null || members.Count == 0)
+            return null;
 
-        JobOffer best = null;
+        List<JobOffer> availableJobs = GetAvailableJobs();
+        if (availableJobs.Count == 0)
+            return null;
+
+        JobOffer bestJob = null;
         int bestScore = int.MinValue;
 
-        foreach (var job in GetAvailableJobs())
+        for (int i = 0; i < availableJobs.Count; i++)
         {
+            JobOffer job = availableJobs[i];
             int score = ScoreJob(job, members);
+
             if (score > bestScore)
             {
                 bestScore = score;
-                best = job;
+                bestJob = job;
             }
         }
 
-        return best;
+        return bestJob;
     }
 
     public void VoteOnJob(GangManager gangManager)
@@ -50,15 +64,20 @@ public class JobSystem
         if (gangManager == null)
             return;
 
-        var job = GetBestJobForGang(gangManager);
+        JobOffer job = GetBestJobForGang(gangManager);
         if (job == null)
             return;
 
-        var approval = 0;
+        List<GangMember> members = gangManager.GetAllMembers();
+        if (members == null || members.Count == 0)
+            return;
 
-        foreach (var member in gangManager.GetAllMembers())
+        int approval = 0;
+
+        for (int i = 0; i < members.Count; i++)
         {
-            if (member == null || !member.IsActive)
+            GangMember member = members[i];
+            if (member == null)
                 continue;
 
             approval += EvaluateMemberSupport(member, job);
@@ -77,22 +96,40 @@ public class JobSystem
         if (gangManager == null)
             return;
 
-        var split = job.RewardCash;
-        var members = gangManager.GetAllMembers().Where(x => x != null && x.IsActive).ToList();
+        List<GangMember> members = gangManager.GetAllMembers();
+        if (members == null || members.Count == 0)
+            return;
 
-        if (members.Count > 0)
+        int activeCount = 0;
+        for (int i = 0; i < members.Count; i++)
         {
-            var share = split / members.Count;
-            foreach (var member in members)
-            {
-                member.PersonalCash += share;
-                member.AddMemory("Received payment from job: " + job.Title);
-            }
+            if (members[i] != null)
+                activeCount++;
+        }
+
+        if (activeCount == 0)
+            return;
+
+        decimal cashShare = job.RewardCash / activeCount;
+        decimal goldShare = job.RewardGold / activeCount;
+
+        for (int i = 0; i < members.Count; i++)
+        {
+            GangMember member = members[i];
+            if (member == null)
+                continue;
+
+            member.PersonalCash += cashShare;
+            member.PersonalGold += goldShare;
+            member.AddMemory("Received payment from job: " + job.Title);
         }
     }
 
     private int ScoreJob(JobOffer job, List<GangMember> members)
     {
+        if (job == null || members == null)
+            return int.MinValue;
+
         int score = 0;
 
         if (job.IsLegal)
@@ -100,20 +137,40 @@ public class JobSystem
         else
             score -= 10;
 
+        bool hasStealth = false;
+        bool hasCombat = false;
+        bool hasTrading = false;
+        bool hasTransport = false;
+
+        for (int i = 0; i < members.Count; i++)
+        {
+            GangMember member = members[i];
+            if (member == null)
+                continue;
+
+            if (member.SkillStealth > 60) hasStealth = true;
+            if (member.SkillCombat > 60) hasCombat = true;
+            if (member.SkillTrading > 60) hasTrading = true;
+            if (member.SkillHandling > 60) hasTransport = true;
+        }
+
         if (job.RequiresStealth)
-            score += members.Any(x => x.SkillStealth > 60) ? 20 : -10;
+            score += hasStealth ? 20 : -10;
 
         if (job.RequiresCombat)
-            score += members.Any(x => x.SkillCombat > 60) ? 20 : -10;
+            score += hasCombat ? 20 : -10;
 
         if (job.RequiresTrading)
-            score += members.Any(x => x.SkillTrading > 60) ? 10 : -10;
+            score += hasTrading ? 10 : -10;
 
         if (job.RequiresTransport)
-            score += members.Any(x => x.SkillHandling > 60) ? 10 : -10;
+            score += hasTransport ? 10 : -10;
 
-        score += (int)Math.Min(20, job.RewardHonor / 5m);
-        score += (int)Math.Min(20, job.RewardCash / 50m);
+        if (job.RewardHonor > 0)
+            score += Math.Min(20, job.RewardHonor / 5);
+
+        if (job.RewardCash > 0)
+            score += (int)Math.Min(20m, job.RewardCash / 50m);
 
         return score;
     }
@@ -129,13 +186,16 @@ public class JobSystem
 
         if (job.RequiresStealth && member.SkillStealth > 50)
             score += 1;
+
         if (job.RequiresCombat && member.SkillCombat > 50)
             score += 1;
+
         if (job.RequiresTrading && member.SkillTrading > 50)
             score += 1;
 
         if (member.Mood == GangMood.Loyal)
             score += 1;
+
         if (member.Mood == GangMood.Nervous)
             score -= 1;
 
