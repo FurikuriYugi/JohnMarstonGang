@@ -7,13 +7,21 @@ public class Main : Script
 {
     private GangManager _gang;
     private BankSystem _bank;
-    private TacticalSquadAiSystem _tacticalAi;
+    private WagonSystem _wagonSystem;
+    private LockSystem _lockSystem;
+    private DynamiteSystem _dynamiteSystem;
+    private JobSystem _jobSystem;
+    private InteractionSystem _interactionSystem;
 
     public Main()
     {
         _gang = GangManager.Load();
         _bank = BankSystem.Load();
-        _tacticalAi = new TacticalSquadAiSystem();
+        _wagonSystem = new WagonSystem();
+        _lockSystem = new LockSystem();
+        _dynamiteSystem = new DynamiteSystem();
+        _jobSystem = new JobSystem();
+        _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem, _wagonSystem, _bank, _jobSystem);
 
         Tick += OnTick;
         KeyDown += OnKeyDown;
@@ -47,6 +55,12 @@ public class Main : Script
     {
         try
         {
+            if (e.KeyCode == Keys.F5)
+            {
+                _gang.Save();
+                _bank.Save();
+            }
+
             if (e.KeyCode == Keys.F6)
                 _gang.RecruitNearby();
 
@@ -58,12 +72,6 @@ public class Main : Script
 
             if (e.KeyCode == Keys.F9)
                 _gang.CycleCombatStyle();
-
-            if (e.KeyCode == Keys.F5)
-            {
-                _gang.Save();
-                _bank.Save();
-            }
 
             if (e.KeyCode == Keys.F10)
             {
