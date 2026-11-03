@@ -1,5 +1,4 @@
-﻿// PersistenceModels.cs
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 public class GangSaveData
 {
@@ -10,7 +9,6 @@ public class GangSaveData
     public List<JobAssignment> JobAssignments { get; set; }
     public List<CompanionSaveData> Companions { get; set; }
 }
-
 
 public class GangMemberSaveData
 {
