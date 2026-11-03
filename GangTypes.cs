@@ -1,5 +1,4 @@
-﻿// GangTypes.cs
-public enum GangMemberRole
+﻿public enum GangMemberRole
 {
     None = 0,
     Leader = 1,

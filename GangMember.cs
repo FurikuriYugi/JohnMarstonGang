@@ -1,5 +1,4 @@
-﻿// GangMember.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 public class GangMember
@@ -10,22 +9,17 @@ public class GangMember
     public GangMemberRole Role { get; set; }
     public CombatStyle PreferredCombatStyle { get; set; }
     public GangMood Mood { get; set; }
-
     public int Loyalty { get; set; }
     public int SkillCombat { get; set; }
     public int SkillStealth { get; set; }
     public int SkillHandling { get; set; }
     public int SkillTrading { get; set; }
-
     public string WeaponChoice { get; set; }
     public string Outfit { get; set; }
-
     public decimal PersonalCash { get; set; }
     public decimal PersonalGold { get; set; }
-
     public List<string> Memories { get; set; } = new List<string>();
     public List<string> Goals { get; set; } = new List<string>();
-
     public bool FollowingPlayer { get; set; }
     public bool IsActive { get; set; }
     public bool IsInCombat { get; set; }
@@ -35,6 +29,7 @@ public class GangMember
         MemberId = Guid.NewGuid().ToString("N");
         Mood = GangMood.Neutral;
         Loyalty = 50;
+        IsActive = true;
     }
 
     public void AddMemory(string memory)
