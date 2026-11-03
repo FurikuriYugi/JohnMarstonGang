@@ -15,8 +15,7 @@ public class Main : Script
     private DynamiteSystem _dynamiteSystem;
     private LockSystem _lockSystem;
     private CompanionSystem _companionSystem;
-
-    private readonly string _savePath = "JohnMorstonGangSave.json";
+    private readonly string _savePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JohnMorstonGangSave.json");
     private bool _initialized;
 
     public Main()
@@ -40,11 +39,11 @@ public class Main : Script
         _companionSystem = new CompanionSystem();
 
         _interactionSystem = new InteractionSystem(
-            _lockSystem,
-            _dynamiteSystem,
-            _wagonSystem,
-            _bankSystem,
-            _jobSystem
+        _lockSystem,
+        _dynamiteSystem,
+        _wagonSystem,
+        _bankSystem,
+        _jobSystem
         );
 
         LoadState();
@@ -99,13 +98,22 @@ public class Main : Script
 
         var json = File.ReadAllText(_savePath);
         var data = JsonConvert.DeserializeObject<GangSaveData>(json);
+
         if (data == null)
             return;
 
-        _gangManager.LoadFromSave(data.Members);
-        _bankSystem.LoadFromSave(data.Bank);
-        _wagonSystem.LoadFromSave(data.Wagons);
+        if (data.Members != null)
+            _gangManager.LoadFromSave(data.Members);
+
+        if (data.Bank != null)
+            _bankSystem.LoadFromSave(data.Bank);
+
+        if (data.Wagons != null)
+            _wagonSystem.LoadFromSave(data.Wagons);
+
         _jobSystem.LoadFromSave(data.JobOffers, data.JobAssignments);
-        _companionSystem.LoadFromSave(data.Companions);
+
+        if (data.Companions != null)
+            _companionSystem.LoadFromSave(data.Companions);
     }
 }
