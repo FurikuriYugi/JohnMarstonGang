@@ -1,133 +1,124 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public class LockSystem
 {
     private readonly List<LockTarget> _targets = new List<LockTarget>();
 
-    public IReadOnlyList<LockTarget> Targets => _targets;
+    public List<LockTarget> Targets => _targets;
 
-    public LockTarget RegisterTarget(string targetId, LockTargetType type, bool isLocked, bool canBeBlasted)
+    public void RegisterTarget(string targetId, LockTargetType targetType, bool requiresBreakerTool)
     {
-        var existing = GetTarget(targetId);
-        if (existing != null)
+        LockTarget target = _targets.FirstOrDefault(t => t.TargetId == targetId);
+        if (target != null)
         {
-            existing.Type = type;
-            existing.IsLocked = isLocked;
-            existing.CanBeBlasted = canBeBlasted;
-            return existing;
+            target.TargetType = targetType;
+            target.RequiresBreakerTool = requiresBreakerTool;
+            return;
         }
 
-        var target = new LockTarget
+        _targets.Add(new LockTarget
         {
             TargetId = targetId,
-            Type = type,
-            IsLocked = isLocked,
-            CanBeBlasted = canBeBlasted
-        };
-
-        _targets.Add(target);
-        return target;
+            TargetType = targetType,
+            IsLocked = true,
+            IsPicked = false,
+            RequiresBreakerTool = requiresBreakerTool
+        });
     }
 
-    public bool CanPickLock(string targetId, bool hasBreakerTool)
+    public bool CanPick(string targetId, bool hasBreakerTool)
     {
-        if (!hasBreakerTool) return false;
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-        return target.IsLocked && target.Type != LockTargetType.Wall;
+        LockTarget target = GetTarget(targetId);
+        if (target == null)
+            return false;
+
+        if (target.RequiresBreakerTool && !hasBreakerTool)
+            return false;
+
+        return target.IsLocked && !target.IsPicked;
     }
 
-    public bool PickLock(string targetId, bool hasBreakerTool)
+    public void PickLock(string targetId, bool hasBreakerTool)
     {
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-        if (!CanPickLock(targetId, hasBreakerTool)) return false;
+        if (!CanPick(targetId, hasBreakerTool))
+            return;
+
+        LockTarget target = GetTarget(targetId);
+        target.IsLocked = false;
+        target.IsPicked = true;
+    }
+
+    public void ForceOpen(string targetId)
+    {
+        LockTarget target = GetTarget(targetId);
+        if (target == null)
+            return;
 
         target.IsLocked = false;
-        target.WasPicked = true;
-        return true;
-    }
-
-    public bool CanBlastOpen(string targetId, bool hasDynamite)
-    {
-        if (!hasDynamite) return false;
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-        return target.IsLocked && target.CanBeBlasted;
-    }
-
-    public bool BlastOpen(string targetId, bool hasDynamite)
-    {
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-        if (!CanBlastOpen(targetId, hasDynamite)) return false;
-
-        target.IsLocked = false;
-        target.WasBlasted = true;
-        target.IsDestroyed = target.Type == LockTargetType.Wall;
-        return true;
-    }
-
-    public bool ForceOpen(string targetId)
-    {
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-
-        target.IsLocked = false;
-        target.WasForced = true;
-        return true;
-    }
-
-    public LockTarget GetTarget(string targetId)
-    {
-        return _targets.FirstOrDefault(x => x.TargetId == targetId);
+        target.IsPicked = false;
     }
 
     public bool IsUnlocked(string targetId)
     {
-        var target = GetTarget(targetId);
-        if (target == null) return false;
-        return !target.IsLocked;
+        LockTarget target = GetTarget(targetId);
+        return target != null && !target.IsLocked;
     }
 
-    public void RemoveDestroyedTargets()
+    public LockTarget GetTarget(string targetId)
     {
-        _targets.RemoveAll(x => x.IsDestroyed);
+        return _targets.FirstOrDefault(t => t.TargetId == targetId);
     }
 
-    public void MarkAsLocked(string targetId)
+    public List<LockTarget> CreateSaveData()
     {
-        var target = GetTarget(targetId);
-        if (target == null) return;
-        target.IsLocked = true;
+        return _targets.Select(t => new LockTarget
+        {
+            TargetId = t.TargetId,
+            TargetType = t.TargetType,
+            IsLocked = t.IsLocked,
+            IsPicked = t.IsPicked,
+            RequiresBreakerTool = t.RequiresBreakerTool
+        }).ToList();
     }
 
-    public void MarkAsUnlocked(string targetId)
+    public void LoadFromSave(List<LockTarget> targets)
     {
-        var target = GetTarget(targetId);
-        if (target == null) return;
-        target.IsLocked = false;
+        _targets.Clear();
+
+        if (targets == null)
+            return;
+
+        foreach (LockTarget target in targets)
+        {
+            _targets.Add(new LockTarget
+            {
+                TargetId = target.TargetId,
+                TargetType = target.TargetType,
+                IsLocked = target.IsLocked,
+                IsPicked = target.IsPicked,
+                RequiresBreakerTool = target.RequiresBreakerTool
+            });
+        }
     }
 }
 
 public class LockTarget
 {
     public string TargetId { get; set; }
-    public LockTargetType Type { get; set; }
+    public LockTargetType TargetType { get; set; }
     public bool IsLocked { get; set; }
-    public bool CanBeBlasted { get; set; }
-    public bool WasPicked { get; set; }
-    public bool WasBlasted { get; set; }
-    public bool WasForced { get; set; }
-    public bool IsDestroyed { get; set; }
+    public bool IsPicked { get; set; }
+    public bool RequiresBreakerTool { get; set; }
 }
 
 public enum LockTargetType
 {
-    Door = 0,
-    Safe = 1,
-    Wall = 2,
-    Chest = 3,
-    Strongbox = 4
+    Door,
+    Safe,
+    Chest,
+    Strongbox,
+    Wagon,
+    Object
 }

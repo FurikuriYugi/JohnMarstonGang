@@ -49,7 +49,13 @@ public class Main : Script
 
         LoadState();
 
-        if (_jobSystem.Offers.Count == 0)
+        if (_gangManager != null && _gangManager.Members.Count == 0)
+        {
+            _gangManager.AddMember("John", CompanionType.Human, GangMemberRole.Leader);
+            _gangManager.AddMember("Arthur", CompanionType.Human, GangMemberRole.Enforcer);
+        }
+
+        if (_jobSystem != null && _jobSystem.Offers.Count == 0)
         {
             _jobSystem.GenerateTownJobs("Saint Denis");
             _jobSystem.GenerateTownJobs("Valentine");
@@ -72,6 +78,11 @@ public class Main : Script
         {
             _companionSystem?.UpdateFromGangMember(member);
             _companionSystem?.ApplyPersonalGoal(member);
+        }
+
+        if (_jobSystem != null && _bankSystem != null)
+        {
+            _jobSystem.PayOutCompletedJobs(_bankSystem, "Player", _gangManager);
         }
     }
 

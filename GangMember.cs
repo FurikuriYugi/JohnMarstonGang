@@ -5,171 +5,131 @@ public class GangMember
 {
     public string MemberId { get; set; }
     public string Name { get; set; }
-    public CompanionType Type { get; set; }
+    public CompanionType CompanionType { get; set; }
     public GangMemberRole Role { get; set; }
-    public CombatStyle PreferredCombatStyle { get; set; }
-    public GangMood Mood { get; set; }
-    public int Loyalty { get; set; }
-    public int SkillCombat { get; set; }
-    public int SkillStealth { get; set; }
-    public int SkillHandling { get; set; }
-    public int SkillTrading { get; set; }
-    public string WeaponChoice { get; set; }
-    public string Outfit { get; set; }
-    public decimal PersonalCash { get; set; }
-    public decimal PersonalGold { get; set; }
-    public List<string> Memories { get; set; } = new List<string>();
-    public List<string> Goals { get; set; } = new List<string>();
-    public List<string> InventoryItems { get; set; } = new List<string>();
-    public bool FollowingPlayer { get; set; }
+
     public bool IsActive { get; set; }
-    public bool IsInCombat { get; set; }
-    public bool IsStealthing { get; set; }
     public bool IsShopping { get; set; }
-    public bool IsOnJob { get; set; }
-    public bool NeedsSupplies { get; set; }
-    public bool IsDowned { get; set; }
-    public bool IsAlive { get; set; } = true;
-    public string CurrentTask { get; set; }
+    public bool IsStealthing { get; set; }
+    public bool IsInCombatMode { get; set; }
 
-    public GangMember()
+    public int Loyalty { get; set; }
+    public int Trust { get; set; }
+    public int Honor { get; set; }
+    public int Money { get; set; }
+    public int Experience { get; set; }
+
+    public GangMode CurrentGangMode { get; set; }
+    public GangTaskType CurrentTask { get; set; }
+    public string CurrentTargetId { get; set; }
+    public string CurrentTaskDescription { get; set; }
+
+    public List<string> KnownGoals { get; set; } = new List<string>();
+    public List<string> Memories { get; set; } = new List<string>();
+    public List<string> Skills { get; set; } = new List<string>();
+
+    public string CurrentWeaponPreference { get; set; }
+
+    public void UpdateState()
     {
-        MemberId = Guid.NewGuid().ToString("N");
-        Mood = GangMood.Neutral;
-        Loyalty = 50;
-        PreferredCombatStyle = CombatStyle.ShortRange;
-        Type = CompanionType.Human;
-        Role = GangMemberRole.Recruit;
-        IsActive = true;
-        IsAlive = true;
-    }
-
-    public void AddMemory(string memory)
-    {
-        if (!string.IsNullOrWhiteSpace(memory))
-            Memories.Add(memory);
-    }
-
-    public void AddGoal(string goal)
-    {
-        if (!string.IsNullOrWhiteSpace(goal) && !Goals.Contains(goal))
-            Goals.Add(goal);
-    }
-
-    public void AddItem(string itemName)
-    {
-        if (!string.IsNullOrWhiteSpace(itemName))
-            InventoryItems.Add(itemName);
-    }
-
-    public bool RemoveItem(string itemName)
-    {
-        if (string.IsNullOrWhiteSpace(itemName))
-            return false;
-
-        return InventoryItems.Remove(itemName);
-    }
-
-    public void AdjustLoyalty(int amount)
-    {
-        Loyalty += amount;
         if (Loyalty < 0) Loyalty = 0;
         if (Loyalty > 100) Loyalty = 100;
-    }
 
-    public void SetCombatStyle(CombatStyle style, string weaponChoice = null)
-    {
-        PreferredCombatStyle = style;
-        if (!string.IsNullOrWhiteSpace(weaponChoice))
-            WeaponChoice = weaponChoice;
-    }
+        if (Trust < 0) Trust = 0;
+        if (Trust > 100) Trust = 100;
 
-    public void Recruit(string reason = null)
-    {
-        IsActive = true;
-        IsAlive = true;
-        FollowingPlayer = true;
-        Mood = GangMood.Neutral;
+        if (Honor < -100) Honor = -100;
+        if (Honor > 100) Honor = 100;
 
-        if (!string.IsNullOrWhiteSpace(reason))
-            AddMemory("Recruited: " + reason);
-    }
-
-    public void Dismiss()
-    {
-        IsActive = false;
-        FollowingPlayer = false;
-        IsInCombat = false;
-        IsStealthing = false;
-        CurrentTask = "Dismissed";
-        AddMemory("Dismissed from active duty.");
-    }
-
-    public void AssignOrder(GangOrderType order)
-    {
-        CurrentTask = order.ToString();
-
-        switch (order)
-        {
-            case GangOrderType.Follow:
-            case GangOrderType.StayClose:
-                FollowingPlayer = true;
-                IsShopping = false;
-                break;
-            case GangOrderType.HoldPosition:
-            case GangOrderType.Wait:
-                FollowingPlayer = false;
-                break;
-            case GangOrderType.Guard:
-                FollowingPlayer = false;
-                Role = GangMemberRole.Guard;
-                break;
-            case GangOrderType.Scout:
-                FollowingPlayer = false;
-                Role = GangMemberRole.Scout;
-                break;
-            case GangOrderType.Loot:
-            case GangOrderType.SupplyRun:
-                FollowingPlayer = false;
-                break;
-            case GangOrderType.Attack:
-            case GangOrderType.Defend:
-                IsInCombat = true;
-                break;
-        }
-
-        AddMemory("Order assigned: " + order);
-    }
-
-    public bool WantsSupplies()
-    {
-        return NeedsSupplies || InventoryItems.Count == 0 || PersonalCash < 5m;
-    }
-
-    public bool ShouldUseStealth()
-    {
-        return PreferredCombatStyle == CombatStyle.Stealth || Mood == GangMood.Nervous || IsStealthing;
+        if (Experience < 0) Experience = 0;
     }
 
     public string GetSuggestedWeapon()
     {
-        if (ShouldUseStealth())
-            return "Bow";
-
-        switch (PreferredCombatStyle)
+        if (IsStealthing || CurrentGangMode == GangMode.Stealth)
         {
-            case CombatStyle.NonLethalMelee:
-                return "Lasso";
-            case CombatStyle.LethalMelee:
+            if (Skills.Contains("Bow"))
+                return "Bow";
+
+            if (Skills.Contains("Knife"))
                 return "Knife";
-            case CombatStyle.ShortRange:
-                return "Revolver";
-            case CombatStyle.MediumRange:
-                return "Repeater";
-            case CombatStyle.LongRange:
-                return "Rifle";
-            default:
-                return string.IsNullOrWhiteSpace(WeaponChoice) ? "Revolver" : WeaponChoice;
+
+            return "Bow";
         }
+
+        if (IsInCombatMode || CurrentGangMode == GangMode.Combat)
+        {
+            if (Role == GangMemberRole.Scout)
+                return "Repeater";
+
+            if (Role == GangMemberRole.Enforcer)
+                return "Rifle";
+
+            if (Role == GangMemberRole.Leader)
+                return "Revolver";
+
+            return "Rifle";
+        }
+
+        if (IsShopping || CurrentGangMode == GangMode.Shopping)
+            return "Sidearm";
+
+        return CurrentWeaponPreference ?? "Revolver";
+    }
+
+    public GangMemberSaveData ToSaveData()
+    {
+        return new GangMemberSaveData
+        {
+            MemberId = MemberId,
+            Name = Name,
+            CompanionType = CompanionType,
+            Role = Role,
+            IsActive = IsActive,
+            IsShopping = IsShopping,
+            IsStealthing = IsStealthing,
+            IsInCombatMode = IsInCombatMode,
+            Loyalty = Loyalty,
+            Trust = Trust,
+            Honor = Honor,
+            Money = Money,
+            Experience = Experience,
+            CurrentGangMode = CurrentGangMode,
+            CurrentTask = CurrentTask,
+            CurrentTargetId = CurrentTargetId,
+            CurrentTaskDescription = CurrentTaskDescription,
+            KnownGoals = new List<string>(KnownGoals ?? new List<string>()),
+            Memories = new List<string>(Memories ?? new List<string>()),
+            Skills = new List<string>(Skills ?? new List<string>()),
+            CurrentWeaponPreference = CurrentWeaponPreference
+        };
+    }
+
+    public void FromSaveData(GangMemberSaveData data)
+    {
+        if (data == null)
+            return;
+
+        MemberId = data.MemberId;
+        Name = data.Name;
+        CompanionType = data.CompanionType;
+        Role = data.Role;
+        IsActive = data.IsActive;
+        IsShopping = data.IsShopping;
+        IsStealthing = data.IsStealthing;
+        IsInCombatMode = data.IsInCombatMode;
+        Loyalty = data.Loyalty;
+        Trust = data.Trust;
+        Honor = data.Honor;
+        Money = data.Money;
+        Experience = data.Experience;
+        CurrentGangMode = data.CurrentGangMode;
+        CurrentTask = data.CurrentTask;
+        CurrentTargetId = data.CurrentTargetId;
+        CurrentTaskDescription = data.CurrentTaskDescription;
+        KnownGoals = data.KnownGoals ?? new List<string>();
+        Memories = data.Memories ?? new List<string>();
+        Skills = data.Skills ?? new List<string>();
+        CurrentWeaponPreference = data.CurrentWeaponPreference;
     }
 }

@@ -4,30 +4,29 @@ using System.Linq;
 
 public class CompanionSystem
 {
-    private readonly Dictionary<string, CompanionRecord> _records = new Dictionary<string, CompanionRecord>();
+    private readonly List<CompanionRecord> _companions = new List<CompanionRecord>();
 
-    public CompanionRecord GetOrCreateRecord(string memberId, string name, CompanionType type)
+    public List<CompanionRecord> Companions => _companions;
+
+    public CompanionRecord GetOrCreateCompanion(string companionId, string name)
     {
-        if (string.IsNullOrWhiteSpace(memberId))
-            return null;
+        CompanionRecord companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
+        if (companion != null)
+            return companion;
 
-        if (_records.ContainsKey(memberId))
-            return _records[memberId];
-
-        CompanionRecord record = new CompanionRecord
+        companion = new CompanionRecord
         {
-            MemberId = memberId,
+            CompanionId = companionId,
             Name = name,
-            Type = type,
+            Loyalty = 50,
             Trust = 50,
             Experience = 0,
-            Loyalty = 50,
-            CurrentMood = GangMood.Neutral,
-            PreferredCombatStyle = CombatStyle.ShortRange
+            Goals = new List<string>(),
+            Memories = new List<string>()
         };
 
-        _records[memberId] = record;
-        return record;
+        _companions.Add(companion);
+        return companion;
     }
 
     public void UpdateFromGangMember(GangMember member)
@@ -35,20 +34,12 @@ public class CompanionSystem
         if (member == null)
             return;
 
-        CompanionRecord record = GetOrCreateRecord(member.MemberId, member.Name, member.Type);
-        if (record == null)
-            return;
-
-        record.Name = member.Name;
-        record.Type = member.Type;
-        record.Loyalty = member.Loyalty;
-        record.PreferredCombatStyle = member.PreferredCombatStyle;
-        record.CurrentMood = member.Mood;
-        record.LastKnownWeapon = member.GetSuggestedWeapon();
-        record.Memories = new List<string>(member.Memories ?? new List<string>());
-        record.Goals = new List<string>(member.Goals ?? new List<string>());
-        record.PersonalCash = member.PersonalCash;
-        record.PersonalGold = member.PersonalGold;
+        CompanionRecord companion = GetOrCreateCompanion(member.MemberId, member.Name);
+        companion.Loyalty = member.Loyalty;
+        companion.Trust = member.Trust;
+        companion.Experience = member.Experience;
+        companion.Goals = new List<string>(member.KnownGoals ?? new List<string>());
+        companion.Memories = new List<string>(member.Memories ?? new List<string>());
     }
 
     public void ApplyPersonalGoal(GangMember member)
@@ -56,118 +47,67 @@ public class CompanionSystem
         if (member == null)
             return;
 
-        if (member.SkillTrading > 65)
-            member.AddGoal("Find profitable trade opportunities.");
-        if (member.SkillCombat > 65)
-            member.AddGoal("Improve combat readiness.");
-        if (member.SkillStealth > 65)
-            member.AddGoal("Stay quiet and avoid detection.");
-        if (member.NeedsSupplies)
-            member.AddGoal("Gather supplies.");
+        if (member.KnownGoals == null)
+            member.KnownGoals = new List<string>();
+
+        if (member.KnownGoals.Count == 0)
+            member.KnownGoals.Add("Stay close to the gang");
     }
 
-    public void GainExperience(string memberId, int amount)
+    public void AddMemory(string companionId, string memory)
     {
-        if (string.IsNullOrWhiteSpace(memberId) || !_records.ContainsKey(memberId))
+        CompanionRecord companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
+        if (companion == null)
             return;
 
-        _records[memberId].Experience += Math.Max(0, amount);
+        if (!companion.Memories.Contains(memory))
+            companion.Memories.Add(memory);
     }
 
-    public CompanionRecord GetRecord(string memberId)
+    public List<CompanionSaveData> CreateSaveData()
     {
-        if (string.IsNullOrWhiteSpace(memberId))
-            return null;
-
-        _records.TryGetValue(memberId, out CompanionRecord record);
-        return record;
-    }
-
-    public IReadOnlyCollection<CompanionRecord> GetAllRecords()
-    {
-        return _records.Values.ToList().AsReadOnly();
-    }
-
-    public List<CompanionRecordData> CreateSaveData()
-    {
-        List<CompanionRecordData> data = new List<CompanionRecordData>();
-
-        foreach (CompanionRecord record in _records.Values)
+        return _companions.Select(c => new CompanionSaveData
         {
-            data.Add(new CompanionRecordData
-            {
-                MemberId = record.MemberId,
-                Name = record.Name,
-                Type = record.Type.ToString(),
-                Loyalty = record.Loyalty,
-                Trust = record.Trust,
-                Experience = record.Experience,
-                CurrentMood = record.CurrentMood.ToString(),
-                PreferredCombatStyle = record.PreferredCombatStyle.ToString(),
-                LastKnownWeapon = record.LastKnownWeapon,
-                Memories = new List<string>(record.Memories ?? new List<string>()),
-                Goals = new List<string>(record.Goals ?? new List<string>()),
-                PersonalCash = record.PersonalCash,
-                PersonalGold = record.PersonalGold
-            });
-        }
-
-        return data;
+            CompanionId = c.CompanionId,
+            Name = c.Name,
+            Loyalty = c.Loyalty,
+            Trust = c.Trust,
+            Experience = c.Experience,
+            Goals = new List<string>(c.Goals ?? new List<string>()),
+            Memories = new List<string>(c.Memories ?? new List<string>())
+        }).ToList();
     }
 
-    public void LoadFromSave(List<CompanionRecordData> data)
+    public void LoadFromSave(List<CompanionSaveData> data)
     {
-        _records.Clear();
+        _companions.Clear();
 
         if (data == null)
             return;
 
-        foreach (CompanionRecordData item in data)
+        foreach (CompanionSaveData companionData in data)
         {
-            CompanionType type = CompanionType.Human;
-            GangMood mood = GangMood.Neutral;
-            CombatStyle style = CombatStyle.ShortRange;
-
-            Enum.TryParse(item.Type, true, out type);
-            Enum.TryParse(item.CurrentMood, true, out mood);
-            Enum.TryParse(item.PreferredCombatStyle, true, out style);
-
-            CompanionRecord record = new CompanionRecord
+            _companions.Add(new CompanionRecord
             {
-                MemberId = item.MemberId,
-                Name = item.Name,
-                Type = type,
-                Loyalty = item.Loyalty,
-                Trust = item.Trust,
-                Experience = item.Experience,
-                CurrentMood = mood,
-                PreferredCombatStyle = style,
-                LastKnownWeapon = item.LastKnownWeapon,
-                Memories = item.Memories ?? new List<string>(),
-                Goals = item.Goals ?? new List<string>(),
-                PersonalCash = item.PersonalCash,
-                PersonalGold = item.PersonalGold
-            };
-
-            if (!string.IsNullOrWhiteSpace(record.MemberId))
-                _records[record.MemberId] = record;
+                CompanionId = companionData.CompanionId,
+                Name = companionData.Name,
+                Loyalty = companionData.Loyalty,
+                Trust = companionData.Trust,
+                Experience = companionData.Experience,
+                Goals = companionData.Goals ?? new List<string>(),
+                Memories = companionData.Memories ?? new List<string>()
+            });
         }
     }
 }
 
 public class CompanionRecord
 {
-    public string MemberId { get; set; }
+    public string CompanionId { get; set; }
     public string Name { get; set; }
-    public CompanionType Type { get; set; }
     public int Loyalty { get; set; }
     public int Trust { get; set; }
     public int Experience { get; set; }
-    public GangMood CurrentMood { get; set; }
-    public CombatStyle PreferredCombatStyle { get; set; }
-    public string LastKnownWeapon { get; set; }
-    public List<string> Memories { get; set; } = new List<string>();
-    public List<string> Goals { get; set; } = new List<string>();
-    public decimal PersonalCash { get; set; }
-    public decimal PersonalGold { get; set; }
+    public List<string> Goals { get; set; }
+    public List<string> Memories { get; set; }
 }

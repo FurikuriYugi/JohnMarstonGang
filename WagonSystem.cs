@@ -4,125 +4,135 @@ using System.Linq;
 
 public class WagonSystem
 {
-    private readonly List<Wagon> _wagons = new List<Wagon>();
+    private readonly List<WagonRecord> _wagons = new List<WagonRecord>();
 
-    public Wagon CreateWagon(string name, string ownerName, bool persistent)
+    public List<WagonRecord> Wagons => _wagons;
+
+    public WagonRecord GetOrCreateWagon(string wagonId)
     {
-        Wagon wagon = new Wagon
+        WagonRecord wagon = _wagons.FirstOrDefault(w => w.WagonId == wagonId);
+        if (wagon != null)
+            return wagon;
+
+        wagon = new WagonRecord
         {
-            WagonId = Guid.NewGuid().ToString("N"),
-            Name = string.IsNullOrWhiteSpace(name) ? "Wagon" : name,
-            OwnerName = ownerName,
-            IsPersistent = persistent,
-            Contents = new List<string>()
+            WagonId = wagonId,
+            OwnerId = null,
+            IsOwned = false,
+            IsHitched = false,
+            IsPersistent = true,
+            Cargo = new List<string>(),
+            HitchHorseIds = new List<string>()
         };
 
         _wagons.Add(wagon);
         return wagon;
     }
 
-    public Wagon GetWagon(string wagonId)
+    public WagonRecord CreateWagon(string wagonId, string ownerId, bool isPersistent = true)
     {
-        if (string.IsNullOrWhiteSpace(wagonId))
-            return null;
-
-        return _wagons.FirstOrDefault(w => string.Equals(w.WagonId, wagonId, StringComparison.OrdinalIgnoreCase));
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        wagon.OwnerId = ownerId;
+        wagon.IsOwned = true;
+        wagon.IsPersistent = isPersistent;
+        return wagon;
     }
 
-    public bool StoreItem(string wagonId, string itemName, int amount)
+    public void TransferOwnership(string wagonId, string newOwnerId)
     {
-        Wagon wagon = GetWagon(wagonId);
-        if (wagon == null || string.IsNullOrWhiteSpace(itemName) || amount <= 0)
-            return false;
-
-        for (int i = 0; i < amount; i++)
-            wagon.Contents.Add(itemName);
-
-        return true;
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        wagon.OwnerId = newOwnerId;
+        wagon.IsOwned = true;
     }
 
-    public bool RemoveItem(string wagonId, string itemName, int amount)
+    public void SetHitched(string wagonId, bool hitched)
     {
-        Wagon wagon = GetWagon(wagonId);
-        if (wagon == null || string.IsNullOrWhiteSpace(itemName) || amount <= 0)
-            return false;
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        wagon.IsHitched = hitched;
+    }
 
-        int removed = 0;
-        for (int i = wagon.Contents.Count - 1; i >= 0 && removed < amount; i--)
+    public void AddCargo(string wagonId, string itemName)
+    {
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        if (!wagon.Cargo.Contains(itemName))
+            wagon.Cargo.Add(itemName);
+    }
+
+    public void RemoveCargo(string wagonId, string itemName)
+    {
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        wagon.Cargo.Remove(itemName);
+    }
+
+    public void ClearCargo(string wagonId)
+    {
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        wagon.Cargo.Clear();
+    }
+
+    public void HitchHorse(string wagonId, string horseId)
+    {
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        if (!wagon.HitchHorseIds.Contains(horseId))
+            wagon.HitchHorseIds.Add(horseId);
+    }
+
+    public void UnhitchHorse(string wagonId, string horseId)
+    {
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        wagon.HitchHorseIds.Remove(horseId);
+    }
+
+    public bool HasCargo(string wagonId, string itemName)
+    {
+        WagonRecord wagon = GetOrCreateWagon(wagonId);
+        return wagon.Cargo.Contains(itemName);
+    }
+
+    public List<WagonRecord> CreateSaveData()
+    {
+        return _wagons.Select(w => new WagonRecord
         {
-            if (string.Equals(wagon.Contents[i], itemName, StringComparison.OrdinalIgnoreCase))
-            {
-                wagon.Contents.RemoveAt(i);
-                removed++;
-            }
-        }
-
-        return removed > 0;
+            WagonId = w.WagonId,
+            OwnerId = w.OwnerId,
+            IsOwned = w.IsOwned,
+            IsHitched = w.IsHitched,
+            IsPersistent = w.IsPersistent,
+            Cargo = new List<string>(w.Cargo ?? new List<string>()),
+            HitchHorseIds = new List<string>(w.HitchHorseIds ?? new List<string>())
+        }).ToList();
     }
 
-    public List<WagonData> CreateSaveData()
-    {
-        List<WagonData> data = new List<WagonData>();
-
-        foreach (Wagon wagon in _wagons)
-        {
-            data.Add(new WagonData
-            {
-                WagonId = wagon.WagonId,
-                ModelName = wagon.Name,
-                OwnerName = wagon.OwnerName,
-                IsOwned = !string.IsNullOrWhiteSpace(wagon.OwnerName),
-                IsPersistent = wagon.IsPersistent,
-                IsHookedToHorse = wagon.IsHookedToHorse,
-                Contents = new List<string>(wagon.Contents),
-                X = wagon.X,
-                Y = wagon.Y,
-                Z = wagon.Z
-            });
-        }
-
-        return data;
-    }
-
-    public void LoadFromSave(WagonSaveData saveData)
+    public void LoadFromSave(WagonSaveData data)
     {
         _wagons.Clear();
 
-        if (saveData == null || saveData.Wagons == null)
+        if (data == null || data.Wagons == null)
             return;
 
-        foreach (WagonData item in saveData.Wagons)
+        foreach (WagonRecord wagon in data.Wagons)
         {
-            if (item == null)
-                continue;
-
-            Wagon wagon = new Wagon
+            _wagons.Add(new WagonRecord
             {
-                WagonId = item.WagonId,
-                Name = item.ModelName,
-                OwnerName = item.OwnerName,
-                IsPersistent = item.IsPersistent,
-                IsHookedToHorse = item.IsHookedToHorse,
-                Contents = item.Contents ?? new List<string>(),
-                X = item.X,
-                Y = item.Y,
-                Z = item.Z
-            };
-
-            _wagons.Add(wagon);
+                WagonId = wagon.WagonId,
+                OwnerId = wagon.OwnerId,
+                IsOwned = wagon.IsOwned,
+                IsHitched = wagon.IsHitched,
+                IsPersistent = wagon.IsPersistent,
+                Cargo = wagon.Cargo ?? new List<string>(),
+                HitchHorseIds = wagon.HitchHorseIds ?? new List<string>()
+            });
         }
     }
 }
 
-public class Wagon
+public class WagonRecord
 {
     public string WagonId { get; set; }
-    public string Name { get; set; }
-    public string OwnerName { get; set; }
+    public string OwnerId { get; set; }
+    public bool IsOwned { get; set; }
+    public bool IsHitched { get; set; }
     public bool IsPersistent { get; set; }
-    public bool IsHookedToHorse { get; set; }
-    public List<string> Contents { get; set; } = new List<string>();
-    public double X { get; set; }
-    public double Y { get; set; }
-    public double Z { get; set; }
+    public List<string> Cargo { get; set; }
+    public List<string> HitchHorseIds { get; set; }
 }
