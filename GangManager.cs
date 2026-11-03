@@ -1,13 +1,13 @@
-﻿// GangManager.cs
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.IO;
 
 public class GangManager
 {
     private readonly List<GangMember> _members = new List<GangMember>();
     private readonly TacticalSquadAiSystem _tacticalAi = new TacticalSquadAiSystem();
+
     private const string SaveFileName = "JohnMarstonGang_Save.xml";
 
     public IReadOnlyList<GangMember> Members => _members;
@@ -24,15 +24,18 @@ public class GangManager
             using (var fs = File.OpenRead(SaveFileName))
             {
                 var serializer = new DataContractSerializer(typeof(GangSaveData));
-                var data = (GangSaveData)serializer.ReadObject(fs);
+                var data = serializer.ReadObject(fs) as GangSaveData;
 
                 if (data != null && data.Members != null)
                 {
                     foreach (var memberData in data.Members)
                     {
+                        if (memberData == null)
+                            continue;
+
                         manager._members.Add(new GangMember
                         {
-                            Name = memberData.Name,
+                            Name = string.IsNullOrWhiteSpace(memberData.Name) ? "Member" : memberData.Name,
                             Relationship = memberData.Relationship,
                             CombatStyle = (CombatStyle)memberData.CombatStyle,
                             IsFollowing = memberData.IsFollowing
@@ -76,7 +79,116 @@ public class GangManager
 
     public void Update()
     {
-        var context = new TacticalContext
+        UpdateWithContext(GetDefaultContext());
+    }
+
+    public void UpdateWithContext(TacticalContext context)
+    {
+        if (context == null)
+            context = GetDefaultContext();
+
+        _tacticalAi.UpdateGangTactics(_members, context);
+        _tacticalAi.ApplyFormationSpacing(_members, context);
+
+        foreach (var member in _members)
+        {
+            if (member != null)
+                member.Update();
+        }
+    }
+
+    public void RecruitNearby()
+    {
+        AddMember(new GangMember
+        {
+            Name = "Recruit",
+            Relationship = 0,
+            CombatStyle = CombatStyle.RangedMedium,
+            IsFollowing = true
+        });
+    }
+
+    public void Recruit(string name, int relationship, CombatStyle style, bool following)
+    {
+        AddMember(new GangMember
+        {
+            Name = string.IsNullOrWhiteSpace(name) ? "Member" : name,
+            Relationship = relationship,
+            CombatStyle = style,
+            IsFollowing = following
+        });
+    }
+
+    public void FollowPlayer()
+    {
+        foreach (var member in _members)
+        {
+            if (member != null)
+                member.IsFollowing = true;
+        }
+    }
+
+    public void Wait()
+    {
+        foreach (var member in _members)
+        {
+            if (member != null)
+                member.IsFollowing = false;
+        }
+    }
+
+    public void SetCombatStyleForAll(CombatStyle style)
+    {
+        foreach (var member in _members)
+        {
+            if (member != null)
+                member.CombatStyle = style;
+        }
+    }
+
+    public void CycleCombatStyle()
+    {
+        foreach (var member in _members)
+        {
+            if (member != null)
+                member.CombatStyle = member.CombatStyle.Next();
+        }
+    }
+
+    public GangMember GetMember(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        return _members.FirstOrDefault(m => m != null && m.Name == name);
+    }
+
+    public bool RemoveMember(string name)
+    {
+        var member = GetMember(name);
+        if (member == null)
+            return false;
+
+        return _members.Remove(member);
+    }
+
+    private void AddMember(GangMember member)
+    {
+        if (member == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(member.Name))
+            member.Name = "Member";
+
+        if (_members.Any(x => x != null && x.Name == member.Name))
+            return;
+
+        _members.Add(member);
+    }
+
+    private TacticalContext GetDefaultContext()
+    {
+        return new TacticalContext
         {
             IsCombatActive = false,
             IsHostileNearby = false,
@@ -88,80 +200,5 @@ public class GangManager
             IsLongRangeCombat = false,
             FollowMode = true
         };
-
-        _tacticalAi.UpdateGangTactics(_members, context);
-        _tacticalAi.ApplyFormationSpacing(_members, context);
-
-        foreach (var member in _members)
-        {
-            member.Update();
-        }
-    }
-
-    public void UpdateWithContext(TacticalContext context)
-    {
-        _tacticalAi.UpdateGangTactics(_members, context);
-        _tacticalAi.ApplyFormationSpacing(_members, context);
-
-        foreach (var member in _members)
-        {
-            member.Update();
-        }
-    }
-
-    public void RecruitNearby()
-    {
-        var newMember = new GangMember
-        {
-            Name = "Recruit",
-            Relationship = 0,
-            CombatStyle = CombatStyle.RangedMedium,
-            IsFollowing = true
-        };
-
-        _members.Add(newMember);
-    }
-
-    public void Recruit(string name, int relationship, CombatStyle style, bool following)
-    {
-        _members.Add(new GangMember
-        {
-            Name = name,
-            Relationship = relationship,
-            CombatStyle = style,
-            IsFollowing = following
-        });
-    }
-
-    public void FollowPlayer()
-    {
-        foreach (var member in _members)
-        {
-            member.IsFollowing = true;
-        }
-    }
-
-    public void Wait()
-    {
-        foreach (var member in _members)
-        {
-            member.IsFollowing = false;
-        }
-    }
-
-    public void SetCombatStyleForAll(CombatStyle style)
-    {
-        foreach (var member in _members)
-        {
-            member.CombatStyle = style;
-        }
-    }
-
-    public void CycleCombatStyle()
-    {
-        foreach (var member in _members)
-        {
-            member.CombatStyle = member.CombatStyle.Next();
-        }
     }
 }
