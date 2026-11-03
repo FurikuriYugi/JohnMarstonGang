@@ -7,22 +7,10 @@ public class GangManager
 {
     private readonly List<GangMember> _members = new List<GangMember>();
     private readonly TacticalSquadAiSystem _tacticalAi = new TacticalSquadAiSystem();
-    private readonly CompanionSystem _companionSystem;
 
     private const string SaveFileName = "JohnMarstonGang_Save.xml";
 
     public IReadOnlyList<GangMember> Members => _members;
-    public CompanionSystem CompanionSystem => _companionSystem;
-
-    public GangManager()
-    {
-        _companionSystem = new CompanionSystem();
-    }
-
-    public GangManager(CompanionSystem companionSystem)
-    {
-        _companionSystem = companionSystem ?? new CompanionSystem();
-    }
 
     public static GangManager Load()
     {
@@ -45,21 +33,16 @@ public class GangManager
                         if (memberData == null)
                             continue;
 
-                        var member = new GangMember
+                        manager._members.Add(new GangMember
                         {
                             Name = string.IsNullOrWhiteSpace(memberData.Name) ? "Member" : memberData.Name,
                             Relationship = memberData.Relationship,
                             CombatStyle = (CombatStyle)memberData.CombatStyle,
                             IsFollowing = memberData.IsFollowing
-                        };
-
-                        manager._members.Add(member);
-                        manager._companionSystem.RegisterMember(member);
+                        });
                     }
                 }
             }
-
-            manager._companionSystem.Load();
         }
         catch
         {
@@ -88,9 +71,6 @@ public class GangManager
                 var serializer = new DataContractSerializer(typeof(GangSaveData));
                 serializer.WriteObject(fs, data);
             }
-
-            if (_companionSystem != null)
-                _companionSystem.Save();
         }
         catch
         {
@@ -124,23 +104,19 @@ public class GangManager
 
     public void Recruit(string name, int relationship, CombatStyle style, bool following)
     {
-        var memberName = string.IsNullOrWhiteSpace(name) ? "Member" : name;
+        if (string.IsNullOrWhiteSpace(name))
+            name = "Member";
 
-        if (_members.Any(x => x != null && x.Name == memberName))
+        if (_members.Any(x => x != null && x.Name == name))
             return;
 
-        var member = new GangMember
+        _members.Add(new GangMember
         {
-            Name = memberName,
+            Name = name,
             Relationship = relationship,
             CombatStyle = style,
             IsFollowing = following
-        };
-
-        _members.Add(member);
-
-        if (_companionSystem != null)
-            _companionSystem.RegisterMember(member);
+        });
     }
 
     public void FollowPlayer()
@@ -194,45 +170,6 @@ public class GangManager
             return false;
 
         return _members.Remove(member);
-    }
-
-    public void UpdateMemberRelationship(string name, int delta)
-    {
-        var member = GetMember(name);
-        if (member == null)
-            return;
-
-        member.Relationship += delta;
-
-        if (_companionSystem != null)
-        {
-            _companionSystem.UpdateLoyalty(member.Name, delta / 2);
-            _companionSystem.UpdateMorale(member.Name, delta / 2);
-        }
-    }
-
-    public void SetMemberGoal(string name, string goal)
-    {
-        if (_companionSystem != null)
-            _companionSystem.SetGoal(name, goal);
-    }
-
-    public void AddMemberMemory(string name, string memory)
-    {
-        if (_companionSystem != null)
-            _companionSystem.AddMemory(name, memory);
-    }
-
-    public void SyncAllMembers()
-    {
-        if (_companionSystem == null)
-            return;
-
-        foreach (var member in _members)
-        {
-            if (member != null)
-                _companionSystem.RegisterMember(member);
-        }
     }
 
     private TacticalContext GetDefaultContext()
