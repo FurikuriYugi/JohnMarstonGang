@@ -14,7 +14,6 @@ public class Main : Script
     private DynamiteSystem _dynamiteSystem;
     private LockSystem _lockSystem;
     private CompanionSystem _companionSystem;
-
     private readonly string _savePath = "JohnMorstonGangSave.json";
     private bool _initialized;
 
@@ -35,8 +34,7 @@ public class Main : Script
         _wagonSystem = new WagonSystem();
         _dynamiteSystem = new DynamiteSystem();
         _lockSystem = new LockSystem();
-        _companionSystem = new CompanionSystem(_gangManager);
-
+        _companionSystem = new CompanionSystem();
         _interactionSystem = new InteractionSystem(
             _lockSystem,
             _dynamiteSystem,
@@ -52,10 +50,7 @@ public class Main : Script
     {
         Initialize();
 
-        if (_tacticalAi != null && _gangManager != null)
-            _tacticalAi.Update(_gangManager);
-
-        _companionSystem?.Update();
+        _tacticalAi?.Update(_gangManager);
     }
 
     private void OnAborted(object sender, EventArgs e)
@@ -88,7 +83,6 @@ public class Main : Script
 
         var json = File.ReadAllText(_savePath);
         var data = JsonConvert.DeserializeObject<GangSaveData>(json);
-
         if (data == null)
             return;
 
