@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 public class TacticalSquadAiSystem
 {
     public void Update(GangManager gangManager)
@@ -10,65 +9,95 @@ public class TacticalSquadAiSystem
         if (gangManager == null)
             return;
 
-        foreach (var member in gangManager.GetActiveMembers())
+        var activeMembers = gangManager.GetActiveMembers().ToList();
+        if (activeMembers.Count == 0)
+            return;
+
+        foreach (var member in activeMembers)
         {
-            UpdateMember(member);
+            UpdateMember(member, activeMembers);
         }
     }
 
-    private void UpdateMember(GangMember member)
+    private void UpdateMember(GangMember member, List<GangMember> squad)
     {
         if (member == null)
             return;
 
         if (member.IsInCombat)
         {
-            ApplyCombatBehavior(member);
+            ApplyCombatBehavior(member, squad);
+            return;
+        }
+
+        if (member.IsStealthing)
+        {
+            ApplyStealthBehavior(member, squad);
             return;
         }
 
         if (member.FollowingPlayer)
         {
-            ApplyFollowBehavior(member);
+            ApplyFollowBehavior(member, squad);
             return;
         }
 
-        ApplyIdleBehavior(member);
+        ApplyIdleBehavior(member, squad);
     }
 
-    private void ApplyCombatBehavior(GangMember member)
+    private void ApplyCombatBehavior(GangMember member, List<GangMember> squad)
     {
-        switch (member.PreferredCombatStyle)
-        {
-            case CombatStyle.NonLethalMelee:
-                member.WeaponChoice = "Fists";
-                break;
-            case CombatStyle.LethalMelee:
-                member.WeaponChoice = "Knife";
-                break;
-            case CombatStyle.ShortRange:
-                if (string.IsNullOrWhiteSpace(member.WeaponChoice))
-                    member.WeaponChoice = "Revolver";
-                break;
-            case CombatStyle.MediumRange:
-                member.WeaponChoice = "Repeater";
-                break;
-            case CombatStyle.LongRange:
-                member.WeaponChoice = "Rifle";
-                break;
-            case CombatStyle.Stealth:
-                member.WeaponChoice = "Bow";
-                break;
-        }
+        member.IsOnJob = true;
+        member.IsShopping = false;
+
+        var style = SelectCombatStyle(member, squad);
+        member.SetCombatStyle(style, member.GetSuggestedWeapon());
 
         if (member.Loyalty < 25)
             member.Mood = GangMood.Nervous;
+        else if (member.Loyalty > 75)
+            member.Mood = GangMood.Loyal;
         else
             member.Mood = GangMood.Aggressive;
     }
 
-    private void ApplyFollowBehavior(GangMember member)
+    private CombatStyle SelectCombatStyle(GangMember member, List<GangMember> squad)
     {
+        if (member.ShouldUseStealth())
+            return CombatStyle.Stealth;
+
+        var stealthCount = squad.Count(x => x != null && x.ShouldUseStealth());
+        if (stealthCount > squad.Count / 2)
+            return CombatStyle.Stealth;
+
+        if (member.SkillCombat >= 75)
+            return CombatStyle.LongRange;
+        if (member.SkillStealth >= 60)
+            return CombatStyle.MediumRange;
+        if (member.Role == GangMemberRole.Gunner)
+            return CombatStyle.LongRange;
+        if (member.Role == GangMemberRole.Guard)
+            return CombatStyle.ShortRange;
+
+        return CombatStyle.ShortRange;
+    }
+
+    private void ApplyStealthBehavior(GangMember member, List<GangMember> squad)
+    {
+        member.SetCombatStyle(CombatStyle.Stealth, "Bow");
+        member.Mood = member.Loyalty >= 50 ? GangMood.Loyal : GangMood.Nervous;
+    }
+
+    private void ApplyFollowBehavior(GangMember member, List<GangMember> squad)
+    {
+        if (member.NeedsSupplies)
+            member.AddGoal("Get supplies: ammo, food, medicine.");
+
+        if (member.SkillTrading > 50)
+            member.Role = GangMemberRole.Trader;
+        else if (member.SkillHandling > 50)
+            member.Role = GangMemberRole.Driver;
+
         if (member.PreferredCombatStyle == CombatStyle.Stealth)
             member.Mood = GangMood.Nervous;
         else if (member.Loyalty > 75)
@@ -77,8 +106,16 @@ public class TacticalSquadAiSystem
             member.Mood = GangMood.Neutral;
     }
 
-    private void ApplyIdleBehavior(GangMember member)
+    private void ApplyIdleBehavior(GangMember member, List<GangMember> squad)
     {
+        member.IsOnJob = false;
+
+        if (member.NeedsSupplies)
+        {
+            member.AddMemory("Needs to restock supplies.");
+            member.AddGoal("Buy ammo, food, and medicine.");
+        }
+
         if (member.Loyalty > 80)
             member.Mood = GangMood.Loyal;
         else if (member.Loyalty < 30)

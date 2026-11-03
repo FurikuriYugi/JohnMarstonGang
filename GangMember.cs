@@ -1,6 +1,6 @@
-﻿using System;
+﻿// GangMember.cs
+using System;
 using System.Collections.Generic;
-
 public class GangMember
 {
     public string MemberId { get; set; }
@@ -23,13 +23,16 @@ public class GangMember
     public bool FollowingPlayer { get; set; }
     public bool IsActive { get; set; }
     public bool IsInCombat { get; set; }
+    public bool IsStealthing { get; set; }
+    public bool IsShopping { get; set; }
+    public bool IsOnJob { get; set; }
+    public bool NeedsSupplies { get; set; }
 
     public GangMember()
     {
         MemberId = Guid.NewGuid().ToString("N");
         Mood = GangMood.Neutral;
         Loyalty = 50;
-        IsActive = true;
     }
 
     public void AddMemory(string memory)
@@ -60,6 +63,27 @@ public class GangMember
 
     public bool ShouldUseStealth()
     {
-        return PreferredCombatStyle == CombatStyle.Stealth || Mood == GangMood.Nervous;
+        return PreferredCombatStyle == CombatStyle.Stealth || Mood == GangMood.Nervous || IsStealthing;
+    }
+
+    public string GetSuggestedWeapon()
+    {
+        if (ShouldUseStealth())
+            return "Bow";
+        switch (PreferredCombatStyle)
+        {
+            case CombatStyle.NonLethalMelee:
+                return "Lasso";
+            case CombatStyle.LethalMelee:
+                return "Knife";
+            case CombatStyle.ShortRange:
+                return "Revolver";
+            case CombatStyle.MediumRange:
+                return "Repeater";
+            case CombatStyle.LongRange:
+                return "Rifle";
+            default:
+                return string.IsNullOrWhiteSpace(WeaponChoice) ? "Revolver" : WeaponChoice;
+        }
     }
 }
