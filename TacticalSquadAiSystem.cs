@@ -22,6 +22,9 @@ public class TacticalSquadAiSystem
         if (member == null)
             return;
 
+        if (!member.IsAlive)
+            return;
+
         if (member.IsInCombat)
         {
             ApplyCombatBehavior(member, squad);
@@ -31,6 +34,12 @@ public class TacticalSquadAiSystem
         if (member.IsStealthing)
         {
             ApplyStealthBehavior(member, squad);
+            return;
+        }
+
+        if (member.IsShopping || member.NeedsSupplies)
+        {
+            ApplySupplyBehavior(member);
             return;
         }
 
@@ -87,10 +96,29 @@ public class TacticalSquadAiSystem
     {
         member.SetCombatStyle(CombatStyle.Stealth, "Bow");
         member.Mood = member.Loyalty >= 50 ? GangMood.Loyal : GangMood.Nervous;
+        member.CurrentTask = "Stealth";
+    }
+
+    private void ApplySupplyBehavior(GangMember member)
+    {
+        member.IsShopping = true;
+        member.IsOnJob = false;
+        member.CurrentTask = "Supply Run";
+
+        if (member.SkillTrading > 50)
+            member.Role = GangMemberRole.Trader;
+        else if (member.SkillHandling > 50)
+            member.Role = GangMemberRole.Driver;
+
+        member.AddGoal("Acquire ammo, food, medicine, and gang supplies.");
+        member.AddMemory("Working on supplies for the gang.");
     }
 
     private void ApplyFollowBehavior(GangMember member, List<GangMember> squad)
     {
+        member.CurrentTask = "Follow";
+        member.IsShopping = false;
+
         if (member.NeedsSupplies)
             member.AddGoal("Get supplies: ammo, food, medicine.");
 
@@ -110,6 +138,7 @@ public class TacticalSquadAiSystem
     private void ApplyIdleBehavior(GangMember member, List<GangMember> squad)
     {
         member.IsOnJob = false;
+        member.CurrentTask = "Idle";
 
         if (member.NeedsSupplies)
         {

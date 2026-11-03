@@ -20,6 +20,7 @@ public class GangMember
     public decimal PersonalGold { get; set; }
     public List<string> Memories { get; set; } = new List<string>();
     public List<string> Goals { get; set; } = new List<string>();
+    public List<string> InventoryItems { get; set; } = new List<string>();
     public bool FollowingPlayer { get; set; }
     public bool IsActive { get; set; }
     public bool IsInCombat { get; set; }
@@ -27,6 +28,9 @@ public class GangMember
     public bool IsShopping { get; set; }
     public bool IsOnJob { get; set; }
     public bool NeedsSupplies { get; set; }
+    public bool IsDowned { get; set; }
+    public bool IsAlive { get; set; } = true;
+    public string CurrentTask { get; set; }
 
     public GangMember()
     {
@@ -37,6 +41,7 @@ public class GangMember
         Type = CompanionType.Human;
         Role = GangMemberRole.Recruit;
         IsActive = true;
+        IsAlive = true;
     }
 
     public void AddMemory(string memory)
@@ -47,8 +52,22 @@ public class GangMember
 
     public void AddGoal(string goal)
     {
-        if (!string.IsNullOrWhiteSpace(goal))
+        if (!string.IsNullOrWhiteSpace(goal) && !Goals.Contains(goal))
             Goals.Add(goal);
+    }
+
+    public void AddItem(string itemName)
+    {
+        if (!string.IsNullOrWhiteSpace(itemName))
+            InventoryItems.Add(itemName);
+    }
+
+    public bool RemoveItem(string itemName)
+    {
+        if (string.IsNullOrWhiteSpace(itemName))
+            return false;
+
+        return InventoryItems.Remove(itemName);
     }
 
     public void AdjustLoyalty(int amount)
@@ -63,6 +82,68 @@ public class GangMember
         PreferredCombatStyle = style;
         if (!string.IsNullOrWhiteSpace(weaponChoice))
             WeaponChoice = weaponChoice;
+    }
+
+    public void Recruit(string reason = null)
+    {
+        IsActive = true;
+        IsAlive = true;
+        FollowingPlayer = true;
+        Mood = GangMood.Neutral;
+
+        if (!string.IsNullOrWhiteSpace(reason))
+            AddMemory("Recruited: " + reason);
+    }
+
+    public void Dismiss()
+    {
+        IsActive = false;
+        FollowingPlayer = false;
+        IsInCombat = false;
+        IsStealthing = false;
+        CurrentTask = "Dismissed";
+        AddMemory("Dismissed from active duty.");
+    }
+
+    public void AssignOrder(GangOrderType order)
+    {
+        CurrentTask = order.ToString();
+
+        switch (order)
+        {
+            case GangOrderType.Follow:
+            case GangOrderType.StayClose:
+                FollowingPlayer = true;
+                IsShopping = false;
+                break;
+            case GangOrderType.HoldPosition:
+            case GangOrderType.Wait:
+                FollowingPlayer = false;
+                break;
+            case GangOrderType.Guard:
+                FollowingPlayer = false;
+                Role = GangMemberRole.Guard;
+                break;
+            case GangOrderType.Scout:
+                FollowingPlayer = false;
+                Role = GangMemberRole.Scout;
+                break;
+            case GangOrderType.Loot:
+            case GangOrderType.SupplyRun:
+                FollowingPlayer = false;
+                break;
+            case GangOrderType.Attack:
+            case GangOrderType.Defend:
+                IsInCombat = true;
+                break;
+        }
+
+        AddMemory("Order assigned: " + order);
+    }
+
+    public bool WantsSupplies()
+    {
+        return NeedsSupplies || InventoryItems.Count == 0 || PersonalCash < 5m;
     }
 
     public bool ShouldUseStealth()

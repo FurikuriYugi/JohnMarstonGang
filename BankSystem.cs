@@ -92,6 +92,18 @@ public class BankSystem
         GetOrCreateAccount(ownerName).IsSuspicious = suspicious;
     }
 
+    public void ApplyBusinessFlow(string businessName, decimal cashIn, decimal cashOut, decimal goldIn, decimal goldOut)
+    {
+        BankAccount account = GetOrCreateAccount(businessName);
+        account.Cash += cashIn;
+        account.Cash -= cashOut;
+        account.Gold += goldIn;
+        account.Gold -= goldOut;
+
+        if (account.Cash < 0m) account.Cash = 0m;
+        if (account.Gold < 0m) account.Gold = 0m;
+    }
+
     public void StoreVault(string bankName, decimal cash, decimal gold)
     {
         if (string.IsNullOrWhiteSpace(bankName))
@@ -129,6 +141,22 @@ public class BankSystem
         record.GoldStored -= Math.Max(0m, gold);
         record.LastUpdated = DateTime.UtcNow;
         return true;
+    }
+
+    public decimal GetVaultCash(string bankName)
+    {
+        if (string.IsNullOrWhiteSpace(bankName))
+            bankName = "Unknown Bank";
+
+        return _vaultRecords.TryGetValue(bankName, out BankVaultRecordData record) ? record.CashStored : 0m;
+    }
+
+    public decimal GetVaultGold(string bankName)
+    {
+        if (string.IsNullOrWhiteSpace(bankName))
+            bankName = "Unknown Bank";
+
+        return _vaultRecords.TryGetValue(bankName, out BankVaultRecordData record) ? record.GoldStored : 0m;
     }
 
     public BankSaveData CreateSaveData()
