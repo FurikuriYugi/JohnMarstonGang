@@ -1,126 +1,100 @@
 ﻿// InteractionSystem.cs
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public class InteractionSystem
 {
-    private readonly LockSystem _lockSystem;
-    private readonly DynamiteSystem _dynamiteSystem;
-    private readonly WagonSystem _wagonSystem;
-    private readonly BankSystem _bankSystem;
-    private readonly JobSystem _jobSystem;
-
-    public InteractionSystem(
-        LockSystem lockSystem,
-        DynamiteSystem dynamiteSystem,
-        WagonSystem wagonSystem,
-        BankSystem bankSystem,
-        JobSystem jobSystem)
+    public void HandlePlayerInteraction(GangManager gangManager, string interactionType)
     {
-        _lockSystem = lockSystem;
-        _dynamiteSystem = dynamiteSystem;
-        _wagonSystem = wagonSystem;
-        _bankSystem = bankSystem;
-        _jobSystem = jobSystem;
+        if (gangManager == null || string.IsNullOrWhiteSpace(interactionType))
+            return;
+
+        var members = gangManager.GetAllMembers();
+
+        foreach (var member in members)
+        {
+            if (member == null || !member.IsActive)
+                continue;
+
+            switch (interactionType.ToLowerInvariant())
+            {
+                case "follow":
+                    member.FollowingPlayer = true;
+                    member.IsShopping = false;
+                    member.IsStealthing = false;
+                    member.AddMemory("Agreed to follow the player.");
+                    break;
+
+                case "stay":
+                    member.FollowingPlayer = false;
+                    member.AddMemory("Ordered to stay nearby.");
+                    break;
+
+                case "shop":
+                    member.IsShopping = true;
+                    member.FollowingPlayer = false;
+                    member.AddGoal("Buy needed supplies.");
+                    break;
+
+                case "stealth":
+                    member.IsStealthing = true;
+                    member.IsInCombat = false;
+                    member.SetCombatStyle(CombatStyle.Stealth, "Bow");
+                    member.AddMemory("Switched to stealth behavior.");
+                    break;
+
+                case "combat":
+                    member.IsInCombat = true;
+                    member.IsStealthing = false;
+                    member.AddMemory("Prepared for combat.");
+                    break;
+
+                case "restock":
+                    member.NeedsSupplies = false;
+                    member.AddMemory("Supplies restocked.");
+                    break;
+            }
+        }
     }
 
-    public bool TryPickDoor(string targetId, bool hasBreakerTool)
+    public void HandleMemberInteraction(GangMember member, string topic, bool positive)
     {
-        return _lockSystem != null && _lockSystem.PickLock(targetId, hasBreakerTool);
+        if (member == null || string.IsNullOrWhiteSpace(topic))
+            return;
+
+        if (positive)
+        {
+            member.AdjustLoyalty(5);
+            member.AddMemory("Positive interaction about " + topic);
+        }
+        else
+        {
+            member.AdjustLoyalty(-5);
+            member.AddMemory("Negative interaction about " + topic);
+        }
     }
 
-    public bool TryBlastDoor(string targetId, bool hasDynamite)
+    public void ApplySituation(GangManager gangManager, bool isStealth, bool isCombat, bool isShopping)
     {
-        return _lockSystem != null && _lockSystem.BlastOpen(targetId, hasDynamite);
-    }
+        if (gangManager == null)
+            return;
 
-    public bool TryBlowTarget(string targetId, bool hasDynamite)
-    {
-        return _dynamiteSystem != null && _dynamiteSystem.BlowOpen(targetId, hasDynamite);
-    }
+        foreach (var member in gangManager.GetAllMembers())
+        {
+            if (member == null || !member.IsActive)
+                continue;
 
-    public bool TryForceOpen(string targetId)
-    {
-        return _lockSystem != null && _lockSystem.ForceOpen(targetId);
-    }
+            member.IsStealthing = isStealth;
+            member.IsInCombat = isCombat;
+            member.IsShopping = isShopping;
 
-    public bool RegisterLockTarget(string targetId, LockTargetType type, bool isLocked, bool canBeBlasted)
-    {
-        if (_lockSystem == null) return false;
-        _lockSystem.RegisterTarget(targetId, type, isLocked, canBeBlasted);
-        return true;
-    }
-
-    public bool RegisterDynamiteTarget(string targetId, DynamiteTargetType type, bool isDestructible, bool isExplodable)
-    {
-        if (_dynamiteSystem == null) return false;
-        _dynamiteSystem.RegisterTarget(targetId, type, isDestructible, isExplodable);
-        return true;
-    }
-
-    public Wagon CreateOrClaimWagon(string wagonName, string ownerId, WagonType type)
-    {
-        if (_wagonSystem == null) return null;
-        return _wagonSystem.CreateWagon(wagonName, ownerId, type);
-    }
-
-    public bool StoreItemInWagon(string wagonId, string itemName, int amount)
-    {
-        if (_wagonSystem == null) return false;
-        return _wagonSystem.StoreItem(wagonId, itemName, amount);
-    }
-
-    public bool RemoveItemFromWagon(string wagonId, string itemName, int amount)
-    {
-        if (_wagonSystem == null) return false;
-        return _wagonSystem.RemoveItem(wagonId, itemName, amount);
-    }
-
-    public void DepositBankCash(string ownerId, decimal amount)
-    {
-        if (_bankSystem == null) return;
-        _bankSystem.DepositCash(ownerId, amount);
-    }
-
-    public void DepositBankGold(string ownerId, decimal amount)
-    {
-        if (_bankSystem == null) return;
-        _bankSystem.DepositGold(ownerId, amount);
-    }
-
-    public bool WithdrawBankCash(string ownerId, decimal amount)
-    {
-        if (_bankSystem == null) return false;
-        return _bankSystem.WithdrawCash(ownerId, amount);
-    }
-
-    public bool WithdrawBankGold(string ownerId, decimal amount)
-    {
-        if (_bankSystem == null) return false;
-        return _bankSystem.WithdrawGold(ownerId, amount);
-    }
-
-    public void AddTownJobs(string townName)
-    {
-        _jobSystem?.GenerateTownJobs(townName);
-    }
-
-    public bool AcceptJob(string jobId, string gangMemberName = null)
-    {
-        return _jobSystem != null && _jobSystem.AcceptJob(jobId, gangMemberName);
-    }
-
-    public bool CompleteJob(string assignmentId)
-    {
-        return _jobSystem != null && _jobSystem.CompleteJob(assignmentId);
-    }
-
-    public bool FailJob(string assignmentId)
-    {
-        return _jobSystem != null && _jobSystem.FailJob(assignmentId);
-    }
-
-    public void PayOutCompletedJobs(string playerAccountId)
-    {
-        _jobSystem?.PayOutCompletedJobs(_bankSystem, playerAccountId);
+            if (isStealth)
+                member.SetCombatStyle(CombatStyle.Stealth, "Bow");
+            else if (isCombat && member.SkillCombat > 70)
+                member.SetCombatStyle(CombatStyle.LongRange, "Rifle");
+            else if (isCombat)
+                member.SetCombatStyle(CombatStyle.ShortRange, "Revolver");
+        }
     }
 }

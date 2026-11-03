@@ -1,147 +1,91 @@
-﻿using System;
+﻿// CompanionSystem.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 public class CompanionSystem
 {
-    private readonly List<CompanionRecord> _companions = new List<CompanionRecord>();
+    private readonly Dictionary<string, CompanionRecord> _records = new Dictionary<string, CompanionRecord>();
 
-    public IReadOnlyList<CompanionRecord> Companions => _companions;
-
-    public CompanionRecord CreateCompanion(string name)
+    public CompanionRecord GetOrCreateRecord(string memberId, string name, CompanionType type)
     {
-        var existing = GetCompanion(name);
-        if (existing != null)
-            return existing;
+        if (string.IsNullOrWhiteSpace(memberId))
+            return null;
 
-        var companion = new CompanionRecord
+        if (_records.ContainsKey(memberId))
+            return _records[memberId];
+
+        var record = new CompanionRecord
         {
-            CompanionId = Guid.NewGuid().ToString("N"),
+            MemberId = memberId,
             Name = name,
-            Type = CompanionType.Human,
-            Personality = "Neutral",
-            Loyalty = 0,
-            SkillCombat = 0,
-            SkillStealth = 0,
-            SkillHandling = 0,
-            SkillTrading = 0,
-            WeaponChoice = null,
-            Outfit = null,
-            PersonalCash = 0m,
-            PersonalGold = 0m,
-            Memories = new List<string>(),
-            Goals = new List<string>()
+            Type = type,
+            Trust = 50,
+            Experience = 0
         };
 
-        _companions.Add(companion);
-        return companion;
+        _records[memberId] = record;
+        return record;
     }
 
-    public CompanionRecord GetCompanion(string name)
+    public void UpdateFromGangMember(GangMember member)
     {
-        return _companions.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
-    }
-
-    public void Update(GangManager gangManager)
-    {
-        if (gangManager == null)
+        if (member == null)
             return;
 
-        foreach (var member in gangManager.Members)
-        {
-            var companion = GetCompanion(member.Name);
-            if (companion == null)
-                continue;
-
-            companion.Loyalty = member.Loyalty;
-            companion.SkillCombat = member.SkillCombat;
-            companion.SkillStealth = member.SkillStealth;
-            companion.SkillHandling = member.SkillHandling;
-            companion.SkillTrading = member.SkillTrading;
-            companion.WeaponChoice = member.WeaponChoice;
-            companion.Outfit = member.Outfit;
-            companion.PersonalCash = member.PersonalCash;
-            companion.PersonalGold = member.PersonalGold;
-            companion.Memories = new List<string>(member.Memories);
-            companion.Goals = new List<string>(member.Goals);
-        }
-    }
-
-    public List<CompanionSaveData> CreateSaveData()
-    {
-        var result = new List<CompanionSaveData>();
-
-        foreach (var companion in _companions)
-        {
-            result.Add(new CompanionSaveData
-            {
-                CompanionId = companion.CompanionId,
-                Name = companion.Name,
-                Type = companion.Type,
-                Personality = companion.Personality,
-                Loyalty = companion.Loyalty,
-                SkillCombat = companion.SkillCombat,
-                SkillStealth = companion.SkillStealth,
-                SkillHandling = companion.SkillHandling,
-                SkillTrading = companion.SkillTrading,
-                WeaponChoice = companion.WeaponChoice,
-                Outfit = companion.Outfit,
-                PersonalCash = companion.PersonalCash,
-                PersonalGold = companion.PersonalGold,
-                Memories = companion.Memories != null ? new List<string>(companion.Memories) : new List<string>(),
-                Goals = companion.Goals != null ? new List<string>(companion.Goals) : new List<string>()
-            });
-        }
-
-        return result;
-    }
-
-    public void LoadFromSave(List<CompanionSaveData> savedCompanions)
-    {
-        _companions.Clear();
-
-        if (savedCompanions == null)
+        var record = GetOrCreateRecord(member.MemberId, member.Name, member.Type);
+        if (record == null)
             return;
 
-        foreach (var saved in savedCompanions)
-        {
-            _companions.Add(new CompanionRecord
-            {
-                CompanionId = saved.CompanionId,
-                Name = saved.Name,
-                Type = saved.Type,
-                Personality = saved.Personality,
-                Loyalty = saved.Loyalty,
-                SkillCombat = saved.SkillCombat,
-                SkillStealth = saved.SkillStealth,
-                SkillHandling = saved.SkillHandling,
-                SkillTrading = saved.SkillTrading,
-                WeaponChoice = saved.WeaponChoice,
-                Outfit = saved.Outfit,
-                PersonalCash = saved.PersonalCash,
-                PersonalGold = saved.PersonalGold,
-                Memories = saved.Memories ?? new List<string>(),
-                Goals = saved.Goals ?? new List<string>()
-            });
-        }
+        record.Name = member.Name;
+        record.Type = member.Type;
+        record.Loyalty = member.Loyalty;
+        record.PreferredCombatStyle = member.PreferredCombatStyle;
+        record.CurrentMood = member.Mood;
+        record.LastKnownWeapon = member.GetSuggestedWeapon();
+        record.Memories = new List<string>(member.Memories);
+        record.Goals = new List<string>(member.Goals);
+        record.PersonalCash = member.PersonalCash;
+        record.PersonalGold = member.PersonalGold;
+    }
+
+    public void ApplyPersonalGoal(GangMember member)
+    {
+        if (member == null)
+            return;
+
+        if (member.SkillTrading > 65)
+            member.AddGoal("Find profitable trade opportunities.");
+        if (member.SkillCombat > 65)
+            member.AddGoal("Improve combat readiness.");
+        if (member.SkillStealth > 65)
+            member.AddGoal("Stay quiet and avoid detection.");
+        if (member.NeedsSupplies)
+            member.AddGoal("Gather supplies.");
+    }
+
+    public void GainExperience(string memberId, int amount)
+    {
+        if (string.IsNullOrWhiteSpace(memberId) || !_records.ContainsKey(memberId))
+            return;
+
+        _records[memberId].Experience += Math.Max(0, amount);
     }
 }
 
 public class CompanionRecord
 {
-    public string CompanionId { get; set; }
+    public string MemberId { get; set; }
     public string Name { get; set; }
     public CompanionType Type { get; set; }
-    public string Personality { get; set; }
     public int Loyalty { get; set; }
-    public int SkillCombat { get; set; }
-    public int SkillStealth { get; set; }
-    public int SkillHandling { get; set; }
-    public int SkillTrading { get; set; }
-    public string WeaponChoice { get; set; }
-    public string Outfit { get; set; }
+    public int Trust { get; set; }
+    public int Experience { get; set; }
+    public GangMood CurrentMood { get; set; }
+    public CombatStyle PreferredCombatStyle { get; set; }
+    public string LastKnownWeapon { get; set; }
+    public List<string> Memories { get; set; } = new List<string>();
+    public List<string> Goals { get; set; } = new List<string>();
     public decimal PersonalCash { get; set; }
     public decimal PersonalGold { get; set; }
-    public List<string> Memories { get; set; }
-    public List<string> Goals { get; set; }
 }
