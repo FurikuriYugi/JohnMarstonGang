@@ -5,7 +5,7 @@ public class GangSaveData
 {
     public List<GangMemberSaveData> Members { get; set; }
     public BankSaveData Bank { get; set; }
-    public List<WagonSaveData> Wagons { get; set; }
+    public WagonSaveData Wagons { get; set; }
     public List<JobOffer> JobOffers { get; set; }
     public List<JobAssignment> JobAssignments { get; set; }
     public List<CompanionSaveData> Companions { get; set; }
@@ -39,20 +39,6 @@ public class BankSaveData
     public decimal VaultGold { get; set; }
     public Dictionary<string, decimal> CashAccounts { get; set; } = new Dictionary<string, decimal>();
     public Dictionary<string, decimal> GoldAccounts { get; set; } = new Dictionary<string, decimal>();
-}
-
-public class WagonSaveData
-{
-    public List<WagonSaveEntry> Wagons { get; set; } = new List<WagonSaveEntry>();
-}
-
-public class WagonSaveEntry
-{
-    public string WagonId { get; set; }
-    public string WagonName { get; set; }
-    public string OwnerId { get; set; }
-    public WagonType Type { get; set; }
-    public Dictionary<string, int> StoredItems { get; set; } = new Dictionary<string, int>();
 }
 
 public class CompanionRecord
