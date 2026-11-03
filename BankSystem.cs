@@ -1,165 +1,127 @@
-﻿using System;
+﻿// BankSystem.cs
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class BankSystem
 {
-    private readonly List<BankAccount> _accounts = new List<BankAccount>();
+    private readonly Dictionary<string, decimal> _cashAccounts = new Dictionary<string, decimal>();
+    private readonly Dictionary<string, decimal> _goldAccounts = new Dictionary<string, decimal>();
 
-    public IReadOnlyList<BankAccount> Accounts => _accounts;
+    public decimal VaultCash { get; private set; }
+    public decimal VaultGold { get; private set; }
 
-    public BankAccount GetAccount(string ownerId)
+    public void DepositCash(string ownerId, decimal amount)
     {
-        if (string.IsNullOrWhiteSpace(ownerId))
-            return null;
+        if (string.IsNullOrWhiteSpace(ownerId) || amount <= 0m) return;
 
-        return _accounts.FirstOrDefault(x => x != null && x.OwnerId == ownerId);
+        if (!_cashAccounts.ContainsKey(ownerId))
+            _cashAccounts[ownerId] = 0m;
+
+        _cashAccounts[ownerId] += amount;
+        VaultCash += amount;
     }
 
-    public BankAccount GetOrCreateAccount(string ownerId, string ownerName = null)
+    public bool WithdrawCash(string ownerId, decimal amount)
     {
-        var account = GetAccount(ownerId);
-        if (account != null)
-            return account;
+        if (string.IsNullOrWhiteSpace(ownerId) || amount <= 0m) return false;
 
-        account = new BankAccount
+        if (!_cashAccounts.ContainsKey(ownerId))
+            _cashAccounts[ownerId] = 0m;
+
+        if (_cashAccounts[ownerId] < amount)
+            return false;
+
+        _cashAccounts[ownerId] -= amount;
+        VaultCash -= amount;
+        if (VaultCash < 0m) VaultCash = 0m;
+        return true;
+    }
+
+    public void DepositGold(string ownerId, decimal amount)
+    {
+        if (string.IsNullOrWhiteSpace(ownerId) || amount <= 0m) return;
+
+        if (!_goldAccounts.ContainsKey(ownerId))
+            _goldAccounts[ownerId] = 0m;
+
+        _goldAccounts[ownerId] += amount;
+        VaultGold += amount;
+    }
+
+    public bool WithdrawGold(string ownerId, decimal amount)
+    {
+        if (string.IsNullOrWhiteSpace(ownerId) || amount <= 0m) return false;
+
+        if (!_goldAccounts.ContainsKey(ownerId))
+            _goldAccounts[ownerId] = 0m;
+
+        if (_goldAccounts[ownerId] < amount)
+            return false;
+
+        _goldAccounts[ownerId] -= amount;
+        VaultGold -= amount;
+        if (VaultGold < 0m) VaultGold = 0m;
+        return true;
+    }
+
+    public decimal GetCashBalance(string ownerId)
+    {
+        if (string.IsNullOrWhiteSpace(ownerId)) return 0m;
+        return _cashAccounts.ContainsKey(ownerId) ? _cashAccounts[ownerId] : 0m;
+    }
+
+    public decimal GetGoldBalance(string ownerId)
+    {
+        if (string.IsNullOrWhiteSpace(ownerId)) return 0m;
+        return _goldAccounts.ContainsKey(ownerId) ? _goldAccounts[ownerId] : 0m;
+    }
+
+    public bool TransferCash(string fromOwnerId, string toOwnerId, decimal amount)
+    {
+        if (!WithdrawCash(fromOwnerId, amount)) return false;
+        DepositCash(toOwnerId, amount);
+        return true;
+    }
+
+    public bool TransferGold(string fromOwnerId, string toOwnerId, decimal amount)
+    {
+        if (!WithdrawGold(fromOwnerId, amount)) return false;
+        DepositGold(toOwnerId, amount);
+        return true;
+    }
+
+    public BankSaveData CreateSaveData()
+    {
+        return new BankSaveData
         {
-            OwnerId = ownerId,
-            OwnerName = string.IsNullOrWhiteSpace(ownerName) ? ownerId : ownerName,
-            Cash = 0,
-            Gold = 0
+            VaultCash = VaultCash,
+            VaultGold = VaultGold,
+            CashAccounts = new Dictionary<string, decimal>(_cashAccounts),
+            GoldAccounts = new Dictionary<string, decimal>(_goldAccounts)
         };
-
-        _accounts.Add(account);
-        return account;
     }
 
-    public void DepositCash(string ownerId, int amount, string reason = null)
+    public void LoadFromSave(BankSaveData data)
     {
-        if (amount <= 0)
+        _cashAccounts.Clear();
+        _goldAccounts.Clear();
+
+        if (data == null)
             return;
 
-        var account = GetOrCreateAccount(ownerId);
-        account.Cash += amount;
-        AddTransaction(account, amount, 0, reason ?? "Deposit Cash");
-    }
+        VaultCash = data.VaultCash;
+        VaultGold = data.VaultGold;
 
-    public bool WithdrawCash(string ownerId, int amount, string reason = null)
-    {
-        if (amount <= 0)
-            return false;
-
-        var account = GetOrCreateAccount(ownerId);
-        if (account.Cash < amount)
-            return false;
-
-        account.Cash -= amount;
-        AddTransaction(account, -amount, 0, reason ?? "Withdraw Cash");
-        return true;
-    }
-
-    public void DepositGold(string ownerId, int amount, string reason = null)
-    {
-        if (amount <= 0)
-            return;
-
-        var account = GetOrCreateAccount(ownerId);
-        account.Gold += amount;
-        AddTransaction(account, 0, amount, reason ?? "Deposit Gold");
-    }
-
-    public bool WithdrawGold(string ownerId, int amount, string reason = null)
-    {
-        if (amount <= 0)
-            return false;
-
-        var account = GetOrCreateAccount(ownerId);
-        if (account.Gold < amount)
-            return false;
-
-        account.Gold -= amount;
-        AddTransaction(account, 0, -amount, reason ?? "Withdraw Gold");
-        return true;
-    }
-
-    public void RestoreFromPersistence(IEnumerable<BankAccountData> accounts)
-    {
-        _accounts.Clear();
-
-        if (accounts == null)
-            return;
-
-        foreach (var data in accounts)
+        if (data.CashAccounts != null)
         {
-            if (data == null)
-                continue;
+            foreach (var pair in data.CashAccounts)
+                _cashAccounts[pair.Key] = pair.Value;
+        }
 
-            _accounts.Add(new BankAccount
-            {
-                OwnerId = data.OwnerId,
-                OwnerName = data.OwnerName,
-                Cash = data.Cash,
-                Gold = data.Gold,
-                Transactions = data.Transactions != null
-                    ? data.Transactions.Select(x => new BankTransaction
-                    {
-                        TransactionId = x.TransactionId,
-                        OwnerId = x.OwnerId,
-                        CashDelta = x.CashDelta,
-                        GoldDelta = x.GoldDelta,
-                        Reason = x.Reason
-                    }).ToList()
-                    : new List<BankTransaction>()
-            });
+        if (data.GoldAccounts != null)
+        {
+            foreach (var pair in data.GoldAccounts)
+                _goldAccounts[pair.Key] = pair.Value;
         }
     }
-
-    public List<BankAccountData> BuildPersistence()
-    {
-        return _accounts.Select(a => new BankAccountData
-        {
-            OwnerId = a.OwnerId,
-            OwnerName = a.OwnerName,
-            Cash = a.Cash,
-            Gold = a.Gold,
-            Transactions = a.Transactions.Select(t => new BankTransactionData
-            {
-                TransactionId = t.TransactionId,
-                OwnerId = t.OwnerId,
-                CashDelta = t.CashDelta,
-                GoldDelta = t.GoldDelta,
-                Reason = t.Reason
-            }).ToList()
-        }).ToList();
-    }
-
-    private void AddTransaction(BankAccount account, int cashDelta, int goldDelta, string reason)
-    {
-        account.Transactions.Add(new BankTransaction
-        {
-            TransactionId = Guid.NewGuid().ToString("N"),
-            OwnerId = account.OwnerId,
-            CashDelta = cashDelta,
-            GoldDelta = goldDelta,
-            Reason = reason
-        });
-    }
-}
-
-public class BankAccount
-{
-    public string OwnerId { get; set; }
-    public string OwnerName { get; set; }
-    public int Cash { get; set; }
-    public int Gold { get; set; }
-    public List<BankTransaction> Transactions { get; set; } = new List<BankTransaction>();
-}
-
-public class BankTransaction
-{
-    public string TransactionId { get; set; }
-    public string OwnerId { get; set; }
-    public int CashDelta { get; set; }
-    public int GoldDelta { get; set; }
-    public string Reason { get; set; }
 }

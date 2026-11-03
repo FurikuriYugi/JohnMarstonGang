@@ -16,41 +16,9 @@ public class JobSystem
         if (string.IsNullOrWhiteSpace(townName))
             return;
 
-        _offers.Add(new JobOffer
-        {
-            JobId = Guid.NewGuid().ToString("N"),
-            Title = "Escort Cargo",
-            Description = "Protect a wagon carrying supplies into town.",
-            LocationName = townName,
-            PaymentCash = 15m,
-            PaymentGold = 0m,
-            HonorChange = 5,
-            IsCriminal = false
-        });
-
-        _offers.Add(new JobOffer
-        {
-            JobId = Guid.NewGuid().ToString("N"),
-            Title = "Rob Bank Coach",
-            Description = "Ambush a coach hauling money and gold.",
-            LocationName = townName,
-            PaymentCash = 40m,
-            PaymentGold = 2m,
-            HonorChange = -10,
-            IsCriminal = true
-        });
-
-        _offers.Add(new JobOffer
-        {
-            JobId = Guid.NewGuid().ToString("N"),
-            Title = "Deliver Supplies",
-            Description = "Move food and ammunition to an outpost.",
-            LocationName = townName,
-            PaymentCash = 20m,
-            PaymentGold = 0m,
-            HonorChange = 3,
-            IsCriminal = false
-        });
+        AddOffer(CreateCustomJob("Escort Cargo", "Protect a wagon carrying supplies into town.", townName, 15m, 0m, 5, false));
+        AddOffer(CreateCustomJob("Rob Bank Coach", "Ambush a coach hauling money and gold.", townName, 40m, 2m, -10, true));
+        AddOffer(CreateCustomJob("Deliver Supplies", "Move food and ammunition to an outpost.", townName, 20m, 0m, 3, false));
     }
 
     public JobOffer CreateCustomJob(string title, string description, string locationName, decimal cash, decimal gold, int honorChange, bool criminal)
@@ -125,26 +93,36 @@ public class JobSystem
 
         foreach (var assignment in _assignments.Where(x => x.Status == JobStatus.Completed).ToList())
         {
-            if (assignment.PaymentCash > 0)
+            if (assignment.PaymentCash > 0m)
                 bank.DepositCash(playerAccountId, assignment.PaymentCash);
 
-            if (assignment.PaymentGold > 0)
+            if (assignment.PaymentGold > 0m)
                 bank.DepositGold(playerAccountId, assignment.PaymentGold);
 
             _assignments.Remove(assignment);
         }
     }
 
-    public int GetHonorDeltaForCompletedJobs()
+    public void LoadFromSave(List<JobOffer> offers, List<JobAssignment> assignments)
     {
-        return _assignments
-            .Where(x => x.Status == JobStatus.Completed)
-            .Sum(x => x.HonorChange);
+        _offers.Clear();
+        _assignments.Clear();
+
+        if (offers != null)
+            _offers.AddRange(offers);
+
+        if (assignments != null)
+            _assignments.AddRange(assignments);
     }
 
-    public void ClearCompletedJobs()
+    public JobOffer GetOffer(string jobId)
     {
-        _assignments.RemoveAll(x => x.Status == JobStatus.Completed);
+        return _offers.FirstOrDefault(x => x.JobId == jobId);
+    }
+
+    public JobAssignment GetAssignment(string assignmentId)
+    {
+        return _assignments.FirstOrDefault(x => x.AssignmentId == assignmentId);
     }
 }
 

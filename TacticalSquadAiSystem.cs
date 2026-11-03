@@ -1,115 +1,89 @@
-﻿using System.Collections.Generic;
+﻿// TacticalSquadAiSystem.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public class TacticalSquadAiSystem
 {
-    public void UpdateGangTactics(List<GangMember> members, TacticalContext context)
+    public void Update(GangManager gangManager)
     {
-        if (members == null || context == null)
+        if (gangManager == null)
             return;
 
-        foreach (var member in members)
+        foreach (var member in gangManager.GetActiveMembers())
         {
-            if (member == null)
-                continue;
-
-            if (context.IsStealthMode)
-            {
-                member.CombatStyle = CombatStyle.Stealth;
-                continue;
-            }
-
-            if (context.IsCloseQuarters)
-            {
-                member.CombatStyle = CombatStyle.LethalMelee;
-                continue;
-            }
-
-            if (context.IsLongRangeCombat)
-            {
-                member.CombatStyle = CombatStyle.RangedLong;
-                continue;
-            }
-
-            if (context.IsMediumRangeCombat)
-            {
-                member.CombatStyle = CombatStyle.RangedMedium;
-                continue;
-            }
-
-            if (context.IsCombatActive)
-            {
-                member.CombatStyle = CombatStyle.RangedShort;
-                continue;
-            }
-
-            if (context.IsShoppingOrTown)
-            {
-                member.CombatStyle = CombatStyle.RangedShort;
-                continue;
-            }
-
-            if (context.IsTraveling && member.IsFollowing)
-            {
-                member.CombatStyle = CombatStyle.RangedMedium;
-                continue;
-            }
-
-            if (member.WagonRole == WagonRole.Gunner || member.WagonRole == WagonRole.Driver || member.WagonRole == WagonRole.Loader)
-            {
-                member.CombatStyle = CombatStyle.RangedShort;
-            }
+            UpdateMember(member);
         }
     }
 
-    public void ApplyFormationSpacing(List<GangMember> members, TacticalContext context)
+    private void UpdateMember(GangMember member)
     {
-        if (members == null || context == null)
+        if (member == null)
             return;
 
-        for (int i = 0; i < members.Count; i++)
+        if (member.IsInCombat)
         {
-            var member = members[i];
-            if (member == null)
-                continue;
-
-            if (!member.IsFollowing)
-                continue;
+            ApplyCombatBehavior(member);
+            return;
         }
+
+        if (member.FollowingPlayer)
+        {
+            ApplyFollowBehavior(member);
+            return;
+        }
+
+        ApplyIdleBehavior(member);
     }
 
-    public void AssignWagonSupport(List<GangMember> members, string wagonId)
+    private void ApplyCombatBehavior(GangMember member)
     {
-        if (members == null)
-            return;
-
-        for (int i = 0; i < members.Count; i++)
+        switch (member.PreferredCombatStyle)
         {
-            var member = members[i];
-            if (member == null)
-                continue;
-
-            if (i == 0)
-                member.AssignToWagon(wagonId, WagonRole.Driver);
-            else if (i == 1)
-                member.AssignToWagon(wagonId, WagonRole.Gunner);
-            else if (i == 2)
-                member.AssignToWagon(wagonId, WagonRole.Loader);
-            else
-                member.AssignToWagon(wagonId, WagonRole.Guard);
+            case CombatStyle.NonLethalMelee:
+                member.WeaponChoice = "Fists";
+                break;
+            case CombatStyle.LethalMelee:
+                member.WeaponChoice = "Knife";
+                break;
+            case CombatStyle.ShortRange:
+                if (string.IsNullOrWhiteSpace(member.WeaponChoice))
+                    member.WeaponChoice = "Revolver";
+                break;
+            case CombatStyle.MediumRange:
+                member.WeaponChoice = "Repeater";
+                break;
+            case CombatStyle.LongRange:
+                member.WeaponChoice = "Rifle";
+                break;
+            case CombatStyle.Stealth:
+                member.WeaponChoice = "Bow";
+                break;
         }
+
+        if (member.Loyalty < 25)
+            member.Mood = GangMood.Nervous;
+        else
+            member.Mood = GangMood.Aggressive;
     }
 
-    public void ClearWagonSupport(List<GangMember> members)
+    private void ApplyFollowBehavior(GangMember member)
     {
-        if (members == null)
-            return;
+        if (member.PreferredCombatStyle == CombatStyle.Stealth)
+            member.Mood = GangMood.Nervous;
+        else if (member.Loyalty > 75)
+            member.Mood = GangMood.Loyal;
+        else
+            member.Mood = GangMood.Neutral;
+    }
 
-        foreach (var member in members)
-        {
-            if (member == null)
-                continue;
-
-            member.ClearWagonAssignment();
-        }
+    private void ApplyIdleBehavior(GangMember member)
+    {
+        if (member.Loyalty > 80)
+            member.Mood = GangMood.Loyal;
+        else if (member.Loyalty < 30)
+            member.Mood = GangMood.Nervous;
+        else
+            member.Mood = GangMood.Neutral;
     }
 }

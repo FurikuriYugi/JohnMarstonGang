@@ -123,9 +123,4 @@ public class InteractionSystem
     {
         _jobSystem?.PayOutCompletedJobs(_bankSystem, playerAccountId);
     }
-
-    public bool IsAnySystemReady()
-    {
-        return _lockSystem != null || _dynamiteSystem != null || _wagonSystem != null || _bankSystem != null || _jobSystem != null;
-    }
 }

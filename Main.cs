@@ -1,8 +1,7 @@
-﻿// Main.cs
+﻿using Newtonsoft.Json;
 using RDR2;
 using System;
 using System.IO;
-using Newtonsoft.Json;
 
 public class Main : Script
 {
@@ -16,7 +15,7 @@ public class Main : Script
     private LockSystem _lockSystem;
     private CompanionSystem _companionSystem;
 
-    private string _savePath = "JohnMorstonGangSave.json";
+    private readonly string _savePath = "JohnMorstonGangSave.json";
     private bool _initialized;
 
     public Main()
@@ -53,7 +52,9 @@ public class Main : Script
     {
         Initialize();
 
-        _tacticalAi?.Update(_gangManager);
+        if (_tacticalAi != null && _gangManager != null)
+            _tacticalAi.Update(_gangManager);
+
         _companionSystem?.Update();
     }
 
@@ -76,11 +77,7 @@ public class Main : Script
             JobAssignments = new System.Collections.Generic.List<JobAssignment>(_jobSystem.Assignments)
         };
 
-        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        });
-
+        var json = JsonConvert.SerializeObject(data, Formatting.Indented);
         File.WriteAllText(_savePath, json);
     }
 
@@ -90,8 +87,10 @@ public class Main : Script
             return;
 
         var json = File.ReadAllText(_savePath);
-        var data = JsonSerializer.Deserialize<GangSaveData>(json);
-        if (data == null) return;
+        var data = JsonConvert.DeserializeObject<GangSaveData>(json);
+
+        if (data == null)
+            return;
 
         _gangManager.LoadFromSave(data.Members);
         _bankSystem.LoadFromSave(data.Bank);

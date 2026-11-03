@@ -1,12 +1,11 @@
 ﻿// PersistenceModels.cs
-using System;
 using System.Collections.Generic;
 
 public class GangSaveData
 {
     public List<GangMemberSaveData> Members { get; set; } = new List<GangMemberSaveData>();
     public BankSaveData Bank { get; set; } = new BankSaveData();
-    public List<WagonSaveData> Wagons { get; set; } = new List<WagonSaveData>();
+    public WagonSaveData Wagons { get; set; } = new WagonSaveData();
     public List<JobOffer> JobOffers { get; set; } = new List<JobOffer>();
     public List<JobAssignment> JobAssignments { get; set; } = new List<JobAssignment>();
 }
@@ -34,13 +33,18 @@ public class GangMemberSaveData
 
 public class BankSaveData
 {
-    public decimal CashOnHand { get; set; }
-    public decimal GoldOnHand { get; set; }
+    public decimal VaultCash { get; set; }
+    public decimal VaultGold { get; set; }
     public Dictionary<string, decimal> CashAccounts { get; set; } = new Dictionary<string, decimal>();
     public Dictionary<string, decimal> GoldAccounts { get; set; } = new Dictionary<string, decimal>();
 }
 
 public class WagonSaveData
+{
+    public List<WagonSaveEntry> Wagons { get; set; } = new List<WagonSaveEntry>();
+}
+
+public class WagonSaveEntry
 {
     public string WagonId { get; set; }
     public string WagonName { get; set; }
