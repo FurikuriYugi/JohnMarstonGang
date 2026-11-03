@@ -49,6 +49,7 @@ public class Main : Script
 
         _tacticalAi?.Update(_gangManager);
         _companionSystem?.Update(_gangManager);
+        _interactionSystem?.PayOutCompletedJobs("player");
     }
 
     private void OnAborted(object sender, EventArgs e)
