@@ -1,101 +1,109 @@
-﻿// BankSystem.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 public class BankSystem
 {
+    private decimal _vaultCash;
+    private decimal _vaultGold;
+
     private readonly Dictionary<string, decimal> _cashAccounts = new Dictionary<string, decimal>();
     private readonly Dictionary<string, decimal> _goldAccounts = new Dictionary<string, decimal>();
 
-    public decimal VaultCash { get; private set; }
-    public decimal VaultGold { get; private set; }
+    public decimal VaultCash => _vaultCash;
+    public decimal VaultGold => _vaultGold;
 
-    public void DepositCash(string ownerId, decimal amount)
+    public decimal GetCashBalance(string accountId)
     {
-        if (string.IsNullOrWhiteSpace(ownerId) || amount <= 0m) return;
+        if (string.IsNullOrWhiteSpace(accountId))
+            return 0m;
 
-        if (!_cashAccounts.ContainsKey(ownerId))
-            _cashAccounts[ownerId] = 0m;
-
-        _cashAccounts[ownerId] += amount;
-        VaultCash += amount;
+        return _cashAccounts.TryGetValue(accountId, out var balance) ? balance : 0m;
     }
 
-    public bool WithdrawCash(string ownerId, decimal amount)
+    public decimal GetGoldBalance(string accountId)
     {
-        if (string.IsNullOrWhiteSpace(ownerId) || amount <= 0m) return false;
+        if (string.IsNullOrWhiteSpace(accountId))
+            return 0m;
 
-        if (!_cashAccounts.ContainsKey(ownerId))
-            _cashAccounts[ownerId] = 0m;
+        return _goldAccounts.TryGetValue(accountId, out var balance) ? balance : 0m;
+    }
 
-        if (_cashAccounts[ownerId] < amount)
+    public void DepositCash(string accountId, decimal amount)
+    {
+        if (string.IsNullOrWhiteSpace(accountId) || amount <= 0m)
+            return;
+
+        if (!_cashAccounts.ContainsKey(accountId))
+            _cashAccounts[accountId] = 0m;
+
+        _cashAccounts[accountId] += amount;
+        _vaultCash += amount;
+    }
+
+    public void DepositGold(string accountId, decimal amount)
+    {
+        if (string.IsNullOrWhiteSpace(accountId) || amount <= 0m)
+            return;
+
+        if (!_goldAccounts.ContainsKey(accountId))
+            _goldAccounts[accountId] = 0m;
+
+        _goldAccounts[accountId] += amount;
+        _vaultGold += amount;
+    }
+
+    public bool WithdrawCash(string accountId, decimal amount)
+    {
+        if (string.IsNullOrWhiteSpace(accountId) || amount <= 0m)
             return false;
 
-        _cashAccounts[ownerId] -= amount;
-        VaultCash -= amount;
-        if (VaultCash < 0m) VaultCash = 0m;
-        return true;
-    }
-
-    public void DepositGold(string ownerId, decimal amount)
-    {
-        if (string.IsNullOrWhiteSpace(ownerId) || amount <= 0m) return;
-
-        if (!_goldAccounts.ContainsKey(ownerId))
-            _goldAccounts[ownerId] = 0m;
-
-        _goldAccounts[ownerId] += amount;
-        VaultGold += amount;
-    }
-
-    public bool WithdrawGold(string ownerId, decimal amount)
-    {
-        if (string.IsNullOrWhiteSpace(ownerId) || amount <= 0m) return false;
-
-        if (!_goldAccounts.ContainsKey(ownerId))
-            _goldAccounts[ownerId] = 0m;
-
-        if (_goldAccounts[ownerId] < amount)
+        var current = GetCashBalance(accountId);
+        if (current < amount)
             return false;
 
-        _goldAccounts[ownerId] -= amount;
-        VaultGold -= amount;
-        if (VaultGold < 0m) VaultGold = 0m;
+        _cashAccounts[accountId] = current - amount;
+        _vaultCash -= amount;
+        if (_vaultCash < 0m) _vaultCash = 0m;
         return true;
     }
 
-    public decimal GetCashBalance(string ownerId)
+    public bool WithdrawGold(string accountId, decimal amount)
     {
-        if (string.IsNullOrWhiteSpace(ownerId)) return 0m;
-        return _cashAccounts.ContainsKey(ownerId) ? _cashAccounts[ownerId] : 0m;
-    }
+        if (string.IsNullOrWhiteSpace(accountId) || amount <= 0m)
+            return false;
 
-    public decimal GetGoldBalance(string ownerId)
-    {
-        if (string.IsNullOrWhiteSpace(ownerId)) return 0m;
-        return _goldAccounts.ContainsKey(ownerId) ? _goldAccounts[ownerId] : 0m;
-    }
+        var current = GetGoldBalance(accountId);
+        if (current < amount)
+            return false;
 
-    public bool TransferCash(string fromOwnerId, string toOwnerId, decimal amount)
-    {
-        if (!WithdrawCash(fromOwnerId, amount)) return false;
-        DepositCash(toOwnerId, amount);
+        _goldAccounts[accountId] = current - amount;
+        _vaultGold -= amount;
+        if (_vaultGold < 0m) _vaultGold = 0m;
         return true;
     }
 
-    public bool TransferGold(string fromOwnerId, string toOwnerId, decimal amount)
+    public void AddVaultCash(decimal amount)
     {
-        if (!WithdrawGold(fromOwnerId, amount)) return false;
-        DepositGold(toOwnerId, amount);
-        return true;
+        if (amount <= 0m)
+            return;
+
+        _vaultCash += amount;
+    }
+
+    public void AddVaultGold(decimal amount)
+    {
+        if (amount <= 0m)
+            return;
+
+        _vaultGold += amount;
     }
 
     public BankSaveData CreateSaveData()
     {
         return new BankSaveData
         {
-            VaultCash = VaultCash,
-            VaultGold = VaultGold,
+            VaultCash = _vaultCash,
+            VaultGold = _vaultGold,
             CashAccounts = new Dictionary<string, decimal>(_cashAccounts),
             GoldAccounts = new Dictionary<string, decimal>(_goldAccounts)
         };
@@ -105,23 +113,25 @@ public class BankSystem
     {
         _cashAccounts.Clear();
         _goldAccounts.Clear();
+        _vaultCash = 0m;
+        _vaultGold = 0m;
 
         if (data == null)
             return;
 
-        VaultCash = data.VaultCash;
-        VaultGold = data.VaultGold;
+        _vaultCash = data.VaultCash;
+        _vaultGold = data.VaultGold;
 
         if (data.CashAccounts != null)
         {
-            foreach (var pair in data.CashAccounts)
-                _cashAccounts[pair.Key] = pair.Value;
+            foreach (var kvp in data.CashAccounts)
+                _cashAccounts[kvp.Key] = kvp.Value;
         }
 
         if (data.GoldAccounts != null)
         {
-            foreach (var pair in data.GoldAccounts)
-                _goldAccounts[pair.Key] = pair.Value;
+            foreach (var kvp in data.GoldAccounts)
+                _goldAccounts[kvp.Key] = kvp.Value;
         }
     }
 }
