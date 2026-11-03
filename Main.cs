@@ -73,4 +73,104 @@ public class Main : Script
         _gangManager.SetCombatStyleForAll(style);
         _gangManager.Save();
     }
+
+    public static Wagon CreateWagon(string name, string ownerId, WagonType type)
+    {
+        if (_gangManager == null)
+            _gangManager = new GangManager();
+
+        var wagon = _gangManager.Wagons.CreateWagon(name, ownerId, type);
+        _gangManager.Save();
+        return wagon;
+    }
+
+    public static bool ClaimWagon(string wagonId, string ownerId)
+    {
+        if (_gangManager == null)
+            return false;
+
+        var result = _gangManager.Wagons.ClaimWagon(wagonId, ownerId);
+        if (result)
+            _gangManager.Save();
+
+        return result;
+    }
+
+    public static bool ReleaseWagon(string wagonId, string ownerId = null)
+    {
+        if (_gangManager == null)
+            return false;
+
+        var result = _gangManager.Wagons.ReleaseWagon(wagonId, ownerId);
+        if (result)
+            _gangManager.Save();
+
+        return result;
+    }
+
+    public static bool HitchWagon(string wagonId)
+    {
+        if (_gangManager == null)
+            return false;
+
+        var result = _gangManager.Wagons.HitchWagon(wagonId);
+        if (result)
+            _gangManager.Save();
+
+        return result;
+    }
+
+    public static bool UnhitchWagon(string wagonId)
+    {
+        if (_gangManager == null)
+            return false;
+
+        var result = _gangManager.Wagons.UnhitchWagon(wagonId);
+        if (result)
+            _gangManager.Save();
+
+        return result;
+    }
+
+    public static bool StoreItemInWagon(string wagonId, string itemName, int amount)
+    {
+        if (_gangManager == null)
+            return false;
+
+        var result = _gangManager.Wagons.StoreItem(wagonId, itemName, amount);
+        if (result)
+            _gangManager.Save();
+
+        return result;
+    }
+
+    public static bool RemoveItemFromWagon(string wagonId, string itemName, int amount)
+    {
+        if (_gangManager == null)
+            return false;
+
+        var result = _gangManager.Wagons.RemoveItem(wagonId, itemName, amount);
+        if (result)
+            _gangManager.Save();
+
+        return result;
+    }
+
+    public static void MarkWagonDestroyed(string wagonId)
+    {
+        if (_gangManager == null)
+            return;
+
+        _gangManager.Wagons.MarkDestroyed(wagonId);
+        _gangManager.Save();
+    }
+
+    public static void RepairWagon(string wagonId)
+    {
+        if (_gangManager == null)
+            return;
+
+        _gangManager.Wagons.RepairWagon(wagonId);
+        _gangManager.Save();
+    }
 }
