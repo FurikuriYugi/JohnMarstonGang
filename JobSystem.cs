@@ -1,205 +1,196 @@
 ﻿// JobSystem.cs
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class JobSystem
 {
-    private readonly List<JobOffer> _jobs = new List<JobOffer>();
+    private readonly List<JobOffer> _offers = new List<JobOffer>();
+    private readonly List<JobAssignment> _assignments = new List<JobAssignment>();
 
-    public void AddJob(JobOffer job)
+    public IReadOnlyList<JobOffer> Offers => _offers;
+    public IReadOnlyList<JobAssignment> Assignments => _assignments;
+
+    public void GenerateTownJobs(string townName)
     {
-        if (job == null)
+        if (string.IsNullOrWhiteSpace(townName))
             return;
 
-        _jobs.Add(job);
+        AddOffer(CreateCustomJob("Escort Cargo", "Protect a wagon carrying supplies into town.", townName, 15m, 0m, 5, false));
+        AddOffer(CreateCustomJob("Rob Bank Coach", "Ambush a coach hauling money and gold.", townName, 40m, 2m, -10, true));
+        AddOffer(CreateCustomJob("Deliver Supplies", "Move food and ammunition to an outpost.", townName, 20m, 0m, 3, false));
     }
 
-    public List<JobOffer> GetAvailableJobs()
+    public JobOffer CreateCustomJob(string title, string description, string locationName, decimal cash, decimal gold, int honorChange, bool criminal)
     {
-        List<JobOffer> availableJobs = new List<JobOffer>();
-
-        for (int i = 0; i < _jobs.Count; i++)
+        return new JobOffer
         {
-            JobOffer job = _jobs[i];
-            if (job != null && !job.IsCompleted)
-                availableJobs.Add(job);
-        }
-
-        return availableJobs;
+            JobId = Guid.NewGuid().ToString("N"),
+            Title = title,
+            Description = description,
+            LocationName = locationName,
+            PaymentCash = cash,
+            PaymentGold = gold,
+            HonorChange = honorChange,
+            IsCriminal = criminal
+        };
     }
 
-    public JobOffer GetBestJobForGang(GangManager gangManager)
+    public void AddOffer(JobOffer offer)
     {
-        if (gangManager == null)
-            return null;
+        if (offer == null)
+            return;
 
-        List<GangMember> members = gangManager.GetAllMembers();
-        if (members == null || members.Count == 0)
-            return null;
+        _offers.Add(offer);
+    }
 
-        List<JobOffer> availableJobs = GetAvailableJobs();
-        if (availableJobs.Count == 0)
-            return null;
+    public bool AcceptJob(string jobId, string gangMemberName = null)
+    {
+        JobOffer offer = _offers.FirstOrDefault(x => x.JobId == jobId);
+        if (offer == null)
+            return false;
 
-        JobOffer bestJob = null;
-        int bestScore = int.MinValue;
-
-        for (int i = 0; i < availableJobs.Count; i++)
+        _offers.Remove(offer);
+        _assignments.Add(new JobAssignment
         {
-            JobOffer job = availableJobs[i];
-            int score = ScoreJob(job, members);
+            AssignmentId = Guid.NewGuid().ToString("N"),
+            JobId = offer.JobId,
+            Title = offer.Title,
+            GangMemberName = gangMemberName,
+            Status = JobStatus.Active,
+            PaymentCash = offer.PaymentCash,
+            PaymentGold = offer.PaymentGold,
+            HonorChange = offer.HonorChange,
+            IsCriminal = offer.IsCriminal
+        });
+        return true;
+    }
 
-            if (score > bestScore)
+    public bool AcceptJobWithGangVote(string jobId, GangManager gangManager, string gangMemberName = null)
+    {
+        JobOffer offer = _offers.FirstOrDefault(x => x.JobId == jobId);
+        if (offer == null || gangManager == null)
+            return false;
+
+        List<GangMember> activeMembers = gangManager.GetActiveMembers().ToList();
+        if (activeMembers.Count == 0)
+            return AcceptJob(jobId, gangMemberName);
+
+        int yesVotes = 0;
+        for (int i = 0; i < activeMembers.Count; i++)
+        {
+            GangMember member = activeMembers[i];
+            if (member == null)
+                continue;
+
+            if (offer.IsCriminal)
             {
-                bestScore = score;
-                bestJob = job;
+                if (member.Loyalty >= 40)
+                    yesVotes++;
+            }
+            else
+            {
+                if (member.Loyalty >= 25)
+                    yesVotes++;
             }
         }
 
-        return bestJob;
+        int noVotes = activeMembers.Count - yesVotes;
+        if (yesVotes <= noVotes)
+            return false;
+
+        return AcceptJob(jobId, gangMemberName);
     }
 
-    public void VoteOnJob(GangManager gangManager)
+    public bool CompleteJob(string assignmentId)
     {
-        if (gangManager == null)
+        JobAssignment assignment = _assignments.FirstOrDefault(x => x.AssignmentId == assignmentId);
+        if (assignment == null)
+            return false;
+
+        assignment.Status = JobStatus.Completed;
+        return true;
+    }
+
+    public bool FailJob(string assignmentId)
+    {
+        JobAssignment assignment = _assignments.FirstOrDefault(x => x.AssignmentId == assignmentId);
+        if (assignment == null)
+            return false;
+
+        assignment.Status = JobStatus.Failed;
+        return true;
+    }
+
+    public void PayOutCompletedJobs(BankSystem bank, string playerAccountId, GangManager gangManager = null)
+    {
+        if (bank == null || string.IsNullOrWhiteSpace(playerAccountId))
             return;
 
-        JobOffer job = GetBestJobForGang(gangManager);
-        if (job == null)
-            return;
-
-        List<GangMember> members = gangManager.GetAllMembers();
-        if (members == null || members.Count == 0)
-            return;
-
-        int approval = 0;
-
-        for (int i = 0; i < members.Count; i++)
+        List<JobAssignment> completed = _assignments.Where(x => x.Status == JobStatus.Completed).ToList();
+        for (int i = 0; i < completed.Count; i++)
         {
-            GangMember member = members[i];
-            if (member == null)
+            JobAssignment assignment = completed[i];
+            if (assignment == null)
                 continue;
 
-            approval += EvaluateMemberSupport(member, job);
-        }
+            if (assignment.PaymentCash > 0m || assignment.PaymentGold > 0m)
+            {
+                List<GangMember> splitMembers = gangManager != null
+                ? gangManager.GetActiveMembers().ToList()
+                : new List<GangMember>();
 
-        job.IsApproved = approval >= 0;
-    }
+                if (splitMembers.Count > 0)
+                {
+                    decimal memberShareCash = assignment.PaymentCash / (splitMembers.Count + 1);
+                    decimal memberShareGold = assignment.PaymentGold / (splitMembers.Count + 1);
 
-    public void CompleteJob(JobOffer job, GangManager gangManager)
-    {
-        if (job == null)
-            return;
+                    for (int m = 0; m < splitMembers.Count; m++)
+                    {
+                        GangMember member = splitMembers[m];
+                        if (member == null)
+                            continue;
 
-        job.IsCompleted = true;
+                        member.PersonalCash += memberShareCash;
+                        member.PersonalGold += memberShareGold;
+                    }
 
-        if (gangManager == null)
-            return;
+                    decimal playerCash = assignment.PaymentCash - (memberShareCash * splitMembers.Count);
+                    decimal playerGold = assignment.PaymentGold - (memberShareGold * splitMembers.Count);
+                    bank.DepositCash(playerAccountId, playerCash);
+                    bank.DepositGold(playerAccountId, playerGold);
+                }
+                else
+                {
+                    bank.DepositCash(playerAccountId, assignment.PaymentCash);
+                    bank.DepositGold(playerAccountId, assignment.PaymentGold);
+                }
+            }
 
-        List<GangMember> members = gangManager.GetAllMembers();
-        if (members == null || members.Count == 0)
-            return;
-
-        int activeCount = 0;
-        for (int i = 0; i < members.Count; i++)
-        {
-            if (members[i] != null)
-                activeCount++;
-        }
-
-        if (activeCount == 0)
-            return;
-
-        decimal cashShare = job.RewardCash / activeCount;
-        decimal goldShare = job.RewardGold / activeCount;
-
-        for (int i = 0; i < members.Count; i++)
-        {
-            GangMember member = members[i];
-            if (member == null)
-                continue;
-
-            member.PersonalCash += cashShare;
-            member.PersonalGold += goldShare;
-            member.AddMemory("Received payment from job: " + job.Title);
+            _assignments.Remove(assignment);
         }
     }
 
-    private int ScoreJob(JobOffer job, List<GangMember> members)
+    public void LoadFromSave(List<JobOffer> offers, List<JobAssignment> assignments)
     {
-        if (job == null || members == null)
-            return int.MinValue;
+        _offers.Clear();
+        _assignments.Clear();
 
-        int score = 0;
+        if (offers != null)
+            _offers.AddRange(offers);
 
-        if (job.IsLegal)
-            score += 10;
-        else
-            score -= 10;
-
-        bool hasStealth = false;
-        bool hasCombat = false;
-        bool hasTrading = false;
-        bool hasTransport = false;
-
-        for (int i = 0; i < members.Count; i++)
-        {
-            GangMember member = members[i];
-            if (member == null)
-                continue;
-
-            if (member.SkillStealth > 60) hasStealth = true;
-            if (member.SkillCombat > 60) hasCombat = true;
-            if (member.SkillTrading > 60) hasTrading = true;
-            if (member.SkillHandling > 60) hasTransport = true;
-        }
-
-        if (job.RequiresStealth)
-            score += hasStealth ? 20 : -10;
-
-        if (job.RequiresCombat)
-            score += hasCombat ? 20 : -10;
-
-        if (job.RequiresTrading)
-            score += hasTrading ? 10 : -10;
-
-        if (job.RequiresTransport)
-            score += hasTransport ? 10 : -10;
-
-        if (job.RewardHonor > 0)
-            score += Math.Min(20, job.RewardHonor / 5);
-
-        if (job.RewardCash > 0)
-            score += (int)Math.Min(20m, job.RewardCash / 50m);
-
-        return score;
+        if (assignments != null)
+            _assignments.AddRange(assignments);
     }
 
-    private int EvaluateMemberSupport(GangMember member, JobOffer job)
+    public JobOffer GetOffer(string jobId)
     {
-        int score = 0;
+        return _offers.FirstOrDefault(x => x.JobId == jobId);
+    }
 
-        if (job.IsLegal)
-            score += member.Loyalty >= 40 ? 1 : -1;
-        else
-            score += member.Loyalty <= 60 ? 1 : 0;
-
-        if (job.RequiresStealth && member.SkillStealth > 50)
-            score += 1;
-
-        if (job.RequiresCombat && member.SkillCombat > 50)
-            score += 1;
-
-        if (job.RequiresTrading && member.SkillTrading > 50)
-            score += 1;
-
-        if (member.Mood == GangMood.Loyal)
-            score += 1;
-
-        if (member.Mood == GangMood.Nervous)
-            score -= 1;
-
-        return score;
+    public JobAssignment GetAssignment(string assignmentId)
+    {
+        return _assignments.FirstOrDefault(x => x.AssignmentId == assignmentId);
     }
 }
 
@@ -208,19 +199,29 @@ public class JobOffer
     public string JobId { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
-    public bool IsLegal { get; set; }
-    public bool RequiresStealth { get; set; }
-    public bool RequiresCombat { get; set; }
-    public bool RequiresTrading { get; set; }
-    public bool RequiresTransport { get; set; }
-    public bool IsApproved { get; set; }
-    public bool IsCompleted { get; set; }
-    public decimal RewardCash { get; set; }
-    public decimal RewardGold { get; set; }
-    public int RewardHonor { get; set; }
+    public string LocationName { get; set; }
+    public decimal PaymentCash { get; set; }
+    public decimal PaymentGold { get; set; }
+    public int HonorChange { get; set; }
+    public bool IsCriminal { get; set; }
+}
 
-    public JobOffer()
-    {
-        JobId = Guid.NewGuid().ToString("N");
-    }
+public class JobAssignment
+{
+    public string AssignmentId { get; set; }
+    public string JobId { get; set; }
+    public string Title { get; set; }
+    public string GangMemberName { get; set; }
+    public JobStatus Status { get; set; }
+    public decimal PaymentCash { get; set; }
+    public decimal PaymentGold { get; set; }
+    public int HonorChange { get; set; }
+    public bool IsCriminal { get; set; }
+}
+
+public enum JobStatus
+{
+    Active = 0,
+    Completed = 1,
+    Failed = 2
 }
