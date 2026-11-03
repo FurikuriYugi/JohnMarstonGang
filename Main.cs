@@ -18,9 +18,8 @@ public class Main : Script
 
     private readonly string _savePath = "JohnMorstonGangSave.json";
     private readonly string _playerAccountId = "Player";
-
     private bool _initialized;
-    private DateTime _lastTownJobGeneration = DateTime.MinValue;
+    private DateTime _lastJobRefreshUtc = DateTime.MinValue;
 
     public Main()
     {
@@ -52,6 +51,7 @@ public class Main : Script
             _jobSystem.GenerateTownJobs("Valentine");
         }
 
+        _lastJobRefreshUtc = DateTime.UtcNow;
         _initialized = true;
     }
 
@@ -65,14 +65,14 @@ public class Main : Script
         _tacticalAi?.Update(_gangManager);
         _companionSystem?.Update(_gangManager);
 
-        if (_jobSystem != null && (DateTime.UtcNow - _lastTownJobGeneration).TotalMinutes >= 10)
+        if ((DateTime.UtcNow - _lastJobRefreshUtc).TotalMinutes >= 10)
         {
             _jobSystem.GenerateTownJobs("Saint Denis");
             _jobSystem.GenerateTownJobs("Valentine");
-            _lastTownJobGeneration = DateTime.UtcNow;
+            _lastJobRefreshUtc = DateTime.UtcNow;
         }
 
-        _jobSystem?.PayOutCompletedJobs(_bankSystem, _playerAccountId);
+        _jobSystem?.PayOutCompletedJobs(_bankSystem, _playerAccountId, _gangManager);
     }
 
     private void OnAborted(object sender, EventArgs e)
@@ -82,7 +82,7 @@ public class Main : Script
 
     private void SaveState()
     {
-        if (_gangManager == null || _bankSystem == null || _wagonSystem == null || _jobSystem == null)
+        if (_gangManager == null || _bankSystem == null || _wagonSystem == null || _jobSystem == null || _companionSystem == null)
             return;
 
         var data = new GangSaveData
@@ -91,7 +91,8 @@ public class Main : Script
             Bank = _bankSystem.CreateSaveData(),
             Wagons = _wagonSystem.CreateSaveData(),
             JobOffers = new List<JobOffer>(_jobSystem.Offers),
-            JobAssignments = new List<JobAssignment>(_jobSystem.Assignments)
+            JobAssignments = new List<JobAssignment>(_jobSystem.Assignments),
+            Companions = _companionSystem.CreateSaveData()
         };
 
         File.WriteAllText(_savePath, JsonConvert.SerializeObject(data, Formatting.Indented));
@@ -111,5 +112,6 @@ public class Main : Script
         _bankSystem.LoadFromSave(data.Bank);
         _wagonSystem.LoadFromSave(data.Wagons);
         _jobSystem.LoadFromSave(data.JobOffers, data.JobAssignments);
+        _companionSystem.LoadFromSave(data.Companions);
     }
 }

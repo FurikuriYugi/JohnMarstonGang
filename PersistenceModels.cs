@@ -3,12 +3,14 @@ using System.Collections.Generic;
 
 public class GangSaveData
 {
-    public List<GangMemberSaveData> Members { get; set; } = new List<GangMemberSaveData>();
-    public BankSaveData Bank { get; set; } = new BankSaveData();
-    public WagonSaveData Wagons { get; set; } = new WagonSaveData();
-    public List<JobOffer> JobOffers { get; set; } = new List<JobOffer>();
-    public List<JobAssignment> JobAssignments { get; set; } = new List<JobAssignment>();
+    public List<GangMemberSaveData> Members { get; set; }
+    public BankSaveData Bank { get; set; }
+    public List<WagonSaveData> Wagons { get; set; }
+    public List<JobOffer> JobOffers { get; set; }
+    public List<JobAssignment> JobAssignments { get; set; }
+    public List<CompanionSaveData> Companions { get; set; }
 }
+
 
 public class GangMemberSaveData
 {
@@ -60,4 +62,23 @@ public class CompanionRecord
     public int Experience { get; set; }
     public CombatStyle PreferredStyle { get; set; }
     public string LastKnownMood { get; set; }
+}
+
+public class CompanionSaveData
+{
+    public string CompanionId { get; set; }
+    public string Name { get; set; }
+    public CompanionType Type { get; set; }
+    public string Personality { get; set; }
+    public int Loyalty { get; set; }
+    public int SkillCombat { get; set; }
+    public int SkillStealth { get; set; }
+    public int SkillHandling { get; set; }
+    public int SkillTrading { get; set; }
+    public string WeaponChoice { get; set; }
+    public string Outfit { get; set; }
+    public decimal PersonalCash { get; set; }
+    public decimal PersonalGold { get; set; }
+    public List<string> Memories { get; set; }
+    public List<string> Goals { get; set; }
 }
