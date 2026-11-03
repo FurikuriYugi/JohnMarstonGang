@@ -2,12 +2,12 @@
 
 public class GangSaveData
 {
-    public List<GangMemberSaveData> Members { get; set; }
+    public List<GangMemberSaveData> Members { get; set; } = new List<GangMemberSaveData>();
     public BankSaveData Bank { get; set; }
     public WagonSaveData Wagons { get; set; }
-    public List<JobOffer> JobOffers { get; set; }
-    public List<JobAssignment> JobAssignments { get; set; }
-    public List<CompanionSaveData> Companions { get; set; }
+    public List<JobOffer> JobOffers { get; set; } = new List<JobOffer>();
+    public List<JobAssignment> JobAssignments { get; set; } = new List<JobAssignment>();
+    public List<CompanionSaveData> Companions { get; set; } = new List<CompanionSaveData>();
 }
 
 public class GangMemberSaveData
@@ -33,17 +33,17 @@ public class GangMemberSaveData
     public string CurrentTargetId { get; set; }
     public string CurrentTaskDescription { get; set; }
 
-    public List<string> KnownGoals { get; set; }
-    public List<string> Memories { get; set; }
-    public List<string> Skills { get; set; }
+    public List<string> KnownGoals { get; set; } = new List<string>();
+    public List<string> Memories { get; set; } = new List<string>();
+    public List<string> Skills { get; set; } = new List<string>();
     public string CurrentWeaponPreference { get; set; }
 }
 
 public class BankSaveData
 {
-    public List<BankAccountSaveData> Accounts { get; set; }
-    public List<BankVaultSaveData> Vaults { get; set; }
-    public List<BusinessLedgerSaveData> BusinessLedgers { get; set; }
+    public List<BankAccountSaveData> Accounts { get; set; } = new List<BankAccountSaveData>();
+    public List<BankVaultSaveData> Vaults { get; set; } = new List<BankVaultSaveData>();
+    public List<BusinessLedgerSaveData> BusinessLedgers { get; set; } = new List<BusinessLedgerSaveData>();
 }
 
 public class BankAccountSaveData
@@ -73,7 +73,7 @@ public class BusinessLedgerSaveData
 
 public class WagonSaveData
 {
-    public List<WagonRecord> Wagons { get; set; }
+    public List<WagonRecord> Wagons { get; set; } = new List<WagonRecord>();
 }
 
 public class CompanionSaveData
@@ -83,8 +83,8 @@ public class CompanionSaveData
     public int Loyalty { get; set; }
     public int Trust { get; set; }
     public int Experience { get; set; }
-    public List<string> Goals { get; set; }
-    public List<string> Memories { get; set; }
+    public List<string> Goals { get; set; } = new List<string>();
+    public List<string> Memories { get; set; } = new List<string>();
 }
 
 public enum GangMemberRole

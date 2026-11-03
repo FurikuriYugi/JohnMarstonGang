@@ -9,44 +9,44 @@ public class JobSystem
 
     public void GenerateTownJobs(string townName)
     {
-        Offers.Add(new JobOffer
-        {
-            JobId = Guid.NewGuid().ToString(),
-            Title = townName + " Escort Contract",
-            Description = "Protect a shipment and deliver it safely.",
-            Location = townName,
-            RewardCash = 25,
-            RewardHonor = 1,
-            RiskLevel = 2,
-            JobType = JobType.Escort,
-            IsCompleted = false
-        });
+        if (string.IsNullOrWhiteSpace(townName))
+            return;
 
-        Offers.Add(new JobOffer
-        {
-            JobId = Guid.NewGuid().ToString(),
-            Title = townName + " Delivery Work",
-            Description = "Carry supplies for a local business.",
-            Location = townName,
-            RewardCash = 15,
-            RewardHonor = 1,
-            RiskLevel = 1,
-            JobType = JobType.Delivery,
-            IsCompleted = false
-        });
+        Offers.Add(CreateJob(
+            townName + " Escort Contract",
+            "Protect a shipment and deliver it safely.",
+            townName,
+            25,
+            1,
+            2,
+            JobType.Escort));
 
-        Offers.Add(new JobOffer
-        {
-            JobId = Guid.NewGuid().ToString(),
-            Title = townName + " Robbery Tip",
-            Description = "A lead on valuable cargo moving through the area.",
-            Location = townName,
-            RewardCash = 50,
-            RewardHonor = -2,
-            RiskLevel = 4,
-            JobType = JobType.Robbery,
-            IsCompleted = false
-        });
+        Offers.Add(CreateJob(
+            townName + " Delivery Work",
+            "Carry supplies for a local business.",
+            townName,
+            15,
+            1,
+            1,
+            JobType.Delivery));
+
+        Offers.Add(CreateJob(
+            townName + " Protection Detail",
+            "Keep trouble away from a local business.",
+            townName,
+            20,
+            1,
+            2,
+            JobType.Protection));
+
+        Offers.Add(CreateJob(
+            townName + " Robbery Tip",
+            "A lead on valuable cargo moving through the area.",
+            townName,
+            50,
+            -2,
+            4,
+            JobType.Robbery));
     }
 
     public JobOffer CreateJob(string title, string description, string location, int rewardCash, int rewardHonor, int riskLevel, JobType jobType)
@@ -68,11 +68,14 @@ public class JobSystem
         return offer;
     }
 
-    public void AssignJob(string jobId, string memberId)
+    public bool AssignJob(string jobId, string memberId)
     {
+        if (string.IsNullOrWhiteSpace(jobId) || string.IsNullOrWhiteSpace(memberId))
+            return false;
+
         JobOffer offer = Offers.FirstOrDefault(j => j.JobId == jobId);
         if (offer == null || offer.IsCompleted)
-            return;
+            return false;
 
         JobAssignment assignment = Assignments.FirstOrDefault(a => a.JobId == jobId);
         if (assignment == null)
@@ -87,10 +90,15 @@ public class JobSystem
 
         if (!assignment.AssignedMemberIds.Contains(memberId))
             assignment.AssignedMemberIds.Add(memberId);
+
+        return true;
     }
 
     public bool GangVoteOnJob(GangManager gangManager, string jobId)
     {
+        if (gangManager == null || string.IsNullOrWhiteSpace(jobId))
+            return false;
+
         JobOffer offer = Offers.FirstOrDefault(j => j.JobId == jobId);
         if (offer == null)
             return false;
@@ -101,10 +109,19 @@ public class JobSystem
         foreach (GangMember member in gangManager.GetActiveMembers())
         {
             bool voteYes = offer.RiskLevel <= 2;
-            if (member.Honor < 0 && offer.JobType == JobType.Robbery)
-                voteYes = true;
 
-            if (member.Loyalty > 40)
+            if (offer.JobType == JobType.Robbery)
+                voteYes = member.Honor <= 0 || member.Loyalty >= 40;
+
+            if (offer.JobType == JobType.Protection || offer.JobType == JobType.Escort)
+                voteYes = member.Loyalty >= 30 || member.Honor >= 0;
+
+            if (member.Loyalty >= 50)
+                yesVotes++;
+            else
+                noVotes++;
+
+            if (voteYes)
                 yesVotes++;
             else
                 noVotes++;
@@ -124,13 +141,20 @@ public class JobSystem
 
     public void PayOutCompletedJobs(BankSystem bankSystem, string playerId, GangManager gangManager)
     {
+        if (bankSystem == null)
+            return;
+
         List<JobOffer> completed = Offers.Where(o => o.IsCompleted).ToList();
 
         foreach (JobOffer offer in completed)
         {
             bankSystem.DepositToAccount(playerId, offer.RewardCash, 0);
-            gangManager?.AdjustHonorForGang(offer.RewardHonor);
-            gangManager?.DistributeReward(offer.RewardCash);
+
+            if (gangManager != null)
+            {
+                gangManager.AdjustHonorForGang(offer.RewardHonor);
+                gangManager.DistributeReward(offer.RewardCash);
+            }
 
             Offers.Remove(offer);
             Assignments.RemoveAll(a => a.JobId == offer.JobId);
@@ -141,6 +165,12 @@ public class JobSystem
     {
         Offers = offers ?? new List<JobOffer>();
         Assignments = assignments ?? new List<JobAssignment>();
+
+        foreach (JobAssignment assignment in Assignments)
+        {
+            if (assignment.AssignedMemberIds == null)
+                assignment.AssignedMemberIds = new List<string>();
+        }
     }
 }
 
@@ -160,7 +190,7 @@ public class JobOffer
 public class JobAssignment
 {
     public string JobId { get; set; }
-    public List<string> AssignedMemberIds { get; set; }
+    public List<string> AssignedMemberIds { get; set; } = new List<string>();
 }
 
 public enum JobType
