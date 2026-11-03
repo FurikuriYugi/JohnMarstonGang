@@ -1,5 +1,4 @@
-﻿// JobSystem.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -49,7 +48,6 @@ public class JobSystem
             return false;
 
         _offers.Remove(offer);
-
         _assignments.Add(new JobAssignment
         {
             AssignmentId = Guid.NewGuid().ToString("N"),
@@ -64,6 +62,25 @@ public class JobSystem
         });
 
         return true;
+    }
+
+    public bool AcceptJobWithGangVote(string jobId, GangManager gangManager, string gangMemberName = null)
+    {
+        var offer = _offers.FirstOrDefault(x => x.JobId == jobId);
+        if (offer == null || gangManager == null)
+            return false;
+
+        var activeMembers = gangManager.GetActiveMembers().ToList();
+        if (activeMembers.Count == 0)
+            return AcceptJob(jobId, gangMemberName);
+
+        var yesVotes = activeMembers.Count(x => offer.IsCriminal ? x.Loyalty >= 40 : x.Loyalty >= 25);
+        var noVotes = activeMembers.Count - yesVotes;
+
+        if (yesVotes <= noVotes)
+            return false;
+
+        return AcceptJob(jobId, gangMemberName);
     }
 
     public bool CompleteJob(string assignmentId)
@@ -86,18 +103,42 @@ public class JobSystem
         return true;
     }
 
-    public void PayOutCompletedJobs(BankSystem bank, string playerAccountId)
+    public void PayOutCompletedJobs(BankSystem bank, string playerAccountId, GangManager gangManager = null)
     {
         if (bank == null || string.IsNullOrWhiteSpace(playerAccountId))
             return;
 
         foreach (var assignment in _assignments.Where(x => x.Status == JobStatus.Completed).ToList())
         {
-            if (assignment.PaymentCash > 0m)
-                bank.DepositCash(playerAccountId, assignment.PaymentCash);
+            if (assignment.PaymentCash > 0m || assignment.PaymentGold > 0m)
+            {
+                var splitMembers = gangManager != null
+                    ? gangManager.GetActiveMembers().ToList()
+                    : new List<GangMember>();
 
-            if (assignment.PaymentGold > 0m)
-                bank.DepositGold(playerAccountId, assignment.PaymentGold);
+                if (splitMembers.Count > 0)
+                {
+                    var memberShareCash = assignment.PaymentCash / (splitMembers.Count + 1);
+                    var memberShareGold = assignment.PaymentGold / (splitMembers.Count + 1);
+
+                    foreach (var member in splitMembers)
+                    {
+                        member.PersonalCash += memberShareCash;
+                        member.PersonalGold += memberShareGold;
+                    }
+
+                    var playerCash = assignment.PaymentCash - (memberShareCash * splitMembers.Count);
+                    var playerGold = assignment.PaymentGold - (memberShareGold * splitMembers.Count);
+
+                    bank.DepositCash(playerAccountId, playerCash);
+                    bank.DepositGold(playerAccountId, playerGold);
+                }
+                else
+                {
+                    bank.DepositCash(playerAccountId, assignment.PaymentCash);
+                    bank.DepositGold(playerAccountId, assignment.PaymentGold);
+                }
+            }
 
             _assignments.Remove(assignment);
         }
