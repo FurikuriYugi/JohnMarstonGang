@@ -1,17 +1,14 @@
 ﻿using RDR2;
 using System;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 public class Main : Script
 {
     private static GangManager _gangManager;
-    private static CompanionSystem _companionSystem;
 
     public Main()
     {
-        _companionSystem = new CompanionSystem();
-        _gangManager = new GangManager(_companionSystem);
-        _gangManager.SyncAllMembers();
-
+        _gangManager = GangManager.Load();
         Tick += OnTick;
     }
 
@@ -26,30 +23,19 @@ public class Main : Script
         return _gangManager;
     }
 
-    public static CompanionSystem GetCompanionSystem()
-    {
-        return _companionSystem;
-    }
-
-    public static void SaveAll()
+    public static void SaveGang()
     {
         if (_gangManager != null)
             _gangManager.Save();
-
-        if (_companionSystem != null)
-            _companionSystem.Save();
     }
 
     public static void RecruitMember(string name, int relationship, CombatStyle style, bool following)
     {
         if (_gangManager == null)
-        {
-            _companionSystem = new CompanionSystem();
-            _gangManager = new GangManager(_companionSystem);
-        }
+            _gangManager = new GangManager();
 
         _gangManager.Recruit(name, relationship, style, following);
-        SaveAll();
+        _gangManager.Save();
     }
 
     public static void FollowPlayer()
@@ -58,7 +44,7 @@ public class Main : Script
             return;
 
         _gangManager.FollowPlayer();
-        SaveAll();
+        _gangManager.Save();
     }
 
     public static void WaitGang()
@@ -67,7 +53,7 @@ public class Main : Script
             return;
 
         _gangManager.Wait();
-        SaveAll();
+        _gangManager.Save();
     }
 
     public static void CycleCombatStyles()
@@ -76,7 +62,7 @@ public class Main : Script
             return;
 
         _gangManager.CycleCombatStyle();
-        SaveAll();
+        _gangManager.Save();
     }
 
     public static void SetCombatStyleForAll(CombatStyle style)
@@ -85,33 +71,6 @@ public class Main : Script
             return;
 
         _gangManager.SetCombatStyleForAll(style);
-        SaveAll();
-    }
-
-    public static void AddMemberMemory(string name, string memory)
-    {
-        if (_gangManager == null)
-            return;
-
-        _gangManager.AddMemberMemory(name, memory);
-        SaveAll();
-    }
-
-    public static void SetMemberGoal(string name, string goal)
-    {
-        if (_gangManager == null)
-            return;
-
-        _gangManager.SetMemberGoal(name, goal);
-        SaveAll();
-    }
-
-    public static void UpdateMemberRelationship(string name, int delta)
-    {
-        if (_gangManager == null)
-            return;
-
-        _gangManager.UpdateMemberRelationship(name, delta);
-        SaveAll();
+        _gangManager.Save();
     }
 }
