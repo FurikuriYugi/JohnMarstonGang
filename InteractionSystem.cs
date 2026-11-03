@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 public class InteractionSystem
 {
@@ -22,7 +23,7 @@ public class InteractionSystem
         _jobSystem = jobSystem;
     }
 
-    public bool TryPickDoor(string targetId, bool hasBreakerTool)
+    public bool TryPickLock(string targetId, bool hasBreakerTool)
     {
         if (_lockSystem == null)
             return false;
@@ -30,15 +31,7 @@ public class InteractionSystem
         return _lockSystem.PickLock(targetId, hasBreakerTool);
     }
 
-    public bool TryBlastDoor(string targetId, bool hasDynamite)
-    {
-        if (_lockSystem == null)
-            return false;
-
-        return _lockSystem.BlastOpen(targetId, hasDynamite);
-    }
-
-    public bool TryBlowTarget(string targetId, bool hasDynamite)
+    public bool TryBlastOpen(string targetId, bool hasDynamite)
     {
         if (_dynamiteSystem == null)
             return false;
@@ -54,33 +47,15 @@ public class InteractionSystem
         return _lockSystem.ForceOpen(targetId);
     }
 
-    public bool RegisterLockTarget(string targetId, LockTargetType type, bool isLocked, bool canBeBlasted)
-    {
-        if (_lockSystem == null)
-            return false;
-
-        _lockSystem.RegisterTarget(targetId, type, isLocked, canBeBlasted);
-        return true;
-    }
-
-    public bool RegisterDynamiteTarget(string targetId, DynamiteTargetType type, bool isDestructible, bool isExplodable)
-    {
-        if (_dynamiteSystem == null)
-            return false;
-
-        _dynamiteSystem.RegisterTarget(targetId, type, isDestructible, isExplodable);
-        return true;
-    }
-
-    public Wagon CreateOrClaimWagon(string wagonName, string ownerId, WagonType type)
+    public Wagon CreateWagon(string name, string ownerName, bool persistent)
     {
         if (_wagonSystem == null)
             return null;
 
-        return _wagonSystem.CreateWagon(wagonName, ownerId, type);
+        return _wagonSystem.CreateWagon(name, ownerName, persistent);
     }
 
-    public bool StoreItemInWagon(string wagonId, string itemName, int amount)
+    public bool StoreInWagon(string wagonId, string itemName, int amount)
     {
         if (_wagonSystem == null)
             return false;
@@ -88,7 +63,7 @@ public class InteractionSystem
         return _wagonSystem.StoreItem(wagonId, itemName, amount);
     }
 
-    public bool RemoveItemFromWagon(string wagonId, string itemName, int amount)
+    public bool RemoveFromWagon(string wagonId, string itemName, int amount)
     {
         if (_wagonSystem == null)
             return false;
@@ -96,39 +71,39 @@ public class InteractionSystem
         return _wagonSystem.RemoveItem(wagonId, itemName, amount);
     }
 
-    public void DepositBankCash(string ownerId, decimal amount)
+    public void DepositCash(string ownerName, decimal amount)
     {
         if (_bankSystem == null)
             return;
 
-        _bankSystem.DepositCash(ownerId, amount);
+        _bankSystem.DepositCash(ownerName, amount);
     }
 
-    public void DepositBankGold(string ownerId, decimal amount)
+    public void DepositGold(string ownerName, decimal amount)
     {
         if (_bankSystem == null)
             return;
 
-        _bankSystem.DepositGold(ownerId, amount);
+        _bankSystem.DepositGold(ownerName, amount);
     }
 
-    public bool WithdrawBankCash(string ownerId, decimal amount)
+    public bool WithdrawCash(string ownerName, decimal amount)
     {
         if (_bankSystem == null)
             return false;
 
-        return _bankSystem.WithdrawCash(ownerId, amount);
+        return _bankSystem.WithdrawCash(ownerName, amount);
     }
 
-    public bool WithdrawBankGold(string ownerId, decimal amount)
+    public bool WithdrawGold(string ownerName, decimal amount)
     {
         if (_bankSystem == null)
             return false;
 
-        return _bankSystem.WithdrawGold(ownerId, amount);
+        return _bankSystem.WithdrawGold(ownerName, amount);
     }
 
-    public void AddTownJobs(string townName)
+    public void GenerateTownJobs(string townName)
     {
         if (_jobSystem == null)
             return;
@@ -136,20 +111,20 @@ public class InteractionSystem
         _jobSystem.GenerateTownJobs(townName);
     }
 
-    public bool AcceptJob(string jobId, string gangMemberName = null)
+    public JobOffer GetJobOffer(string jobId)
     {
         if (_jobSystem == null)
-            return false;
+            return null;
 
-        return _jobSystem.AcceptJob(jobId, gangMemberName);
+        return _jobSystem.GetOffer(jobId);
     }
 
-    public bool AcceptJobWithGangVote(string jobId, GangManager gangManager, string gangMemberName = null)
+    public JobAssignment AcceptJob(string jobId, string gangMemberName = null)
     {
         if (_jobSystem == null)
-            return false;
+            return null;
 
-        return _jobSystem.AcceptJobWithGangVote(jobId, gangManager, gangMemberName);
+        return _jobSystem.AcceptJob(jobId, gangMemberName);
     }
 
     public bool CompleteJob(string assignmentId)
@@ -168,11 +143,11 @@ public class InteractionSystem
         return _jobSystem.FailJob(assignmentId);
     }
 
-    public void PayOutCompletedJobs(string playerAccountId, GangManager gangManager = null)
+    public List<JobOffer> GetAvailableJobs()
     {
         if (_jobSystem == null)
-            return;
+            return new List<JobOffer>();
 
-        _jobSystem.PayOutCompletedJobs(_bankSystem, playerAccountId, gangManager);
+        return _jobSystem.GetAvailableJobs();
     }
 }
