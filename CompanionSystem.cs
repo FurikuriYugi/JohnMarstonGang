@@ -1,18 +1,45 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 public class CompanionSystem
 {
-    private readonly string _saveFileName;
-    private List<CompanionRecord> _companions = new List<CompanionRecord>();
+    private readonly List<CompanionRecord> _companions = new List<CompanionRecord>();
 
-    public CompanionSystem(string saveFileName = "CompanionSystem.json")
+    public IReadOnlyList<CompanionRecord> Companions => _companions;
+
+    public CompanionRecord CreateCompanion(string name)
     {
-        _saveFileName = saveFileName;
-        Load();
+        var existing = GetCompanion(name);
+        if (existing != null)
+            return existing;
+
+        var companion = new CompanionRecord
+        {
+            CompanionId = Guid.NewGuid().ToString("N"),
+            Name = name,
+            Type = CompanionType.Human,
+            Personality = "Neutral",
+            Loyalty = 0,
+            SkillCombat = 0,
+            SkillStealth = 0,
+            SkillHandling = 0,
+            SkillTrading = 0,
+            WeaponChoice = null,
+            Outfit = null,
+            PersonalCash = 0m,
+            PersonalGold = 0m,
+            Memories = new List<string>(),
+            Goals = new List<string>()
+        };
+
+        _companions.Add(companion);
+        return companion;
+    }
+
+    public CompanionRecord GetCompanion(string name)
+    {
+        return _companions.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 
     public void Update(GangManager gangManager)
@@ -20,54 +47,101 @@ public class CompanionSystem
         if (gangManager == null)
             return;
 
-        foreach (var member in gangManager.GetActiveMembers())
+        foreach (var member in gangManager.Members)
         {
-            if (member == null || string.IsNullOrWhiteSpace(member.Name))
+            var companion = GetCompanion(member.Name);
+            if (companion == null)
                 continue;
 
-            var companion = GetOrCreate(member.Name);
             companion.Loyalty = member.Loyalty;
-            companion.Experience += member.IsInCombat ? 1 : 0;
-            companion.PreferredStyle = member.PreferredCombatStyle;
-            companion.LastKnownMood = member.Mood.ToString();
+            companion.SkillCombat = member.SkillCombat;
+            companion.SkillStealth = member.SkillStealth;
+            companion.SkillHandling = member.SkillHandling;
+            companion.SkillTrading = member.SkillTrading;
+            companion.WeaponChoice = member.WeaponChoice;
+            companion.Outfit = member.Outfit;
+            companion.PersonalCash = member.PersonalCash;
+            companion.PersonalGold = member.PersonalGold;
+            companion.Memories = new List<string>(member.Memories);
+            companion.Goals = new List<string>(member.Goals);
+        }
+    }
+
+    public List<CompanionSaveData> CreateSaveData()
+    {
+        var result = new List<CompanionSaveData>();
+
+        foreach (var companion in _companions)
+        {
+            result.Add(new CompanionSaveData
+            {
+                CompanionId = companion.CompanionId,
+                Name = companion.Name,
+                Type = companion.Type,
+                Personality = companion.Personality,
+                Loyalty = companion.Loyalty,
+                SkillCombat = companion.SkillCombat,
+                SkillStealth = companion.SkillStealth,
+                SkillHandling = companion.SkillHandling,
+                SkillTrading = companion.SkillTrading,
+                WeaponChoice = companion.WeaponChoice,
+                Outfit = companion.Outfit,
+                PersonalCash = companion.PersonalCash,
+                PersonalGold = companion.PersonalGold,
+                Memories = companion.Memories != null ? new List<string>(companion.Memories) : new List<string>(),
+                Goals = companion.Goals != null ? new List<string>(companion.Goals) : new List<string>()
+            });
         }
 
-        Save();
+        return result;
     }
 
-    public CompanionRecord GetOrCreate(string name)
+    public void LoadFromSave(List<CompanionSaveData> savedCompanions)
     {
-        var companion = _companions.FirstOrDefault(x => x.Name == name);
-        if (companion != null)
-            return companion;
+        _companions.Clear();
 
-        companion = new CompanionRecord
-        {
-            Name = name,
-            Loyalty = 50,
-            Experience = 0,
-            PreferredStyle = CombatStyle.ShortRange,
-            LastKnownMood = "Neutral"
-        };
-
-        _companions.Add(companion);
-        return companion;
-    }
-
-    public void Save()
-    {
-        File.WriteAllText(_saveFileName, JsonConvert.SerializeObject(_companions, Formatting.Indented));
-    }
-
-    public void Load()
-    {
-        if (!File.Exists(_saveFileName))
-        {
-            _companions = new List<CompanionRecord>();
+        if (savedCompanions == null)
             return;
-        }
 
-        var json = File.ReadAllText(_saveFileName);
-        _companions = JsonConvert.DeserializeObject<List<CompanionRecord>>(json) ?? new List<CompanionRecord>();
+        foreach (var saved in savedCompanions)
+        {
+            _companions.Add(new CompanionRecord
+            {
+                CompanionId = saved.CompanionId,
+                Name = saved.Name,
+                Type = saved.Type,
+                Personality = saved.Personality,
+                Loyalty = saved.Loyalty,
+                SkillCombat = saved.SkillCombat,
+                SkillStealth = saved.SkillStealth,
+                SkillHandling = saved.SkillHandling,
+                SkillTrading = saved.SkillTrading,
+                WeaponChoice = saved.WeaponChoice,
+                Outfit = saved.Outfit,
+                PersonalCash = saved.PersonalCash,
+                PersonalGold = saved.PersonalGold,
+                Memories = saved.Memories ?? new List<string>(),
+                Goals = saved.Goals ?? new List<string>()
+            });
+        }
     }
+}
+
+public class CompanionRecord
+{
+    public string CompanionId { get; set; }
+    public string Name { get; set; }
+    public CompanionType Type { get; set; }
+    public string Personality { get; set; }
+    public int Loyalty { get; set; }
+    public int SkillCombat { get; set; }
+    public int SkillStealth { get; set; }
+    public int SkillHandling { get; set; }
+    public int SkillTrading { get; set; }
+    public string WeaponChoice { get; set; }
+    public string Outfit { get; set; }
+    public decimal PersonalCash { get; set; }
+    public decimal PersonalGold { get; set; }
+    public List<string> Memories { get; set; }
+    public List<string> Goals { get; set; }
 }
