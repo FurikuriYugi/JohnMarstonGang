@@ -20,6 +20,22 @@ public class WorldState
     public List<EntityStateData> Entities { get; set; } = new List<EntityStateData>();
 }
 
+public class GangMember
+{
+    public string MemberId { get; set; }
+    public string Name { get; set; }
+    public string Role { get; set; }
+    public string CombatStyle { get; set; }
+    public string CurrentTask { get; set; }
+    public int Loyalty { get; set; }
+    public int CombatSkill { get; set; }
+    public int SupportSkill { get; set; }
+    public int StealthSkill { get; set; }
+    public int Hunger { get; set; }
+    public bool IsFollowingPlayer { get; set; }
+    public List<string> InventoryItems { get; set; } = new List<string>();
+}
+
 public class CompanionData
 {
     public string CompanionId { get; set; }
