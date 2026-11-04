@@ -32,6 +32,22 @@ public class GangMemberSaveData
     public List<string> Goals { get; set; } = new List<string>();
 }
 
+public class CompanionSaveData
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Name { get; set; } = string.Empty;
+    public string ModelName { get; set; } = string.Empty;
+    public string Alignment { get; set; } = string.Empty;
+    public int Loyalty { get; set; }
+    public int Experience { get; set; }
+    public bool IsHuman { get; set; }
+    public bool IsAnimal { get; set; }
+    public string CurrentWeapon { get; set; } = string.Empty;
+    public string CurrentTask { get; set; } = string.Empty;
+    public string Outfit { get; set; } = string.Empty;
+    public string PersonalGoal { get; set; } = string.Empty;
+}
+
 public class WagonSaveData
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
