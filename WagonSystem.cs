@@ -1,100 +1,97 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Newtonsoft.Json;
 
 public class WagonSystem
 {
-    private readonly List<WagonRecord> _wagons = new List<WagonRecord>();
+    private readonly Dictionary<string, WagonRecord> _wagons = new Dictionary<string, WagonRecord>();
 
-    public IReadOnlyList<WagonRecord> Wagons => _wagons;
-
-    public WagonRecord RegisterWagon(string modelName, bool owned)
+    public void RegisterWagon(WagonRecord wagon)
     {
-        var wagon = new WagonRecord
-        {
-            WagonId = Guid.NewGuid().ToString("N"),
-            ModelName = modelName,
-            Owned = owned,
-            Hitchable = true,
-            Health = 100f
-        };
+        if (wagon == null || string.IsNullOrWhiteSpace(wagon.WagonId))
+            return;
 
-        _wagons.Add(wagon);
-        return wagon;
+        _wagons[wagon.WagonId] = wagon;
     }
 
-    public WagonRecord GetWagon(string wagonId)
+    public bool OwnWagon(string wagonId)
     {
-        return _wagons.FirstOrDefault(x => x.WagonId == wagonId);
-    }
-
-    public bool RemoveWagon(string wagonId)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null)
+        if (string.IsNullOrWhiteSpace(wagonId) || !_wagons.ContainsKey(wagonId))
             return false;
 
-        return _wagons.Remove(wagon);
+        _wagons[wagonId].IsOwned = true;
+        return true;
     }
 
-    public void AddItemToWagon(string wagonId, string itemName)
+    public bool StoreItem(string wagonId, string itemName, int amount)
     {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null)
-            return;
-
-        if (string.IsNullOrWhiteSpace(itemName))
-            return;
-
-        wagon.InventoryItems.Add(itemName);
-    }
-
-    public bool RemoveItemFromWagon(string wagonId, string itemName)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null)
+        if (!_wagons.ContainsKey(wagonId))
             return false;
 
-        return wagon.InventoryItems.Remove(itemName);
+        WagonRecord wagon = _wagons[wagonId];
+        if (wagon.StoredItems == null)
+            wagon.StoredItems = new Dictionary<string, int>();
+
+        if (string.IsNullOrWhiteSpace(itemName) || amount <= 0)
+            return false;
+
+        if (!wagon.StoredItems.ContainsKey(itemName))
+            wagon.StoredItems[itemName] = 0;
+
+        wagon.StoredItems[itemName] += amount;
+        return true;
     }
 
-    public void DamageWagon(string wagonId, float damage)
+    public bool RemoveItem(string wagonId, string itemName, int amount)
     {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null)
-            return;
+        if (!_wagons.ContainsKey(wagonId))
+            return false;
 
-        wagon.Health = Math.Max(0f, wagon.Health - Math.Max(0f, damage));
+        WagonRecord wagon = _wagons[wagonId];
+        if (wagon.StoredItems == null || !wagon.StoredItems.ContainsKey(itemName))
+            return false;
+
+        if (amount <= 0 || wagon.StoredItems[itemName] < amount)
+            return false;
+
+        wagon.StoredItems[itemName] -= amount;
+        if (wagon.StoredItems[itemName] <= 0)
+            wagon.StoredItems.Remove(itemName);
+
+        return true;
     }
 
-    public void RepairWagon(string wagonId, float amount)
+    public string SaveState()
     {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null)
-            return;
-
-        wagon.Health = Math.Min(100f, wagon.Health + Math.Max(0f, amount));
+        return JsonConvert.SerializeObject(_wagons.Values, Formatting.Indented);
     }
 
-    public void SetOwned(string wagonId, bool owned)
-    {
-        var wagon = GetWagon(wagonId);
-        if (wagon == null)
-            return;
-
-        wagon.Owned = owned;
-    }
-
-    public void LoadFromSaveData(IEnumerable<WagonSaveData> savedWagons)
+    public void LoadState(string json)
     {
         _wagons.Clear();
 
-        if (savedWagons == null)
+        if (string.IsNullOrWhiteSpace(json))
             return;
 
-        foreach (var saved in savedWagons)
+        List<WagonRecord> wagons = JsonConvert.DeserializeObject<List<WagonRecord>>(json);
+        if (wagons == null)
+            return;
+
+        foreach (WagonRecord wagon in wagons)
         {
-            _wagons.Add(WagonRecord.FromSaveData(saved));
+            if (wagon != null && !string.IsNullOrWhiteSpace(wagon.WagonId))
+                _wagons[wagon.WagonId] = wagon;
         }
     }
+}
+
+public class WagonRecord
+{
+    public string WagonId { get; set; }
+    public string DisplayName { get; set; }
+    public bool IsOwned { get; set; }
+    public string OwnerName { get; set; }
+    public Dictionary<string, int> StoredItems { get; set; } = new Dictionary<string, int>();
+    public bool HasHitchSupport { get; set; } = true;
+    public bool PersistentAcrossReloads { get; set; } = true;
 }
