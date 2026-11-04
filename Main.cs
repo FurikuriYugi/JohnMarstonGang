@@ -16,6 +16,8 @@ public class Main : Script
     private WeaponSystem _weaponSystem;
     private WagonSystem _wagonSystem;
     private InteractionSystem _interactionSystem;
+    private CommandSystem _commandSystem;
+    private TacticalSquadAiSystem _tacticalSquadAiSystem;
 
     public Main()
     {
@@ -29,6 +31,8 @@ public class Main : Script
         _weaponSystem = new WeaponSystem();
         _wagonSystem = new WagonSystem();
         _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
+        _commandSystem = new CommandSystem();
+        _tacticalSquadAiSystem = new TacticalSquadAiSystem();
 
         LoadAll();
     }
@@ -65,6 +69,12 @@ public class Main : Script
 
         if (_saveRoot.World != null && _saveRoot.World.WeaponPlatforms != null)
             _weaponSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.WeaponPlatforms));
+
+        if (_saveRoot.World != null && _saveRoot.World.Commands != null)
+            _commandSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Commands));
+
+        if (_saveRoot.World != null && _saveRoot.World.TacticalOrders != null)
+            _tacticalSquadAiSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.TacticalOrders));
     }
 
     private void SaveAll()
@@ -81,6 +91,8 @@ public class Main : Script
         _saveRoot.World.ActiveJobs = _jobSystem.GetAllJobs();
         _saveRoot.World.Wagons = _wagonSystem.GetWagons();
         _saveRoot.World.WeaponPlatforms = _weaponSystem.GetPlatforms();
+        _saveRoot.World.Commands = _commandSystem.GetCommands();
+        _saveRoot.World.TacticalOrders = _tacticalSquadAiSystem.GetOrders();
 
         string json = JsonConvert.SerializeObject(_saveRoot, Formatting.Indented);
         File.WriteAllText(SaveFileName, json);

@@ -59,7 +59,6 @@ public static class JsonSaveSystem
         SaveRoot data = Load();
         if (manager != null)
             manager.ImportSaveData(data);
-
         return data;
     }
 
@@ -109,6 +108,12 @@ public static class JsonSaveSystem
         if (data.World.Entities == null)
             data.World.Entities = new System.Collections.Generic.List<EntityStateData>();
 
+        if (data.World.TacticalOrders == null)
+            data.World.TacticalOrders = new System.Collections.Generic.List<TacticalOrderData>();
+
+        if (data.World.Commands == null)
+            data.World.Commands = new System.Collections.Generic.List<CommandData>();
+
         if (saveVersion < 2)
             MigrateFromV1(data);
 
@@ -143,5 +148,11 @@ public static class JsonSaveSystem
 
         if (data.World.Entities == null)
             data.World.Entities = new System.Collections.Generic.List<EntityStateData>();
+
+        if (data.World.TacticalOrders == null)
+            data.World.TacticalOrders = new System.Collections.Generic.List<TacticalOrderData>();
+
+        if (data.World.Commands == null)
+            data.World.Commands = new System.Collections.Generic.List<CommandData>();
     }
 }

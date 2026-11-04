@@ -32,6 +32,57 @@ public class TacticalSquadAiSystem
         _orders.RemoveAll(x => x != null && x.OrderId == orderId);
     }
 
+    public TacticalOrderData CreateOrder(
+        string orderId,
+        string issuerId,
+        string targetId,
+        string orderType,
+        string combatStyle,
+        string currentTask,
+        int priority,
+        bool requiresStealth,
+        bool requiresCover,
+        bool requiresNonLethal)
+    {
+        TacticalOrderData order = new TacticalOrderData
+        {
+            OrderId = orderId,
+            IssuerId = issuerId,
+            TargetId = targetId,
+            OrderType = orderType,
+            CombatStyle = combatStyle,
+            CurrentTask = currentTask,
+            Priority = priority,
+            RequiresStealth = requiresStealth,
+            RequiresCover = requiresCover,
+            RequiresNonLethal = requiresNonLethal,
+            IsActive = true,
+            IssuedUtc = System.DateTime.UtcNow
+        };
+
+        RegisterOrder(order);
+        return order;
+    }
+
+    public void AssignMember(string orderId, string memberId)
+    {
+        TacticalOrderData order = GetOrder(orderId);
+        if (order == null || string.IsNullOrWhiteSpace(memberId))
+            return;
+
+        if (!order.AssignedMemberIds.Contains(memberId))
+            order.AssignedMemberIds.Add(memberId);
+    }
+
+    public void AddNote(string orderId, string note)
+    {
+        TacticalOrderData order = GetOrder(orderId);
+        if (order == null || string.IsNullOrWhiteSpace(note))
+            return;
+
+        order.Notes.Add(note);
+    }
+
     public string SaveState()
     {
         return JsonConvert.SerializeObject(_orders, Formatting.Indented);
