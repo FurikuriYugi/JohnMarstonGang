@@ -3,86 +3,113 @@ using Newtonsoft.Json;
 
 public class DynamiteSystem
 {
-    private readonly Dictionary<int, DestructibleTarget> _targets = new Dictionary<int, DestructibleTarget>();
+    private readonly Dictionary<string, DestructibleRecord> _destructibles = new Dictionary<string, DestructibleRecord>();
 
-    public void RegisterTarget(DestructibleTarget target)
+    public void RegisterDestructible(DestructibleRecord destructible)
     {
-        if (target == null)
+        if (destructible == null || string.IsNullOrWhiteSpace(destructible.TargetId))
             return;
 
-        _targets[target.Id] = target;
+        _destructibles[destructible.TargetId] = destructible;
     }
 
-    public bool CanBeDestroyed(int targetId)
+    public DestructibleRecord GetDestructible(string targetId)
     {
-        return _targets.ContainsKey(targetId) && _targets[targetId].IsDestructible;
+        if (string.IsNullOrWhiteSpace(targetId))
+            return null;
+
+        _destructibles.TryGetValue(targetId, out DestructibleRecord destructible);
+        return destructible;
     }
 
-    public bool DamageTarget(int targetId, float damage)
+    public List<DestructibleRecord> GetAllDestructibles()
     {
-        if (!_targets.ContainsKey(targetId))
-            return false;
+        return new List<DestructibleRecord>(_destructibles.Values);
+    }
 
-        DestructibleTarget target = _targets[targetId];
-        if (!target.IsDestructible)
-            return false;
+    public bool CanDestroy(string targetId)
+    {
+        DestructibleRecord destructible = GetDestructible(targetId);
+        return destructible != null && destructible.IsDestructible && destructible.Health > 0;
+    }
 
-        target.CurrentHealth -= damage;
-        if (target.CurrentHealth <= 0f)
+    public void ApplyExplosion(string targetId, int damage)
+    {
+        DestructibleRecord destructible = GetDestructible(targetId);
+        if (destructible == null || damage <= 0)
+            return;
+
+        destructible.Health -= damage;
+        if (destructible.Health <= 0)
         {
-            target.CurrentHealth = 0f;
-            target.IsDestroyed = true;
+            destructible.Health = 0;
+            destructible.IsDestroyed = true;
         }
-
-        return true;
     }
 
-    public bool BlastOpen(int targetId)
+    public void Destroy(string targetId)
     {
-        if (!_targets.ContainsKey(targetId))
-            return false;
+        DestructibleRecord destructible = GetDestructible(targetId);
+        if (destructible == null)
+            return;
 
-        DestructibleTarget target = _targets[targetId];
-        if (!target.AllowsExplosion)
-            return false;
+        destructible.Health = 0;
+        destructible.IsDestroyed = true;
+    }
 
-        target.CurrentHealth = 0f;
-        target.IsDestroyed = true;
-        return true;
+    public void Repair(string targetId, int amount)
+    {
+        DestructibleRecord destructible = GetDestructible(targetId);
+        if (destructible == null || amount <= 0)
+            return;
+
+        destructible.Health += amount;
+        if (destructible.Health > destructible.MaxHealth)
+            destructible.Health = destructible.MaxHealth;
+
+        if (destructible.Health > 0)
+            destructible.IsDestroyed = false;
+    }
+
+    public void LoadDestructibles(List<DestructibleRecord> destructibles)
+    {
+        _destructibles.Clear();
+
+        if (destructibles == null)
+            return;
+
+        foreach (DestructibleRecord destructible in destructibles)
+        {
+            if (destructible != null && !string.IsNullOrWhiteSpace(destructible.TargetId))
+                _destructibles[destructible.TargetId] = destructible;
+        }
     }
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_targets.Values, Formatting.Indented);
+        return JsonConvert.SerializeObject(GetAllDestructibles(), Formatting.Indented);
     }
 
     public void LoadState(string json)
     {
-        _targets.Clear();
+        _destructibles.Clear();
 
         if (string.IsNullOrWhiteSpace(json))
             return;
 
-        List<DestructibleTarget> targets = JsonConvert.DeserializeObject<List<DestructibleTarget>>(json);
-        if (targets == null)
-            return;
-
-        foreach (DestructibleTarget target in targets)
-        {
-            if (target != null)
-                _targets[target.Id] = target;
-        }
+        List<DestructibleRecord> destructibles = JsonConvert.DeserializeObject<List<DestructibleRecord>>(json);
+        LoadDestructibles(destructibles);
     }
 }
 
-public class DestructibleTarget
+public class DestructibleRecord
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public bool IsDestructible { get; set; } = true;
-    public bool AllowsExplosion { get; set; } = true;
-    public float MaxHealth { get; set; } = 100f;
-    public float CurrentHealth { get; set; } = 100f;
-    public bool IsDestroyed { get; set; }
+    public string TargetId { get; set; }
     public string TargetType { get; set; }
+    public bool IsDestructible { get; set; }
+    public bool IsDestroyed { get; set; }
+    public int Health { get; set; }
+    public int MaxHealth { get; set; }
+    public bool CanBeBlasted { get; set; }
+    public bool CanBePicked { get; set; }
 }
