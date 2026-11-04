@@ -6,11 +6,14 @@ public class CompanionSystem
 {
     private readonly List<CompanionRecord> _companions = new List<CompanionRecord>();
 
-    public List<CompanionRecord> Companions => _companions;
+    public List<CompanionRecord> Companions
+    {
+        get { return _companions; }
+    }
 
     public CompanionRecord GetOrCreateCompanion(string companionId, string name)
     {
-        var companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
+        CompanionRecord companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
         if (companion != null)
             return companion;
 
@@ -34,7 +37,7 @@ public class CompanionSystem
         if (member == null)
             return;
 
-        var companion = GetOrCreateCompanion(member.Id, member.Name);
+        CompanionRecord companion = GetOrCreateCompanion(member.Id, member.Name);
         companion.Loyalty = member.Loyalty;
         companion.Trust = member.Loyalty;
         companion.Experience = member.Experience;
@@ -47,7 +50,8 @@ public class CompanionSystem
         if (member == null)
             return;
 
-        member.Goals ??= new List<string>();
+        if (member.Goals == null)
+            member.Goals = new List<string>();
 
         if (member.Goals.Count == 0)
             member.Goals.Add("Stay close to the gang");
@@ -55,7 +59,7 @@ public class CompanionSystem
 
     public void AddMemory(string companionId, string memory)
     {
-        var companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
+        CompanionRecord companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
         if (companion == null)
             return;
 
@@ -84,7 +88,7 @@ public class CompanionSystem
         if (data == null)
             return;
 
-        foreach (var companionData in data)
+        foreach (CompanionSaveData companionData in data)
         {
             _companions.Add(new CompanionRecord
             {

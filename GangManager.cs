@@ -6,7 +6,10 @@ public class GangManager
 {
     private readonly List<GangMember> _members = new List<GangMember>();
 
-    public IReadOnlyList<GangMember> Members => _members;
+    public IReadOnlyList<GangMember> Members
+    {
+        get { return _members; }
+    }
 
     public void AddMember(GangMember member)
     {
@@ -19,9 +22,14 @@ public class GangManager
         if (_members.Any(x => x.Id == member.Id))
             return;
 
-        member.Weapons ??= new List<string>();
-        member.MemoryTags ??= new List<string>();
-        member.Goals ??= new List<string>();
+        if (member.Weapons == null)
+            member.Weapons = new List<string>();
+
+        if (member.MemoryTags == null)
+            member.MemoryTags = new List<string>();
+
+        if (member.Goals == null)
+            member.Goals = new List<string>();
 
         if (string.IsNullOrWhiteSpace(member.CombatStyle))
             member.CombatStyle = "Ranged Medium";
@@ -34,7 +42,7 @@ public class GangManager
 
     public void RemoveMember(string memberId)
     {
-        var member = _members.FirstOrDefault(x => x.Id == memberId);
+        GangMember member = _members.FirstOrDefault(x => x.Id == memberId);
         if (member != null)
             _members.Remove(member);
     }
@@ -46,7 +54,7 @@ public class GangManager
 
     public void UpdateMemberNeeds()
     {
-        foreach (var member in _members)
+        foreach (GangMember member in _members)
         {
             if (member == null)
                 continue;
@@ -64,7 +72,7 @@ public class GangManager
 
     public void AssignRole(string memberId, string role)
     {
-        var member = GetMember(memberId);
+        GangMember member = GetMember(memberId);
         if (member == null)
             return;
 
@@ -73,7 +81,7 @@ public class GangManager
 
     public void SetCombatStyle(string memberId, string style)
     {
-        var member = GetMember(memberId);
+        GangMember member = GetMember(memberId);
         if (member == null)
             return;
 

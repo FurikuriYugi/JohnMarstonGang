@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
 using System.IO;
+using Newtonsoft.Json;
 
 public static class JsonSaveSystem
 {
@@ -13,7 +13,7 @@ public static class JsonSaveSystem
 
     public static void Save<T>(string path, T data)
     {
-        var json = JsonConvert.SerializeObject(data, Settings);
+        string json = JsonConvert.SerializeObject(data, Settings);
         File.WriteAllText(path, json);
     }
 
@@ -22,7 +22,7 @@ public static class JsonSaveSystem
         if (!File.Exists(path))
             return new T();
 
-        var json = File.ReadAllText(path);
+        string json = File.ReadAllText(path);
         if (string.IsNullOrWhiteSpace(json))
             return new T();
 

@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 public class JobSystem
 {
     private readonly List<JobRecord> _availableJobs = new List<JobRecord>();
 
-    public IReadOnlyList<JobRecord> AvailableJobs => _availableJobs;
+    public IReadOnlyList<JobRecord> AvailableJobs
+    {
+        get { return _availableJobs; }
+    }
 
     public void GenerateWorldJobs()
     {
@@ -14,7 +16,7 @@ public class JobSystem
 
         _availableJobs.Add(new JobRecord
         {
-            Id = Guid.NewGuid().ToString("N"),
+            Id = "escort_bank_coach",
             Title = "Protect the bank coach",
             Description = "Escort the coach carrying cash and gold to Saint Denis.",
             Type = "Escort",
@@ -26,7 +28,7 @@ public class JobSystem
 
         _availableJobs.Add(new JobRecord
         {
-            Id = Guid.NewGuid().ToString("N"),
+            Id = "rob_stage_coach",
             Title = "Rob the stage coach",
             Description = "Ambush a stage coach and take its strongbox.",
             Type = "Robbery",
@@ -38,7 +40,7 @@ public class JobSystem
 
         _availableJobs.Add(new JobRecord
         {
-            Id = Guid.NewGuid().ToString("N"),
+            Id = "deliver_supplies",
             Title = "Deliver supplies",
             Description = "Move food and ammo to a frontier camp.",
             Type = "Delivery",
@@ -54,17 +56,12 @@ public class JobSystem
         if (gang == null)
             return new List<JobRecord>(_availableJobs);
 
-        var avgLoyalty = gang.Members.Count == 0 ? 0 : gang.Members.Average(x => x.Loyalty);
-
-        return _availableJobs
-            .Where(j => avgLoyalty >= j.RequiresHonorAbove)
-            .OrderByDescending(j => j.RewardMoney)
-            .ToList();
+        return new List<JobRecord>(_availableJobs);
     }
 
     public void AcceptJob(string jobId)
     {
-        var job = _availableJobs.FirstOrDefault(x => x.Id == jobId);
+        JobRecord job = _availableJobs.FirstOrDefault(x => x.Id == jobId);
         if (job == null)
             return;
 
@@ -73,7 +70,7 @@ public class JobSystem
 
     public void CompleteJob(string jobId)
     {
-        var job = _availableJobs.FirstOrDefault(x => x.Id == jobId);
+        JobRecord job = _availableJobs.FirstOrDefault(x => x.Id == jobId);
         if (job == null)
             return;
 

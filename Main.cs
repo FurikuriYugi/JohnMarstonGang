@@ -33,7 +33,7 @@ public class Main : Script
         foreach (var member in _gangManager.Members)
             _companionSystem.UpdateFromGangMember(member);
 
-        var context = new TacticalContext
+        TacticalContext context = new TacticalContext
         {
             IsTraveling = true
         };
@@ -48,7 +48,7 @@ public class Main : Script
 
     private void LoadState()
     {
-        var path = GetSavePath();
+        string path = GetSavePath();
         _saveData = JsonSaveSystem.Load<PlayerGangSaveData>(path);
 
         if (_saveData.Bank != null)
@@ -57,27 +57,29 @@ public class Main : Script
         _wagonSystem.LoadFromSaveData(_saveData.Wagons);
         _companionSystem.LoadFromSave(_saveData.Companions);
 
-        if (_saveData.GangMembers != null)
+        if (_saveData.GangMembers == null)
+            return;
+
+        foreach (GangMemberSaveData member in _saveData.GangMembers)
         {
-            foreach (var member in _saveData.GangMembers)
+            GangMember gangMember = new GangMember
             {
-                _gangManager.AddMember(new GangMember
-                {
-                    Id = string.IsNullOrWhiteSpace(member.Id) ? Guid.NewGuid().ToString("N") : member.Id,
-                    Name = member.Name,
-                    CompanionType = member.CompanionType,
-                    Role = member.Role,
-                    Alignment = member.Alignment,
-                    CombatStyle = member.CombatStyle,
-                    TacticalState = member.TacticalState,
-                    Loyalty = member.Loyalty,
-                    Experience = member.Experience,
-                    ModelName = member.ModelName,
-                    Weapons = member.Weapons ?? new System.Collections.Generic.List<string>(),
-                    MemoryTags = member.MemoryTags ?? new System.Collections.Generic.List<string>(),
-                    Goals = member.Goals ?? new System.Collections.Generic.List<string>()
-                });
-            }
+                Id = string.IsNullOrWhiteSpace(member.Id) ? Guid.NewGuid().ToString("N") : member.Id,
+                Name = member.Name,
+                CompanionType = member.CompanionType,
+                Role = member.Role,
+                Alignment = member.Alignment,
+                CombatStyle = member.CombatStyle,
+                TacticalState = member.TacticalState,
+                Loyalty = member.Loyalty,
+                Experience = member.Experience,
+                ModelName = member.ModelName,
+                Weapons = member.Weapons ?? new System.Collections.Generic.List<string>(),
+                MemoryTags = member.MemoryTags ?? new System.Collections.Generic.List<string>(),
+                Goals = member.Goals ?? new System.Collections.Generic.List<string>()
+            };
+
+            _gangManager.AddMember(gangMember);
         }
     }
 
