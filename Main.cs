@@ -58,17 +58,14 @@ public class Main : Script
     {
         _saveRoot = JsonSaveSystem.Load() ?? new SaveRoot();
 
-        if (_saveRoot.GangMembers != null)
-            _gangManager.ImportSaveData(_saveRoot);
+        _gangManager.ImportSaveData(_saveRoot);
+        _jobSystem.LoadFromSaveRoot(_saveRoot);
 
         if (_saveRoot.World != null && _saveRoot.World.Companions != null)
             _companionSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Companions));
 
         if (_saveRoot.BankAccounts != null)
             _bankSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.BankAccounts));
-
-        if (_saveRoot.World != null && _saveRoot.World.ActiveJobs != null)
-            _jobSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.ActiveJobs));
 
         if (_saveRoot.World != null && _saveRoot.World.Wagons != null)
             _wagonSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Wagons));
@@ -100,7 +97,7 @@ public class Main : Script
         _saveRoot.GangMembers = _gangManager.GetMembers();
         _saveRoot.World.Companions = _companionSystem.GetCompanions();
         _saveRoot.BankAccounts = _bankSystem.GetAllAccounts();
-        _saveRoot.World.ActiveJobs = _jobSystem.GetAllJobs();
+        _jobSystem.WriteToSaveRoot(_saveRoot);
         _saveRoot.World.Wagons = _wagonSystem.GetWagons();
         _saveRoot.World.WeaponPlatforms = _weaponSystem.GetPlatforms();
         _saveRoot.World.Locks = _lockSystem.GetLocks();
