@@ -3,102 +3,108 @@ using Newtonsoft.Json;
 
 public class LockSystem
 {
-    private readonly Dictionary<int, LockableTarget> _targets = new Dictionary<int, LockableTarget>();
+    private readonly Dictionary<string, LockRecord> _locks = new Dictionary<string, LockRecord>();
 
-    public void RegisterTarget(LockableTarget target)
+    public void RegisterLock(LockRecord lockRecord)
     {
-        if (target == null)
+        if (lockRecord == null || string.IsNullOrWhiteSpace(lockRecord.TargetId))
             return;
 
-        _targets[target.Id] = target;
+        _locks[lockRecord.TargetId] = lockRecord;
     }
 
-    public bool CanPick(int targetId, bool hasBreakerTool)
+    public bool HasLock(string targetId)
     {
-        if (!_targets.ContainsKey(targetId))
-            return false;
-
-        LockableTarget target = _targets[targetId];
-        return hasBreakerTool && target.IsLocked && target.SupportsPicking;
+        return !string.IsNullOrWhiteSpace(targetId) && _locks.ContainsKey(targetId);
     }
 
-    public bool PickLock(int targetId)
+    public LockRecord GetLock(string targetId)
     {
-        if (!_targets.ContainsKey(targetId))
-            return false;
+        if (string.IsNullOrWhiteSpace(targetId))
+            return null;
 
-        LockableTarget target = _targets[targetId];
-        if (!target.IsLocked || !target.SupportsPicking)
-            return false;
-
-        target.IsLocked = false;
-        target.WasPicked = true;
-        return true;
+        _locks.TryGetValue(targetId, out LockRecord lockRecord);
+        return lockRecord;
     }
 
-    public bool CanBlast(int targetId)
+    public List<LockRecord> GetAllLocks()
     {
-        if (!_targets.ContainsKey(targetId))
-            return false;
-
-        return _targets[targetId].SupportsExplosion;
+        return new List<LockRecord>(_locks.Values);
     }
 
-    public bool BlastOpen(int targetId)
+    public bool CanPick(string targetId)
     {
-        if (!_targets.ContainsKey(targetId))
-            return false;
-
-        LockableTarget target = _targets[targetId];
-        if (!target.SupportsExplosion)
-            return false;
-
-        target.IsLocked = false;
-        target.IsBrokenOpen = true;
-        return true;
+        LockRecord lockRecord = GetLock(targetId);
+        return lockRecord != null && !lockRecord.IsBroken;
     }
 
-    public bool Open(int targetId)
+    public void Pick(string targetId)
     {
-        if (!_targets.ContainsKey(targetId))
-            return false;
+        LockRecord lockRecord = GetLock(targetId);
+        if (lockRecord == null)
+            return;
 
-        _targets[targetId].IsLocked = false;
-        return true;
+        lockRecord.IsLocked = false;
+        lockRecord.IsBroken = false;
+    }
+
+    public void Break(string targetId)
+    {
+        LockRecord lockRecord = GetLock(targetId);
+        if (lockRecord == null)
+            return;
+
+        lockRecord.IsLocked = false;
+        lockRecord.IsBroken = true;
+    }
+
+    public void Relock(string targetId)
+    {
+        LockRecord lockRecord = GetLock(targetId);
+        if (lockRecord == null)
+            return;
+
+        lockRecord.IsLocked = true;
+        lockRecord.IsBroken = false;
+    }
+
+    public void LoadLocks(List<LockRecord> locks)
+    {
+        _locks.Clear();
+
+        if (locks == null)
+            return;
+
+        foreach (LockRecord lockRecord in locks)
+        {
+            if (lockRecord != null && !string.IsNullOrWhiteSpace(lockRecord.TargetId))
+                _locks[lockRecord.TargetId] = lockRecord;
+        }
     }
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_targets.Values, Formatting.Indented);
+        return JsonConvert.SerializeObject(GetAllLocks(), Formatting.Indented);
     }
 
     public void LoadState(string json)
     {
-        _targets.Clear();
+        _locks.Clear();
 
         if (string.IsNullOrWhiteSpace(json))
             return;
 
-        List<LockableTarget> targets = JsonConvert.DeserializeObject<List<LockableTarget>>(json);
-        if (targets == null)
-            return;
-
-        foreach (LockableTarget target in targets)
-        {
-            if (target != null)
-                _targets[target.Id] = target;
-        }
+        List<LockRecord> locks = JsonConvert.DeserializeObject<List<LockRecord>>(json);
+        LoadLocks(locks);
     }
 }
 
-public class LockableTarget
+public class LockRecord
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
+    public string TargetId { get; set; }
     public string TargetType { get; set; }
-    public bool IsLocked { get; set; } = true;
-    public bool SupportsPicking { get; set; } = true;
-    public bool SupportsExplosion { get; set; } = true;
-    public bool WasPicked { get; set; }
-    public bool IsBrokenOpen { get; set; }
+    public bool IsLocked { get; set; }
+    public bool IsBroken { get; set; }
+    public bool CanBePicked { get; set; }
+    public bool CanBeBlasted { get; set; }
 }
