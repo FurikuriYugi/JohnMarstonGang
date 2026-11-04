@@ -10,6 +10,14 @@ public class JobSystem
         return new List<JobData>(_jobs);
     }
 
+    public JobData GetJob(string jobId)
+    {
+        if (string.IsNullOrWhiteSpace(jobId))
+            return null;
+
+        return _jobs.Find(x => x != null && x.JobId == jobId);
+    }
+
     public void RegisterJob(JobData job)
     {
         if (job == null || string.IsNullOrWhiteSpace(job.JobId))
@@ -19,34 +27,9 @@ public class JobSystem
         _jobs.Add(job);
     }
 
-    public JobData GetJob(string jobId)
+    public void RemoveJob(string jobId)
     {
-        if (string.IsNullOrWhiteSpace(jobId))
-            return null;
-
-        return _jobs.Find(x => x != null && x.JobId == jobId);
-    }
-
-    public void CompleteJob(string jobId)
-    {
-        JobData job = GetJob(jobId);
-        if (job == null)
-            return;
-
-        job.IsCompleted = true;
-        job.IsFailed = false;
-        job.IsAvailable = false;
-    }
-
-    public void FailJob(string jobId)
-    {
-        JobData job = GetJob(jobId);
-        if (job == null)
-            return;
-
-        job.IsFailed = true;
-        job.IsCompleted = false;
-        job.IsAvailable = false;
+        _jobs.RemoveAll(x => x != null && x.JobId == jobId);
     }
 
     public string SaveState()

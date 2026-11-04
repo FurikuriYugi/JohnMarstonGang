@@ -27,6 +27,11 @@ public class WagonSystem
         _wagons.Add(wagon);
     }
 
+    public void RemoveWagon(string wagonId)
+    {
+        _wagons.RemoveAll(x => x != null && x.WagonId == wagonId);
+    }
+
     public string SaveState()
     {
         return JsonConvert.SerializeObject(_wagons, Formatting.Indented);
