@@ -9,7 +9,8 @@ public class InteractionSystem
         if (member == null)
             return false;
 
-        return member.Goals.Contains("BreakerTool") || member.MemoryTags.Contains("HasLockpick");
+        return (member.Goals != null && member.Goals.Contains("BreakerTool"))
+            || (member.MemoryTags != null && member.MemoryTags.Contains("HasLockpick"));
     }
 
     public bool CanUseDynamite(GangMember member)
@@ -17,7 +18,8 @@ public class InteractionSystem
         if (member == null)
             return false;
 
-        return member.Weapons.Contains("Dynamite") || member.MemoryTags.Contains("CanBlowOpen");
+        return (member.Weapons != null && member.Weapons.Contains("Dynamite"))
+            || (member.MemoryTags != null && member.MemoryTags.Contains("CanBlowOpen"));
     }
 
     public InteractionResult TryOpenDoor(GangMember member, bool locked)
@@ -46,5 +48,29 @@ public class InteractionSystem
             return InteractionResult.Succeeded("Safe blasted open.");
 
         return InteractionResult.Failed("Cannot open safe.");
+    }
+}
+
+public class InteractionResult
+{
+    public bool IsSuccess { get; set; }
+    public string Message { get; set; } = string.Empty;
+
+    public static InteractionResult Succeeded(string message)
+    {
+        return new InteractionResult
+        {
+            IsSuccess = true,
+            Message = message
+        };
+    }
+
+    public static InteractionResult Failed(string message)
+    {
+        return new InteractionResult
+        {
+            IsSuccess = false,
+            Message = message
+        };
     }
 }
