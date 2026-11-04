@@ -1,11 +1,10 @@
-﻿using System.IO;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using RDR2;
+using System.IO;
 
 public class Main : Script
 {
     private const string SaveFileName = "JohnMorstonGang_Save.json";
-
     private SaveRoot _saveRoot;
     private GangManager _gangManager;
     private CompanionSystem _companionSystem;
@@ -76,16 +75,15 @@ public class Main : Script
         if (_saveRoot == null)
             _saveRoot = new SaveRoot();
 
-        _saveRoot.GangMembers = _gangManager.GetMembers();
-
         if (_saveRoot.World == null)
             _saveRoot.World = new WorldState();
 
+        _saveRoot.GangMembers = _gangManager.GetMembers();
         _saveRoot.World.Companions = _companionSystem.GetCompanions();
         _saveRoot.BankAccounts = _bankSystem.GetAllAccounts();
         _saveRoot.World.ActiveJobs = _jobSystem.GetAllJobs();
         _saveRoot.World.Wagons = _wagonSystem.GetWagons();
-        _saveRoot.World.WeaponPlatforms = _weaponSystem.GetWeaponPlatforms();
+        _saveRoot.World.WeaponPlatforms = _weaponSystem.GetPlatforms();
 
         string json = JsonConvert.SerializeObject(_saveRoot, Formatting.Indented);
         File.WriteAllText(SaveFileName, json);
