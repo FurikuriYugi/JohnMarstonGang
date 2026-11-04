@@ -24,6 +24,7 @@ public class Main : Script
     public Main()
     {
         _saveRoot = new SaveRoot();
+
         _gangManager = new GangManager();
         _companionSystem = new CompanionSystem();
         _bankSystem = new BankSystem();
@@ -38,6 +39,7 @@ public class Main : Script
         _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
 
         Tick += OnTick;
+
         LoadAll();
     }
 
@@ -48,16 +50,14 @@ public class Main : Script
         if (_tickCounter % 30 != 0)
             return;
 
-        SyncWorldStateFromSystems();
         UpdateEntityAI();
+        SyncWorldStateFromSystems();
         SaveAll();
     }
 
     private void LoadAll()
     {
-        _saveRoot = JsonSaveSystem.Load();
-        if (_saveRoot == null)
-            _saveRoot = new SaveRoot();
+        _saveRoot = JsonSaveSystem.Load() ?? new SaveRoot();
 
         if (_saveRoot.GangMembers != null)
             _gangManager.ImportSaveData(_saveRoot);
