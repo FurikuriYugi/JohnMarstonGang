@@ -3,10 +3,11 @@ using System.Collections.Generic;
 
 public class SaveRoot
 {
-    public int SaveVersion { get; set; } = 3;
+    public int SaveVersion { get; set; } = 4;
     public WorldState World { get; set; } = new WorldState();
     public List<GangMember> GangMembers { get; set; } = new List<GangMember>();
     public List<BankAccountData> BankAccounts { get; set; } = new List<BankAccountData>();
+    public List<WorldEntityData> WorldEntities { get; set; } = new List<WorldEntityData>();
 }
 
 public class WorldState
@@ -154,6 +155,27 @@ public class EntityStateData
     public string CurrentState { get; set; }
     public string HomeLocationId { get; set; }
     public List<string> InventoryItems { get; set; } = new List<string>();
+}
+
+public class WorldEntityData
+{
+    public string EntityId { get; set; }
+    public string EntityType { get; set; }
+    public string DisplayName { get; set; }
+    public string FactionId { get; set; }
+    public string LocationId { get; set; }
+    public bool IsAlive { get; set; }
+    public bool IsHostile { get; set; }
+    public bool IsRecruitable { get; set; }
+    public bool IsFollowingPlayer { get; set; }
+    public string CurrentTask { get; set; }
+    public string CombatStyle { get; set; }
+    public int Loyalty { get; set; }
+    public int CombatSkill { get; set; }
+    public int StealthSkill { get; set; }
+    public int SupportSkill { get; set; }
+    public List<string> InventoryItems { get; set; } = new List<string>();
+    public List<string> KnownGoals { get; set; } = new List<string>();
 }
 
 public class TacticalOrderData

@@ -12,6 +12,8 @@ public class Main : Script
     private readonly WeaponSystem _weaponSystem;
     private readonly WagonSystem _wagonSystem;
     private readonly TacticalSquadAiSystem _tacticalSquadAiSystem;
+    private readonly WorldEntityRegistry _entityRegistry;
+    private readonly TacticalDecisionSystem _tacticalDecisionSystem;
     private readonly InteractionSystem _interactionSystem;
 
     private SaveRoot _saveRoot;
@@ -29,6 +31,8 @@ public class Main : Script
         _weaponSystem = new WeaponSystem();
         _wagonSystem = new WagonSystem();
         _tacticalSquadAiSystem = new TacticalSquadAiSystem();
+        _entityRegistry = new WorldEntityRegistry();
+        _tacticalDecisionSystem = new TacticalDecisionSystem(_entityRegistry, _tacticalSquadAiSystem);
         _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
 
         LoadAll();
@@ -71,6 +75,9 @@ public class Main : Script
 
         if (_saveRoot.World != null && _saveRoot.World.TacticalOrders != null)
             _tacticalSquadAiSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.TacticalOrders));
+
+        if (_saveRoot.WorldEntities != null)
+            _entityRegistry.LoadState(JsonConvert.SerializeObject(_saveRoot.WorldEntities));
     }
 
     private void SaveAll()
@@ -90,6 +97,7 @@ public class Main : Script
         _saveRoot.World.Locks = _lockSystem.GetLocks();
         _saveRoot.World.Destructibles = _dynamiteSystem.GetDestructibles();
         _saveRoot.World.TacticalOrders = _tacticalSquadAiSystem.GetOrders();
+        _saveRoot.WorldEntities = _entityRegistry.GetEntities();
 
         JsonSaveSystem.Save(_saveRoot);
     }

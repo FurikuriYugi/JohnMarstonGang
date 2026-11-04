@@ -76,7 +76,7 @@ public static class JsonSaveSystem
             return;
 
         if (data.SaveVersion <= 0)
-            data.SaveVersion = 3;
+            data.SaveVersion = 4;
 
         if (data.World == null)
             data.World = new WorldState();
@@ -85,6 +85,8 @@ public static class JsonSaveSystem
             data.GangMembers = new System.Collections.Generic.List<GangMember>();
         if (data.BankAccounts == null)
             data.BankAccounts = new System.Collections.Generic.List<BankAccountData>();
+        if (data.WorldEntities == null)
+            data.WorldEntities = new System.Collections.Generic.List<WorldEntityData>();
 
         if (data.World.Companions == null)
             data.World.Companions = new System.Collections.Generic.List<CompanionData>();
@@ -107,25 +109,18 @@ public static class JsonSaveSystem
         if (data.World.TacticalOrders == null)
             data.World.TacticalOrders = new System.Collections.Generic.List<TacticalOrderData>();
 
-        if (saveVersion < 3)
-            MigrateFromV2(data);
+        if (saveVersion < 4)
+            MigrateFromV3(data);
 
-        data.SaveVersion = 3;
+        data.SaveVersion = 4;
     }
 
-    private static void MigrateFromV2(SaveRoot data)
+    private static void MigrateFromV3(SaveRoot data)
     {
         if (data == null)
             return;
 
-        if (data.World == null)
-            data.World = new WorldState();
-
-        if (data.World.Locks == null)
-            data.World.Locks = new System.Collections.Generic.List<LockRecord>();
-        if (data.World.Destructibles == null)
-            data.World.Destructibles = new System.Collections.Generic.List<DestructibleRecord>();
-        if (data.World.TacticalOrders == null)
-            data.World.TacticalOrders = new System.Collections.Generic.List<TacticalOrderData>();
+        if (data.WorldEntities == null)
+            data.WorldEntities = new System.Collections.Generic.List<WorldEntityData>();
     }
 }
