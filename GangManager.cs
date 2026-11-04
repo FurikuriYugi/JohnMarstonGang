@@ -121,12 +121,16 @@ public static class TacticalStateResolver
 
         if (context.IsStealth)
             return "Stealth";
+
         if (context.IsInCombat)
             return "Engage";
+
         if (context.IsShopping)
             return "Support";
+
         if (context.IsTraveling)
             return "Travel";
+
         if (!string.IsNullOrWhiteSpace(member?.CurrentTask))
             return member.CurrentTask;
 
@@ -143,8 +147,10 @@ public static class TacticalStateResolver
 
         if (member.Role == "Scout")
             return "Ranged Long";
+
         if (member.Role == "Bruiser")
             return "Lethal Melee";
+
         if (member.Role == "Hunter")
             return "Ranged Short";
 
@@ -157,14 +163,19 @@ public static class TacticalStateResolver
 
         if (member != null && member.Loyalty >= 75)
             priority += 10;
+
         if (member != null && member.Hunger <= 20)
             priority -= 15;
+
         if (context != null && context.IsInCombat)
             priority += 20;
+
         if (context != null && context.IsStealth)
             priority += 5;
+
         if (context != null && context.IsTraveling)
             priority += 3;
+
         if (context != null && context.IsShopping)
             priority += 2;
 
@@ -191,4 +202,5 @@ public class GangMember
     public int Loyalty { get; set; }
     public int Hunger { get; set; }
     public int BehaviorPriority { get; set; } = 50;
+    public List<string> MemoryTags { get; set; } = new List<string>();
 }
