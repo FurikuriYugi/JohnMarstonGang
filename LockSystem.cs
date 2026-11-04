@@ -98,13 +98,3 @@ public class LockSystem
         LoadLocks(locks);
     }
 }
-
-public class LockRecord
-{
-    public string TargetId { get; set; }
-    public string TargetType { get; set; }
-    public bool IsLocked { get; set; }
-    public bool IsBroken { get; set; }
-    public bool CanBePicked { get; set; }
-    public bool CanBeBlasted { get; set; }
-}
