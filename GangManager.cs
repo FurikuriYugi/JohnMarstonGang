@@ -19,14 +19,9 @@ public class GangManager
         if (_members.Any(x => x.Id == member.Id))
             return;
 
-        if (member.Weapons == null)
-            member.Weapons = new List<string>();
-
-        if (member.MemoryTags == null)
-            member.MemoryTags = new List<string>();
-
-        if (member.Goals == null)
-            member.Goals = new List<string>();
+        member.Weapons ??= new List<string>();
+        member.MemoryTags ??= new List<string>();
+        member.Goals ??= new List<string>();
 
         if (string.IsNullOrWhiteSpace(member.CombatStyle))
             member.CombatStyle = "Ranged Medium";

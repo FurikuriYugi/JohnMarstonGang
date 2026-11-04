@@ -47,8 +47,7 @@ public class CompanionSystem
         if (member == null)
             return;
 
-        if (member.Goals == null)
-            member.Goals = new List<string>();
+        member.Goals ??= new List<string>();
 
         if (member.Goals.Count == 0)
             member.Goals.Add("Stay close to the gang");
