@@ -3,9 +3,9 @@ using Newtonsoft.Json;
 
 public class CompanionSystem
 {
-    private readonly Dictionary<string, CompanionRecord> _companions = new Dictionary<string, CompanionRecord>();
+    private readonly Dictionary<string, CompanionData> _companions = new Dictionary<string, CompanionData>();
 
-    public void RegisterCompanion(CompanionRecord companion)
+    public void RegisterCompanion(CompanionData companion)
     {
         if (companion == null || string.IsNullOrWhiteSpace(companion.CompanionId))
             return;
@@ -13,37 +13,80 @@ public class CompanionSystem
         _companions[companion.CompanionId] = companion;
     }
 
-    public bool SetCompanionGoal(string companionId, string goal)
+    public bool HasCompanion(string companionId)
     {
-        if (string.IsNullOrWhiteSpace(companionId) || !_companions.ContainsKey(companionId))
-            return false;
-
-        _companions[companionId].CurrentGoal = goal;
-        return true;
+        return !string.IsNullOrWhiteSpace(companionId) && _companions.ContainsKey(companionId);
     }
 
-    public List<CompanionRecord> GetAllCompanions()
+    public CompanionData GetCompanion(string companionId)
     {
-        return new List<CompanionRecord>(_companions.Values);
+        if (string.IsNullOrWhiteSpace(companionId))
+            return null;
+
+        _companions.TryGetValue(companionId, out CompanionData companion);
+        return companion;
     }
 
-    public void LoadCompanions(List<CompanionRecord> companions)
+    public List<CompanionData> GetAllCompanions()
+    {
+        return new List<CompanionData>(_companions.Values);
+    }
+
+    public void LoadCompanions(List<CompanionData> companions)
     {
         _companions.Clear();
 
         if (companions == null)
             return;
 
-        foreach (CompanionRecord companion in companions)
+        foreach (CompanionData companion in companions)
         {
             if (companion != null && !string.IsNullOrWhiteSpace(companion.CompanionId))
                 _companions[companion.CompanionId] = companion;
         }
     }
 
+    public void AddMemory(string companionId, string memoryTag)
+    {
+        CompanionData companion = GetCompanion(companionId);
+        if (companion == null || string.IsNullOrWhiteSpace(memoryTag))
+            return;
+
+        if (companion.MemoryTags == null)
+            companion.MemoryTags = new List<string>();
+
+        if (!companion.MemoryTags.Contains(memoryTag))
+            companion.MemoryTags.Add(memoryTag);
+    }
+
+    public void AddGoal(string companionId, string goal)
+    {
+        CompanionData companion = GetCompanion(companionId);
+        if (companion == null || string.IsNullOrWhiteSpace(goal))
+            return;
+
+        if (companion.Goals == null)
+            companion.Goals = new List<string>();
+
+        if (!companion.Goals.Contains(goal))
+            companion.Goals.Add(goal);
+    }
+
+    public void AddItem(string companionId, string item)
+    {
+        CompanionData companion = GetCompanion(companionId);
+        if (companion == null || string.IsNullOrWhiteSpace(item))
+            return;
+
+        if (companion.Inventory == null)
+            companion.Inventory = new List<string>();
+
+        companion.Inventory.Add(item);
+    }
+
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_companions.Values, Formatting.Indented);
+        return JsonConvert.SerializeObject(GetAllCompanions(), Formatting.Indented);
     }
 
     public void LoadState(string json)
@@ -53,22 +96,22 @@ public class CompanionSystem
         if (string.IsNullOrWhiteSpace(json))
             return;
 
-        List<CompanionRecord> companions = JsonConvert.DeserializeObject<List<CompanionRecord>>(json);
-        if (companions == null)
-            return;
-
-        foreach (CompanionRecord companion in companions)
-        {
-            if (companion != null && !string.IsNullOrWhiteSpace(companion.CompanionId))
-                _companions[companion.CompanionId] = companion;
-        }
+        List<CompanionData> companions = JsonConvert.DeserializeObject<List<CompanionData>>(json);
+        LoadCompanions(companions);
     }
 }
 
-public class CompanionRecord
+public class CompanionData
 {
     public string CompanionId { get; set; }
     public string Name { get; set; }
     public string Species { get; set; }
-    public string CurrentGoal { get; set; }
+    public string Role { get; set; }
+    public string CombatStyle { get; set; }
+    public int Loyalty { get; set; }
+    public int Experience { get; set; }
+    public List<string> MemoryTags { get; set; } = new List<string>();
+    public List<string> Skills { get; set; } = new List<string>();
+    public List<string> Goals { get; set; } = new List<string>();
+    public List<string> Inventory { get; set; } = new List<string>();
 }

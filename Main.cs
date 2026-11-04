@@ -5,26 +5,14 @@ public class Main
 {
     private readonly GangManager _gangManager;
     private readonly TacticalSquadAiSystem _tacticalAi;
-    private readonly CompanionSystem _companionSystem;
     private readonly BankSystem _bankSystem;
-    private readonly JobSystem _jobSystem;
-    private readonly WagonSystem _wagonSystem;
-    private readonly LockSystem _lockSystem;
-    private readonly DynamiteSystem _dynamiteSystem;
-    private readonly InteractionSystem _interactionSystem;
     private readonly JsonSaveSystem _saveSystem;
 
     public Main()
     {
         _gangManager = new GangManager();
         _tacticalAi = new TacticalSquadAiSystem();
-        _companionSystem = new CompanionSystem();
         _bankSystem = new BankSystem();
-        _jobSystem = new JobSystem();
-        _wagonSystem = new WagonSystem();
-        _lockSystem = new LockSystem();
-        _dynamiteSystem = new DynamiteSystem();
-        _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
         _saveSystem = new JsonSaveSystem();
     }
 
@@ -62,8 +50,10 @@ public class Main
                 Role = "Leader",
                 CombatStyle = "Ranged Medium",
                 TacticalState = "Follow",
+                CurrentTask = string.Empty,
                 Loyalty = 100,
                 Hunger = 0,
+                BehaviorPriority = 50,
                 MemoryTags = new List<string>()
             });
         }
@@ -81,33 +71,6 @@ public class Main
                 IsSuspicious = false
             });
         }
-
-        if (_jobSystem.GetAllJobs().Count == 0)
-        {
-            _jobSystem.RegisterJob(new JobRecord
-            {
-                JobId = "starter_bank_run",
-                Title = "Bank Run",
-                Faction = "Civilian",
-                PayoutCash = 10m,
-                PayoutGold = 0m,
-                HonorChange = 1,
-                IsAvailable = true,
-                IsCompleted = false
-            });
-        }
-
-        if (_wagonSystem.GetAllWagons().Count == 0)
-        {
-            _wagonSystem.RegisterWagon(new WagonData
-            {
-                WagonId = "starter_wagon",
-                OwnerId = "player",
-                IsOwned = true,
-                IsHitched = false,
-                StoredItems = new List<string>()
-            });
-        }
     }
 
     public void SaveAll(string path)
@@ -115,10 +78,7 @@ public class Main
         SaveRoot root = new SaveRoot
         {
             GangMembers = _gangManager.GetAllMembers(),
-            Companions = _companionSystem.GetAllCompanions(),
-            BankAccounts = _bankSystem.GetAllAccounts(),
-            Jobs = _jobSystem.GetAllJobs(),
-            Wagons = _wagonSystem.GetAllWagons()
+            BankAccounts = ConvertBankAccounts(_bankSystem.GetAllAccounts())
         };
 
         _saveSystem.Save(path, root);
@@ -131,9 +91,60 @@ public class Main
             return;
 
         _gangManager.LoadMembers(root.GangMembers);
-        _companionSystem.LoadCompanions(root.Companions);
-        _bankSystem.LoadAccounts(root.BankAccounts);
-        _jobSystem.LoadJobs(root.Jobs);
-        _wagonSystem.LoadWagons(root.Wagons);
+        _bankSystem.LoadAccounts(ConvertBankAccounts(root.BankAccounts));
+    }
+
+    private List<BankAccountRecord> ConvertBankAccounts(List<BankAccountData> accounts)
+    {
+        List<BankAccountRecord> result = new List<BankAccountRecord>();
+
+        if (accounts == null)
+            return result;
+
+        foreach (BankAccountData account in accounts)
+        {
+            if (account == null)
+                continue;
+
+            result.Add(new BankAccountRecord
+            {
+                OwnerId = account.OwnerId,
+                OwnerName = account.OwnerName,
+                Cash = account.Cash,
+                Gold = account.Gold,
+                CreditLimit = account.CreditLimit,
+                Debt = account.Debt,
+                IsSuspicious = account.IsSuspicious
+            });
+        }
+
+        return result;
+    }
+
+    private List<BankAccountData> ConvertBankAccounts(List<BankAccountRecord> accounts)
+    {
+        List<BankAccountData> result = new List<BankAccountData>();
+
+        if (accounts == null)
+            return result;
+
+        foreach (BankAccountRecord account in accounts)
+        {
+            if (account == null)
+                continue;
+
+            result.Add(new BankAccountData
+            {
+                OwnerId = account.OwnerId,
+                OwnerName = account.OwnerName,
+                Cash = account.Cash,
+                Gold = account.Gold,
+                CreditLimit = account.CreditLimit,
+                Debt = account.Debt,
+                IsSuspicious = account.IsSuspicious
+            });
+        }
+
+        return result;
     }
 }
