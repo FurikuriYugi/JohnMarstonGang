@@ -9,6 +9,7 @@ public class PlayerGangSaveData
     public decimal Gold { get; set; }
     public List<GangMemberSaveData> GangMembers { get; set; } = new List<GangMemberSaveData>();
     public List<WagonSaveData> Wagons { get; set; } = new List<WagonSaveData>();
+    public List<CompanionSaveData> Companions { get; set; } = new List<CompanionSaveData>();
     public BankSaveData Bank { get; set; } = new BankSaveData();
     public List<JobSaveData> ActiveJobs { get; set; } = new List<JobSaveData>();
     public List<WorldFactionRecordSaveData> WorldRecords { get; set; } = new List<WorldFactionRecordSaveData>();

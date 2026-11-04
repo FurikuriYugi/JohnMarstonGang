@@ -6,7 +6,7 @@ public class TacticalSquadAiSystem
 {
     public void UpdateSquadTactics(IEnumerable<GangMember> members, TacticalContext context)
     {
-        if (members == null || context == null)
+        if (members == null)
             return;
 
         foreach (var member in members)
@@ -14,94 +14,74 @@ public class TacticalSquadAiSystem
             if (member == null)
                 continue;
 
-            ApplyContextToMember(member, context);
+            member.TacticalState = SelectTacticalState(member, context);
+            member.CombatStyle = SelectCombatStyle(member, context);
+            member.BehaviorPriority = SelectPriority(member, context);
         }
     }
 
-    private void ApplyContextToMember(GangMember member, TacticalContext context)
+    public string SelectTacticalState(GangMember member, TacticalContext context)
     {
-        if (context.IsUnderFire)
-        {
-            member.TacticalState = TacticalState.Combat;
-            member.CombatStyle = ChooseCombatStyleForThreat(member, context);
-            return;
-        }
+        if (context == null)
+            return "Follow";
 
-        if (context.IsStealthMission)
-        {
-            member.TacticalState = TacticalState.Stealth;
-            member.CombatStyle = CombatStyle.Stealth;
-            return;
-        }
+        if (context.IsStealth)
+            return "Stealth";
 
-        if (context.IsShoppingOrTown)
-        {
-            member.TacticalState = TacticalState.Guarding;
-            member.CombatStyle = CombatStyle.RangedShort;
-            return;
-        }
+        if (context.IsInCombat)
+            return "Engage";
 
         if (context.IsTraveling)
-        {
-            member.TacticalState = TacticalState.Following;
-            member.CombatStyle = ChooseTravelCombatStyle(member);
-            return;
-        }
+            return "Travel";
 
-        if (context.RequiresWork)
-        {
-            member.TacticalState = TacticalState.Working;
-            member.CombatStyle = ChooseWorkCombatStyle(member);
-            return;
-        }
+        if (member.MemoryTags != null && member.MemoryTags.Contains("NeedsFood"))
+            return "SupplyRun";
 
-        member.TacticalState = TacticalState.Idle;
+        return "Follow";
     }
 
-    private CombatStyle ChooseCombatStyleForThreat(GangMember member, TacticalContext context)
+    public string SelectCombatStyle(GangMember member, TacticalContext context)
     {
-        if (context.IsCloseQuarters)
-        {
-            if (member.Role == GangMemberRole.Scout || member.Role == GangMemberRole.Hunter)
-                return CombatStyle.LethalMelee;
+        if (context != null && context.IsStealth)
+            return "Stealth";
 
-            return CombatStyle.RangedShort;
-        }
+        if (member == null)
+            return "Ranged Medium";
 
-        if (context.IsLongRange)
-            return CombatStyle.RangedLong;
+        if (member.Role == "Scout")
+            return "Ranged Long";
 
-        if (context.IsSilentApproach)
-            return CombatStyle.Stealth;
+        if (member.Role == "Bruiser")
+            return "Lethal Melee";
 
-        return member.CombatStyle;
+        if (member.Role == "Hunter")
+            return "Ranged Short";
+
+        return member.CombatStyle ?? "Ranged Medium";
     }
 
-    private CombatStyle ChooseTravelCombatStyle(GangMember member)
+    public int SelectPriority(GangMember member, TacticalContext context)
     {
-        switch (member.Role)
-        {
-            case GangMemberRole.Scout:
-                return CombatStyle.Stealth;
-            case GangMemberRole.Hunter:
-                return CombatStyle.RangedMedium;
-            case GangMemberRole.Gunner:
-                return CombatStyle.RangedLong;
-            case GangMemberRole.Medic:
-                return CombatStyle.RangedShort;
-            default:
-                return CombatStyle.RangedShort;
-        }
+        var priority = 50;
+
+        if (member != null && member.Loyalty >= 75)
+            priority += 10;
+
+        if (member != null && member.Hunger <= 20)
+            priority -= 15;
+
+        if (context != null && context.IsInCombat)
+            priority += 20;
+
+        return priority;
     }
+}
 
-    private CombatStyle ChooseWorkCombatStyle(GangMember member)
-    {
-        if (member.Role == GangMemberRole.Engineer)
-            return CombatStyle.RangedShort;
-
-        if (member.Role == GangMemberRole.Driver)
-            return CombatStyle.RangedShort;
-
-        return CombatStyle.RangedMedium;
-    }
+public class TacticalContext
+{
+    public bool IsInCombat { get; set; }
+    public bool IsStealth { get; set; }
+    public bool IsTraveling { get; set; }
+    public bool IsShopping { get; set; }
+    public bool IsOnHorse { get; set; }
 }

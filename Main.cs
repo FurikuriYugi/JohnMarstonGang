@@ -1,8 +1,7 @@
-﻿using RDR2;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
+using RDR2;
 
 public class Main : Script
 {
@@ -12,17 +11,17 @@ public class Main : Script
     private readonly BankSystem _bankSystem = new BankSystem();
     private readonly TacticalSquadAiSystem _tacticalSystem = new TacticalSquadAiSystem();
     private readonly JobSystem _jobSystem = new JobSystem();
-    private readonly InteractionSystem _interactionSystem = new InteractionSystem();
     private readonly WagonSystem _wagonSystem = new WagonSystem();
-    private readonly LockSystem _lockSystem = new LockSystem();
-    private readonly DynamiteSystem _dynamiteSystem = new DynamiteSystem();
+    private readonly CompanionSystem _companionSystem = new CompanionSystem();
 
     private PlayerGangSaveData _saveData = new PlayerGangSaveData();
 
     public Main()
     {
         Tick += OnTick;
+        Aborted += OnAborted;
         Interval = 250;
+
         LoadState();
         _jobSystem.GenerateWorldJobs();
     }
@@ -31,12 +30,20 @@ public class Main : Script
     {
         _gangManager.UpdateMemberNeeds();
 
+        foreach (var member in _gangManager.Members)
+            _companionSystem.UpdateFromGangMember(member);
+
         var context = new TacticalContext
         {
             IsTraveling = true
         };
 
         _tacticalSystem.UpdateSquadTactics(_gangManager.Members, context);
+    }
+
+    private void OnAborted(object sender, EventArgs e)
+    {
+        SaveState();
     }
 
     private void LoadState()
@@ -48,6 +55,7 @@ public class Main : Script
             _bankSystem.LoadFromSaveData(_saveData.Bank);
 
         _wagonSystem.LoadFromSaveData(_saveData.Wagons);
+        _companionSystem.LoadFromSave(_saveData.Companions);
 
         if (_saveData.GangMembers != null)
         {
@@ -77,6 +85,8 @@ public class Main : Script
     {
         _saveData.Bank = _bankSystem.ToSaveData();
         _saveData.Wagons = _wagonSystem.Wagons.Select(x => x.ToSaveData()).ToList();
+        _saveData.Companions = _companionSystem.CreateSaveData();
+
         _saveData.GangMembers = _gangManager.Members.Select(x => new GangMemberSaveData
         {
             Id = x.Id,

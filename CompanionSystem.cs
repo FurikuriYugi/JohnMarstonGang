@@ -10,7 +10,7 @@ public class CompanionSystem
 
     public CompanionRecord GetOrCreateCompanion(string companionId, string name)
     {
-        CompanionRecord companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
+        var companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
         if (companion != null)
             return companion;
 
@@ -34,12 +34,12 @@ public class CompanionSystem
         if (member == null)
             return;
 
-        CompanionRecord companion = GetOrCreateCompanion(member.MemberId, member.Name);
+        var companion = GetOrCreateCompanion(member.Id, member.Name);
         companion.Loyalty = member.Loyalty;
-        companion.Trust = member.Trust;
+        companion.Trust = member.Loyalty;
         companion.Experience = member.Experience;
-        companion.Goals = new List<string>(member.KnownGoals ?? new List<string>());
-        companion.Memories = new List<string>(member.Memories ?? new List<string>());
+        companion.Goals = new List<string>(member.Goals ?? new List<string>());
+        companion.Memories = new List<string>(member.MemoryTags ?? new List<string>());
     }
 
     public void ApplyPersonalGoal(GangMember member)
@@ -47,16 +47,16 @@ public class CompanionSystem
         if (member == null)
             return;
 
-        if (member.KnownGoals == null)
-            member.KnownGoals = new List<string>();
+        if (member.Goals == null)
+            member.Goals = new List<string>();
 
-        if (member.KnownGoals.Count == 0)
-            member.KnownGoals.Add("Stay close to the gang");
+        if (member.Goals.Count == 0)
+            member.Goals.Add("Stay close to the gang");
     }
 
     public void AddMemory(string companionId, string memory)
     {
-        CompanionRecord companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
+        var companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
         if (companion == null)
             return;
 
@@ -85,7 +85,7 @@ public class CompanionSystem
         if (data == null)
             return;
 
-        foreach (CompanionSaveData companionData in data)
+        foreach (var companionData in data)
         {
             _companions.Add(new CompanionRecord
             {

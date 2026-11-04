@@ -13,83 +13,75 @@ public class GangManager
         if (member == null)
             return;
 
+        if (string.IsNullOrWhiteSpace(member.Id))
+            member.Id = Guid.NewGuid().ToString("N");
+
         if (_members.Any(x => x.Id == member.Id))
             return;
+
+        if (member.Weapons == null)
+            member.Weapons = new List<string>();
+
+        if (member.MemoryTags == null)
+            member.MemoryTags = new List<string>();
+
+        if (member.Goals == null)
+            member.Goals = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(member.CombatStyle))
+            member.CombatStyle = "Ranged Medium";
+
+        if (string.IsNullOrWhiteSpace(member.TacticalState))
+            member.TacticalState = "Follow";
 
         _members.Add(member);
     }
 
-    public bool RemoveMember(string id)
+    public void RemoveMember(string memberId)
     {
-        var member = _members.FirstOrDefault(x => x.Id == id);
-        if (member == null)
-            return false;
-
-        return _members.Remove(member);
+        var member = _members.FirstOrDefault(x => x.Id == memberId);
+        if (member != null)
+            _members.Remove(member);
     }
 
-    public GangMember GetMember(string id)
+    public GangMember GetMember(string memberId)
     {
-        return _members.FirstOrDefault(x => x.Id == id);
-    }
-
-    public IEnumerable<GangMember> GetMembersByRole(GangMemberRole role)
-    {
-        return _members.Where(x => x.Role == role);
-    }
-
-    public void SetFollowingMode(bool enabled)
-    {
-        foreach (var member in _members)
-        {
-            member.TacticalState = enabled ? TacticalState.Following : TacticalState.Idle;
-        }
-    }
-
-    public void SetStealthMode(bool enabled)
-    {
-        foreach (var member in _members)
-        {
-            member.TacticalState = enabled ? TacticalState.Stealth : TacticalState.Idle;
-            member.CombatStyle = enabled ? CombatStyle.Stealth : member.CombatStyle;
-        }
-    }
-
-    public void SetCombatAlert()
-    {
-        foreach (var member in _members)
-        {
-            member.TacticalState = TacticalState.Combat;
-        }
+        return _members.FirstOrDefault(x => x.Id == memberId);
     }
 
     public void UpdateMemberNeeds()
     {
         foreach (var member in _members)
         {
-            member.NeedsFood = member.NeedsFood || member.Hunger >= 70;
-            member.NeedsAmmo = member.NeedsAmmo || member.AmmoReserve <= 10;
-            member.NeedsMedicine = member.NeedsMedicine || member.Health <= 35;
+            if (member == null)
+                continue;
+
+            member.Hunger = Math.Max(0, member.Hunger - 1);
+            member.Health = Math.Max(0, member.Health);
+
+            if (member.Hunger <= 20 && !member.MemoryTags.Contains("NeedsFood"))
+                member.MemoryTags.Add("NeedsFood");
+
+            if (member.Health <= 25 && !member.MemoryTags.Contains("NeedsMedicine"))
+                member.MemoryTags.Add("NeedsMedicine");
         }
     }
 
-    public void AssignRole(string id, GangMemberRole role)
+    public void AssignRole(string memberId, string role)
     {
-        var member = GetMember(id);
+        var member = GetMember(memberId);
         if (member == null)
             return;
 
         member.Role = role;
-        member.UpdateCombatStyleFromRole();
     }
 
-    public void RewardMember(string id, int loyaltyDelta, int experienceDelta)
+    public void SetCombatStyle(string memberId, string style)
     {
-        var member = GetMember(id);
+        var member = GetMember(memberId);
         if (member == null)
             return;
 
-        member.Loyalty = Math.Max(0, member.Loyalty + loyaltyDelta);
-        member.Experience = Math.Max(0, member.Experience + experienceDelta);
+        member.CombatStyle = style;
     }
 }

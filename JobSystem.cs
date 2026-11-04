@@ -4,46 +4,93 @@ using System.Linq;
 
 public class JobSystem
 {
-    private readonly List<JobOffer> _jobs = new List<JobOffer>();
+    private readonly List<JobRecord> _availableJobs = new List<JobRecord>();
 
-    public IReadOnlyList<JobOffer> Jobs => _jobs;
+    public IReadOnlyList<JobRecord> AvailableJobs => _availableJobs;
 
-    public JobOffer CreateJob(JobType type, string title, string description, decimal cash, decimal gold, int honorChange)
+    public void GenerateWorldJobs()
     {
-        var job = new JobOffer
-        {
-            JobId = Guid.NewGuid().ToString("N"),
-            JobType = type,
-            Title = title,
-            Description = description,
-            PayoutCash = cash,
-            PayoutGold = gold,
-            HonorChange = honorChange
-        };
+        _availableJobs.Clear();
 
-        _jobs.Add(job);
-        return job;
+        _availableJobs.Add(new JobRecord
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Title = "Protect the bank coach",
+            Description = "Escort the coach carrying cash and gold to Saint Denis.",
+            Type = "Escort",
+            RewardMoney = 45m,
+            HonorChange = 5,
+            Risk = 20,
+            RequiresHonorAbove = -100
+        });
+
+        _availableJobs.Add(new JobRecord
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Title = "Rob the stage coach",
+            Description = "Ambush a stage coach and take its strongbox.",
+            Type = "Robbery",
+            RewardMoney = 120m,
+            HonorChange = -10,
+            Risk = 70,
+            RequiresHonorAbove = -100
+        });
+
+        _availableJobs.Add(new JobRecord
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Title = "Deliver supplies",
+            Description = "Move food and ammo to a frontier camp.",
+            Type = "Delivery",
+            RewardMoney = 30m,
+            HonorChange = 2,
+            Risk = 10,
+            RequiresHonorAbove = -100
+        });
     }
 
-    public IEnumerable<JobOffer> GetAvailableJobs()
+    public List<JobRecord> GetJobsForGang(GangManager gang)
     {
-        return _jobs.Where(x => !x.Completed);
+        if (gang == null)
+            return new List<JobRecord>(_availableJobs);
+
+        var avgLoyalty = gang.Members.Count == 0 ? 0 : gang.Members.Average(x => x.Loyalty);
+
+        return _availableJobs
+            .Where(j => avgLoyalty >= j.RequiresHonorAbove)
+            .OrderByDescending(j => j.RewardMoney)
+            .ToList();
+    }
+
+    public void AcceptJob(string jobId)
+    {
+        var job = _availableJobs.FirstOrDefault(x => x.Id == jobId);
+        if (job == null)
+            return;
+
+        job.IsAccepted = true;
     }
 
     public void CompleteJob(string jobId)
     {
-        var job = _jobs.FirstOrDefault(x => x.JobId == jobId);
-        if (job != null)
-            job.Completed = true;
-    }
-
-    public void GenerateWorldJobs()
-    {
-        if (_jobs.Any())
+        var job = _availableJobs.FirstOrDefault(x => x.Id == jobId);
+        if (job == null)
             return;
 
-        CreateJob(JobType.Escort, "Protect the coach", "Escort a money coach safely to town.", 40m, 0m, 5);
-        CreateJob(JobType.Robbery, "Hit the bank run", "Intercept a bank transport and take the loot.", 150m, 2m, -10);
-        CreateJob(JobType.Hunting, "Supply meat", "Bring in meat and pelts for the gang.", 20m, 0m, 3);
+        job.IsCompleted = true;
     }
+}
+
+public class JobRecord
+{
+    public string Id { get; set; }
+    public string Title { get; set; }
+    public string Description { get; set; }
+    public string Type { get; set; }
+    public decimal RewardMoney { get; set; }
+    public int HonorChange { get; set; }
+    public int Risk { get; set; }
+    public int RequiresHonorAbove { get; set; }
+    public bool IsAccepted { get; set; }
+    public bool IsCompleted { get; set; }
 }

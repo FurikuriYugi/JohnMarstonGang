@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json;
-using System.IO;
+﻿using System.IO;
+using Newtonsoft.Json;
 
 public static class JsonSaveSystem
 {
     private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
     {
         Formatting = Formatting.Indented,
-        TypeNameHandling = TypeNameHandling.None,
-        NullValueHandling = NullValueHandling.Ignore
+        NullValueHandling = NullValueHandling.Ignore,
+        MissingMemberHandling = MissingMemberHandling.Ignore
     };
 
     public static void Save<T>(string path, T data)
@@ -25,10 +25,6 @@ public static class JsonSaveSystem
         if (string.IsNullOrWhiteSpace(json))
             return new T();
 
-        var data = JsonConvert.DeserializeObject<T>(json, Settings);
-        if (data == null)
-            return new T();
-
-        return data;
+        return JsonConvert.DeserializeObject<T>(json, Settings) ?? new T();
     }
 }
