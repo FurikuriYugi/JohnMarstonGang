@@ -1,28 +1,23 @@
-﻿// JsonSaveSystem.cs
-using System.IO;
+﻿using System.IO;
 using Newtonsoft.Json;
 
 public class JsonSaveSystem
 {
-    public void Save<T>(string path, T data)
+    public void Save(string path, SaveRoot root)
     {
-        if (string.IsNullOrWhiteSpace(path) || data == null)
+        if (string.IsNullOrWhiteSpace(path) || root == null)
             return;
 
-        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+        string json = JsonConvert.SerializeObject(root, Formatting.Indented);
         File.WriteAllText(path, json);
     }
 
-    public T Load<T>(string path)
+    public T Load<T>(string path) where T : class
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-            return default(T);
+            return null;
 
         string json = File.ReadAllText(path);
-
-        if (string.IsNullOrWhiteSpace(json))
-            return default(T);
-
         return JsonConvert.DeserializeObject<T>(json);
     }
 }
