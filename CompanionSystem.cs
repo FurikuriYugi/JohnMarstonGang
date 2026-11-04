@@ -13,13 +13,13 @@ public class CompanionSystem
 
     public CompanionRecord GetOrCreateCompanion(string companionId, string name)
     {
-        CompanionRecord companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
+        CompanionRecord companion = _companions.FirstOrDefault(c => c.Id == companionId);
         if (companion != null)
             return companion;
 
         companion = new CompanionRecord
         {
-            CompanionId = companionId,
+            Id = companionId,
             Name = name,
             Loyalty = 50,
             Trust = 50,
@@ -59,7 +59,7 @@ public class CompanionSystem
 
     public void AddMemory(string companionId, string memory)
     {
-        CompanionRecord companion = _companions.FirstOrDefault(c => c.CompanionId == companionId);
+        CompanionRecord companion = _companions.FirstOrDefault(c => c.Id == companionId);
         if (companion == null)
             return;
 
@@ -71,13 +71,18 @@ public class CompanionSystem
     {
         return _companions.Select(c => new CompanionSaveData
         {
-            CompanionId = c.CompanionId,
+            Id = c.Id,
             Name = c.Name,
+            ModelName = c.ModelName,
+            Alignment = c.Alignment,
             Loyalty = c.Loyalty,
-            Trust = c.Trust,
             Experience = c.Experience,
-            Goals = new List<string>(c.Goals ?? new List<string>()),
-            Memories = new List<string>(c.Memories ?? new List<string>())
+            IsHuman = c.IsHuman,
+            IsAnimal = c.IsAnimal,
+            CurrentWeapon = c.CurrentWeapon,
+            CurrentTask = c.CurrentTask,
+            Outfit = c.Outfit,
+            PersonalGoal = c.PersonalGoal
         }).ToList();
     }
 
@@ -92,13 +97,21 @@ public class CompanionSystem
         {
             _companions.Add(new CompanionRecord
             {
-                CompanionId = companionData.CompanionId,
+                Id = companionData.Id,
                 Name = companionData.Name,
+                ModelName = companionData.ModelName,
+                Alignment = companionData.Alignment,
                 Loyalty = companionData.Loyalty,
-                Trust = companionData.Trust,
                 Experience = companionData.Experience,
-                Goals = companionData.Goals ?? new List<string>(),
-                Memories = companionData.Memories ?? new List<string>()
+                IsHuman = companionData.IsHuman,
+                IsAnimal = companionData.IsAnimal,
+                CurrentWeapon = companionData.CurrentWeapon,
+                CurrentTask = companionData.CurrentTask,
+                Outfit = companionData.Outfit,
+                PersonalGoal = companionData.PersonalGoal,
+                Goals = new List<string>(),
+                Memories = new List<string>(),
+                Trust = companionData.Loyalty
             });
         }
     }
@@ -106,11 +119,19 @@ public class CompanionSystem
 
 public class CompanionRecord
 {
-    public string CompanionId { get; set; }
+    public string Id { get; set; }
     public string Name { get; set; }
+    public string ModelName { get; set; }
+    public string Alignment { get; set; }
     public int Loyalty { get; set; }
     public int Trust { get; set; }
     public int Experience { get; set; }
+    public bool IsHuman { get; set; }
+    public bool IsAnimal { get; set; }
+    public string CurrentWeapon { get; set; }
+    public string CurrentTask { get; set; }
+    public string Outfit { get; set; }
+    public string PersonalGoal { get; set; }
     public List<string> Goals { get; set; }
     public List<string> Memories { get; set; }
 }

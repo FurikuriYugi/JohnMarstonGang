@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class TacticalSquadAiSystem
 {
@@ -9,7 +8,7 @@ public class TacticalSquadAiSystem
         if (members == null)
             return;
 
-        foreach (var member in members)
+        foreach (GangMember member in members)
         {
             if (member == null)
                 continue;
@@ -34,7 +33,10 @@ public class TacticalSquadAiSystem
         if (context.IsTraveling)
             return "Travel";
 
-        if (member.MemoryTags != null && member.MemoryTags.Contains("NeedsFood"))
+        if (context.IsShopping)
+            return "Support";
+
+        if (member != null && member.MemoryTags != null && member.MemoryTags.Contains("NeedsFood"))
             return "SupplyRun";
 
         return "Follow";
@@ -57,12 +59,15 @@ public class TacticalSquadAiSystem
         if (member.Role == "Hunter")
             return "Ranged Short";
 
-        return member.CombatStyle ?? "Ranged Medium";
+        if (!string.IsNullOrEmpty(member.CombatStyle))
+            return member.CombatStyle;
+
+        return "Ranged Medium";
     }
 
     public int SelectPriority(GangMember member, TacticalContext context)
     {
-        var priority = 50;
+        int priority = 50;
 
         if (member != null && member.Loyalty >= 75)
             priority += 10;
@@ -72,6 +77,15 @@ public class TacticalSquadAiSystem
 
         if (context != null && context.IsInCombat)
             priority += 20;
+
+        if (context != null && context.IsStealth)
+            priority += 5;
+
+        if (context != null && context.IsTraveling)
+            priority += 3;
+
+        if (context != null && context.IsShopping)
+            priority += 2;
 
         return priority;
     }
@@ -83,5 +97,4 @@ public class TacticalContext
     public bool IsStealth { get; set; }
     public bool IsTraveling { get; set; }
     public bool IsShopping { get; set; }
-    public bool IsOnHorse { get; set; }
 }
