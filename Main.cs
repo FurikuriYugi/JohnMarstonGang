@@ -16,6 +16,7 @@ public class Main : Script
     private readonly WorldEntityRegistry _entityRegistry;
     private readonly TacticalDecisionSystem _tacticalDecisionSystem;
     private readonly InteractionSystem _interactionSystem;
+    private readonly CommandSystem _commandSystem;
 
     private SaveRoot _saveRoot;
     private int _tickCounter;
@@ -36,6 +37,7 @@ public class Main : Script
         _entityRegistry = new WorldEntityRegistry();
         _tacticalDecisionSystem = new TacticalDecisionSystem(_entityRegistry, _tacticalSquadAiSystem);
         _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
+        _commandSystem = new CommandSystem();
 
         Tick += OnTick;
 
@@ -84,6 +86,9 @@ public class Main : Script
         if (_saveRoot.World != null && _saveRoot.World.TacticalOrders != null)
             _tacticalSquadAiSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.TacticalOrders));
 
+        if (_saveRoot.World != null && _saveRoot.World.Commands != null)
+            _commandSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Commands));
+
         if (_saveRoot.WorldEntities != null)
             _entityRegistry.LoadState(JsonConvert.SerializeObject(_saveRoot.WorldEntities));
 
@@ -131,11 +136,14 @@ public class Main : Script
         _saveRoot.World.Locks = _lockSystem.GetLocks();
         _saveRoot.World.Destructibles = _dynamiteSystem.GetDestructibles();
         _saveRoot.World.TacticalOrders = _tacticalSquadAiSystem.GetOrders();
+        _saveRoot.World.Commands = _commandSystem.GetCommands();
         _saveRoot.WorldEntities = _entityRegistry.GetEntities();
     }
 
     private void UpdateEntityAI()
     {
+        _commandSystem.ProcessActiveCommands(_tacticalDecisionSystem);
+
         foreach (WorldEntityData entity in _entityRegistry.GetEntities())
         {
             if (entity == null || !entity.IsAlive)

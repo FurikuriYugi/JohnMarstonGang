@@ -114,6 +114,9 @@ public static class JsonSaveSystem
         if (data.World.Entities == null)
             data.World.Entities = new System.Collections.Generic.List<EntityStateData>();
 
+        if (data.World.Commands == null)
+            data.World.Commands = new System.Collections.Generic.List<CommandData>();
+
         if (data.World.Locks == null)
             data.World.Locks = new System.Collections.Generic.List<LockRecord>();
 
@@ -134,6 +137,7 @@ public static class JsonSaveSystem
         NormalizeBankAccounts(data);
         NormalizeLocations(data);
         NormalizeFactionRelations(data);
+        NormalizeCommands(data);
 
         if (saveVersion < 4)
             MigrateFromV3(data);
@@ -276,6 +280,19 @@ public static class JsonSaveSystem
 
             if (order.Notes == null)
                 order.Notes = new System.Collections.Generic.List<string>();
+        }
+    }
+
+    private static void NormalizeCommands(SaveRoot data)
+    {
+        for (int i = 0; i < data.World.Commands.Count; i++)
+        {
+            CommandData command = data.World.Commands[i];
+            if (command == null)
+                continue;
+
+            if (command.Notes == null)
+                command.Notes = new System.Collections.Generic.List<string>();
         }
     }
 

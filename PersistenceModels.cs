@@ -19,6 +19,7 @@ public class WorldState
     public List<FactionRelationData> FactionRelations { get; set; } = new List<FactionRelationData>();
     public List<LocationStateData> Locations { get; set; } = new List<LocationStateData>();
     public List<EntityStateData> Entities { get; set; } = new List<EntityStateData>();
+    public List<CommandData> Commands { get; set; } = new List<CommandData>();
     public List<LockRecord> Locks { get; set; } = new List<LockRecord>();
     public List<DestructibleRecord> Destructibles { get; set; } = new List<DestructibleRecord>();
     public List<TacticalOrderData> TacticalOrders { get; set; } = new List<TacticalOrderData>();
@@ -191,6 +192,22 @@ public class TacticalOrderData
     public bool IsFollowMode { get; set; }
     public bool IsCompleted { get; set; }
     public List<string> AssignedMemberIds { get; set; } = new List<string>();
+    public List<string> Notes { get; set; } = new List<string>();
+}
+
+public class CommandData
+{
+    public string CommandId { get; set; }
+    public string IssuerId { get; set; }
+    public string SquadId { get; set; }
+    public string TargetId { get; set; }
+    public string CommandType { get; set; }
+    public string CombatStyle { get; set; }
+    public string CurrentTask { get; set; }
+    public bool IsStealthMode { get; set; }
+    public bool IsFollowMode { get; set; }
+    public bool IsCompleted { get; set; }
+    public string LinkedOrderId { get; set; }
     public List<string> Notes { get; set; } = new List<string>();
 }
 
