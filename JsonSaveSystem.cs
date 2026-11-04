@@ -21,8 +21,8 @@ public static class JsonSaveSystem
 
             JObject root = JObject.Parse(json);
             int saveVersion = root["SaveVersion"] != null ? root["SaveVersion"].Value<int>() : 1;
-            SaveRoot data = root.ToObject<SaveRoot>();
 
+            SaveRoot data = root.ToObject<SaveRoot>();
             if (data == null)
                 return new SaveRoot();
 
@@ -76,51 +76,44 @@ public static class JsonSaveSystem
             return;
 
         if (data.SaveVersion <= 0)
-            data.SaveVersion = 2;
+            data.SaveVersion = 3;
 
         if (data.World == null)
             data.World = new WorldState();
 
         if (data.GangMembers == null)
             data.GangMembers = new System.Collections.Generic.List<GangMember>();
-
         if (data.BankAccounts == null)
             data.BankAccounts = new System.Collections.Generic.List<BankAccountData>();
 
         if (data.World.Companions == null)
             data.World.Companions = new System.Collections.Generic.List<CompanionData>();
-
         if (data.World.ActiveJobs == null)
             data.World.ActiveJobs = new System.Collections.Generic.List<JobData>();
-
         if (data.World.Wagons == null)
             data.World.Wagons = new System.Collections.Generic.List<WagonData>();
-
         if (data.World.WeaponPlatforms == null)
             data.World.WeaponPlatforms = new System.Collections.Generic.List<WeaponPlatformData>();
-
         if (data.World.FactionRelations == null)
             data.World.FactionRelations = new System.Collections.Generic.List<FactionRelationData>();
-
         if (data.World.Locations == null)
             data.World.Locations = new System.Collections.Generic.List<LocationStateData>();
-
         if (data.World.Entities == null)
             data.World.Entities = new System.Collections.Generic.List<EntityStateData>();
-
+        if (data.World.Locks == null)
+            data.World.Locks = new System.Collections.Generic.List<LockRecord>();
+        if (data.World.Destructibles == null)
+            data.World.Destructibles = new System.Collections.Generic.List<DestructibleRecord>();
         if (data.World.TacticalOrders == null)
             data.World.TacticalOrders = new System.Collections.Generic.List<TacticalOrderData>();
 
-        if (data.World.Commands == null)
-            data.World.Commands = new System.Collections.Generic.List<CommandData>();
+        if (saveVersion < 3)
+            MigrateFromV2(data);
 
-        if (saveVersion < 2)
-            MigrateFromV1(data);
-
-        data.SaveVersion = 2;
+        data.SaveVersion = 3;
     }
 
-    private static void MigrateFromV1(SaveRoot data)
+    private static void MigrateFromV2(SaveRoot data)
     {
         if (data == null)
             return;
@@ -128,31 +121,11 @@ public static class JsonSaveSystem
         if (data.World == null)
             data.World = new WorldState();
 
-        if (data.World.Companions == null)
-            data.World.Companions = new System.Collections.Generic.List<CompanionData>();
-
-        if (data.World.ActiveJobs == null)
-            data.World.ActiveJobs = new System.Collections.Generic.List<JobData>();
-
-        if (data.World.Wagons == null)
-            data.World.Wagons = new System.Collections.Generic.List<WagonData>();
-
-        if (data.World.WeaponPlatforms == null)
-            data.World.WeaponPlatforms = new System.Collections.Generic.List<WeaponPlatformData>();
-
-        if (data.World.FactionRelations == null)
-            data.World.FactionRelations = new System.Collections.Generic.List<FactionRelationData>();
-
-        if (data.World.Locations == null)
-            data.World.Locations = new System.Collections.Generic.List<LocationStateData>();
-
-        if (data.World.Entities == null)
-            data.World.Entities = new System.Collections.Generic.List<EntityStateData>();
-
+        if (data.World.Locks == null)
+            data.World.Locks = new System.Collections.Generic.List<LockRecord>();
+        if (data.World.Destructibles == null)
+            data.World.Destructibles = new System.Collections.Generic.List<DestructibleRecord>();
         if (data.World.TacticalOrders == null)
             data.World.TacticalOrders = new System.Collections.Generic.List<TacticalOrderData>();
-
-        if (data.World.Commands == null)
-            data.World.Commands = new System.Collections.Generic.List<CommandData>();
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class SaveRoot
 {
-    public int SaveVersion { get; set; } = 2;
+    public int SaveVersion { get; set; } = 3;
     public WorldState World { get; set; } = new WorldState();
     public List<GangMember> GangMembers { get; set; } = new List<GangMember>();
     public List<BankAccountData> BankAccounts { get; set; } = new List<BankAccountData>();
@@ -18,8 +18,9 @@ public class WorldState
     public List<FactionRelationData> FactionRelations { get; set; } = new List<FactionRelationData>();
     public List<LocationStateData> Locations { get; set; } = new List<LocationStateData>();
     public List<EntityStateData> Entities { get; set; } = new List<EntityStateData>();
+    public List<LockRecord> Locks { get; set; } = new List<LockRecord>();
+    public List<DestructibleRecord> Destructibles { get; set; } = new List<DestructibleRecord>();
     public List<TacticalOrderData> TacticalOrders { get; set; } = new List<TacticalOrderData>();
-    public List<CommandData> Commands { get; set; } = new List<CommandData>();
 }
 
 public class GangMember
@@ -155,37 +156,18 @@ public class EntityStateData
     public List<string> InventoryItems { get; set; } = new List<string>();
 }
 
-public class CommandData
-{
-    public string CommandId { get; set; }
-    public string CommandType { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public string IssuerId { get; set; }
-    public string TargetId { get; set; }
-    public string ContextId { get; set; }
-    public bool IsEnabled { get; set; }
-    public bool IsHidden { get; set; }
-    public int Priority { get; set; }
-    public List<string> AllowedRoles { get; set; } = new List<string>();
-    public List<string> RequiredItems { get; set; } = new List<string>();
-}
-
 public class TacticalOrderData
 {
     public string OrderId { get; set; }
+    public string SquadId { get; set; }
     public string IssuerId { get; set; }
     public string TargetId { get; set; }
-    public string OrderType { get; set; }
+    public string CommandType { get; set; }
     public string CombatStyle { get; set; }
     public string CurrentTask { get; set; }
-    public string Situation { get; set; }
-    public int Priority { get; set; }
-    public bool RequiresStealth { get; set; }
-    public bool RequiresCover { get; set; }
-    public bool RequiresNonLethal { get; set; }
-    public bool IsActive { get; set; }
-    public DateTime IssuedUtc { get; set; }
+    public bool IsStealthMode { get; set; }
+    public bool IsFollowMode { get; set; }
+    public bool IsCompleted { get; set; }
     public List<string> AssignedMemberIds { get; set; } = new List<string>();
     public List<string> Notes { get; set; } = new List<string>();
 }

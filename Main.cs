@@ -1,27 +1,25 @@
 ﻿using Newtonsoft.Json;
 using RDR2;
-using System.IO;
 
 public class Main : Script
 {
-    private const string SaveFileName = "JohnMorstonGang_Save.json";
+    private readonly GangManager _gangManager;
+    private readonly CompanionSystem _companionSystem;
+    private readonly BankSystem _bankSystem;
+    private readonly JobSystem _jobSystem;
+    private readonly LockSystem _lockSystem;
+    private readonly DynamiteSystem _dynamiteSystem;
+    private readonly WeaponSystem _weaponSystem;
+    private readonly WagonSystem _wagonSystem;
+    private readonly TacticalSquadAiSystem _tacticalSquadAiSystem;
+    private readonly InteractionSystem _interactionSystem;
 
     private SaveRoot _saveRoot;
-    private GangManager _gangManager;
-    private CompanionSystem _companionSystem;
-    private BankSystem _bankSystem;
-    private JobSystem _jobSystem;
-    private LockSystem _lockSystem;
-    private DynamiteSystem _dynamiteSystem;
-    private WeaponSystem _weaponSystem;
-    private WagonSystem _wagonSystem;
-    private InteractionSystem _interactionSystem;
-    private CommandSystem _commandSystem;
-    private TacticalSquadAiSystem _tacticalSquadAiSystem;
 
     public Main()
     {
         _saveRoot = new SaveRoot();
+
         _gangManager = new GangManager();
         _companionSystem = new CompanionSystem();
         _bankSystem = new BankSystem();
@@ -30,9 +28,8 @@ public class Main : Script
         _dynamiteSystem = new DynamiteSystem();
         _weaponSystem = new WeaponSystem();
         _wagonSystem = new WagonSystem();
-        _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
-        _commandSystem = new CommandSystem();
         _tacticalSquadAiSystem = new TacticalSquadAiSystem();
+        _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
 
         LoadAll();
     }
@@ -43,17 +40,13 @@ public class Main : Script
 
     private void LoadAll()
     {
-        if (!File.Exists(SaveFileName))
-            return;
+        _saveRoot = JsonSaveSystem.Load();
 
-        string json = File.ReadAllText(SaveFileName);
-        if (string.IsNullOrWhiteSpace(json))
-            return;
-
-        _saveRoot = JsonConvert.DeserializeObject<SaveRoot>(json) ?? new SaveRoot();
+        if (_saveRoot == null)
+            _saveRoot = new SaveRoot();
 
         if (_saveRoot.GangMembers != null)
-            _gangManager.LoadState(JsonConvert.SerializeObject(_saveRoot.GangMembers));
+            _gangManager.ImportSaveData(_saveRoot);
 
         if (_saveRoot.World != null && _saveRoot.World.Companions != null)
             _companionSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Companions));
@@ -70,8 +63,11 @@ public class Main : Script
         if (_saveRoot.World != null && _saveRoot.World.WeaponPlatforms != null)
             _weaponSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.WeaponPlatforms));
 
-        if (_saveRoot.World != null && _saveRoot.World.Commands != null)
-            _commandSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Commands));
+        if (_saveRoot.World != null && _saveRoot.World.Locks != null)
+            _lockSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Locks));
+
+        if (_saveRoot.World != null && _saveRoot.World.Destructibles != null)
+            _dynamiteSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Destructibles));
 
         if (_saveRoot.World != null && _saveRoot.World.TacticalOrders != null)
             _tacticalSquadAiSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.TacticalOrders));
@@ -91,10 +87,10 @@ public class Main : Script
         _saveRoot.World.ActiveJobs = _jobSystem.GetAllJobs();
         _saveRoot.World.Wagons = _wagonSystem.GetWagons();
         _saveRoot.World.WeaponPlatforms = _weaponSystem.GetPlatforms();
-        _saveRoot.World.Commands = _commandSystem.GetCommands();
+        _saveRoot.World.Locks = _lockSystem.GetLocks();
+        _saveRoot.World.Destructibles = _dynamiteSystem.GetDestructibles();
         _saveRoot.World.TacticalOrders = _tacticalSquadAiSystem.GetOrders();
 
-        string json = JsonConvert.SerializeObject(_saveRoot, Formatting.Indented);
-        File.WriteAllText(SaveFileName, json);
+        JsonSaveSystem.Save(_saveRoot);
     }
 }

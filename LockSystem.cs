@@ -29,8 +29,7 @@ public class LockSystem
 
     public bool HasLock(string targetId)
     {
-        LockRecord record = GetLock(targetId);
-        return record != null;
+        return GetLock(targetId) != null;
     }
 
     public bool CanPick(string targetId)

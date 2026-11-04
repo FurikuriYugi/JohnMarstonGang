@@ -34,6 +34,17 @@ public class BankSystem
             return;
 
         account.Cash += amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
+    }
+
+    public void DepositGold(string ownerId, decimal amount)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null || amount <= 0m)
+            return;
+
+        account.Gold += amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
     }
 
     public bool WithdrawCash(string ownerId, decimal amount)
@@ -43,6 +54,18 @@ public class BankSystem
             return false;
 
         account.Cash -= amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
+        return true;
+    }
+
+    public bool WithdrawGold(string ownerId, decimal amount)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null || amount <= 0m || account.Gold < amount)
+            return false;
+
+        account.Gold -= amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
         return true;
     }
 
