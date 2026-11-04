@@ -1,5 +1,4 @@
-﻿// Main.cs
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class Main
@@ -37,7 +36,6 @@ public class Main
     public void Tick()
     {
         TacticalContext context = BuildTacticalContext();
-
         _gangManager.ApplyTacticalContext(context);
         _tacticalAi.UpdateSquadTactics(_gangManager.GetAllMembers(), context);
     }
@@ -55,20 +53,61 @@ public class Main
 
     private void LoadDefaults()
     {
-        if (_gangManager.GetAllMembers().Count > 0)
-            return;
-
-        _gangManager.RegisterMember(new GangMember
+        if (_gangManager.GetAllMembers().Count == 0)
         {
-            MemberId = "player",
-            Name = "Player",
-            Role = "Leader",
-            CombatStyle = "Ranged Medium",
-            TacticalState = "Follow",
-            Loyalty = 100,
-            Hunger = 0,
-            MemoryTags = new List<string>()
-        });
+            _gangManager.RegisterMember(new GangMember
+            {
+                MemberId = "player",
+                Name = "Player",
+                Role = "Leader",
+                CombatStyle = "Ranged Medium",
+                TacticalState = "Follow",
+                Loyalty = 100,
+                Hunger = 0,
+                MemoryTags = new List<string>()
+            });
+        }
+
+        if (_bankSystem.GetAllAccounts().Count == 0)
+        {
+            _bankSystem.RegisterAccount(new BankAccountRecord
+            {
+                OwnerId = "player",
+                OwnerName = "Player",
+                Cash = 0m,
+                Gold = 0m,
+                CreditLimit = 100m,
+                Debt = 0m,
+                IsSuspicious = false
+            });
+        }
+
+        if (_jobSystem.GetAllJobs().Count == 0)
+        {
+            _jobSystem.RegisterJob(new JobRecord
+            {
+                JobId = "starter_bank_run",
+                Title = "Bank Run",
+                Faction = "Civilian",
+                PayoutCash = 10m,
+                PayoutGold = 0m,
+                HonorChange = 1,
+                IsAvailable = true,
+                IsCompleted = false
+            });
+        }
+
+        if (_wagonSystem.GetAllWagons().Count == 0)
+        {
+            _wagonSystem.RegisterWagon(new WagonData
+            {
+                WagonId = "starter_wagon",
+                OwnerId = "player",
+                IsOwned = true,
+                IsHitched = false,
+                StoredItems = new List<string>()
+            });
+        }
     }
 
     public void SaveAll(string path)
