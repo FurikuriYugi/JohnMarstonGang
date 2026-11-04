@@ -131,6 +131,9 @@ public static class TacticalStateResolver
         if (context.IsTraveling)
             return "Travel";
 
+        if (member != null && member.MemoryTags != null && member.MemoryTags.Contains("NeedsFood"))
+            return "SupplyRun";
+
         if (!string.IsNullOrWhiteSpace(member?.CurrentTask))
             return member.CurrentTask;
 

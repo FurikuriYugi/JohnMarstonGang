@@ -11,6 +11,7 @@ public class Main
     private readonly LockSystem _lockSystem;
     private readonly DynamiteSystem _dynamiteSystem;
     private readonly InteractionSystem _interactionSystem;
+    private readonly TacticalSquadAiSystem _tacticalSquadAiSystem;
 
     public Main()
     {
@@ -22,6 +23,7 @@ public class Main
         _lockSystem = new LockSystem();
         _dynamiteSystem = new DynamiteSystem();
         _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
+        _tacticalSquadAiSystem = new TacticalSquadAiSystem();
     }
 
     public void Initialize()
@@ -34,6 +36,8 @@ public class Main
         TacticalContext context = BuildTacticalContext();
 
         _gangManager.ApplyTacticalContext(context);
+        _tacticalSquadAiSystem.UpdateSquadTactics(_gangManager.GetAllMembers(), context);
+
         UpdateCompanions(context);
         UpdateWorldSystems(context);
     }
@@ -61,6 +65,19 @@ public class Main
 
     private void LoadDefaults()
     {
+        if (_gangManager.GetAllMembers().Count == 0)
+        {
+            _gangManager.RegisterMember(new GangMember
+            {
+                MemberId = "player",
+                Name = "Player",
+                Role = "Leader",
+                CombatStyle = "Ranged Medium",
+                TacticalState = "Follow",
+                Loyalty = 100,
+                Hunger = 0
+            });
+        }
     }
 
     public string SaveAll()

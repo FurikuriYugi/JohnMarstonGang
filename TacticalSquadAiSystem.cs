@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 public class TacticalSquadAiSystem
 {
@@ -89,12 +88,4 @@ public class TacticalSquadAiSystem
 
         return priority;
     }
-}
-
-public class TacticalContext
-{
-    public bool IsInCombat { get; set; }
-    public bool IsStealth { get; set; }
-    public bool IsTraveling { get; set; }
-    public bool IsShopping { get; set; }
 }
