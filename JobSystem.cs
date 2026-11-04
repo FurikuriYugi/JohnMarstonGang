@@ -3,19 +3,20 @@ using Newtonsoft.Json;
 
 public class JobSystem
 {
-    private readonly Dictionary<string, JobData> _jobs = new Dictionary<string, JobData>();
+    private readonly List<JobData> _jobs = new List<JobData>();
+
+    public List<JobData> GetAllJobs()
+    {
+        return new List<JobData>(_jobs);
+    }
 
     public void RegisterJob(JobData job)
     {
         if (job == null || string.IsNullOrWhiteSpace(job.JobId))
             return;
 
-        _jobs[job.JobId] = job;
-    }
-
-    public bool HasJob(string jobId)
-    {
-        return !string.IsNullOrWhiteSpace(jobId) && _jobs.ContainsKey(jobId);
+        _jobs.RemoveAll(x => x != null && x.JobId == job.JobId);
+        _jobs.Add(job);
     }
 
     public JobData GetJob(string jobId)
@@ -23,31 +24,10 @@ public class JobSystem
         if (string.IsNullOrWhiteSpace(jobId))
             return null;
 
-        _jobs.TryGetValue(jobId, out JobData job);
-        return job;
+        return _jobs.Find(x => x != null && x.JobId == jobId);
     }
 
-    public List<JobData> GetAllJobs()
-    {
-        return new List<JobData>(_jobs.Values);
-    }
-
-    public void LoadJobs(List<JobData> jobs)
-    {
-        _jobs.Clear();
-        if (jobs == null)
-            return;
-
-        foreach (JobData job in jobs)
-        {
-            if (job == null || string.IsNullOrWhiteSpace(job.JobId))
-                continue;
-
-            _jobs[job.JobId] = job;
-        }
-    }
-
-    public void MarkCompleted(string jobId)
+    public void CompleteJob(string jobId)
     {
         JobData job = GetJob(jobId);
         if (job == null)
@@ -58,7 +38,7 @@ public class JobSystem
         job.IsAvailable = false;
     }
 
-    public void MarkFailed(string jobId)
+    public void FailJob(string jobId)
     {
         JobData job = GetJob(jobId);
         if (job == null)
@@ -69,18 +49,9 @@ public class JobSystem
         job.IsAvailable = false;
     }
 
-    public void SetAvailability(string jobId, bool available)
-    {
-        JobData job = GetJob(jobId);
-        if (job == null)
-            return;
-
-        job.IsAvailable = available;
-    }
-
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(GetAllJobs(), Formatting.Indented);
+        return JsonConvert.SerializeObject(_jobs, Formatting.Indented);
     }
 
     public void LoadState(string json)
@@ -90,6 +61,7 @@ public class JobSystem
             return;
 
         List<JobData> jobs = JsonConvert.DeserializeObject<List<JobData>>(json);
-        LoadJobs(jobs);
+        if (jobs != null)
+            _jobs.AddRange(jobs);
     }
 }

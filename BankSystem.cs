@@ -3,19 +3,11 @@ using Newtonsoft.Json;
 
 public class BankSystem
 {
-    private readonly Dictionary<string, BankAccountData> _accounts = new Dictionary<string, BankAccountData>();
+    private readonly List<BankAccountData> _accounts = new List<BankAccountData>();
 
-    public void RegisterAccount(BankAccountData account)
+    public List<BankAccountData> GetAllAccounts()
     {
-        if (account == null || string.IsNullOrWhiteSpace(account.OwnerId))
-            return;
-
-        _accounts[account.OwnerId] = account;
-    }
-
-    public bool HasAccount(string ownerId)
-    {
-        return !string.IsNullOrWhiteSpace(ownerId) && _accounts.ContainsKey(ownerId);
+        return new List<BankAccountData>(_accounts);
     }
 
     public BankAccountData GetAccount(string ownerId)
@@ -23,28 +15,16 @@ public class BankSystem
         if (string.IsNullOrWhiteSpace(ownerId))
             return null;
 
-        _accounts.TryGetValue(ownerId, out BankAccountData account);
-        return account;
+        return _accounts.Find(x => x != null && x.OwnerId == ownerId);
     }
 
-    public List<BankAccountData> GetAllAccounts()
+    public void RegisterAccount(BankAccountData account)
     {
-        return new List<BankAccountData>(_accounts.Values);
-    }
-
-    public void LoadAccounts(List<BankAccountData> accounts)
-    {
-        _accounts.Clear();
-        if (accounts == null)
+        if (account == null || string.IsNullOrWhiteSpace(account.OwnerId))
             return;
 
-        foreach (BankAccountData account in accounts)
-        {
-            if (account == null || string.IsNullOrWhiteSpace(account.OwnerId))
-                continue;
-
-            _accounts[account.OwnerId] = account;
-        }
+        _accounts.RemoveAll(x => x != null && x.OwnerId == account.OwnerId);
+        _accounts.Add(account);
     }
 
     public void DepositCash(string ownerId, decimal amount)
@@ -54,7 +34,6 @@ public class BankSystem
             return;
 
         account.Cash += amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
     }
 
     public bool WithdrawCash(string ownerId, decimal amount)
@@ -64,67 +43,12 @@ public class BankSystem
             return false;
 
         account.Cash -= amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
         return true;
-    }
-
-    public void DepositGold(string ownerId, decimal amount)
-    {
-        BankAccountData account = GetAccount(ownerId);
-        if (account == null || amount <= 0m)
-            return;
-
-        account.Gold += amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
-    }
-
-    public bool WithdrawGold(string ownerId, decimal amount)
-    {
-        BankAccountData account = GetAccount(ownerId);
-        if (account == null || amount <= 0m || account.Gold < amount)
-            return false;
-
-        account.Gold -= amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
-        return true;
-    }
-
-    public void AddDebt(string ownerId, decimal amount)
-    {
-        BankAccountData account = GetAccount(ownerId);
-        if (account == null || amount <= 0m)
-            return;
-
-        account.Debt += amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
-    }
-
-    public void ReduceDebt(string ownerId, decimal amount)
-    {
-        BankAccountData account = GetAccount(ownerId);
-        if (account == null || amount <= 0m)
-            return;
-
-        account.Debt -= amount;
-        if (account.Debt < 0m)
-            account.Debt = 0m;
-
-        account.LastTransactionUtc = System.DateTime.UtcNow;
-    }
-
-    public void SetSuspicious(string ownerId, bool suspicious)
-    {
-        BankAccountData account = GetAccount(ownerId);
-        if (account == null)
-            return;
-
-        account.IsSuspicious = suspicious;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
     }
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(GetAllAccounts(), Formatting.Indented);
+        return JsonConvert.SerializeObject(_accounts, Formatting.Indented);
     }
 
     public void LoadState(string json)
@@ -134,6 +58,7 @@ public class BankSystem
             return;
 
         List<BankAccountData> accounts = JsonConvert.DeserializeObject<List<BankAccountData>>(json);
-        LoadAccounts(accounts);
+        if (accounts != null)
+            _accounts.AddRange(accounts);
     }
 }

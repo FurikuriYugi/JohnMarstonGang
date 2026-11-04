@@ -10,49 +10,21 @@ public class WeaponSystem
         return new List<WeaponPlatformData>(_platforms);
     }
 
-    public void AddPlatform(WeaponPlatformData platform)
-    {
-        if (platform == null || string.IsNullOrWhiteSpace(platform.PlatformId))
-            return;
-
-        _platforms.RemoveAll(p => p != null && p.PlatformId == platform.PlatformId);
-        _platforms.Add(platform);
-    }
-
     public WeaponPlatformData GetPlatform(string platformId)
     {
         if (string.IsNullOrWhiteSpace(platformId))
             return null;
 
-        return _platforms.Find(p => p != null && p.PlatformId == platformId);
+        return _platforms.Find(x => x != null && x.PlatformId == platformId);
     }
 
-    public void SetGunCrew(string platformId, string gunnerId, string assistantId)
+    public void RegisterPlatform(WeaponPlatformData platform)
     {
-        WeaponPlatformData platform = GetPlatform(platformId);
-        if (platform == null)
+        if (platform == null || string.IsNullOrWhiteSpace(platform.PlatformId))
             return;
 
-        platform.CurrentGunnerId = gunnerId;
-        platform.CurrentAssistantId = assistantId;
-    }
-
-    public void SetAmmoType(string platformId, string ammoType)
-    {
-        WeaponPlatformData platform = GetPlatform(platformId);
-        if (platform == null)
-            return;
-
-        platform.CurrentAmmoType = ammoType;
-    }
-
-    public void SetReloadCooldown(string platformId, int seconds)
-    {
-        WeaponPlatformData platform = GetPlatform(platformId);
-        if (platform == null)
-            return;
-
-        platform.ReloadCooldownSeconds = seconds;
+        _platforms.RemoveAll(x => x != null && x.PlatformId == platform.PlatformId);
+        _platforms.Add(platform);
     }
 
     public string SaveState()
