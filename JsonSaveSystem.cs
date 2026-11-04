@@ -1,23 +1,77 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Newtonsoft.Json;
 
-public class JsonSaveSystem
+public static class JsonSaveSystem
 {
-    public void Save(string path, SaveRoot root)
-    {
-        if (string.IsNullOrWhiteSpace(path) || root == null)
-            return;
+    private static readonly string SaveFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JohnMarstonGang");
+    private static readonly string SaveFilePath = Path.Combine(SaveFolder, "save.json");
 
-        string json = JsonConvert.SerializeObject(root, Formatting.Indented);
-        File.WriteAllText(path, json);
+    public static SaveRoot Load()
+    {
+        try
+        {
+            if (!File.Exists(SaveFilePath))
+            {
+                return new SaveRoot();
+            }
+
+            string json = File.ReadAllText(SaveFilePath);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return new SaveRoot();
+            }
+
+            SaveRoot data = JsonConvert.DeserializeObject<SaveRoot>(json);
+            return data ?? new SaveRoot();
+        }
+        catch
+        {
+            return new SaveRoot();
+        }
     }
 
-    public T Load<T>(string path) where T : class
+    public static void Save(SaveRoot data)
     {
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-            return null;
+        if (data == null)
+        {
+            data = new SaveRoot();
+        }
 
-        string json = File.ReadAllText(path);
-        return JsonConvert.DeserializeObject<T>(json);
+        try
+        {
+            if (!Directory.Exists(SaveFolder))
+            {
+                Directory.CreateDirectory(SaveFolder);
+            }
+
+            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+            File.WriteAllText(SaveFilePath, json);
+        }
+        catch
+        {
+        }
+    }
+
+    public static SaveRoot LoadToGangManager(GangManager manager)
+    {
+        SaveRoot data = Load();
+
+        if (manager != null)
+        {
+            manager.ImportSaveData(data);
+        }
+
+        return data;
+    }
+
+    public static void SaveFromGangManager(GangManager manager)
+    {
+        if (manager == null)
+        {
+            return;
+        }
+
+        Save(manager.ExportSaveData());
     }
 }
