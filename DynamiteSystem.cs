@@ -27,18 +27,29 @@ public class DynamiteSystem
         _destructibles.Add(record);
     }
 
-    public void Damage(string targetId, int amount)
+    public bool CanDestroy(string targetId)
     {
         DestructibleRecord record = GetDestructible(targetId);
-        if (record == null || amount <= 0)
+        return record != null && record.IsDestructible && !record.IsDestroyed;
+    }
+
+    public void ApplyExplosion(string targetId, int damage)
+    {
+        DestructibleRecord record = GetDestructible(targetId);
+        if (record == null || damage <= 0)
             return;
 
-        record.Health -= amount;
+        record.Health -= damage;
         if (record.Health <= 0)
         {
             record.Health = 0;
             record.IsDestroyed = true;
         }
+    }
+
+    public void Damage(string targetId, int amount)
+    {
+        ApplyExplosion(targetId, amount);
     }
 
     public string SaveState()

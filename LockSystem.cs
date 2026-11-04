@@ -27,6 +27,38 @@ public class LockSystem
         _locks.Add(lockRecord);
     }
 
+    public bool HasLock(string targetId)
+    {
+        LockRecord record = GetLock(targetId);
+        return record != null;
+    }
+
+    public bool CanPick(string targetId)
+    {
+        LockRecord record = GetLock(targetId);
+        return record != null && record.IsLocked && !record.IsBroken;
+    }
+
+    public void Pick(string targetId)
+    {
+        LockRecord record = GetLock(targetId);
+        if (record == null)
+            return;
+
+        if (!record.IsBroken)
+            record.IsLocked = false;
+    }
+
+    public void Break(string targetId)
+    {
+        LockRecord record = GetLock(targetId);
+        if (record == null)
+            return;
+
+        record.IsBroken = true;
+        record.IsLocked = false;
+    }
+
     public string SaveState()
     {
         return JsonConvert.SerializeObject(_locks, Formatting.Indented);
