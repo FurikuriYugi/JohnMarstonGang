@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class GangManager
@@ -11,49 +10,37 @@ public class GangManager
         return new List<GangMember>(_members);
     }
 
-    public void AddMember(GangMember member)
+    public void RegisterMember(GangMember member)
     {
-        if (member == null)
+        if (member == null || string.IsNullOrWhiteSpace(member.MemberId))
             return;
 
+        _members.RemoveAll(x => x != null && x.MemberId == member.MemberId);
         _members.Add(member);
-    }
-
-    public void RemoveMember(string memberId)
-    {
-        _members.RemoveAll(member => member != null && member.MemberId == memberId);
     }
 
     public GangMember GetMember(string memberId)
     {
-        return _members.Find(member => member != null && member.MemberId == memberId);
+        if (string.IsNullOrWhiteSpace(memberId))
+            return null;
+
+        return _members.Find(x => x != null && x.MemberId == memberId);
     }
 
-    public void SetFollowing(string memberId, bool following)
+    public void RemoveMember(string memberId)
+    {
+        _members.RemoveAll(x => x != null && x.MemberId == memberId);
+    }
+
+    public void ApplyTacticalContext(string memberId, string combatStyle, string currentTask, bool followingPlayer)
     {
         GangMember member = GetMember(memberId);
         if (member == null)
             return;
 
-        member.IsFollowingPlayer = following;
-    }
-
-    public void SetCurrentTask(string memberId, string task)
-    {
-        GangMember member = GetMember(memberId);
-        if (member == null)
-            return;
-
-        member.CurrentTask = task;
-    }
-
-    public void UpdateLoyalty(string memberId, int delta)
-    {
-        GangMember member = GetMember(memberId);
-        if (member == null)
-            return;
-
-        member.Loyalty += delta;
+        member.CombatStyle = combatStyle;
+        member.CurrentTask = currentTask;
+        member.IsFollowingPlayer = followingPlayer;
     }
 
     public string SaveState()
