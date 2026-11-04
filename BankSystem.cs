@@ -1,135 +1,121 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Newtonsoft.Json;
 
 public class BankSystem
 {
-    private readonly List<BankAccount> _accounts = new List<BankAccount>();
+    private readonly Dictionary<string, BankAccountRecord> _accounts = new Dictionary<string, BankAccountRecord>();
 
-    public decimal VaultCash { get; set; }
-    public decimal VaultGold { get; set; }
-
-    public List<BankAccount> Accounts
+    public void RegisterAccount(BankAccountRecord account)
     {
-        get { return _accounts; }
-    }
-
-    public BankAccount GetOrCreateAccount(string ownerId, string ownerName)
-    {
-        BankAccount account = _accounts.FirstOrDefault(x => x.OwnerId == ownerId);
-        if (account != null)
-            return account;
-
-        account = new BankAccount
-        {
-            OwnerId = ownerId,
-            OwnerName = ownerName,
-            Cash = 0m,
-            Gold = 0m,
-            Suspicion = 0,
-            Reputation = 0
-        };
-
-        _accounts.Add(account);
-        return account;
-    }
-
-    public void Deposit(string ownerId, string ownerName, decimal cash, decimal gold)
-    {
-        BankAccount account = GetOrCreateAccount(ownerId, ownerName);
-        account.Cash += cash;
-        account.Gold += gold;
-    }
-
-    public bool Withdraw(string ownerId, decimal cash, decimal gold)
-    {
-        BankAccount account = _accounts.FirstOrDefault(x => x.OwnerId == ownerId);
-        if (account == null)
-            return false;
-
-        if (account.Cash < cash || account.Gold < gold)
-            return false;
-
-        account.Cash -= cash;
-        account.Gold -= gold;
-        return true;
-    }
-
-    public void TransferToVault(decimal cash, decimal gold)
-    {
-        VaultCash += cash;
-        VaultGold += gold;
-    }
-
-    public bool TakeFromVault(decimal cash, decimal gold)
-    {
-        if (VaultCash < cash || VaultGold < gold)
-            return false;
-
-        VaultCash -= cash;
-        VaultGold -= gold;
-        return true;
-    }
-
-    public void IncreaseSuspicion(string ownerId, int amount)
-    {
-        BankAccount account = _accounts.FirstOrDefault(x => x.OwnerId == ownerId);
-        if (account == null)
+        if (account == null || string.IsNullOrWhiteSpace(account.OwnerId))
             return;
 
-        account.Suspicion += amount;
-        if (account.Suspicion < 0)
-            account.Suspicion = 0;
+        _accounts[account.OwnerId] = account;
     }
 
-    public List<BankAccountSaveData> CreateSaveData()
+    public bool DepositCash(string ownerId, decimal amount)
     {
-        List<BankAccountSaveData> saveData = new List<BankAccountSaveData>();
+        if (!_accounts.ContainsKey(ownerId) || amount <= 0m)
+            return false;
 
-        foreach (BankAccount account in _accounts)
-        {
-            saveData.Add(new BankAccountSaveData
-            {
-                OwnerId = account.OwnerId,
-                OwnerName = account.OwnerName,
-                Cash = account.Cash,
-                Gold = account.Gold,
-                Suspicion = account.Suspicion,
-                Reputation = account.Reputation
-            });
-        }
-
-        return saveData;
+        _accounts[ownerId].Cash += amount;
+        return true;
     }
 
-    public void LoadFromSave(List<BankAccountSaveData> saveData)
+    public bool WithdrawCash(string ownerId, decimal amount)
+    {
+        if (!_accounts.ContainsKey(ownerId) || amount <= 0m)
+            return false;
+
+        BankAccountRecord account = _accounts[ownerId];
+        if (account.Cash < amount)
+            return false;
+
+        account.Cash -= amount;
+        return true;
+    }
+
+    public bool DepositGold(string ownerId, decimal amount)
+    {
+        if (!_accounts.ContainsKey(ownerId) || amount <= 0m)
+            return false;
+
+        _accounts[ownerId].Gold += amount;
+        return true;
+    }
+
+    public bool WithdrawGold(string ownerId, decimal amount)
+    {
+        if (!_accounts.ContainsKey(ownerId) || amount <= 0m)
+            return false;
+
+        BankAccountRecord account = _accounts[ownerId];
+        if (account.Gold < amount)
+            return false;
+
+        account.Gold -= amount;
+        return true;
+    }
+
+    public bool TakeLoan(string ownerId, decimal amount)
+    {
+        if (!_accounts.ContainsKey(ownerId) || amount <= 0m)
+            return false;
+
+        BankAccountRecord account = _accounts[ownerId];
+        if (account.Debt + amount > account.CreditLimit)
+            return false;
+
+        account.Cash += amount;
+        account.Debt += amount;
+        account.IsSuspicious = true;
+        return true;
+    }
+
+    public bool RepayLoan(string ownerId, decimal amount)
+    {
+        if (!_accounts.ContainsKey(ownerId) || amount <= 0m)
+            return false;
+
+        BankAccountRecord account = _accounts[ownerId];
+        if (account.Cash < amount || account.Debt <= 0m)
+            return false;
+
+        decimal payment = Math.Min(amount, account.Debt);
+        account.Cash -= payment;
+        account.Debt -= payment;
+        return true;
+    }
+
+    public decimal GetVaultValue()
+    {
+        decimal total = 0m;
+        foreach (BankAccountRecord account in _accounts.Values)
+            total += account.Cash + account.Gold;
+        return total;
+    }
+
+    public string SaveState()
+    {
+        return JsonConvert.SerializeObject(_accounts.Values, Formatting.Indented);
+    }
+
+    public void LoadState(string json)
     {
         _accounts.Clear();
 
-        if (saveData == null)
+        if (string.IsNullOrWhiteSpace(json))
             return;
 
-        foreach (BankAccountSaveData accountData in saveData)
+        List<BankAccountRecord> accounts = JsonConvert.DeserializeObject<List<BankAccountRecord>>(json);
+        if (accounts == null)
+            return;
+
+        foreach (BankAccountRecord account in accounts)
         {
-            _accounts.Add(new BankAccount
-            {
-                OwnerId = accountData.OwnerId,
-                OwnerName = accountData.OwnerName,
-                Cash = accountData.Cash,
-                Gold = accountData.Gold,
-                Suspicion = accountData.Suspicion,
-                Reputation = accountData.Reputation
-            });
+            if (account != null && !string.IsNullOrWhiteSpace(account.OwnerId))
+                _accounts[account.OwnerId] = account;
         }
     }
-}
-
-public class BankAccount
-{
-    public string OwnerId { get; set; }
-    public string OwnerName { get; set; }
-    public decimal Cash { get; set; }
-    public decimal Gold { get; set; }
-    public int Suspicion { get; set; }
-    public int Reputation { get; set; }
 }

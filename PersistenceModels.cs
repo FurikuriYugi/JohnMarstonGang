@@ -1,99 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-public class PlayerGangSaveData
+public class SaveRoot
 {
-    public int Version { get; set; } = 1;
-    public string PlayerName { get; set; } = string.Empty;
-    public decimal Money { get; set; }
-    public decimal Gold { get; set; }
-    public List<GangMemberSaveData> GangMembers { get; set; } = new List<GangMemberSaveData>();
-    public List<WagonSaveData> Wagons { get; set; } = new List<WagonSaveData>();
-    public List<CompanionSaveData> Companions { get; set; } = new List<CompanionSaveData>();
-    public BankSaveData Bank { get; set; } = new BankSaveData();
-    public List<JobSaveData> ActiveJobs { get; set; } = new List<JobSaveData>();
-    public List<WorldFactionRecordSaveData> WorldRecords { get; set; } = new List<WorldFactionRecordSaveData>();
+    public List<GangMember> GangMembers { get; set; } = new List<GangMember>();
+    public List<CompanionRecord> Companions { get; set; } = new List<CompanionRecord>();
+    public List<WagonRecord> Wagons { get; set; } = new List<WagonRecord>();
+    public List<BankAccountRecord> BankAccounts { get; set; } = new List<BankAccountRecord>();
+    public List<JobRecord> Jobs { get; set; } = new List<JobRecord>();
 }
 
-public class GangMemberSaveData
+public class BankAccountRecord
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString("N");
-    public string Name { get; set; } = string.Empty;
-    public CompanionType CompanionType { get; set; }
-    public GangMemberRole Role { get; set; }
-    public RelationshipAlignment Alignment { get; set; }
-    public CombatStyle CombatStyle { get; set; }
-    public TacticalState TacticalState { get; set; }
-    public int Loyalty { get; set; }
-    public int Experience { get; set; }
-    public string ModelName { get; set; } = string.Empty;
-    public List<string> Weapons { get; set; } = new List<string>();
-    public List<string> MemoryTags { get; set; } = new List<string>();
-    public List<string> Goals { get; set; } = new List<string>();
-}
-
-public class CompanionSaveData
-{
-    public string Id { get; set; } = Guid.NewGuid().ToString("N");
-    public string Name { get; set; } = string.Empty;
-    public string ModelName { get; set; } = string.Empty;
-    public string Alignment { get; set; } = string.Empty;
-    public int Loyalty { get; set; }
-    public int Experience { get; set; }
-    public bool IsHuman { get; set; }
-    public bool IsAnimal { get; set; }
-    public string CurrentWeapon { get; set; } = string.Empty;
-    public string CurrentTask { get; set; } = string.Empty;
-    public string Outfit { get; set; } = string.Empty;
-    public string PersonalGoal { get; set; } = string.Empty;
-}
-
-public class WagonSaveData
-{
-    public string Id { get; set; } = Guid.NewGuid().ToString("N");
-    public string ModelName { get; set; } = string.Empty;
-    public bool Owned { get; set; }
-    public bool Hitchable { get; set; } = true;
-    public float Health { get; set; } = 100f;
-    public List<string> InventoryItems { get; set; } = new List<string>();
-}
-
-public class BankSaveData
-{
-    public decimal VaultCash { get; set; }
-    public decimal VaultGold { get; set; }
-    public decimal PlayerDepositCash { get; set; }
-    public decimal PlayerDepositGold { get; set; }
-    public List<BankAccountSaveData> Accounts { get; set; } = new List<BankAccountSaveData>();
-}
-
-public class BankAccountSaveData
-{
-    public string OwnerId { get; set; } = string.Empty;
-    public string OwnerName { get; set; } = string.Empty;
+    public string OwnerId { get; set; }
+    public string OwnerName { get; set; }
     public decimal Cash { get; set; }
     public decimal Gold { get; set; }
-    public int Suspicion { get; set; }
-    public int Reputation { get; set; }
+    public decimal CreditLimit { get; set; }
+    public decimal Debt { get; set; }
+    public bool IsSuspicious { get; set; }
 }
 
-public class JobSaveData
+public class JobRecord
 {
-    public string JobId { get; set; } = Guid.NewGuid().ToString("N");
-    public JobType JobType { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public string JobId { get; set; }
+    public string Title { get; set; }
+    public string Faction { get; set; }
     public decimal PayoutCash { get; set; }
     public decimal PayoutGold { get; set; }
     public int HonorChange { get; set; }
-    public bool Completed { get; set; }
-    public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
-}
-
-public class WorldFactionRecordSaveData
-{
-    public string FactionName { get; set; } = string.Empty;
-    public int Trust { get; set; }
-    public int Fear { get; set; }
-    public int Suspicion { get; set; }
+    public bool IsAvailable { get; set; }
+    public bool IsCompleted { get; set; }
 }

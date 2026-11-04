@@ -1,226 +1,229 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Newtonsoft.Json;
 
 public class GangManager
 {
-    private readonly List<GangMember> _members = new List<GangMember>();
+    private readonly Dictionary<string, GangMember> _members = new Dictionary<string, GangMember>();
 
-    public IReadOnlyList<GangMember> Members
+    public void RegisterMember(GangMember member)
     {
-        get { return _members; }
-    }
-
-    public void AddMember(GangMember member)
-    {
-        if (member == null)
+        if (member == null || string.IsNullOrWhiteSpace(member.MemberId))
             return;
 
-        if (string.IsNullOrWhiteSpace(member.Id))
-            member.Id = Guid.NewGuid().ToString("N");
-
-        if (_members.Any(x => x.Id == member.Id))
-            return;
-
-        if (member.Weapons == null)
-            member.Weapons = new List<string>();
-
-        if (member.MemoryTags == null)
-            member.MemoryTags = new List<string>();
-
-        if (member.Goals == null)
-            member.Goals = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(member.CombatStyle))
-            member.CombatStyle = "Ranged Medium";
-
-        if (string.IsNullOrWhiteSpace(member.TacticalState))
-            member.TacticalState = "Follow";
-
-        if (string.IsNullOrWhiteSpace(member.Alignment))
-            member.Alignment = "Neutral";
-
-        if (string.IsNullOrWhiteSpace(member.Role))
-            member.Role = "Member";
-
-        _members.Add(member);
+        _members[member.MemberId] = member;
     }
 
-    public void RemoveMember(string memberId)
+    public bool HasMember(string memberId)
     {
-        GangMember member = _members.FirstOrDefault(x => x.Id == memberId);
-        if (member != null)
-            _members.Remove(member);
+        return !string.IsNullOrWhiteSpace(memberId) && _members.ContainsKey(memberId);
     }
 
     public GangMember GetMember(string memberId)
     {
-        return _members.FirstOrDefault(x => x.Id == memberId);
+        if (string.IsNullOrWhiteSpace(memberId) || !_members.ContainsKey(memberId))
+            return null;
+
+        return _members[memberId];
     }
 
-    public void UpdateMemberNeeds()
-    {
-        foreach (GangMember member in _members)
-        {
-            if (member == null)
-                continue;
-
-            member.Hunger = Math.Max(0, member.Hunger - 1);
-            member.Health = Math.Max(0, member.Health);
-
-            if (member.Hunger <= 20 && !member.MemoryTags.Contains("NeedsFood"))
-                member.MemoryTags.Add("NeedsFood");
-
-            if (member.Health <= 25 && !member.MemoryTags.Contains("NeedsMedicine"))
-                member.MemoryTags.Add("NeedsMedicine");
-        }
-    }
-
-    public void AssignRole(string memberId, string role)
+    public bool SetRole(string memberId, string role)
     {
         GangMember member = GetMember(memberId);
         if (member == null)
-            return;
+            return false;
 
         member.Role = role;
+        return true;
     }
 
-    public void SetCombatStyle(string memberId, string style)
+    public bool SetCombatStyle(string memberId, string combatStyle)
     {
         GangMember member = GetMember(memberId);
         if (member == null)
-            return;
+            return false;
 
-        member.CombatStyle = style;
+        member.CombatStyle = combatStyle;
+        return true;
     }
 
-    public void SetAlignment(string memberId, string alignment)
+    public bool SetTask(string memberId, string task)
     {
         GangMember member = GetMember(memberId);
         if (member == null)
-            return;
+            return false;
 
-        member.Alignment = alignment;
+        member.CurrentTask = task;
+        return true;
     }
 
-    public List<GangMemberSaveData> CreateSaveData()
+    public void ApplyTacticalContext(TacticalContext context)
     {
-        List<GangMemberSaveData> saveData = new List<GangMemberSaveData>();
-
-        foreach (GangMember member in _members)
+        foreach (GangMember member in _members.Values)
         {
             if (member == null)
                 continue;
 
-            saveData.Add(new GangMemberSaveData
-            {
-                Id = member.Id,
-                Name = member.Name,
-                CompanionType = CompanionType.Human,
-                Role = member.Role,
-                Alignment = member.Alignment,
-                CombatStyle = member.CombatStyle,
-                TacticalState = member.TacticalState,
-                Loyalty = member.Loyalty,
-                Experience = member.Experience,
-                ModelName = member.ModelName,
-                Weapons = member.Weapons == null ? new List<string>() : new List<string>(member.Weapons),
-                MemoryTags = member.MemoryTags == null ? new List<string>() : new List<string>(member.MemoryTags),
-                Goals = member.Goals == null ? new List<string>() : new List<string>(member.Goals)
-            });
+            member.TacticalState = TacticalStateResolver.Resolve(member, context);
+            member.CombatStyle = TacticalStateResolver.ResolveCombatStyle(member, context);
+            member.BehaviorPriority = TacticalStateResolver.ResolvePriority(member, context);
         }
-
-        return saveData;
     }
 
-    public void LoadFromSave(List<GangMemberSaveData> saveData)
+    public string SaveState()
+    {
+        return JsonConvert.SerializeObject(_members.Values, Formatting.Indented);
+    }
+
+    public void LoadState(string json)
     {
         _members.Clear();
 
-        if (saveData == null)
+        if (string.IsNullOrWhiteSpace(json))
             return;
 
-        foreach (GangMemberSaveData data in saveData)
+        List<GangMember> members = JsonConvert.DeserializeObject<List<GangMember>>(json);
+        if (members == null)
+            return;
+
+        foreach (GangMember member in members)
         {
-            _members.Add(new GangMember
-            {
-                Id = data.Id,
-                Name = data.Name,
-                Role = data.Role,
-                Alignment = data.Alignment,
-                CombatStyle = data.CombatStyle,
-                TacticalState = data.TacticalState,
-                Loyalty = data.Loyalty,
-                Experience = data.Experience,
-                ModelName = data.ModelName,
-                Weapons = data.Weapons == null ? new List<string>() : new List<string>(data.Weapons),
-                MemoryTags = data.MemoryTags == null ? new List<string>() : new List<string>(data.MemoryTags),
-                Goals = data.Goals == null ? new List<string>() : new List<string>(data.Goals),
-                Health = 100,
-                Hunger = 100
-            });
+            if (member != null && !string.IsNullOrWhiteSpace(member.MemberId))
+                _members[member.MemberId] = member;
         }
     }
+}
+
+public class CompanionSystem
+{
+    private readonly Dictionary<string, CompanionRecord> _companions = new Dictionary<string, CompanionRecord>();
+
+    public void RegisterCompanion(CompanionRecord companion)
+    {
+        if (companion == null || string.IsNullOrWhiteSpace(companion.CompanionId))
+            return;
+
+        _companions[companion.CompanionId] = companion;
+    }
+
+    public bool SetCompanionGoal(string companionId, string goal)
+    {
+        if (string.IsNullOrWhiteSpace(companionId) || !_companions.ContainsKey(companionId))
+            return false;
+
+        _companions[companionId].CurrentGoal = goal;
+        return true;
+    }
+
+    public string SaveState()
+    {
+        return JsonConvert.SerializeObject(_companions.Values, Formatting.Indented);
+    }
+
+    public void LoadState(string json)
+    {
+        _companions.Clear();
+
+        if (string.IsNullOrWhiteSpace(json))
+            return;
+
+        List<CompanionRecord> companions = JsonConvert.DeserializeObject<List<CompanionRecord>>(json);
+        if (companions == null)
+            return;
+
+        foreach (CompanionRecord companion in companions)
+        {
+            if (companion != null && !string.IsNullOrWhiteSpace(companion.CompanionId))
+                _companions[companion.CompanionId] = companion;
+        }
+    }
+}
+
+public static class TacticalStateResolver
+{
+    public static string Resolve(GangMember member, TacticalContext context)
+    {
+        if (context == null)
+            return "Follow";
+
+        if (context.IsStealth)
+            return "Stealth";
+        if (context.IsInCombat)
+            return "Engage";
+        if (context.IsShopping)
+            return "Support";
+        if (context.IsTraveling)
+            return "Travel";
+        if (!string.IsNullOrWhiteSpace(member?.CurrentTask))
+            return member.CurrentTask;
+
+        return "Follow";
+    }
+
+    public static string ResolveCombatStyle(GangMember member, TacticalContext context)
+    {
+        if (context != null && context.IsStealth)
+            return "Stealth";
+
+        if (member == null)
+            return "Ranged Medium";
+
+        if (member.Role == "Scout")
+            return "Ranged Long";
+        if (member.Role == "Bruiser")
+            return "Lethal Melee";
+        if (member.Role == "Hunter")
+            return "Ranged Short";
+
+        return string.IsNullOrWhiteSpace(member.CombatStyle) ? "Ranged Medium" : member.CombatStyle;
+    }
+
+    public static int ResolvePriority(GangMember member, TacticalContext context)
+    {
+        int priority = 50;
+
+        if (member != null && member.Loyalty >= 75)
+            priority += 10;
+        if (member != null && member.Hunger <= 20)
+            priority -= 15;
+        if (context != null && context.IsInCombat)
+            priority += 20;
+        if (context != null && context.IsStealth)
+            priority += 5;
+        if (context != null && context.IsTraveling)
+            priority += 3;
+        if (context != null && context.IsShopping)
+            priority += 2;
+
+        return priority;
+    }
+}
+
+public class TacticalContext
+{
+    public bool IsInCombat { get; set; }
+    public bool IsStealth { get; set; }
+    public bool IsTraveling { get; set; }
+    public bool IsShopping { get; set; }
 }
 
 public class GangMember
 {
-    public string Id { get; set; }
+    public string MemberId { get; set; }
     public string Name { get; set; }
-    public string ModelName { get; set; }
     public string Role { get; set; }
-    public string Alignment { get; set; }
     public string CombatStyle { get; set; }
     public string TacticalState { get; set; }
+    public string CurrentTask { get; set; }
     public int Loyalty { get; set; }
-    public int Experience { get; set; }
-    public int Health { get; set; } = 100;
-    public int Hunger { get; set; } = 100;
-    public List<string> Weapons { get; set; } = new List<string>();
-    public List<string> MemoryTags { get; set; } = new List<string>();
-    public List<string> Goals { get; set; } = new List<string>();
+    public int Hunger { get; set; }
+    public int BehaviorPriority { get; set; } = 50;
 }
 
-public enum CompanionType
+public class CompanionRecord
 {
-    Human,
-    Animal
-}
-
-public enum GangMemberRole
-{
-    Member,
-    Scout,
-    Bruiser,
-    Hunter,
-    Leader
-}
-
-public enum RelationshipAlignment
-{
-    Neutral,
-    Friendly,
-    Loyal,
-    Wary,
-    Hostile
-}
-
-public enum CombatStyle
-{
-    NonLethalMelee,
-    LethalMelee,
-    RangedShort,
-    RangedMedium,
-    RangedLong,
-    Stealth
-}
-
-public enum TacticalState
-{
-    Follow,
-    Engage,
-    Stealth,
-    Travel,
-    Support,
-    SupplyRun
+    public string CompanionId { get; set; }
+    public string Name { get; set; }
+    public string Species { get; set; }
+    public string CurrentGoal { get; set; }
 }

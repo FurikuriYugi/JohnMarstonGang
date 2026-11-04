@@ -1,76 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using Newtonsoft.Json;
 
 public class InteractionSystem
 {
-    public bool CanPickLock(GangMember member)
+    private readonly LockSystem _lockSystem;
+    private readonly DynamiteSystem _dynamiteSystem;
+
+    public InteractionSystem(LockSystem lockSystem, DynamiteSystem dynamiteSystem)
     {
-        if (member == null)
+        _lockSystem = lockSystem;
+        _dynamiteSystem = dynamiteSystem;
+    }
+
+    public bool TryPickTarget(int targetId, bool hasBreakerTool)
+    {
+        if (_lockSystem == null)
             return false;
 
-        return (member.Goals != null && member.Goals.Contains("BreakerTool"))
-            || (member.MemoryTags != null && member.MemoryTags.Contains("HasLockpick"));
-    }
-
-    public bool CanUseDynamite(GangMember member)
-    {
-        if (member == null)
+        if (!_lockSystem.CanPick(targetId, hasBreakerTool))
             return false;
 
-        return (member.Weapons != null && member.Weapons.Contains("Dynamite"))
-            || (member.MemoryTags != null && member.MemoryTags.Contains("CanBlowOpen"));
+        return _lockSystem.PickLock(targetId);
     }
 
-    public InteractionResult TryOpenDoor(GangMember member, bool locked)
+    public bool TryBlastTarget(int targetId)
     {
-        if (!locked)
-            return InteractionResult.Succeeded("Door already open.");
+        if (_lockSystem != null && _lockSystem.CanBlast(targetId))
+            return _lockSystem.BlastOpen(targetId);
 
-        if (CanPickLock(member))
-            return InteractionResult.Succeeded("Door picked.");
+        if (_dynamiteSystem != null && _dynamiteSystem.CanBeDestroyed(targetId))
+            return _dynamiteSystem.BlastOpen(targetId);
 
-        if (CanUseDynamite(member))
-            return InteractionResult.Succeeded("Door blasted open.");
-
-        return InteractionResult.Failed("Cannot open door.");
+        return false;
     }
 
-    public InteractionResult TryOpenSafe(GangMember member, bool locked, bool reinforced)
+    public bool TryOpenTarget(int targetId)
     {
-        if (!locked)
-            return InteractionResult.Succeeded("Safe already open.");
+        if (_lockSystem == null)
+            return false;
 
-        if (CanPickLock(member))
-            return InteractionResult.Succeeded("Safe cracked open.");
-
-        if (reinforced && CanUseDynamite(member))
-            return InteractionResult.Succeeded("Safe blasted open.");
-
-        return InteractionResult.Failed("Cannot open safe.");
-    }
-}
-
-public class InteractionResult
-{
-    public bool IsSuccess { get; set; }
-    public string Message { get; set; } = string.Empty;
-
-    public static InteractionResult Succeeded(string message)
-    {
-        return new InteractionResult
-        {
-            IsSuccess = true,
-            Message = message
-        };
-    }
-
-    public static InteractionResult Failed(string message)
-    {
-        return new InteractionResult
-        {
-            IsSuccess = false,
-            Message = message
-        };
+        return _lockSystem.Open(targetId);
     }
 }
