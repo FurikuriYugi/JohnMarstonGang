@@ -1,83 +1,89 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 public class DynamiteSystem
 {
-    private readonly Dictionary<string, DestructibleTarget> _targets = new Dictionary<string, DestructibleTarget>();
+    private readonly Dictionary<int, DestructibleTarget> _targets = new Dictionary<int, DestructibleTarget>();
 
-    public void RegisterTarget(string targetId, float health, bool canBeBlasted)
+    public void RegisterTarget(DestructibleTarget target)
     {
-        if (string.IsNullOrWhiteSpace(targetId))
+        if (target == null)
             return;
 
-        _targets[targetId] = new DestructibleTarget
+        _targets[target.Id] = target;
+    }
+
+    public bool CanBeDestroyed(int targetId)
+    {
+        return _targets.ContainsKey(targetId) && _targets[targetId].IsDestructible;
+    }
+
+    public bool DamageTarget(int targetId, float damage)
+    {
+        if (!_targets.ContainsKey(targetId))
+            return false;
+
+        DestructibleTarget target = _targets[targetId];
+        if (!target.IsDestructible)
+            return false;
+
+        target.CurrentHealth -= damage;
+        if (target.CurrentHealth <= 0f)
         {
-            TargetId = targetId,
-            Health = health,
-            CanBeBlasted = canBeBlasted
-        };
+            target.CurrentHealth = 0f;
+            target.IsDestroyed = true;
+        }
+
+        return true;
     }
 
-    public void UnregisterTarget(string targetId)
+    public bool BlastOpen(int targetId)
     {
-        if (string.IsNullOrWhiteSpace(targetId))
+        if (!_targets.ContainsKey(targetId))
+            return false;
+
+        DestructibleTarget target = _targets[targetId];
+        if (!target.AllowsExplosion)
+            return false;
+
+        target.CurrentHealth = 0f;
+        target.IsDestroyed = true;
+        return true;
+    }
+
+    public string SaveState()
+    {
+        return JsonConvert.SerializeObject(_targets.Values, Formatting.Indented);
+    }
+
+    public void LoadState(string json)
+    {
+        _targets.Clear();
+
+        if (string.IsNullOrWhiteSpace(json))
             return;
 
-        _targets.Remove(targetId);
+        List<DestructibleTarget> targets = JsonConvert.DeserializeObject<List<DestructibleTarget>>(json);
+        if (targets == null)
+            return;
+
+        foreach (DestructibleTarget target in targets)
+        {
+            if (target != null)
+                _targets[target.Id] = target;
+        }
     }
+}
 
-    public DestructibleTarget GetTarget(string targetId)
-    {
-        if (string.IsNullOrWhiteSpace(targetId))
-            return null;
-
-        DestructibleTarget target;
-        if (_targets.TryGetValue(targetId, out target))
-            return target;
-
-        return null;
-    }
-
-    public InteractionResult ApplyExplosion(string targetId, float damage)
-    {
-        var target = GetTarget(targetId);
-        if (target == null)
-            return InteractionResult.Failed("No target.");
-
-        if (!target.CanBeBlasted)
-            return InteractionResult.Failed("Target cannot be blasted.");
-
-        target.Health = Math.Max(0f, target.Health - Math.Max(0f, damage));
-
-        if (target.Health <= 0f)
-            return InteractionResult.Succeeded("Target destroyed.");
-
-        return InteractionResult.Succeeded("Target damaged.");
-    }
-
-    public InteractionResult BlowDoorOpen(string doorId)
-    {
-        var target = GetTarget(doorId);
-        if (target == null)
-            return InteractionResult.Failed("No door.");
-
-        if (!target.CanBeBlasted)
-            return InteractionResult.Failed("Door is blast-resistant.");
-
-        target.Health = 0f;
-        return InteractionResult.Succeeded("Door blown open.");
-    }
-
-    public InteractionResult BlowSafeOpen(string safeId)
-    {
-        var target = GetTarget(safeId);
-        if (target == null)
-            return InteractionResult.Failed("No safe.");
-
-        if (!target.CanBeBlasted)
-            return InteractionResult.Failed("Safe is blast-resistant.");
-
-        target.Health = 0f;
-        return InteractionResult.Succeeded("Safe blown open.");
-    }
+public class DestructibleTarget
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public bool IsDestructible { get; set; } = true;
+    public bool AllowsExplosion { get; set; } = true;
+    public float MaxHealth { get; set; } = 100f;
+    public float CurrentHealth { get; set; } = 100f;
+    public bool IsDestroyed { get; set; }
+    public string TargetType { get; set; }
 }
