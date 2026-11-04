@@ -1,4 +1,6 @@
-﻿public class InteractionSystem
+﻿using Newtonsoft.Json;
+
+public class InteractionSystem
 {
     private readonly LockSystem _lockSystem;
     private readonly DynamiteSystem _dynamiteSystem;
@@ -9,33 +11,57 @@
         _dynamiteSystem = dynamiteSystem;
     }
 
-    public bool TryPickTarget(int targetId, bool hasBreakerTool)
+    public bool TryPickLock(string targetId)
+    {
+        if (_lockSystem == null || string.IsNullOrWhiteSpace(targetId))
+            return false;
+
+        if (!_lockSystem.CanPick(targetId))
+            return false;
+
+        _lockSystem.Pick(targetId);
+        return true;
+    }
+
+    public bool TryBreakLock(string targetId)
+    {
+        if (_lockSystem == null || string.IsNullOrWhiteSpace(targetId))
+            return false;
+
+        if (!_lockSystem.HasLock(targetId))
+            return false;
+
+        _lockSystem.Break(targetId);
+        return true;
+    }
+
+    public bool TryBlowOpen(string targetId, int damage)
+    {
+        if (_dynamiteSystem == null || string.IsNullOrWhiteSpace(targetId) || damage <= 0)
+            return false;
+
+        if (!_dynamiteSystem.CanDestroy(targetId))
+            return false;
+
+        _dynamiteSystem.ApplyExplosion(targetId, damage);
+        return true;
+    }
+
+    public bool IsLocked(string targetId)
     {
         if (_lockSystem == null)
             return false;
 
-        if (!_lockSystem.CanPick(targetId, hasBreakerTool))
-            return false;
-
-        return _lockSystem.PickLock(targetId);
+        LockRecord record = _lockSystem.GetLock(targetId);
+        return record != null && record.IsLocked && !record.IsBroken;
     }
 
-    public bool TryBlastTarget(int targetId)
+    public bool IsDestroyed(string targetId)
     {
-        if (_lockSystem != null && _lockSystem.CanBlast(targetId))
-            return _lockSystem.BlastOpen(targetId);
-
-        if (_dynamiteSystem != null && _dynamiteSystem.CanBeDestroyed(targetId))
-            return _dynamiteSystem.BlastOpen(targetId);
-
-        return false;
-    }
-
-    public bool TryOpenTarget(int targetId)
-    {
-        if (_lockSystem == null)
+        if (_dynamiteSystem == null)
             return false;
 
-        return _lockSystem.Open(targetId);
+        DestructibleRecord record = _dynamiteSystem.GetDestructible(targetId);
+        return record != null && record.IsDestroyed;
     }
 }
