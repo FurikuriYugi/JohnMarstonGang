@@ -13,55 +13,18 @@ public class JobSystem
         _jobs[job.JobId] = job;
     }
 
-    public bool AcceptJob(string jobId)
+    public bool HasJob(string jobId)
     {
-        if (!_jobs.ContainsKey(jobId))
-            return false;
-
-        JobRecord job = _jobs[jobId];
-        if (!job.IsAvailable || job.IsCompleted)
-            return false;
-
-        job.IsAvailable = false;
-        return true;
+        return !string.IsNullOrWhiteSpace(jobId) && _jobs.ContainsKey(jobId);
     }
 
-    public bool CompleteJob(string jobId)
+    public JobRecord GetJob(string jobId)
     {
-        if (!_jobs.ContainsKey(jobId))
-            return false;
+        if (string.IsNullOrWhiteSpace(jobId))
+            return null;
 
-        JobRecord job = _jobs[jobId];
-        if (job.IsCompleted)
-            return false;
-
-        job.IsCompleted = true;
-        job.IsAvailable = false;
-        return true;
-    }
-
-    public int GetHonorChange(string jobId)
-    {
-        if (!_jobs.ContainsKey(jobId))
-            return 0;
-
-        return _jobs[jobId].HonorChange;
-    }
-
-    public decimal GetCashPayout(string jobId)
-    {
-        if (!_jobs.ContainsKey(jobId))
-            return 0m;
-
-        return _jobs[jobId].PayoutCash;
-    }
-
-    public decimal GetGoldPayout(string jobId)
-    {
-        if (!_jobs.ContainsKey(jobId))
-            return 0m;
-
-        return _jobs[jobId].PayoutGold;
+        _jobs.TryGetValue(jobId, out JobRecord job);
+        return job;
     }
 
     public List<JobRecord> GetAllJobs()
@@ -69,23 +32,76 @@ public class JobSystem
         return new List<JobRecord>(_jobs.Values);
     }
 
-    public void LoadJobs(List<JobRecord> jobs)
+    public void LoadJobs(List<JobData> jobs)
     {
         _jobs.Clear();
 
         if (jobs == null)
             return;
 
-        foreach (JobRecord job in jobs)
+        foreach (JobData job in jobs)
         {
-            if (job != null && !string.IsNullOrWhiteSpace(job.JobId))
-                _jobs[job.JobId] = job;
+            if (job == null || string.IsNullOrWhiteSpace(job.JobId))
+                continue;
+
+            _jobs[job.JobId] = new JobRecord
+            {
+                JobId = job.JobId,
+                Title = job.Title,
+                Faction = job.Faction,
+                PayoutCash = job.PayoutCash,
+                PayoutGold = job.PayoutGold,
+                HonorChange = job.HonorChange,
+                IsAvailable = job.IsAvailable,
+                IsCompleted = job.IsCompleted
+            };
         }
+    }
+
+    public List<JobData> GetJobsAsData()
+    {
+        List<JobData> result = new List<JobData>();
+
+        foreach (JobRecord job in _jobs.Values)
+        {
+            result.Add(new JobData
+            {
+                JobId = job.JobId,
+                Title = job.Title,
+                Faction = job.Faction,
+                PayoutCash = job.PayoutCash,
+                PayoutGold = job.PayoutGold,
+                HonorChange = job.HonorChange,
+                IsAvailable = job.IsAvailable,
+                IsCompleted = job.IsCompleted
+            });
+        }
+
+        return result;
+    }
+
+    public void MarkCompleted(string jobId)
+    {
+        JobRecord job = GetJob(jobId);
+        if (job == null)
+            return;
+
+        job.IsCompleted = true;
+        job.IsAvailable = false;
+    }
+
+    public void SetAvailability(string jobId, bool available)
+    {
+        JobRecord job = GetJob(jobId);
+        if (job == null)
+            return;
+
+        job.IsAvailable = available;
     }
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_jobs.Values, Formatting.Indented);
+        return JsonConvert.SerializeObject(GetJobsAsData(), Formatting.Indented);
     }
 
     public void LoadState(string json)
@@ -95,14 +111,7 @@ public class JobSystem
         if (string.IsNullOrWhiteSpace(json))
             return;
 
-        List<JobRecord> jobs = JsonConvert.DeserializeObject<List<JobRecord>>(json);
-        if (jobs == null)
-            return;
-
-        foreach (JobRecord job in jobs)
-        {
-            if (job != null && !string.IsNullOrWhiteSpace(job.JobId))
-                _jobs[job.JobId] = job;
-        }
+        List<JobData> jobs = JsonConvert.DeserializeObject<List<JobData>>(json);
+        LoadJobs(jobs);
     }
 }

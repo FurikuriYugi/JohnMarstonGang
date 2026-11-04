@@ -13,51 +13,18 @@ public class WagonSystem
         _wagons[wagon.WagonId] = wagon;
     }
 
-    public bool OwnWagon(string wagonId)
+    public bool HasWagon(string wagonId)
     {
-        if (string.IsNullOrWhiteSpace(wagonId) || !_wagons.ContainsKey(wagonId))
-            return false;
-
-        _wagons[wagonId].IsOwned = true;
-        return true;
+        return !string.IsNullOrWhiteSpace(wagonId) && _wagons.ContainsKey(wagonId);
     }
 
-    public bool StoreItem(string wagonId, string itemName, int amount)
+    public WagonRecord GetWagon(string wagonId)
     {
-        if (!_wagons.ContainsKey(wagonId))
-            return false;
+        if (string.IsNullOrWhiteSpace(wagonId))
+            return null;
 
-        WagonRecord wagon = _wagons[wagonId];
-        if (wagon.StoredItems == null)
-            wagon.StoredItems = new Dictionary<string, int>();
-
-        if (string.IsNullOrWhiteSpace(itemName) || amount <= 0)
-            return false;
-
-        if (!wagon.StoredItems.ContainsKey(itemName))
-            wagon.StoredItems[itemName] = 0;
-
-        wagon.StoredItems[itemName] += amount;
-        return true;
-    }
-
-    public bool RemoveItem(string wagonId, string itemName, int amount)
-    {
-        if (!_wagons.ContainsKey(wagonId))
-            return false;
-
-        WagonRecord wagon = _wagons[wagonId];
-        if (wagon.StoredItems == null || !wagon.StoredItems.ContainsKey(itemName))
-            return false;
-
-        if (amount <= 0 || wagon.StoredItems[itemName] < amount)
-            return false;
-
-        wagon.StoredItems[itemName] -= amount;
-        if (wagon.StoredItems[itemName] <= 0)
-            wagon.StoredItems.Remove(itemName);
-
-        return true;
+        _wagons.TryGetValue(wagonId, out WagonRecord wagon);
+        return wagon;
     }
 
     public List<WagonRecord> GetAllWagons()
@@ -79,9 +46,43 @@ public class WagonSystem
         }
     }
 
+    public void AddStoredItem(string wagonId, string item)
+    {
+        WagonRecord wagon = GetWagon(wagonId);
+        if (wagon == null || string.IsNullOrWhiteSpace(item))
+            return;
+
+        if (wagon.StoredItems == null)
+            wagon.StoredItems = new List<string>();
+
+        wagon.StoredItems.Add(item);
+    }
+
+    public void AttachHorse(string wagonId, string horseId)
+    {
+        WagonRecord wagon = GetWagon(wagonId);
+        if (wagon == null || string.IsNullOrWhiteSpace(horseId))
+            return;
+
+        if (wagon.AttachedHorses == null)
+            wagon.AttachedHorses = new List<string>();
+
+        if (!wagon.AttachedHorses.Contains(horseId))
+            wagon.AttachedHorses.Add(horseId);
+    }
+
+    public void DetachHorse(string wagonId, string horseId)
+    {
+        WagonRecord wagon = GetWagon(wagonId);
+        if (wagon == null || wagon.AttachedHorses == null || string.IsNullOrWhiteSpace(horseId))
+            return;
+
+        wagon.AttachedHorses.Remove(horseId);
+    }
+
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_wagons.Values, Formatting.Indented);
+        return JsonConvert.SerializeObject(GetAllWagons(), Formatting.Indented);
     }
 
     public void LoadState(string json)
@@ -92,24 +93,16 @@ public class WagonSystem
             return;
 
         List<WagonRecord> wagons = JsonConvert.DeserializeObject<List<WagonRecord>>(json);
-        if (wagons == null)
-            return;
-
-        foreach (WagonRecord wagon in wagons)
-        {
-            if (wagon != null && !string.IsNullOrWhiteSpace(wagon.WagonId))
-                _wagons[wagon.WagonId] = wagon;
-        }
+        LoadWagons(wagons);
     }
 }
 
 public class WagonRecord
 {
     public string WagonId { get; set; }
-    public string DisplayName { get; set; }
+    public string OwnerId { get; set; }
     public bool IsOwned { get; set; }
-    public string OwnerName { get; set; }
-    public Dictionary<string, int> StoredItems { get; set; } = new Dictionary<string, int>();
-    public bool HasHitchSupport { get; set; } = true;
-    public bool PersistentAcrossReloads { get; set; } = true;
+    public bool IsHitched { get; set; }
+    public List<string> StoredItems { get; set; } = new List<string>();
+    public List<string> AttachedHorses { get; set; } = new List<string>();
 }

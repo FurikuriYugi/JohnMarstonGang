@@ -100,18 +100,3 @@ public class CompanionSystem
         LoadCompanions(companions);
     }
 }
-
-public class CompanionData
-{
-    public string CompanionId { get; set; }
-    public string Name { get; set; }
-    public string Species { get; set; }
-    public string Role { get; set; }
-    public string CombatStyle { get; set; }
-    public int Loyalty { get; set; }
-    public int Experience { get; set; }
-    public List<string> MemoryTags { get; set; } = new List<string>();
-    public List<string> Skills { get; set; } = new List<string>();
-    public List<string> Goals { get; set; } = new List<string>();
-    public List<string> Inventory { get; set; } = new List<string>();
-}
