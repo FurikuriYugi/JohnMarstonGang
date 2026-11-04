@@ -1,9 +1,11 @@
-﻿using System;
+﻿// Main.cs
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class Main
 {
     private readonly GangManager _gangManager;
+    private readonly TacticalSquadAiSystem _tacticalAi;
     private readonly CompanionSystem _companionSystem;
     private readonly BankSystem _bankSystem;
     private readonly JobSystem _jobSystem;
@@ -11,11 +13,12 @@ public class Main
     private readonly LockSystem _lockSystem;
     private readonly DynamiteSystem _dynamiteSystem;
     private readonly InteractionSystem _interactionSystem;
-    private readonly TacticalSquadAiSystem _tacticalSquadAiSystem;
+    private readonly JsonSaveSystem _saveSystem;
 
     public Main()
     {
         _gangManager = new GangManager();
+        _tacticalAi = new TacticalSquadAiSystem();
         _companionSystem = new CompanionSystem();
         _bankSystem = new BankSystem();
         _jobSystem = new JobSystem();
@@ -23,7 +26,7 @@ public class Main
         _lockSystem = new LockSystem();
         _dynamiteSystem = new DynamiteSystem();
         _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
-        _tacticalSquadAiSystem = new TacticalSquadAiSystem();
+        _saveSystem = new JsonSaveSystem();
     }
 
     public void Initialize()
@@ -36,51 +39,39 @@ public class Main
         TacticalContext context = BuildTacticalContext();
 
         _gangManager.ApplyTacticalContext(context);
-        _tacticalSquadAiSystem.UpdateSquadTactics(_gangManager.GetAllMembers(), context);
-
-        UpdateCompanions(context);
-        UpdateWorldSystems(context);
+        _tacticalAi.UpdateSquadTactics(_gangManager.GetAllMembers(), context);
     }
 
     private TacticalContext BuildTacticalContext()
     {
         return new TacticalContext
         {
-            IsTraveling = true,
-            IsShopping = false,
             IsInCombat = false,
-            IsStealth = false
+            IsStealth = false,
+            IsTraveling = true,
+            IsShopping = false
         };
-    }
-
-    private void UpdateCompanions(TacticalContext context)
-    {
-        if (context == null)
-            return;
-    }
-
-    private void UpdateWorldSystems(TacticalContext context)
-    {
     }
 
     private void LoadDefaults()
     {
-        if (_gangManager.GetAllMembers().Count == 0)
+        if (_gangManager.GetAllMembers().Count > 0)
+            return;
+
+        _gangManager.RegisterMember(new GangMember
         {
-            _gangManager.RegisterMember(new GangMember
-            {
-                MemberId = "player",
-                Name = "Player",
-                Role = "Leader",
-                CombatStyle = "Ranged Medium",
-                TacticalState = "Follow",
-                Loyalty = 100,
-                Hunger = 0
-            });
-        }
+            MemberId = "player",
+            Name = "Player",
+            Role = "Leader",
+            CombatStyle = "Ranged Medium",
+            TacticalState = "Follow",
+            Loyalty = 100,
+            Hunger = 0,
+            MemoryTags = new List<string>()
+        });
     }
 
-    public string SaveAll()
+    public void SaveAll(string path)
     {
         SaveRoot root = new SaveRoot
         {
@@ -91,15 +82,12 @@ public class Main
             Wagons = _wagonSystem.GetAllWagons()
         };
 
-        return JsonConvert.SerializeObject(root, Formatting.Indented);
+        _saveSystem.Save(path, root);
     }
 
-    public void LoadAll(string json)
+    public void LoadAll(string path)
     {
-        if (string.IsNullOrWhiteSpace(json))
-            return;
-
-        SaveRoot root = JsonConvert.DeserializeObject<SaveRoot>(json);
+        SaveRoot root = _saveSystem.Load<SaveRoot>(path);
         if (root == null)
             return;
 

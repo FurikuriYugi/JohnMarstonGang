@@ -2,11 +2,11 @@
 
 public class SaveRoot
 {
-    public List<GangMember> GangMembers { get; set; } = new List<GangMember>();
-    public List<CompanionRecord> Companions { get; set; } = new List<CompanionRecord>();
-    public List<WagonRecord> Wagons { get; set; } = new List<WagonRecord>();
-    public List<BankAccountRecord> BankAccounts { get; set; } = new List<BankAccountRecord>();
-    public List<JobRecord> Jobs { get; set; } = new List<JobRecord>();
+    public List<GangMember> GangMembers { get; set; }
+    public List<CompanionData> Companions { get; set; }
+    public List<BankAccountData> BankAccounts { get; set; }
+    public List<JobData> Jobs { get; set; }
+    public List<WagonData> Wagons { get; set; }
 }
 
 public class BankAccountRecord

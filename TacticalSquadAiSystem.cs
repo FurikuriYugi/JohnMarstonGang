@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿// TacticalSquadAiSystem.cs
+using System.Collections.Generic;
 
 public class TacticalSquadAiSystem
 {
@@ -12,13 +13,13 @@ public class TacticalSquadAiSystem
             if (member == null)
                 continue;
 
-            member.TacticalState = SelectTacticalState(member, context);
-            member.CombatStyle = SelectCombatStyle(member, context);
-            member.BehaviorPriority = SelectPriority(member, context);
+            member.TacticalState = ResolveTacticalState(member, context);
+            member.CombatStyle = ResolveCombatStyle(member, context);
+            member.BehaviorPriority = ResolvePriority(member, context);
         }
     }
 
-    public string SelectTacticalState(GangMember member, TacticalContext context)
+    public static string ResolveTacticalState(GangMember member, TacticalContext context)
     {
         if (context == null)
             return "Follow";
@@ -29,19 +30,22 @@ public class TacticalSquadAiSystem
         if (context.IsInCombat)
             return "Engage";
 
-        if (context.IsTraveling)
-            return "Travel";
-
         if (context.IsShopping)
             return "Support";
+
+        if (context.IsTraveling)
+            return "Travel";
 
         if (member != null && member.MemoryTags != null && member.MemoryTags.Contains("NeedsFood"))
             return "SupplyRun";
 
+        if (member != null && !string.IsNullOrWhiteSpace(member.CurrentTask))
+            return member.CurrentTask;
+
         return "Follow";
     }
 
-    public string SelectCombatStyle(GangMember member, TacticalContext context)
+    public static string ResolveCombatStyle(GangMember member, TacticalContext context)
     {
         if (context != null && context.IsStealth)
             return "Stealth";
@@ -58,13 +62,13 @@ public class TacticalSquadAiSystem
         if (member.Role == "Hunter")
             return "Ranged Short";
 
-        if (!string.IsNullOrEmpty(member.CombatStyle))
+        if (!string.IsNullOrWhiteSpace(member.CombatStyle))
             return member.CombatStyle;
 
         return "Ranged Medium";
     }
 
-    public int SelectPriority(GangMember member, TacticalContext context)
+    public static int ResolvePriority(GangMember member, TacticalContext context)
     {
         int priority = 50;
 

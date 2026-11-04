@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿// GangManager.cs
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class GangManager
@@ -20,53 +21,11 @@ public class GangManager
 
     public GangMember GetMember(string memberId)
     {
-        if (string.IsNullOrWhiteSpace(memberId) || !_members.ContainsKey(memberId))
+        if (string.IsNullOrWhiteSpace(memberId))
             return null;
 
-        return _members[memberId];
-    }
-
-    public bool SetRole(string memberId, string role)
-    {
-        GangMember member = GetMember(memberId);
-        if (member == null)
-            return false;
-
-        member.Role = role;
-        return true;
-    }
-
-    public bool SetCombatStyle(string memberId, string combatStyle)
-    {
-        GangMember member = GetMember(memberId);
-        if (member == null)
-            return false;
-
-        member.CombatStyle = combatStyle;
-        return true;
-    }
-
-    public bool SetTask(string memberId, string task)
-    {
-        GangMember member = GetMember(memberId);
-        if (member == null)
-            return false;
-
-        member.CurrentTask = task;
-        return true;
-    }
-
-    public void ApplyTacticalContext(TacticalContext context)
-    {
-        foreach (GangMember member in _members.Values)
-        {
-            if (member == null)
-                continue;
-
-            member.TacticalState = TacticalStateResolver.Resolve(member, context);
-            member.CombatStyle = TacticalStateResolver.ResolveCombatStyle(member, context);
-            member.BehaviorPriority = TacticalStateResolver.ResolvePriority(member, context);
-        }
+        _members.TryGetValue(memberId, out GangMember member);
+        return member;
     }
 
     public List<GangMember> GetAllMembers()
@@ -88,9 +47,22 @@ public class GangManager
         }
     }
 
+    public void ApplyTacticalContext(TacticalContext context)
+    {
+        foreach (GangMember member in _members.Values)
+        {
+            if (member == null)
+                continue;
+
+            member.TacticalState = TacticalSquadAiSystem.ResolveTacticalState(member, context);
+            member.CombatStyle = TacticalSquadAiSystem.ResolveCombatStyle(member, context);
+            member.BehaviorPriority = TacticalSquadAiSystem.ResolvePriority(member, context);
+        }
+    }
+
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_members.Values, Formatting.Indented);
+        return JsonConvert.SerializeObject(GetAllMembers(), Formatting.Indented);
     }
 
     public void LoadState(string json)
@@ -101,97 +73,8 @@ public class GangManager
             return;
 
         List<GangMember> members = JsonConvert.DeserializeObject<List<GangMember>>(json);
-        if (members == null)
-            return;
-
-        foreach (GangMember member in members)
-        {
-            if (member != null && !string.IsNullOrWhiteSpace(member.MemberId))
-                _members[member.MemberId] = member;
-        }
+        LoadMembers(members);
     }
-}
-
-public static class TacticalStateResolver
-{
-    public static string Resolve(GangMember member, TacticalContext context)
-    {
-        if (context == null)
-            return "Follow";
-
-        if (context.IsStealth)
-            return "Stealth";
-
-        if (context.IsInCombat)
-            return "Engage";
-
-        if (context.IsShopping)
-            return "Support";
-
-        if (context.IsTraveling)
-            return "Travel";
-
-        if (member != null && member.MemoryTags != null && member.MemoryTags.Contains("NeedsFood"))
-            return "SupplyRun";
-
-        if (!string.IsNullOrWhiteSpace(member?.CurrentTask))
-            return member.CurrentTask;
-
-        return "Follow";
-    }
-
-    public static string ResolveCombatStyle(GangMember member, TacticalContext context)
-    {
-        if (context != null && context.IsStealth)
-            return "Stealth";
-
-        if (member == null)
-            return "Ranged Medium";
-
-        if (member.Role == "Scout")
-            return "Ranged Long";
-
-        if (member.Role == "Bruiser")
-            return "Lethal Melee";
-
-        if (member.Role == "Hunter")
-            return "Ranged Short";
-
-        return string.IsNullOrWhiteSpace(member.CombatStyle) ? "Ranged Medium" : member.CombatStyle;
-    }
-
-    public static int ResolvePriority(GangMember member, TacticalContext context)
-    {
-        int priority = 50;
-
-        if (member != null && member.Loyalty >= 75)
-            priority += 10;
-
-        if (member != null && member.Hunger <= 20)
-            priority -= 15;
-
-        if (context != null && context.IsInCombat)
-            priority += 20;
-
-        if (context != null && context.IsStealth)
-            priority += 5;
-
-        if (context != null && context.IsTraveling)
-            priority += 3;
-
-        if (context != null && context.IsShopping)
-            priority += 2;
-
-        return priority;
-    }
-}
-
-public class TacticalContext
-{
-    public bool IsInCombat { get; set; }
-    public bool IsStealth { get; set; }
-    public bool IsTraveling { get; set; }
-    public bool IsShopping { get; set; }
 }
 
 public class GangMember
@@ -206,4 +89,12 @@ public class GangMember
     public int Hunger { get; set; }
     public int BehaviorPriority { get; set; } = 50;
     public List<string> MemoryTags { get; set; } = new List<string>();
+}
+
+public class TacticalContext
+{
+    public bool IsInCombat { get; set; }
+    public bool IsStealth { get; set; }
+    public bool IsTraveling { get; set; }
+    public bool IsShopping { get; set; }
 }

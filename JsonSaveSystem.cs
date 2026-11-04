@@ -1,31 +1,28 @@
-﻿using System.Collections.Generic;
+﻿// JsonSaveSystem.cs
 using System.IO;
 using Newtonsoft.Json;
 
-public static class JsonSaveSystem
+public class JsonSaveSystem
 {
-    private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
+    public void Save<T>(string path, T data)
     {
-        Formatting = Formatting.Indented,
-        NullValueHandling = NullValueHandling.Ignore,
-        MissingMemberHandling = MissingMemberHandling.Ignore
-    };
+        if (string.IsNullOrWhiteSpace(path) || data == null)
+            return;
 
-    public static void Save<T>(string path, T data)
-    {
-        string json = JsonConvert.SerializeObject(data, Settings);
+        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
         File.WriteAllText(path, json);
     }
 
-    public static T Load<T>(string path) where T : new()
+    public T Load<T>(string path)
     {
-        if (!File.Exists(path))
-            return new T();
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            return default(T);
 
         string json = File.ReadAllText(path);
-        if (string.IsNullOrWhiteSpace(json))
-            return new T();
 
-        return JsonConvert.DeserializeObject<T>(json, Settings) ?? new T();
+        if (string.IsNullOrWhiteSpace(json))
+            return default(T);
+
+        return JsonConvert.DeserializeObject<T>(json);
     }
 }
