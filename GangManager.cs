@@ -43,6 +43,22 @@ public class GangManager
         member.IsFollowingPlayer = followingPlayer;
     }
 
+    public SaveRoot ExportSaveData()
+    {
+        SaveRoot data = new SaveRoot();
+        data.GangMembers = GetMembers();
+        return data;
+    }
+
+    public void ImportSaveData(SaveRoot data)
+    {
+        _members.Clear();
+        if (data == null || data.GangMembers == null)
+            return;
+
+        _members.AddRange(data.GangMembers);
+    }
+
     public string SaveState()
     {
         return JsonConvert.SerializeObject(_members, Formatting.Indented);
