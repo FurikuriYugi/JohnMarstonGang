@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Linq;
+using Newtonsoft.Json;
 using RDR2;
-using System;
-using System.Collections.Generic;
 
 public class Main : Script
 {
@@ -20,7 +20,6 @@ public class Main : Script
 
     private SaveRoot _saveRoot;
     private int _tickCounter;
-    private const int AutosaveIntervalTicks = 600;
 
     public Main()
     {
@@ -39,20 +38,19 @@ public class Main : Script
         _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
 
         Tick += OnTick;
-
         LoadAll();
-        SeedMissingWorldState();
     }
 
     private void OnTick(object sender, EventArgs e)
     {
         _tickCounter++;
 
-        if (_tickCounter >= AutosaveIntervalTicks)
-        {
-            _tickCounter = 0;
-            SaveAll();
-        }
+        if (_tickCounter % 30 != 0)
+            return;
+
+        SyncWorldStateFromSystems();
+        UpdateEntityAI();
+        SaveAll();
     }
 
     private void LoadAll()
@@ -61,41 +59,38 @@ public class Main : Script
         if (_saveRoot == null)
             _saveRoot = new SaveRoot();
 
-        if (_saveRoot.World == null)
-            _saveRoot.World = new WorldState();
-
         if (_saveRoot.GangMembers != null)
             _gangManager.ImportSaveData(_saveRoot);
 
-        if (_saveRoot.World.Companions != null)
+        if (_saveRoot.World != null && _saveRoot.World.Companions != null)
             _companionSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Companions));
 
         if (_saveRoot.BankAccounts != null)
             _bankSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.BankAccounts));
 
-        if (_saveRoot.World.ActiveJobs != null)
+        if (_saveRoot.World != null && _saveRoot.World.ActiveJobs != null)
             _jobSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.ActiveJobs));
 
-        if (_saveRoot.World.Wagons != null)
+        if (_saveRoot.World != null && _saveRoot.World.Wagons != null)
             _wagonSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Wagons));
 
-        if (_saveRoot.World.WeaponPlatforms != null)
+        if (_saveRoot.World != null && _saveRoot.World.WeaponPlatforms != null)
             _weaponSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.WeaponPlatforms));
 
-        if (_saveRoot.World.Locks != null)
+        if (_saveRoot.World != null && _saveRoot.World.Locks != null)
             _lockSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Locks));
 
-        if (_saveRoot.World.Destructibles != null)
+        if (_saveRoot.World != null && _saveRoot.World.Destructibles != null)
             _dynamiteSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.Destructibles));
 
-        if (_saveRoot.World.TacticalOrders != null)
+        if (_saveRoot.World != null && _saveRoot.World.TacticalOrders != null)
             _tacticalSquadAiSystem.LoadState(JsonConvert.SerializeObject(_saveRoot.World.TacticalOrders));
 
         if (_saveRoot.WorldEntities != null)
             _entityRegistry.LoadState(JsonConvert.SerializeObject(_saveRoot.WorldEntities));
     }
 
-    private void SaveAll()
+    private void SyncWorldStateFromSystems()
     {
         if (_saveRoot == null)
             _saveRoot = new SaveRoot();
@@ -113,46 +108,40 @@ public class Main : Script
         _saveRoot.World.Destructibles = _dynamiteSystem.GetDestructibles();
         _saveRoot.World.TacticalOrders = _tacticalSquadAiSystem.GetOrders();
         _saveRoot.WorldEntities = _entityRegistry.GetEntities();
-
-        JsonSaveSystem.Save(_saveRoot);
     }
 
-    private void SeedMissingWorldState()
+    private void UpdateEntityAI()
     {
-        if (_saveRoot == null)
-            _saveRoot = new SaveRoot();
+        foreach (WorldEntityData entity in _entityRegistry.GetEntities())
+        {
+            if (entity == null || !entity.IsAlive)
+                continue;
 
-        if (_saveRoot.World == null)
-            _saveRoot.World = new WorldState();
+            if (string.IsNullOrWhiteSpace(entity.CombatStyle))
+                entity.CombatStyle = _tacticalDecisionSystem.ResolveCombatStyle("Normal", false, false, false, false);
 
-        if (_saveRoot.GangMembers == null)
-            _saveRoot.GangMembers = new List<GangMember>();
+            if (entity.IsFollowingPlayer && string.IsNullOrWhiteSpace(entity.CurrentTask))
+                entity.CurrentTask = "FollowPlayer";
 
-        if (_saveRoot.BankAccounts == null)
-            _saveRoot.BankAccounts = new List<BankAccountData>();
+            if (entity.IsRecruitable && entity.Loyalty < 0)
+                entity.Loyalty = 0;
 
-        if (_saveRoot.World.Companions == null)
-            _saveRoot.World.Companions = new List<CompanionData>();
+            if (entity.SupportSkill < 0)
+                entity.SupportSkill = 0;
+        }
 
-        if (_saveRoot.World.ActiveJobs == null)
-            _saveRoot.World.ActiveJobs = new List<JobData>();
+        foreach (TacticalOrderData order in _tacticalSquadAiSystem.GetOrders())
+        {
+            if (order == null || order.IsCompleted)
+                continue;
 
-        if (_saveRoot.World.Wagons == null)
-            _saveRoot.World.Wagons = new List<WagonData>();
+            _tacticalDecisionSystem.ApplyOrderToSquad(order);
+        }
+    }
 
-        if (_saveRoot.World.WeaponPlatforms == null)
-            _saveRoot.World.WeaponPlatforms = new List<WeaponPlatformData>();
-
-        if (_saveRoot.World.Locks == null)
-            _saveRoot.World.Locks = new List<LockRecord>();
-
-        if (_saveRoot.World.Destructibles == null)
-            _saveRoot.World.Destructibles = new List<DestructibleRecord>();
-
-        if (_saveRoot.World.TacticalOrders == null)
-            _saveRoot.World.TacticalOrders = new List<TacticalOrderData>();
-
-        if (_saveRoot.WorldEntities == null)
-            _saveRoot.WorldEntities = new List<WorldEntityData>();
+    private void SaveAll()
+    {
+        SyncWorldStateFromSystems();
+        JsonSaveSystem.Save(_saveRoot);
     }
 }

@@ -52,6 +52,17 @@ public class DynamiteSystem
         ApplyExplosion(targetId, amount);
     }
 
+    public void SetDestroyed(string targetId, bool destroyed)
+    {
+        DestructibleRecord record = GetDestructible(targetId);
+        if (record == null)
+            return;
+
+        record.IsDestroyed = destroyed;
+        if (destroyed)
+            record.Health = 0;
+    }
+
     public string SaveState()
     {
         return JsonConvert.SerializeObject(_destructibles, Formatting.Indented);

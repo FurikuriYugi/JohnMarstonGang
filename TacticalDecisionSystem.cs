@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public class TacticalDecisionSystem
@@ -16,19 +17,14 @@ public class TacticalDecisionSystem
     {
         if (isStealthRequested)
             return "Stealth";
-
         if (isMounted)
             return isIndoor ? "Lethal Melee" : "Ranged Short";
-
         if (isIndoor)
             return isCloseRange ? "Lethal Melee" : "Ranged Short";
-
         if (threatType == "HeavyArmor" || threatType == "Fortified")
             return "Ranged Long";
-
         if (isCloseRange)
             return "Ranged Short";
-
         return "Ranged Medium";
     }
 
@@ -36,7 +32,7 @@ public class TacticalDecisionSystem
     {
         TacticalOrderData order = new TacticalOrderData
         {
-            OrderId = System.Guid.NewGuid().ToString("N"),
+            OrderId = Guid.NewGuid().ToString("N"),
             SquadId = squadId,
             IssuerId = issuerId,
             TargetId = targetId,
@@ -56,6 +52,7 @@ public class TacticalDecisionSystem
             order.AssignedMemberIds.Add(member.EntityId);
 
         _squadAiSystem.RegisterOrder(order);
+        ApplyOrderToSquad(order);
         return order;
     }
 
@@ -83,5 +80,22 @@ public class TacticalDecisionSystem
             return;
 
         order.IsCompleted = true;
+    }
+
+    public void EvaluateEntity(WorldEntityData entity, string threatType, bool isStealthRequested, bool isCloseRange, bool isMounted, bool isIndoor)
+    {
+        if (entity == null || !entity.IsAlive)
+            return;
+
+        entity.CombatStyle = ResolveCombatStyle(threatType, isStealthRequested, isCloseRange, isMounted, isIndoor);
+
+        if (isStealthRequested)
+            entity.CurrentTask = "StealthApproach";
+        else if (isCloseRange)
+            entity.CurrentTask = "CloseQuarters";
+        else if (isMounted)
+            entity.CurrentTask = "MountedSupport";
+        else
+            entity.CurrentTask = "AdvanceAndEngage";
     }
 }

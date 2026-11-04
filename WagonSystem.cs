@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 public class WagonSystem
@@ -27,9 +29,90 @@ public class WagonSystem
         _wagons.Add(wagon);
     }
 
+    public WagonData CreateWagon(string ownerId, string displayName, bool owned)
+    {
+        WagonData wagon = new WagonData
+        {
+            WagonId = Guid.NewGuid().ToString("N"),
+            OwnerId = ownerId,
+            DisplayName = displayName,
+            IsOwned = owned,
+            IsStoredNearPlayer = true,
+            IsHitchable = true
+        };
+
+        RegisterWagon(wagon);
+        return wagon;
+    }
+
     public void RemoveWagon(string wagonId)
     {
         _wagons.RemoveAll(x => x != null && x.WagonId == wagonId);
+    }
+
+    public void StoreItem(string wagonId, string item)
+    {
+        WagonData wagon = GetWagon(wagonId);
+        if (wagon == null || string.IsNullOrWhiteSpace(item))
+            return;
+
+        if (wagon.StoredItems == null)
+            wagon.StoredItems = new List<string>();
+
+        wagon.StoredItems.Add(item);
+    }
+
+    public bool RemoveItem(string wagonId, string item)
+    {
+        WagonData wagon = GetWagon(wagonId);
+        if (wagon == null || string.IsNullOrWhiteSpace(item) || wagon.StoredItems == null)
+            return false;
+
+        return wagon.StoredItems.Remove(item);
+    }
+
+    public void AttachHorse(string wagonId, string horseId)
+    {
+        WagonData wagon = GetWagon(wagonId);
+        if (wagon == null || string.IsNullOrWhiteSpace(horseId))
+            return;
+
+        if (wagon.AttachedHorses == null)
+            wagon.AttachedHorses = new List<string>();
+
+        if (!wagon.AttachedHorses.Contains(horseId))
+            wagon.AttachedHorses.Add(horseId);
+    }
+
+    public void DetachHorse(string wagonId, string horseId)
+    {
+        WagonData wagon = GetWagon(wagonId);
+        if (wagon == null || string.IsNullOrWhiteSpace(horseId) || wagon.AttachedHorses == null)
+            return;
+
+        wagon.AttachedHorses.Remove(horseId);
+    }
+
+    public void AttachWeapon(string wagonId, string weaponId)
+    {
+        WagonData wagon = GetWagon(wagonId);
+        if (wagon == null || string.IsNullOrWhiteSpace(weaponId))
+            return;
+
+        if (wagon.AttachedWeapons == null)
+            wagon.AttachedWeapons = new List<string>();
+
+        if (!wagon.AttachedWeapons.Contains(weaponId))
+            wagon.AttachedWeapons.Add(weaponId);
+    }
+
+    public void SetNearPlayer(string wagonId, bool isNearPlayer)
+    {
+        WagonData wagon = GetWagon(wagonId);
+        if (wagon == null)
+            return;
+
+        wagon.IsStoredNearPlayer = isNearPlayer;
     }
 
     public string SaveState()

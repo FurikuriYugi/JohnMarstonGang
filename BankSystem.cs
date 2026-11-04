@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class BankSystem
@@ -27,6 +28,23 @@ public class BankSystem
         _accounts.Add(account);
     }
 
+    public BankAccountData EnsureAccount(string ownerId, string ownerName = null)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account != null)
+            return account;
+
+        account = new BankAccountData
+        {
+            OwnerId = ownerId,
+            OwnerName = ownerName,
+            LastTransactionUtc = DateTime.UtcNow
+        };
+
+        RegisterAccount(account);
+        return account;
+    }
+
     public void DepositCash(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
@@ -34,7 +52,7 @@ public class BankSystem
             return;
 
         account.Cash += amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
+        account.LastTransactionUtc = DateTime.UtcNow;
     }
 
     public void DepositGold(string ownerId, decimal amount)
@@ -44,7 +62,7 @@ public class BankSystem
             return;
 
         account.Gold += amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
+        account.LastTransactionUtc = DateTime.UtcNow;
     }
 
     public bool WithdrawCash(string ownerId, decimal amount)
@@ -54,7 +72,7 @@ public class BankSystem
             return false;
 
         account.Cash -= amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
+        account.LastTransactionUtc = DateTime.UtcNow;
         return true;
     }
 
@@ -65,8 +83,39 @@ public class BankSystem
             return false;
 
         account.Gold -= amount;
-        account.LastTransactionUtc = System.DateTime.UtcNow;
+        account.LastTransactionUtc = DateTime.UtcNow;
         return true;
+    }
+
+    public void TransferCash(string fromOwnerId, string toOwnerId, decimal amount)
+    {
+        if (WithdrawCash(fromOwnerId, amount))
+            DepositCash(toOwnerId, amount);
+    }
+
+    public void TransferGold(string fromOwnerId, string toOwnerId, decimal amount)
+    {
+        if (WithdrawGold(fromOwnerId, amount))
+            DepositGold(toOwnerId, amount);
+    }
+
+    public void AddDebt(string ownerId, decimal amount)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null || amount <= 0m)
+            return;
+
+        account.Debt += amount;
+        account.LastTransactionUtc = DateTime.UtcNow;
+    }
+
+    public void ApplySuspicion(string ownerId, bool suspicious)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null)
+            return;
+
+        account.IsSuspicious = suspicious;
     }
 
     public string SaveState()

@@ -41,6 +41,18 @@ public class TacticalSquadAiSystem
         order.IsCompleted = true;
     }
 
+    public void CompleteOrdersBySquad(string squadId)
+    {
+        if (string.IsNullOrWhiteSpace(squadId))
+            return;
+
+        foreach (TacticalOrderData order in _orders)
+        {
+            if (order != null && order.SquadId == squadId)
+                order.IsCompleted = true;
+        }
+    }
+
     public string SaveState()
     {
         return JsonConvert.SerializeObject(_orders, Formatting.Indented);

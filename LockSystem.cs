@@ -58,6 +58,16 @@ public class LockSystem
         record.IsLocked = false;
     }
 
+    public void SetLocked(string targetId, bool locked)
+    {
+        LockRecord record = GetLock(targetId);
+        if (record == null)
+            return;
+
+        if (!record.IsBroken)
+            record.IsLocked = locked;
+    }
+
     public string SaveState()
     {
         return JsonConvert.SerializeObject(_locks, Formatting.Indented);

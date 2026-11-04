@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
@@ -49,6 +50,68 @@ public class WorldEntityRegistry
     public List<WorldEntityData> GetFollowers()
     {
         return _entities.Where(x => x != null && x.IsFollowingPlayer && x.IsAlive).ToList();
+    }
+
+    public WorldEntityData EnsureEntity(string entityId, string displayName, string entityType)
+    {
+        WorldEntityData entity = GetEntity(entityId);
+        if (entity != null)
+            return entity;
+
+        entity = new WorldEntityData
+        {
+            EntityId = string.IsNullOrWhiteSpace(entityId) ? Guid.NewGuid().ToString("N") : entityId,
+            DisplayName = displayName,
+            EntityType = entityType,
+            IsAlive = true
+        };
+
+        RegisterEntity(entity);
+        return entity;
+    }
+
+    public void SetFollowState(string entityId, bool isFollowingPlayer, string currentTask)
+    {
+        WorldEntityData entity = GetEntity(entityId);
+        if (entity == null)
+            return;
+
+        entity.IsFollowingPlayer = isFollowingPlayer;
+        entity.CurrentTask = currentTask;
+    }
+
+    public void SetCombatProfile(string entityId, string combatStyle, int combatSkill, int stealthSkill, int supportSkill)
+    {
+        WorldEntityData entity = GetEntity(entityId);
+        if (entity == null)
+            return;
+
+        entity.CombatStyle = combatStyle;
+        entity.CombatSkill = combatSkill;
+        entity.StealthSkill = stealthSkill;
+        entity.SupportSkill = supportSkill;
+    }
+
+    public void GiveItem(string entityId, string item)
+    {
+        WorldEntityData entity = GetEntity(entityId);
+        if (entity == null || string.IsNullOrWhiteSpace(item))
+            return;
+
+        if (entity.InventoryItems == null)
+            entity.InventoryItems = new List<string>();
+
+        if (!entity.InventoryItems.Contains(item))
+            entity.InventoryItems.Add(item);
+    }
+
+    public bool HasItem(string entityId, string item)
+    {
+        WorldEntityData entity = GetEntity(entityId);
+        if (entity == null || string.IsNullOrWhiteSpace(item) || entity.InventoryItems == null)
+            return false;
+
+        return entity.InventoryItems.Contains(item);
     }
 
     public string SaveState()
