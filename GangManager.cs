@@ -1,112 +1,74 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class GangManager
 {
-    private readonly Dictionary<string, GangMember> _members = new Dictionary<string, GangMember>();
+    private readonly List<GangMember> _members = new List<GangMember>();
 
-    public void RegisterMember(GangMember member)
+    public List<GangMember> GetMembers()
     {
-        if (member == null || string.IsNullOrWhiteSpace(member.MemberId))
-            return;
-
-        _members[member.MemberId] = member;
+        return new List<GangMember>(_members);
     }
 
-    public bool HasMember(string memberId)
+    public void AddMember(GangMember member)
     {
-        return !string.IsNullOrWhiteSpace(memberId) && _members.ContainsKey(memberId);
+        if (member == null)
+            return;
+
+        _members.Add(member);
+    }
+
+    public void RemoveMember(string memberId)
+    {
+        _members.RemoveAll(member => member != null && member.MemberId == memberId);
     }
 
     public GangMember GetMember(string memberId)
     {
-        if (string.IsNullOrWhiteSpace(memberId))
-            return null;
-
-        _members.TryGetValue(memberId, out GangMember member);
-        return member;
+        return _members.Find(member => member != null && member.MemberId == memberId);
     }
 
-    public List<GangMember> GetAllMembers()
+    public void SetFollowing(string memberId, bool following)
     {
-        return new List<GangMember>(_members.Values);
-    }
-
-    public void LoadMembers(List<GangMember> members)
-    {
-        _members.Clear();
-
-        if (members == null)
+        GangMember member = GetMember(memberId);
+        if (member == null)
             return;
 
-        foreach (GangMember member in members)
-        {
-            if (member != null && !string.IsNullOrWhiteSpace(member.MemberId))
-                _members[member.MemberId] = member;
-        }
+        member.IsFollowingPlayer = following;
     }
 
-    public void ApplyTacticalContext(TacticalContext context)
+    public void SetCurrentTask(string memberId, string task)
     {
-        foreach (GangMember member in _members.Values)
-        {
-            if (member == null)
-                continue;
+        GangMember member = GetMember(memberId);
+        if (member == null)
+            return;
 
-            member.TacticalState = TacticalSquadAiSystem.ResolveTacticalState(member, context);
-            member.CombatStyle = TacticalSquadAiSystem.ResolveCombatStyle(member, context);
-            member.BehaviorPriority = TacticalSquadAiSystem.ResolvePriority(member, context);
-        }
+        member.CurrentTask = task;
+    }
+
+    public void UpdateLoyalty(string memberId, int delta)
+    {
+        GangMember member = GetMember(memberId);
+        if (member == null)
+            return;
+
+        member.Loyalty += delta;
     }
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(GetAllMembers(), Formatting.Indented);
+        return JsonConvert.SerializeObject(_members, Formatting.Indented);
     }
 
     public void LoadState(string json)
     {
         _members.Clear();
-
         if (string.IsNullOrWhiteSpace(json))
             return;
 
         List<GangMember> members = JsonConvert.DeserializeObject<List<GangMember>>(json);
-        LoadMembers(members);
+        if (members != null)
+            _members.AddRange(members);
     }
-}
-
-public class GangMember
-{
-    public string MemberId { get; set; }
-    public string Name { get; set; }
-    public string Role { get; set; }
-    public string CombatStyle { get; set; }
-    public string TacticalState { get; set; }
-    public string CurrentTask { get; set; }
-    public int Loyalty { get; set; }
-    public int Hunger { get; set; }
-    public int BehaviorPriority { get; set; } = 50;
-    public List<string> MemoryTags { get; set; } = new List<string>();
-
-    public List<string> Goals { get; set; } = new List<string>();
-    public List<string> InventoryItems { get; set; } = new List<string>();
-    public bool IsFollowingPlayer { get; set; } = true;
-    public bool IsAlive { get; set; } = true;
-    public int CombatSkill { get; set; }
-    public int StealthSkill { get; set; }
-    public int SupportSkill { get; set; }
-}
-
-public class TacticalContext
-{
-    public bool IsInCombat { get; set; }
-    public bool IsStealth { get; set; }
-    public bool IsTraveling { get; set; }
-    public bool IsShopping { get; set; }
-    public bool IsRobbing { get; set; }
-    public bool IsDefending { get; set; }
-    public bool IsUsingArtillery { get; set; }
-    public bool IsInCamp { get; set; }
-    public bool IsMounted { get; set; }
 }

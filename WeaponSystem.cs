@@ -3,105 +3,71 @@ using Newtonsoft.Json;
 
 public class WeaponSystem
 {
-    private readonly Dictionary<string, WeaponLoadout> _loadouts = new Dictionary<string, WeaponLoadout>();
+    private readonly List<WeaponPlatformData> _platforms = new List<WeaponPlatformData>();
 
-    public void RegisterLoadout(WeaponLoadout loadout)
+    public List<WeaponPlatformData> GetPlatforms()
     {
-        if (loadout == null || string.IsNullOrWhiteSpace(loadout.OwnerId))
-            return;
-
-        _loadouts[loadout.OwnerId] = loadout;
+        return new List<WeaponPlatformData>(_platforms);
     }
 
-    public WeaponLoadout GetLoadout(string ownerId)
+    public void AddPlatform(WeaponPlatformData platform)
     {
-        if (string.IsNullOrWhiteSpace(ownerId))
+        if (platform == null || string.IsNullOrWhiteSpace(platform.PlatformId))
+            return;
+
+        _platforms.RemoveAll(p => p != null && p.PlatformId == platform.PlatformId);
+        _platforms.Add(platform);
+    }
+
+    public WeaponPlatformData GetPlatform(string platformId)
+    {
+        if (string.IsNullOrWhiteSpace(platformId))
             return null;
 
-        _loadouts.TryGetValue(ownerId, out WeaponLoadout loadout);
-        return loadout;
+        return _platforms.Find(p => p != null && p.PlatformId == platformId);
     }
 
-    public List<WeaponLoadout> GetAllLoadouts()
+    public void SetGunCrew(string platformId, string gunnerId, string assistantId)
     {
-        return new List<WeaponLoadout>(_loadouts.Values);
-    }
-
-    public void LoadLoadouts(List<WeaponLoadout> loadouts)
-    {
-        _loadouts.Clear();
-
-        if (loadouts == null)
+        WeaponPlatformData platform = GetPlatform(platformId);
+        if (platform == null)
             return;
 
-        foreach (WeaponLoadout loadout in loadouts)
-        {
-            if (loadout != null && !string.IsNullOrWhiteSpace(loadout.OwnerId))
-                _loadouts[loadout.OwnerId] = loadout;
-        }
+        platform.CurrentGunnerId = gunnerId;
+        platform.CurrentAssistantId = assistantId;
     }
 
-    public void SetCombatStyle(string ownerId, string style)
+    public void SetAmmoType(string platformId, string ammoType)
     {
-        WeaponLoadout loadout = GetLoadout(ownerId);
-        if (loadout == null || string.IsNullOrWhiteSpace(style))
+        WeaponPlatformData platform = GetPlatform(platformId);
+        if (platform == null)
             return;
 
-        loadout.CombatStyle = style;
+        platform.CurrentAmmoType = ammoType;
     }
 
-    public void EquipPrimary(string ownerId, string weapon)
+    public void SetReloadCooldown(string platformId, int seconds)
     {
-        WeaponLoadout loadout = GetLoadout(ownerId);
-        if (loadout == null || string.IsNullOrWhiteSpace(weapon))
+        WeaponPlatformData platform = GetPlatform(platformId);
+        if (platform == null)
             return;
 
-        loadout.PrimaryWeapon = weapon;
-    }
-
-    public void EquipSecondary(string ownerId, string weapon)
-    {
-        WeaponLoadout loadout = GetLoadout(ownerId);
-        if (loadout == null || string.IsNullOrWhiteSpace(weapon))
-            return;
-
-        loadout.SecondaryWeapon = weapon;
-    }
-
-    public void EquipThrowable(string ownerId, string weapon)
-    {
-        WeaponLoadout loadout = GetLoadout(ownerId);
-        if (loadout == null || string.IsNullOrWhiteSpace(weapon))
-            return;
-
-        loadout.ThrowableWeapon = weapon;
+        platform.ReloadCooldownSeconds = seconds;
     }
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(GetAllLoadouts(), Formatting.Indented);
+        return JsonConvert.SerializeObject(_platforms, Formatting.Indented);
     }
 
     public void LoadState(string json)
     {
-        _loadouts.Clear();
-
+        _platforms.Clear();
         if (string.IsNullOrWhiteSpace(json))
             return;
 
-        List<WeaponLoadout> loadouts = JsonConvert.DeserializeObject<List<WeaponLoadout>>(json);
-        LoadLoadouts(loadouts);
+        List<WeaponPlatformData> platforms = JsonConvert.DeserializeObject<List<WeaponPlatformData>>(json);
+        if (platforms != null)
+            _platforms.AddRange(platforms);
     }
-}
-
-public class WeaponLoadout
-{
-    public string OwnerId { get; set; }
-    public string CombatStyle { get; set; }
-    public string PrimaryWeapon { get; set; }
-    public string SecondaryWeapon { get; set; }
-    public string ThrowableWeapon { get; set; }
-    public bool UseSuppressorLogic { get; set; }
-    public bool PreferNonLethal { get; set; }
-    public bool PreferMelee { get; set; }
 }

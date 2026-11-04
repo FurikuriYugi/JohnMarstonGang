@@ -1,278 +1,77 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
-public static class CommandSystem
+public class CompanionSystem
 {
-    public static string ParseCommand(string input)
+    private readonly List<CompanionData> _companions = new List<CompanionData>();
+
+    public List<CompanionData> GetCompanions()
     {
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return "Unknown";
-        }
-
-        string text = input.Trim().ToLowerInvariant();
-
-        if (text.Contains("follow"))
-        {
-            return "Follow";
-        }
-
-        if (text.Contains("hold") || text.Contains("stay"))
-        {
-            return "Hold";
-        }
-
-        if (text.Contains("stealth"))
-        {
-            return "Stealth";
-        }
-
-        if (text.Contains("attack") || text.Contains("combat"))
-        {
-            return "Attack";
-        }
-
-        if (text.Contains("loot"))
-        {
-            return "Loot";
-        }
-
-        if (text.Contains("guard"))
-        {
-            return "Guard";
-        }
-
-        if (text.Contains("shop"))
-        {
-            return "Shop";
-        }
-
-        if (text.Contains("travel"))
-        {
-            return "Travel";
-        }
-
-        if (text.Contains("camp"))
-        {
-            return "Camp";
-        }
-
-        if (text.Contains("heist"))
-        {
-            return "Heist";
-        }
-
-        if (text.Contains("job"))
-        {
-            return "Job";
-        }
-
-        return "Unknown";
+        return new List<CompanionData>(_companions);
     }
 
-    public static void ExecuteCommand(GangManager manager, TacticalContext context, string command)
+    public void AddCompanion(CompanionData companion)
     {
-        if (manager == null)
-        {
+        if (companion == null || string.IsNullOrWhiteSpace(companion.CompanionId))
             return;
-        }
 
-        string parsed = ParseCommand(command);
-        List<GangMember> members = manager.GetAllMembers();
-
-        for (int i = 0; i < members.Count; i++)
-        {
-            GangMember member = members[i];
-            if (member == null)
-            {
-                continue;
-            }
-
-            ApplyCommandToMember(member, context, parsed);
-        }
+        _companions.RemoveAll(c => c != null && c.CompanionId == companion.CompanionId);
+        _companions.Add(companion);
     }
 
-    public static void ApplyCommandToMember(GangMember member, TacticalContext context, string command)
+    public CompanionData GetCompanion(string companionId)
     {
-        if (member == null)
-        {
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(companionId))
+            return null;
 
-        switch (command)
-        {
-            case "Follow":
-                member.IsFollowingPlayer = true;
-                member.CurrentTask = "Follow Player";
-                break;
-
-            case "Hold":
-                member.IsFollowingPlayer = false;
-                member.CurrentTask = "Hold Position";
-                break;
-
-            case "Stealth":
-                member.CombatStyle = "Stealth";
-                member.CurrentTask = "Stealth Mode";
-                break;
-
-            case "Attack":
-                member.CurrentTask = "Attack";
-                break;
-
-            case "Loot":
-                member.CurrentTask = "Loot";
-                break;
-
-            case "Guard":
-                member.CurrentTask = "Guard Area";
-                break;
-
-            case "Shop":
-                member.CurrentTask = "Shopping Support";
-                member.IsFollowingPlayer = true;
-                break;
-
-            case "Travel":
-                member.CurrentTask = "Travel";
-                member.IsFollowingPlayer = true;
-                break;
-
-            case "Camp":
-                member.CurrentTask = "Camp Duty";
-                break;
-
-            case "Heist":
-                member.CurrentTask = "Heist Support";
-                break;
-
-            case "Job":
-                member.CurrentTask = "Job Assignment";
-                break;
-
-            default:
-                break;
-        }
-
-        if (context != null)
-        {
-            if (context.IsStealth && command == "Attack")
-            {
-                member.CombatStyle = "Stealth";
-            }
-
-            if (context.IsInCombat && command == "Guard")
-            {
-                member.BehaviorPriority += 5;
-            }
-
-            if (context.IsUsingArtillery && command == "Attack")
-            {
-                member.CurrentTask = "Artillery Support";
-            }
-
-            if (context.IsShopping && command == "Shop")
-            {
-                member.CurrentTask = "Shopping Support";
-            }
-
-            if (context.IsRobbing && command == "Heist")
-            {
-                member.CurrentTask = "Heist Support";
-            }
-        }
+        return _companions.Find(c => c != null && c.CompanionId == companionId);
     }
 
-    public static void BroadcastTask(GangManager manager, string task)
+    public void RemoveCompanion(string companionId)
     {
-        if (manager == null || string.IsNullOrWhiteSpace(task))
-        {
-            return;
-        }
-
-        List<GangMember> members = manager.GetAllMembers();
-
-        for (int i = 0; i < members.Count; i++)
-        {
-            GangMember member = members[i];
-            if (member == null)
-            {
-                continue;
-            }
-
-            member.CurrentTask = task;
-        }
+        _companions.RemoveAll(c => c != null && c.CompanionId == companionId);
     }
 
-    public static void SetMemberFollowState(GangManager manager, string memberId, bool follow)
+    public void SetTask(string companionId, string task)
     {
-        if (manager == null || string.IsNullOrWhiteSpace(memberId))
-        {
+        CompanionData companion = GetCompanion(companionId);
+        if (companion == null)
             return;
-        }
 
-        GangMember member = manager.GetMember(memberId);
-        if (member == null)
-        {
-            return;
-        }
-
-        CompanionSystem.SetFollowState(CreateCompanionProxy(member), follow);
-        member.IsFollowingPlayer = follow;
-        member.CurrentTask = follow ? "Follow Player" : "Hold Position";
+        companion.CurrentTask = task;
     }
 
-    public static void AssignShoppingNeeds(GangManager manager, string memberId, string shoppingNeed)
+    public void SetCombatStyle(string companionId, string combatStyle)
     {
-        if (manager == null || string.IsNullOrWhiteSpace(memberId))
-        {
+        CompanionData companion = GetCompanion(companionId);
+        if (companion == null)
             return;
-        }
 
-        GangMember member = manager.GetMember(memberId);
-        if (member == null)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(shoppingNeed))
-        {
-            return;
-        }
-
-        if (member.MemoryTags == null)
-        {
-            member.MemoryTags = new List<string>();
-        }
-
-        member.MemoryTags.Add("Needs: " + shoppingNeed);
-        member.CurrentTask = "Shopping Support";
+        companion.CurrentCombatStyle = combatStyle;
     }
 
-    private static CompanionData CreateCompanionProxy(GangMember member)
+    public void SetFollowing(string companionId, bool following)
     {
-        CompanionData companion = new CompanionData
-        {
-            CompanionId = member.MemberId,
-            Name = member.Name,
-            Species = "Human",
-            IsHuman = true,
-            Role = member.Role,
-            Personality = "Neutral",
-            Loyalty = member.Loyalty,
-            SkillCombat = member.CombatSkill,
-            SkillStealth = member.StealthSkill,
-            SkillLooting = 50,
-            SkillSupport = member.SupportSkill,
-            CurrentCombatStyle = member.CombatStyle,
-            CurrentTask = member.CurrentTask,
-            IsRecruitable = true,
-            IsFollowingPlayer = member.IsFollowingPlayer,
-            InventoryItems = member.InventoryItems ?? new List<string>(),
-            Memories = new List<string>(),
-            Goals = member.Goals ?? new List<string>()
-        };
+        CompanionData companion = GetCompanion(companionId);
+        if (companion == null)
+            return;
 
-        return companion;
+        companion.IsFollowingPlayer = following;
+    }
+
+    public string SaveState()
+    {
+        return JsonConvert.SerializeObject(_companions, Formatting.Indented);
+    }
+
+    public void LoadState(string json)
+    {
+        _companions.Clear();
+        if (string.IsNullOrWhiteSpace(json))
+            return;
+
+        List<CompanionData> companions = JsonConvert.DeserializeObject<List<CompanionData>>(json);
+        if (companions != null)
+            _companions.AddRange(companions);
     }
 }
