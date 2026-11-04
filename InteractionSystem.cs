@@ -1,4 +1,6 @@
-﻿public class InteractionSystem
+﻿using Newtonsoft.Json;
+
+public class InteractionSystem
 {
     private readonly LockSystem _lockSystem;
     private readonly DynamiteSystem _dynamiteSystem;
@@ -43,5 +45,23 @@
 
         _dynamiteSystem.ApplyExplosion(targetId, damage);
         return true;
+    }
+
+    public bool IsLocked(string targetId)
+    {
+        if (_lockSystem == null)
+            return false;
+
+        LockRecord record = _lockSystem.GetLock(targetId);
+        return record != null && record.IsLocked && !record.IsBroken;
+    }
+
+    public bool IsDestroyed(string targetId)
+    {
+        if (_dynamiteSystem == null)
+            return false;
+
+        DestructibleRecord record = _dynamiteSystem.GetDestructible(targetId);
+        return record != null && record.IsDestroyed;
     }
 }
