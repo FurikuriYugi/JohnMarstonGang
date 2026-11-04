@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-
-public class InteractionSystem
+﻿public class InteractionSystem
 {
     private readonly LockSystem _lockSystem;
     private readonly DynamiteSystem _dynamiteSystem;

@@ -1,44 +1,41 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
-using RDR2;
+using Newtonsoft.Json;
 
-public class Main : Script
+public class Main
 {
-    private const string SaveFileName = "JohnMarstonGang_Save.json";
-
-    private readonly GangManager _gangManager = new GangManager();
-    private readonly BankSystem _bankSystem = new BankSystem();
-    private readonly TacticalSquadAiSystem _tacticalSystem = new TacticalSquadAiSystem();
-    private readonly JobSystem _jobSystem = new JobSystem();
-    private readonly WagonSystem _wagonSystem = new WagonSystem();
-    private readonly CompanionSystem _companionSystem = new CompanionSystem();
-
-    private PlayerGangSaveData _saveData = new PlayerGangSaveData();
+    private readonly GangManager _gangManager;
+    private readonly CompanionSystem _companionSystem;
+    private readonly BankSystem _bankSystem;
+    private readonly JobSystem _jobSystem;
+    private readonly WagonSystem _wagonSystem;
+    private readonly LockSystem _lockSystem;
+    private readonly DynamiteSystem _dynamiteSystem;
+    private readonly InteractionSystem _interactionSystem;
 
     public Main()
     {
-        Tick += OnTick;
-        Aborted += OnAborted;
-        Interval = 250;
-
-        LoadState();
-        _jobSystem.GenerateWorldJobs();
+        _gangManager = new GangManager();
+        _companionSystem = new CompanionSystem();
+        _bankSystem = new BankSystem();
+        _jobSystem = new JobSystem();
+        _wagonSystem = new WagonSystem();
+        _lockSystem = new LockSystem();
+        _dynamiteSystem = new DynamiteSystem();
+        _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
     }
 
-    private void OnTick(object sender, EventArgs e)
+    public void Initialize()
     {
-        _gangManager.UpdateMemberNeeds();
+        LoadDefaults();
+    }
 
-        foreach (var member in _gangManager.Members)
-        {
-            _companionSystem.UpdateFromGangMember(member);
-        }
-
+    public void Tick()
+    {
         TacticalContext context = BuildTacticalContext();
-        _tacticalSystem.UpdateSquadTactics(_gangManager.Members, context);
 
-        SyncSaveState();
+        _gangManager.ApplyTacticalContext(context);
+        UpdateCompanions(context);
+        UpdateWorldSystems(context);
     }
 
     private TacticalContext BuildTacticalContext()
@@ -52,82 +49,47 @@ public class Main : Script
         };
     }
 
-    private void OnAborted(object sender, EventArgs e)
+    private void UpdateCompanions(TacticalContext context)
     {
-        SaveState();
-    }
-
-    private void LoadState()
-    {
-        string path = GetSavePath();
-        _saveData = JsonSaveSystem.Load<PlayerGangSaveData>(path);
-
-        if (_saveData.Bank != null)
-        {
-            _bankSystem.VaultCash = _saveData.Bank.VaultCash;
-            _bankSystem.VaultGold = _saveData.Bank.VaultGold;
-            _bankSystem.LoadFromSave(_saveData.Bank.Accounts);
-        }
-
-        if (_saveData.Wagons != null)
-        {
-            _wagonSystem.LoadFromSaveData(_saveData.Wagons);
-        }
-
-        if (_saveData.Companions != null)
-        {
-            _companionSystem.LoadFromSave(_saveData.Companions);
-        }
-
-        if (_saveData.GangMembers == null)
-        {
+        if (context == null)
             return;
-        }
-
-        foreach (GangMemberSaveData member in _saveData.GangMembers)
-        {
-            GangMember gangMember = new GangMember
-            {
-                Id = string.IsNullOrWhiteSpace(member.Id) ? Guid.NewGuid().ToString("N") : member.Id,
-                Name = member.Name,
-                ModelName = member.ModelName,
-                Role = member.Role.ToString(),
-                Alignment = member.Alignment.ToString(),
-                CombatStyle = member.CombatStyle.ToString(),
-                TacticalState = member.TacticalState.ToString(),
-                Loyalty = member.Loyalty,
-                Experience = member.Experience,
-                Weapons = member.Weapons ?? new System.Collections.Generic.List<string>(),
-                MemoryTags = member.MemoryTags ?? new System.Collections.Generic.List<string>(),
-                Goals = member.Goals ?? new System.Collections.Generic.List<string>()
-            };
-
-            _gangManager.AddMember(gangMember);
-        }
     }
 
-    private void SyncSaveState()
+    private void UpdateWorldSystems(TacticalContext context)
     {
-        _saveData.Bank = new BankSaveData
+    }
+
+    private void LoadDefaults()
+    {
+    }
+
+    public string SaveAll()
+    {
+        SaveRoot root = new SaveRoot
         {
-            VaultCash = _bankSystem.VaultCash,
-            VaultGold = _bankSystem.VaultGold,
-            Accounts = _bankSystem.CreateSaveData()
+            GangMembers = _gangManager.GetAllMembers(),
+            Companions = _companionSystem.GetAllCompanions(),
+            BankAccounts = _bankSystem.GetAllAccounts(),
+            Jobs = _jobSystem.GetAllJobs(),
+            Wagons = _wagonSystem.GetAllWagons()
         };
 
-        _saveData.Wagons = _wagonSystem.Wagons.Select(x => x.ToSaveData()).ToList();
-        _saveData.Companions = _companionSystem.CreateSaveData();
-        _saveData.GangMembers = _gangManager.CreateSaveData();
+        return JsonConvert.SerializeObject(root, Formatting.Indented);
     }
 
-    private void SaveState()
+    public void LoadAll(string json)
     {
-        SyncSaveState();
-        JsonSaveSystem.Save(GetSavePath(), _saveData);
-    }
+        if (string.IsNullOrWhiteSpace(json))
+            return;
 
-    private string GetSavePath()
-    {
-        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, SaveFileName);
+        SaveRoot root = JsonConvert.DeserializeObject<SaveRoot>(json);
+        if (root == null)
+            return;
+
+        _gangManager.LoadMembers(root.GangMembers);
+        _companionSystem.LoadCompanions(root.Companions);
+        _bankSystem.LoadAccounts(root.BankAccounts);
+        _jobSystem.LoadJobs(root.Jobs);
+        _wagonSystem.LoadWagons(root.Wagons);
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class JobSystem
@@ -63,6 +62,25 @@ public class JobSystem
             return 0m;
 
         return _jobs[jobId].PayoutGold;
+    }
+
+    public List<JobRecord> GetAllJobs()
+    {
+        return new List<JobRecord>(_jobs.Values);
+    }
+
+    public void LoadJobs(List<JobRecord> jobs)
+    {
+        _jobs.Clear();
+
+        if (jobs == null)
+            return;
+
+        foreach (JobRecord job in jobs)
+        {
+            if (job != null && !string.IsNullOrWhiteSpace(job.JobId))
+                _jobs[job.JobId] = job;
+        }
     }
 
     public string SaveState()

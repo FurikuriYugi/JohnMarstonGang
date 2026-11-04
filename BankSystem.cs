@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class BankSystem
@@ -82,7 +81,7 @@ public class BankSystem
         if (account.Cash < amount || account.Debt <= 0m)
             return false;
 
-        decimal payment = Math.Min(amount, account.Debt);
+        decimal payment = amount < account.Debt ? amount : account.Debt;
         account.Cash -= payment;
         account.Debt -= payment;
         return true;
@@ -94,6 +93,25 @@ public class BankSystem
         foreach (BankAccountRecord account in _accounts.Values)
             total += account.Cash + account.Gold;
         return total;
+    }
+
+    public List<BankAccountRecord> GetAllAccounts()
+    {
+        return new List<BankAccountRecord>(_accounts.Values);
+    }
+
+    public void LoadAccounts(List<BankAccountRecord> accounts)
+    {
+        _accounts.Clear();
+
+        if (accounts == null)
+            return;
+
+        foreach (BankAccountRecord account in accounts)
+        {
+            if (account != null && !string.IsNullOrWhiteSpace(account.OwnerId))
+                _accounts[account.OwnerId] = account;
+        }
     }
 
     public string SaveState()

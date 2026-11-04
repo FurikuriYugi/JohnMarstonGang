@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 public class WagonSystem
@@ -59,6 +58,25 @@ public class WagonSystem
             wagon.StoredItems.Remove(itemName);
 
         return true;
+    }
+
+    public List<WagonRecord> GetAllWagons()
+    {
+        return new List<WagonRecord>(_wagons.Values);
+    }
+
+    public void LoadWagons(List<WagonRecord> wagons)
+    {
+        _wagons.Clear();
+
+        if (wagons == null)
+            return;
+
+        foreach (WagonRecord wagon in wagons)
+        {
+            if (wagon != null && !string.IsNullOrWhiteSpace(wagon.WagonId))
+                _wagons[wagon.WagonId] = wagon;
+        }
     }
 
     public string SaveState()

@@ -1,137 +1,74 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 public class CompanionSystem
 {
-    private readonly List<CompanionRecord> _companions = new List<CompanionRecord>();
+    private readonly Dictionary<string, CompanionRecord> _companions = new Dictionary<string, CompanionRecord>();
 
-    public List<CompanionRecord> Companions
+    public void RegisterCompanion(CompanionRecord companion)
     {
-        get { return _companions; }
-    }
-
-    public CompanionRecord GetOrCreateCompanion(string companionId, string name)
-    {
-        CompanionRecord companion = _companions.FirstOrDefault(c => c.Id == companionId);
-        if (companion != null)
-            return companion;
-
-        companion = new CompanionRecord
-        {
-            Id = companionId,
-            Name = name,
-            Loyalty = 50,
-            Trust = 50,
-            Experience = 0,
-            Goals = new List<string>(),
-            Memories = new List<string>()
-        };
-
-        _companions.Add(companion);
-        return companion;
-    }
-
-    public void UpdateFromGangMember(GangMember member)
-    {
-        if (member == null)
+        if (companion == null || string.IsNullOrWhiteSpace(companion.CompanionId))
             return;
 
-        CompanionRecord companion = GetOrCreateCompanion(member.Id, member.Name);
-        companion.Loyalty = member.Loyalty;
-        companion.Trust = member.Loyalty;
-        companion.Experience = member.Experience;
-        companion.Goals = new List<string>(member.Goals ?? new List<string>());
-        companion.Memories = new List<string>(member.MemoryTags ?? new List<string>());
+        _companions[companion.CompanionId] = companion;
     }
 
-    public void ApplyPersonalGoal(GangMember member)
+    public bool SetCompanionGoal(string companionId, string goal)
     {
-        if (member == null)
-            return;
+        if (string.IsNullOrWhiteSpace(companionId) || !_companions.ContainsKey(companionId))
+            return false;
 
-        if (member.Goals == null)
-            member.Goals = new List<string>();
-
-        if (member.Goals.Count == 0)
-            member.Goals.Add("Stay close to the gang");
+        _companions[companionId].CurrentGoal = goal;
+        return true;
     }
 
-    public void AddMemory(string companionId, string memory)
+    public List<CompanionRecord> GetAllCompanions()
     {
-        CompanionRecord companion = _companions.FirstOrDefault(c => c.Id == companionId);
-        if (companion == null)
-            return;
-
-        if (!companion.Memories.Contains(memory))
-            companion.Memories.Add(memory);
+        return new List<CompanionRecord>(_companions.Values);
     }
 
-    public List<CompanionSaveData> CreateSaveData()
-    {
-        return _companions.Select(c => new CompanionSaveData
-        {
-            Id = c.Id,
-            Name = c.Name,
-            ModelName = c.ModelName,
-            Alignment = c.Alignment,
-            Loyalty = c.Loyalty,
-            Experience = c.Experience,
-            IsHuman = c.IsHuman,
-            IsAnimal = c.IsAnimal,
-            CurrentWeapon = c.CurrentWeapon,
-            CurrentTask = c.CurrentTask,
-            Outfit = c.Outfit,
-            PersonalGoal = c.PersonalGoal
-        }).ToList();
-    }
-
-    public void LoadFromSave(List<CompanionSaveData> data)
+    public void LoadCompanions(List<CompanionRecord> companions)
     {
         _companions.Clear();
 
-        if (data == null)
+        if (companions == null)
             return;
 
-        foreach (CompanionSaveData companionData in data)
+        foreach (CompanionRecord companion in companions)
         {
-            _companions.Add(new CompanionRecord
-            {
-                Id = companionData.Id,
-                Name = companionData.Name,
-                ModelName = companionData.ModelName,
-                Alignment = companionData.Alignment,
-                Loyalty = companionData.Loyalty,
-                Experience = companionData.Experience,
-                IsHuman = companionData.IsHuman,
-                IsAnimal = companionData.IsAnimal,
-                CurrentWeapon = companionData.CurrentWeapon,
-                CurrentTask = companionData.CurrentTask,
-                Outfit = companionData.Outfit,
-                PersonalGoal = companionData.PersonalGoal,
-                Goals = new List<string>(),
-                Memories = new List<string>(),
-                Trust = companionData.Loyalty
-            });
+            if (companion != null && !string.IsNullOrWhiteSpace(companion.CompanionId))
+                _companions[companion.CompanionId] = companion;
+        }
+    }
+
+    public string SaveState()
+    {
+        return JsonConvert.SerializeObject(_companions.Values, Formatting.Indented);
+    }
+
+    public void LoadState(string json)
+    {
+        _companions.Clear();
+
+        if (string.IsNullOrWhiteSpace(json))
+            return;
+
+        List<CompanionRecord> companions = JsonConvert.DeserializeObject<List<CompanionRecord>>(json);
+        if (companions == null)
+            return;
+
+        foreach (CompanionRecord companion in companions)
+        {
+            if (companion != null && !string.IsNullOrWhiteSpace(companion.CompanionId))
+                _companions[companion.CompanionId] = companion;
         }
     }
 }
 
 public class CompanionRecord
 {
-    public string Id { get; set; }
+    public string CompanionId { get; set; }
     public string Name { get; set; }
-    public string ModelName { get; set; }
-    public string Alignment { get; set; }
-    public int Loyalty { get; set; }
-    public int Trust { get; set; }
-    public int Experience { get; set; }
-    public bool IsHuman { get; set; }
-    public bool IsAnimal { get; set; }
-    public string CurrentWeapon { get; set; }
-    public string CurrentTask { get; set; }
-    public string Outfit { get; set; }
-    public string PersonalGoal { get; set; }
-    public List<string> Goals { get; set; }
-    public List<string> Memories { get; set; }
+    public string Species { get; set; }
+    public string CurrentGoal { get; set; }
 }
