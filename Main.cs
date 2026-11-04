@@ -49,14 +49,16 @@ public class Main : Script
         if (_tickCounter % 30 != 0)
             return;
 
-        UpdateEntityAI();
         SyncWorldStateFromSystems();
+        UpdateEntityAI();
         SaveAll();
     }
 
     private void LoadAll()
     {
-        _saveRoot = JsonSaveSystem.Load() ?? new SaveRoot();
+        _saveRoot = JsonSaveSystem.Load();
+        if (_saveRoot == null)
+            _saveRoot = new SaveRoot();
 
         _gangManager.ImportSaveData(_saveRoot);
         _jobSystem.LoadFromSaveRoot(_saveRoot);
@@ -84,6 +86,32 @@ public class Main : Script
 
         if (_saveRoot.WorldEntities != null)
             _entityRegistry.LoadState(JsonConvert.SerializeObject(_saveRoot.WorldEntities));
+
+        SyncInteractionRecordsFromSave();
+    }
+
+    private void SyncInteractionRecordsFromSave()
+    {
+        if (_saveRoot == null || _saveRoot.World == null)
+            return;
+
+        if (_saveRoot.World.Locks != null)
+        {
+            foreach (LockRecord record in _saveRoot.World.Locks)
+            {
+                if (record != null)
+                    _interactionSystem.RegisterLock(record);
+            }
+        }
+
+        if (_saveRoot.World.Destructibles != null)
+        {
+            foreach (DestructibleRecord record in _saveRoot.World.Destructibles)
+            {
+                if (record != null)
+                    _interactionSystem.RegisterDestructible(record);
+            }
+        }
     }
 
     private void SyncWorldStateFromSystems()
