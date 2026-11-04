@@ -1,127 +1,78 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 public class GangManager
 {
-    public List<GangMember> GangMembers { get; set; }
-    public List<BankAccountData> BankAccounts { get; set; }
-    public WorldState WorldState { get; set; }
+    private readonly Dictionary<string, GangMember> _members = new Dictionary<string, GangMember>();
 
-    public GangManager()
+    public void RegisterMember(GangMember member)
     {
-        GangMembers = new List<GangMember>();
-        BankAccounts = new List<BankAccountData>();
-        WorldState = new WorldState();
-    }
-
-    public SaveRoot ExportSaveData()
-    {
-        SaveRoot data = new SaveRoot
-        {
-            SaveVersion = 1,
-            World = WorldState ?? new WorldState(),
-            GangMembers = GangMembers ?? new List<GangMember>(),
-            BankAccounts = BankAccounts ?? new List<BankAccountData>()
-        };
-
-        return data;
-    }
-
-    public void ImportSaveData(SaveRoot data)
-    {
-        if (data == null)
-        {
-            GangMembers = new List<GangMember>();
-            BankAccounts = new List<BankAccountData>();
-            WorldState = new WorldState();
+        if (member == null || string.IsNullOrWhiteSpace(member.MemberId))
             return;
-        }
 
-        GangMembers = data.GangMembers ?? new List<GangMember>();
-        BankAccounts = data.BankAccounts ?? new List<BankAccountData>();
-        WorldState = data.World ?? new WorldState();
+        _members[member.MemberId] = member;
     }
 
-    public void AddGangMember(GangMember member)
+    public bool HasMember(string memberId)
     {
-        if (member == null)
-        {
-            return;
-        }
-
-        GangMembers.Add(member);
+        return !string.IsNullOrWhiteSpace(memberId) && _members.ContainsKey(memberId);
     }
 
-    public void RemoveGangMember(string memberId)
+    public GangMember GetMember(string memberId)
     {
         if (string.IsNullOrWhiteSpace(memberId))
-        {
+            return null;
+
+        _members.TryGetValue(memberId, out GangMember member);
+        return member;
+    }
+
+    public List<GangMember> GetAllMembers()
+    {
+        return new List<GangMember>(_members.Values);
+    }
+
+    public void LoadMembers(List<GangMember> members)
+    {
+        _members.Clear();
+
+        if (members == null)
             return;
-        }
 
-        GangMembers.RemoveAll(x => x != null && x.MemberId == memberId);
+        foreach (GangMember member in members)
+        {
+            if (member != null && !string.IsNullOrWhiteSpace(member.MemberId))
+                _members[member.MemberId] = member;
+        }
     }
 
-    public GangMember GetGangMember(string memberId)
+    public void ApplyTacticalContext(TacticalContext context)
     {
-        if (string.IsNullOrWhiteSpace(memberId))
+        foreach (GangMember member in _members.Values)
         {
-            return null;
-        }
+            if (member == null)
+                continue;
 
-        for (int i = 0; i < GangMembers.Count; i++)
-        {
-            GangMember member = GangMembers[i];
-            if (member != null && member.MemberId == memberId)
-            {
-                return member;
-            }
+            member.TacticalState = TacticalSquadAiSystem.ResolveTacticalState(member, context);
+            member.CombatStyle = TacticalSquadAiSystem.ResolveCombatStyle(member, context);
+            member.BehaviorPriority = TacticalSquadAiSystem.ResolvePriority(member, context);
         }
-
-        return null;
     }
 
-    public BankAccountData GetBankAccount(string ownerId)
+    public string SaveState()
     {
-        if (string.IsNullOrWhiteSpace(ownerId))
-        {
-            return null;
-        }
-
-        for (int i = 0; i < BankAccounts.Count; i++)
-        {
-            BankAccountData account = BankAccounts[i];
-            if (account != null && account.OwnerId == ownerId)
-            {
-                return account;
-            }
-        }
-
-        return null;
+        return JsonConvert.SerializeObject(GetAllMembers(), Formatting.Indented);
     }
 
-    public BankAccountData GetOrCreateBankAccount(string ownerId, string ownerName)
+    public void LoadState(string json)
     {
-        BankAccountData account = GetBankAccount(ownerId);
-        if (account != null)
-        {
-            return account;
-        }
+        _members.Clear();
 
-        account = new BankAccountData
-        {
-            OwnerId = ownerId,
-            OwnerName = ownerName,
-            Cash = 0m,
-            Gold = 0m,
-            CreditLimit = 0m,
-            Debt = 0m,
-            IsSuspicious = false,
-            LastTransactionUtc = DateTime.UtcNow
-        };
+        if (string.IsNullOrWhiteSpace(json))
+            return;
 
-        BankAccounts.Add(account);
-        return account;
+        List<GangMember> members = JsonConvert.DeserializeObject<List<GangMember>>(json);
+        LoadMembers(members);
     }
 }
 
@@ -130,26 +81,32 @@ public class GangMember
     public string MemberId { get; set; }
     public string Name { get; set; }
     public string Role { get; set; }
+    public string CombatStyle { get; set; }
+    public string TacticalState { get; set; }
+    public string CurrentTask { get; set; }
     public int Loyalty { get; set; }
-    public int Experience { get; set; }
+    public int Hunger { get; set; }
+    public int BehaviorPriority { get; set; } = 50;
+    public List<string> MemoryTags { get; set; } = new List<string>();
+
+    public List<string> Goals { get; set; } = new List<string>();
+    public List<string> InventoryItems { get; set; } = new List<string>();
+    public bool IsFollowingPlayer { get; set; } = true;
+    public bool IsAlive { get; set; } = true;
     public int CombatSkill { get; set; }
     public int StealthSkill { get; set; }
     public int SupportSkill { get; set; }
-    public string PreferredCombatStyle { get; set; }
-    public bool IsAlive { get; set; }
-    public bool IsFollowingPlayer { get; set; }
-    public bool IsRecruitable { get; set; }
-    public List<string> InventoryItems { get; set; }
-    public List<string> Memories { get; set; }
-    public List<string> Goals { get; set; }
+}
 
-    public GangMember()
-    {
-        InventoryItems = new List<string>();
-        Memories = new List<string>();
-        Goals = new List<string>();
-        IsAlive = true;
-        IsFollowingPlayer = false;
-        IsRecruitable = true;
-    }
+public class TacticalContext
+{
+    public bool IsInCombat { get; set; }
+    public bool IsStealth { get; set; }
+    public bool IsTraveling { get; set; }
+    public bool IsShopping { get; set; }
+    public bool IsRobbing { get; set; }
+    public bool IsDefending { get; set; }
+    public bool IsUsingArtillery { get; set; }
+    public bool IsInCamp { get; set; }
+    public bool IsMounted { get; set; }
 }

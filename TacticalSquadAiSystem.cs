@@ -1,89 +1,202 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
 
-public class TacticalSquadAiSystem
+public static class TacticalSquadAiSystem
 {
-    public void UpdateSquadTactics(List<GangMember> members, TacticalContext context)
+    public static string ResolveTacticalState(GangMember member, TacticalContext context)
     {
-        if (members == null || context == null)
-            return;
+        if (member == null)
+            return "Idle";
 
-        foreach (GangMember member in members)
-        {
-            if (member == null)
-                continue;
+        if (context == null)
+            return "Idle";
 
-            ApplyTactic(member, context);
-        }
-    }
-
-    public void ApplyTactic(GangMember member, TacticalContext context)
-    {
-        if (member == null || context == null)
-            return;
-
-        if (context.IsStealth)
-        {
-            member.CombatStyle = "Stealth";
-            member.TacticalState = "Careful";
-            member.CurrentTask = "Hold position and avoid detection";
-            return;
-        }
+        if (!member.IsAlive)
+            return "Down";
 
         if (context.IsInCombat)
         {
-            member.TacticalState = "Combat";
-            member.CurrentTask = "Engage threats";
+            if (context.IsStealth)
+                return "StealthCombat";
 
-            if (member.BehaviorPriority >= 75)
-                member.CombatStyle = "Ranged Medium";
-            else if (member.BehaviorPriority >= 50)
-                member.CombatStyle = "Ranged Short";
-            else
-                member.CombatStyle = "Lethal Melee";
+            if (context.IsUsingArtillery)
+                return "ArtillerySupport";
 
-            return;
+            return "Combat";
         }
+
+        if (context.IsStealth)
+            return "Stealth";
 
         if (context.IsShopping)
-        {
-            member.TacticalState = "Support";
-            member.CurrentTask = "Assist player with errands";
-            member.CombatStyle = "Ranged Short";
-            return;
-        }
+            return "SupportShopping";
+
+        if (context.IsRobbing)
+            return "HeistSupport";
 
         if (context.IsTraveling)
+            return "Traveling";
+
+        if (context.IsInCamp)
+            return "CampDuty";
+
+        return "Idle";
+    }
+
+    public static string ResolveCombatStyle(GangMember member, TacticalContext context)
+    {
+        if (member == null)
+            return "Ranged Medium";
+
+        if (!member.IsAlive)
+            return "None";
+
+        if (context != null && context.IsStealth)
+            return ChooseStealthStyle(member);
+
+        if (context != null && context.IsInCombat)
+            return ChooseCombatStyle(member, context);
+
+        return ChooseBalancedStyle(member);
+    }
+
+    public static int ResolvePriority(GangMember member, TacticalContext context)
+    {
+        if (member == null)
+            return 0;
+
+        int priority = 50;
+
+        priority += Math.Max(0, member.Loyalty / 2);
+        priority += Math.Max(0, member.CombatSkill / 5);
+        priority += Math.Max(0, member.SupportSkill / 5);
+
+        if (member.Hunger > 70)
+            priority += 10;
+
+        if (context != null)
         {
-            member.TacticalState = "Follow";
-            member.CurrentTask = "Stay close to the player";
-            return;
+            if (context.IsInCombat)
+                priority += 25;
+
+            if (context.IsStealth)
+                priority += 15;
+
+            if (context.IsShopping)
+                priority += 10;
+
+            if (context.IsRobbing)
+                priority += 20;
+
+            if (context.IsUsingArtillery)
+                priority += 18;
         }
 
-        member.TacticalState = "Idle";
-        member.CurrentTask = "Wait";
+        if (!member.IsFollowingPlayer)
+            priority -= 10;
+
+        if (priority < 0)
+            priority = 0;
+
+        return priority;
     }
 
-    public string SaveState()
+    private static string ChooseStealthStyle(GangMember member)
     {
-        return JsonConvert.SerializeObject(new TacticalContext(), Formatting.Indented);
+        if (member.StealthSkill >= member.CombatSkill)
+            return "Stealth";
+
+        if (member.SupportSkill > member.CombatSkill)
+            return "Stealth Support";
+
+        return "Stealth";
     }
 
-    public TacticalContext LoadState(string json)
+    private static string ChooseCombatStyle(GangMember member, TacticalContext context)
     {
-        if (string.IsNullOrWhiteSpace(json))
-            return new TacticalContext();
+        if (context != null && context.IsUsingArtillery)
+            return "Artillery Support";
 
-        TacticalContext context = JsonConvert.DeserializeObject<TacticalContext>(json);
-        return context ?? new TacticalContext();
+        if (member.CombatSkill >= 80)
+            return "Ranged Long";
+
+        if (member.CombatSkill >= 60)
+            return "Ranged Medium";
+
+        if (member.CombatSkill >= 40)
+            return "Ranged Short";
+
+        return "Lethal Melee";
     }
-}
 
-public class TacticalContext
-{
-    public bool IsInCombat { get; set; }
-    public bool IsStealth { get; set; }
-    public bool IsTraveling { get; set; }
-    public bool IsShopping { get; set; }
-    public string CurrentObjective { get; set; }
+    private static string ChooseBalancedStyle(GangMember member)
+    {
+        if (member.StealthSkill >= 70)
+            return "Stealth";
+
+        if (member.CombatSkill >= 70)
+            return "Ranged Long";
+
+        if (member.CombatSkill >= 50)
+            return "Ranged Medium";
+
+        return "Ranged Short";
+    }
+
+    public static List<string> BuildRecommendedActions(GangMember member, TacticalContext context)
+    {
+        List<string> actions = new List<string>();
+
+        if (member == null)
+            return actions;
+
+        string state = ResolveTacticalState(member, context);
+
+        if (state == "Stealth" || state == "StealthCombat")
+        {
+            actions.Add("Hold position");
+            actions.Add("Use quiet weapon");
+            actions.Add("Avoid detection");
+        }
+        else if (state == "Combat")
+        {
+            actions.Add("Take cover");
+            actions.Add("Engage threat");
+            actions.Add("Flank target");
+        }
+        else if (state == "ArtillerySupport")
+        {
+            actions.Add("Load artillery");
+            actions.Add("Assist gunner");
+            actions.Add("Maintain firing lane");
+        }
+        else if (state == "SupportShopping")
+        {
+            actions.Add("Follow at distance");
+            actions.Add("Guard perimeter");
+            actions.Add("Carry supplies");
+        }
+        else if (state == "HeistSupport")
+        {
+            actions.Add("Watch entrance");
+            actions.Add("Prepare tools");
+            actions.Add("Carry loot");
+        }
+        else if (state == "Traveling")
+        {
+            actions.Add("Stay close");
+            actions.Add("Patrol road");
+        }
+        else if (state == "CampDuty")
+        {
+            actions.Add("Rest");
+            actions.Add("Maintain camp");
+        }
+        else
+        {
+            actions.Add("Idle");
+        }
+
+        return actions;
+    }
 }

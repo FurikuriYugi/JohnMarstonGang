@@ -1,102 +1,172 @@
-﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
 
-public class CompanionSystem
+public static class CompanionSystem
 {
-    private readonly Dictionary<string, CompanionData> _companions = new Dictionary<string, CompanionData>();
-
-    public void RegisterCompanion(CompanionData companion)
+    public static CompanionData CreateHumanCompanion(string name, string role)
     {
-        if (companion == null || string.IsNullOrWhiteSpace(companion.CompanionId))
-            return;
-
-        _companions[companion.CompanionId] = companion;
-    }
-
-    public bool HasCompanion(string companionId)
-    {
-        return !string.IsNullOrWhiteSpace(companionId) && _companions.ContainsKey(companionId);
-    }
-
-    public CompanionData GetCompanion(string companionId)
-    {
-        if (string.IsNullOrWhiteSpace(companionId))
-            return null;
-
-        _companions.TryGetValue(companionId, out CompanionData companion);
-        return companion;
-    }
-
-    public List<CompanionData> GetAllCompanions()
-    {
-        return new List<CompanionData>(_companions.Values);
-    }
-
-    public void LoadCompanions(List<CompanionData> companions)
-    {
-        _companions.Clear();
-
-        if (companions == null)
-            return;
-
-        foreach (CompanionData companion in companions)
+        return new CompanionData
         {
-            if (companion != null && !string.IsNullOrWhiteSpace(companion.CompanionId))
-                _companions[companion.CompanionId] = companion;
-        }
+            CompanionId = Guid.NewGuid().ToString("N"),
+            Name = name,
+            Species = "Human",
+            IsHuman = true,
+            Role = role,
+            Personality = "Neutral",
+            Loyalty = 50,
+            SkillCombat = 50,
+            SkillStealth = 50,
+            SkillLooting = 50,
+            SkillSupport = 50,
+            CurrentCombatStyle = "Ranged Medium",
+            CurrentTask = "Idle",
+            IsRecruitable = true,
+            IsFollowingPlayer = true
+        };
     }
 
-    public void AddMemory(string companionId, string memoryTag)
+    public static CompanionData CreateAnimalCompanion(string name, string species)
     {
-        CompanionData companion = GetCompanion(companionId);
-        if (companion == null || string.IsNullOrWhiteSpace(memoryTag))
+        return new CompanionData
+        {
+            CompanionId = Guid.NewGuid().ToString("N"),
+            Name = name,
+            Species = species,
+            IsHuman = false,
+            Role = "Animal Companion",
+            Personality = "Loyal",
+            Loyalty = 75,
+            SkillCombat = 35,
+            SkillStealth = 65,
+            SkillLooting = 0,
+            SkillSupport = 25,
+            CurrentCombatStyle = "Stealth",
+            CurrentTask = "Follow",
+            IsRecruitable = true,
+            IsFollowingPlayer = true
+        };
+    }
+
+    public static void UpdateCompanion(CompanionData companion, TacticalContext context)
+    {
+        if (companion == null)
             return;
 
-        if (companion.MemoryTags == null)
-            companion.MemoryTags = new List<string>();
+        if (!companion.IsRecruitable)
+            companion.IsRecruitable = companion.Loyalty >= 25;
 
-        if (!companion.MemoryTags.Contains(memoryTag))
-            companion.MemoryTags.Add(memoryTag);
+        companion.CurrentTask = ResolveCurrentTask(companion, context);
+        companion.CurrentCombatStyle = ResolveCombatStyle(companion, context);
     }
 
-    public void AddGoal(string companionId, string goal)
+    public static string ResolveCurrentTask(CompanionData companion, TacticalContext context)
     {
-        CompanionData companion = GetCompanion(companionId);
+        if (companion == null)
+            return "Idle";
+
+        if (context == null)
+            return "Idle";
+
+        if (context.IsInCombat)
+        {
+            if (context.IsStealth)
+                return "Stealth Assist";
+
+            return "Combat Assist";
+        }
+
+        if (context.IsShopping)
+            return "Run Errands";
+
+        if (context.IsTraveling)
+            return "Follow Player";
+
+        if (context.IsRobbing)
+            return "Heist Support";
+
+        if (context.IsInCamp)
+            return "Camp Duty";
+
+        return "Idle";
+    }
+
+    public static string ResolveCombatStyle(CompanionData companion, TacticalContext context)
+    {
+        if (companion == null)
+            return "Ranged Medium";
+
+        if (context != null && context.IsStealth)
+        {
+            if (companion.SkillStealth >= companion.SkillCombat)
+                return "Stealth";
+
+            return "Stealth";
+        }
+
+        if (companion.SkillCombat >= 75)
+            return "Ranged Long";
+
+        if (companion.SkillCombat >= 55)
+            return "Ranged Medium";
+
+        if (companion.SkillCombat >= 35)
+            return "Ranged Short";
+
+        return "Lethal Melee";
+    }
+
+    public static void AddMemory(CompanionData companion, string memory)
+    {
+        if (companion == null || string.IsNullOrWhiteSpace(memory))
+            return;
+
+        if (companion.Memories == null)
+            companion.Memories = new List<string>();
+
+        companion.Memories.Add(memory);
+    }
+
+    public static void AddGoal(CompanionData companion, string goal)
+    {
         if (companion == null || string.IsNullOrWhiteSpace(goal))
             return;
 
         if (companion.Goals == null)
             companion.Goals = new List<string>();
 
-        if (!companion.Goals.Contains(goal))
-            companion.Goals.Add(goal);
+        companion.Goals.Add(goal);
     }
 
-    public void AddItem(string companionId, string item)
+    public static void GiveItem(CompanionData companion, string item)
     {
-        CompanionData companion = GetCompanion(companionId);
         if (companion == null || string.IsNullOrWhiteSpace(item))
             return;
 
-        if (companion.Inventory == null)
-            companion.Inventory = new List<string>();
+        if (companion.InventoryItems == null)
+            companion.InventoryItems = new List<string>();
 
-        companion.Inventory.Add(item);
+        companion.InventoryItems.Add(item);
     }
 
-    public string SaveState()
+    public static void AdjustLoyalty(CompanionData companion, int amount)
     {
-        return JsonConvert.SerializeObject(GetAllCompanions(), Formatting.Indented);
-    }
-
-    public void LoadState(string json)
-    {
-        _companions.Clear();
-
-        if (string.IsNullOrWhiteSpace(json))
+        if (companion == null)
             return;
 
-        List<CompanionData> companions = JsonConvert.DeserializeObject<List<CompanionData>>(json);
-        LoadCompanions(companions);
+        companion.Loyalty += amount;
+
+        if (companion.Loyalty < 0)
+            companion.Loyalty = 0;
+
+        if (companion.Loyalty > 100)
+            companion.Loyalty = 100;
+    }
+
+    public static bool IsReadyForTask(CompanionData companion)
+    {
+        if (companion == null)
+            return false;
+
+        return companion.IsFollowingPlayer && companion.Loyalty >= 25;
     }
 }

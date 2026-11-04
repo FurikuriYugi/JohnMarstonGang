@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class SaveRoot
 {
-    public int SaveVersion { get; set; } = 1;
+    public int SaveVersion { get; set; } = 2;
     public WorldState World { get; set; } = new WorldState();
     public List<GangMember> GangMembers { get; set; } = new List<GangMember>();
     public List<BankAccountData> BankAccounts { get; set; } = new List<BankAccountData>();
