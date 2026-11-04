@@ -35,7 +35,7 @@ public class LockSystem
     public bool CanPick(string targetId)
     {
         LockRecord lockRecord = GetLock(targetId);
-        return lockRecord != null && !lockRecord.IsBroken;
+        return lockRecord != null && lockRecord.IsLocked && !lockRecord.IsBroken;
     }
 
     public void Pick(string targetId)
@@ -45,7 +45,6 @@ public class LockSystem
             return;
 
         lockRecord.IsLocked = false;
-        lockRecord.IsBroken = false;
     }
 
     public void Break(string targetId)
@@ -71,7 +70,6 @@ public class LockSystem
     public void LoadLocks(List<LockRecord> locks)
     {
         _locks.Clear();
-
         if (locks == null)
             return;
 
@@ -90,7 +88,6 @@ public class LockSystem
     public void LoadState(string json)
     {
         _locks.Clear();
-
         if (string.IsNullOrWhiteSpace(json))
             return;
 

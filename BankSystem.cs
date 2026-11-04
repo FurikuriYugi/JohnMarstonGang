@@ -3,9 +3,9 @@ using Newtonsoft.Json;
 
 public class BankSystem
 {
-    private readonly Dictionary<string, BankAccountRecord> _accounts = new Dictionary<string, BankAccountRecord>();
+    private readonly Dictionary<string, BankAccountData> _accounts = new Dictionary<string, BankAccountData>();
 
-    public void RegisterAccount(BankAccountRecord account)
+    public void RegisterAccount(BankAccountData account)
     {
         if (account == null || string.IsNullOrWhiteSpace(account.OwnerId))
             return;
@@ -18,24 +18,23 @@ public class BankSystem
         return !string.IsNullOrWhiteSpace(ownerId) && _accounts.ContainsKey(ownerId);
     }
 
-    public BankAccountRecord GetAccount(string ownerId)
+    public BankAccountData GetAccount(string ownerId)
     {
         if (string.IsNullOrWhiteSpace(ownerId))
             return null;
 
-        _accounts.TryGetValue(ownerId, out BankAccountRecord account);
+        _accounts.TryGetValue(ownerId, out BankAccountData account);
         return account;
     }
 
-    public List<BankAccountRecord> GetAllAccounts()
+    public List<BankAccountData> GetAllAccounts()
     {
-        return new List<BankAccountRecord>(_accounts.Values);
+        return new List<BankAccountData>(_accounts.Values);
     }
 
     public void LoadAccounts(List<BankAccountData> accounts)
     {
         _accounts.Clear();
-
         if (accounts == null)
             return;
 
@@ -44,90 +43,83 @@ public class BankSystem
             if (account == null || string.IsNullOrWhiteSpace(account.OwnerId))
                 continue;
 
-            _accounts[account.OwnerId] = new BankAccountRecord
-            {
-                OwnerId = account.OwnerId,
-                OwnerName = account.OwnerName,
-                Cash = account.Cash,
-                Gold = account.Gold,
-                CreditLimit = account.CreditLimit,
-                Debt = account.Debt,
-                IsSuspicious = account.IsSuspicious
-            };
+            _accounts[account.OwnerId] = account;
         }
     }
 
     public void DepositCash(string ownerId, decimal amount)
     {
-        BankAccountRecord account = GetAccount(ownerId);
+        BankAccountData account = GetAccount(ownerId);
         if (account == null || amount <= 0m)
             return;
 
         account.Cash += amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
     }
 
     public bool WithdrawCash(string ownerId, decimal amount)
     {
-        BankAccountRecord account = GetAccount(ownerId);
-        if (account == null || amount <= 0m)
-            return false;
-
-        if (account.Cash < amount)
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null || amount <= 0m || account.Cash < amount)
             return false;
 
         account.Cash -= amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
         return true;
     }
 
     public void DepositGold(string ownerId, decimal amount)
     {
-        BankAccountRecord account = GetAccount(ownerId);
+        BankAccountData account = GetAccount(ownerId);
         if (account == null || amount <= 0m)
             return;
 
         account.Gold += amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
     }
 
     public bool WithdrawGold(string ownerId, decimal amount)
     {
-        BankAccountRecord account = GetAccount(ownerId);
-        if (account == null || amount <= 0m)
-            return false;
-
-        if (account.Gold < amount)
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null || amount <= 0m || account.Gold < amount)
             return false;
 
         account.Gold -= amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
         return true;
     }
 
     public void AddDebt(string ownerId, decimal amount)
     {
-        BankAccountRecord account = GetAccount(ownerId);
+        BankAccountData account = GetAccount(ownerId);
         if (account == null || amount <= 0m)
             return;
 
         account.Debt += amount;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
     }
 
     public void ReduceDebt(string ownerId, decimal amount)
     {
-        BankAccountRecord account = GetAccount(ownerId);
+        BankAccountData account = GetAccount(ownerId);
         if (account == null || amount <= 0m)
             return;
 
         account.Debt -= amount;
         if (account.Debt < 0m)
             account.Debt = 0m;
+
+        account.LastTransactionUtc = System.DateTime.UtcNow;
     }
 
     public void SetSuspicious(string ownerId, bool suspicious)
     {
-        BankAccountRecord account = GetAccount(ownerId);
+        BankAccountData account = GetAccount(ownerId);
         if (account == null)
             return;
 
         account.IsSuspicious = suspicious;
+        account.LastTransactionUtc = System.DateTime.UtcNow;
     }
 
     public string SaveState()
@@ -138,7 +130,6 @@ public class BankSystem
     public void LoadState(string json)
     {
         _accounts.Clear();
-
         if (string.IsNullOrWhiteSpace(json))
             return;
 

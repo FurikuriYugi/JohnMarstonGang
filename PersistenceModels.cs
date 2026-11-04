@@ -59,6 +59,7 @@ public class JobData
     public bool IsFailed { get; set; }
     public List<string> Objectives { get; set; } = new List<string>();
     public List<string> Participants { get; set; } = new List<string>();
+    public bool IsAvailable { get; set; }
 }
 
 public class BankAccountData
@@ -134,4 +135,23 @@ public class EntityStateData
     public string CurrentState { get; set; }
     public string HomeLocationId { get; set; }
     public List<string> InventoryItems { get; set; } = new List<string>();
+}
+
+public class LockRecord
+{
+    public string TargetId { get; set; }
+    public bool IsLocked { get; set; }
+    public bool IsBroken { get; set; }
+}
+
+public class DestructibleRecord
+{
+    public string TargetId { get; set; }
+    public string TargetType { get; set; }
+    public bool IsDestructible { get; set; }
+    public bool IsDestroyed { get; set; }
+    public int Health { get; set; }
+    public int MaxHealth { get; set; }
+    public bool CanBeBlasted { get; set; }
+    public bool CanBePicked { get; set; }
 }

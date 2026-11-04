@@ -3,9 +3,9 @@ using Newtonsoft.Json;
 
 public class JobSystem
 {
-    private readonly Dictionary<string, JobRecord> _jobs = new Dictionary<string, JobRecord>();
+    private readonly Dictionary<string, JobData> _jobs = new Dictionary<string, JobData>();
 
-    public void RegisterJob(JobRecord job)
+    public void RegisterJob(JobData job)
     {
         if (job == null || string.IsNullOrWhiteSpace(job.JobId))
             return;
@@ -18,24 +18,23 @@ public class JobSystem
         return !string.IsNullOrWhiteSpace(jobId) && _jobs.ContainsKey(jobId);
     }
 
-    public JobRecord GetJob(string jobId)
+    public JobData GetJob(string jobId)
     {
         if (string.IsNullOrWhiteSpace(jobId))
             return null;
 
-        _jobs.TryGetValue(jobId, out JobRecord job);
+        _jobs.TryGetValue(jobId, out JobData job);
         return job;
     }
 
-    public List<JobRecord> GetAllJobs()
+    public List<JobData> GetAllJobs()
     {
-        return new List<JobRecord>(_jobs.Values);
+        return new List<JobData>(_jobs.Values);
     }
 
     public void LoadJobs(List<JobData> jobs)
     {
         _jobs.Clear();
-
         if (jobs == null)
             return;
 
@@ -44,55 +43,35 @@ public class JobSystem
             if (job == null || string.IsNullOrWhiteSpace(job.JobId))
                 continue;
 
-            _jobs[job.JobId] = new JobRecord
-            {
-                JobId = job.JobId,
-                Title = job.Title,
-                Faction = job.Faction,
-                PayoutCash = job.PayoutCash,
-                PayoutGold = job.PayoutGold,
-                HonorChange = job.HonorChange,
-                IsAvailable = job.IsAvailable,
-                IsCompleted = job.IsCompleted
-            };
+            _jobs[job.JobId] = job;
         }
-    }
-
-    public List<JobData> GetJobsAsData()
-    {
-        List<JobData> result = new List<JobData>();
-
-        foreach (JobRecord job in _jobs.Values)
-        {
-            result.Add(new JobData
-            {
-                JobId = job.JobId,
-                Title = job.Title,
-                Faction = job.Faction,
-                PayoutCash = job.PayoutCash,
-                PayoutGold = job.PayoutGold,
-                HonorChange = job.HonorChange,
-                IsAvailable = job.IsAvailable,
-                IsCompleted = job.IsCompleted
-            });
-        }
-
-        return result;
     }
 
     public void MarkCompleted(string jobId)
     {
-        JobRecord job = GetJob(jobId);
+        JobData job = GetJob(jobId);
         if (job == null)
             return;
 
         job.IsCompleted = true;
+        job.IsFailed = false;
+        job.IsAvailable = false;
+    }
+
+    public void MarkFailed(string jobId)
+    {
+        JobData job = GetJob(jobId);
+        if (job == null)
+            return;
+
+        job.IsFailed = true;
+        job.IsCompleted = false;
         job.IsAvailable = false;
     }
 
     public void SetAvailability(string jobId, bool available)
     {
-        JobRecord job = GetJob(jobId);
+        JobData job = GetJob(jobId);
         if (job == null)
             return;
 
@@ -101,13 +80,12 @@ public class JobSystem
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(GetJobsAsData(), Formatting.Indented);
+        return JsonConvert.SerializeObject(GetAllJobs(), Formatting.Indented);
     }
 
     public void LoadState(string json)
     {
         _jobs.Clear();
-
         if (string.IsNullOrWhiteSpace(json))
             return;
 
