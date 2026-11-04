@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿// PersistenceModels.cs
+using System.Collections.Generic;
 
 public class SaveRoot
 {
     public List<GangMember> GangMembers { get; set; }
-    public List<CompanionData> Companions { get; set; }
-    public List<BankAccountData> BankAccounts { get; set; }
-    public List<JobData> Jobs { get; set; }
-    public List<WagonData> Wagons { get; set; }
+    public List<CompanionRecord> Companions { get; set; }
+    public List<BankAccountRecord> BankAccounts { get; set; }
+    public List<JobRecord> Jobs { get; set; }
+    public List<WagonRecord> Wagons { get; set; }
 }
 
 public class BankAccountRecord
