@@ -1,11 +1,11 @@
-﻿// TacticalSquadAiSystem.cs
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 public class TacticalSquadAiSystem
 {
-    public void UpdateSquadTactics(IEnumerable<GangMember> members, TacticalContext context)
+    public void UpdateSquadTactics(List<GangMember> members, TacticalContext context)
     {
-        if (members == null)
+        if (members == null || context == null)
             return;
 
         foreach (GangMember member in members)
@@ -13,83 +13,77 @@ public class TacticalSquadAiSystem
             if (member == null)
                 continue;
 
-            member.TacticalState = ResolveTacticalState(member, context);
-            member.CombatStyle = ResolveCombatStyle(member, context);
-            member.BehaviorPriority = ResolvePriority(member, context);
+            ApplyTactic(member, context);
         }
     }
 
-    public static string ResolveTacticalState(GangMember member, TacticalContext context)
+    public void ApplyTactic(GangMember member, TacticalContext context)
     {
-        if (context == null)
-            return "Follow";
+        if (member == null || context == null)
+            return;
 
         if (context.IsStealth)
-            return "Stealth";
+        {
+            member.CombatStyle = "Stealth";
+            member.TacticalState = "Careful";
+            member.CurrentTask = "Hold position and avoid detection";
+            return;
+        }
 
         if (context.IsInCombat)
-            return "Engage";
+        {
+            member.TacticalState = "Combat";
+            member.CurrentTask = "Engage threats";
+
+            if (member.BehaviorPriority >= 75)
+                member.CombatStyle = "Ranged Medium";
+            else if (member.BehaviorPriority >= 50)
+                member.CombatStyle = "Ranged Short";
+            else
+                member.CombatStyle = "Lethal Melee";
+
+            return;
+        }
 
         if (context.IsShopping)
-            return "Support";
+        {
+            member.TacticalState = "Support";
+            member.CurrentTask = "Assist player with errands";
+            member.CombatStyle = "Ranged Short";
+            return;
+        }
 
         if (context.IsTraveling)
-            return "Travel";
+        {
+            member.TacticalState = "Follow";
+            member.CurrentTask = "Stay close to the player";
+            return;
+        }
 
-        if (member != null && member.MemoryTags != null && member.MemoryTags.Contains("NeedsFood"))
-            return "SupplyRun";
-
-        if (member != null && !string.IsNullOrWhiteSpace(member.CurrentTask))
-            return member.CurrentTask;
-
-        return "Follow";
+        member.TacticalState = "Idle";
+        member.CurrentTask = "Wait";
     }
 
-    public static string ResolveCombatStyle(GangMember member, TacticalContext context)
+    public string SaveState()
     {
-        if (context != null && context.IsStealth)
-            return "Stealth";
-
-        if (member == null)
-            return "Ranged Medium";
-
-        if (member.Role == "Scout")
-            return "Ranged Long";
-
-        if (member.Role == "Bruiser")
-            return "Lethal Melee";
-
-        if (member.Role == "Hunter")
-            return "Ranged Short";
-
-        if (!string.IsNullOrWhiteSpace(member.CombatStyle))
-            return member.CombatStyle;
-
-        return "Ranged Medium";
+        return JsonConvert.SerializeObject(new TacticalContext(), Formatting.Indented);
     }
 
-    public static int ResolvePriority(GangMember member, TacticalContext context)
+    public TacticalContext LoadState(string json)
     {
-        int priority = 50;
+        if (string.IsNullOrWhiteSpace(json))
+            return new TacticalContext();
 
-        if (member != null && member.Loyalty >= 75)
-            priority += 10;
-
-        if (member != null && member.Hunger <= 20)
-            priority -= 15;
-
-        if (context != null && context.IsInCombat)
-            priority += 20;
-
-        if (context != null && context.IsStealth)
-            priority += 5;
-
-        if (context != null && context.IsTraveling)
-            priority += 3;
-
-        if (context != null && context.IsShopping)
-            priority += 2;
-
-        return priority;
+        TacticalContext context = JsonConvert.DeserializeObject<TacticalContext>(json);
+        return context ?? new TacticalContext();
     }
+}
+
+public class TacticalContext
+{
+    public bool IsInCombat { get; set; }
+    public bool IsStealth { get; set; }
+    public bool IsTraveling { get; set; }
+    public bool IsShopping { get; set; }
+    public string CurrentObjective { get; set; }
 }
