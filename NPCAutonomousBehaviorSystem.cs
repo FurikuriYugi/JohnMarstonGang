@@ -70,10 +70,6 @@ public class NPCAutonomousBehaviorSystem
         _npcRoles["worker"] = "Worker";
     }
 
-    /// <summary>
-    /// Advances autonomous behaviors for the NPCs supplied by the caller.
-    /// Behavior decisions are evaluated every 120 script frames.
-    /// </summary>
     public void Update(Dictionary<string, Ped> worldNPCs)
     {
         _updateCounter++;
@@ -89,13 +85,6 @@ public class NPCAutonomousBehaviorSystem
         }
 
         _currentWorldNPCs = worldNPCs;
-
-        if (worldNPCs.Count == 0)
-        {
-            RemoveMissingOrInvalidNPCStates(worldNPCs);
-            return;
-        }
-
         RemoveMissingOrInvalidNPCStates(worldNPCs);
 
         foreach (KeyValuePair<string, Ped> npcPair in worldNPCs)
@@ -127,10 +116,6 @@ public class NPCAutonomousBehaviorSystem
         return _npcBehaviors.TryGetValue(npcId, out state) ? state : null;
     }
 
-    /// <summary>
-    /// Call this when the player has a meaningful interaction with an NPC.
-    /// The system uses the registered entity's loyalty as the relationship value.
-    /// </summary>
     public void RecordPlayerInteraction(
         string npcId,
         bool positiveInteraction,
@@ -237,55 +222,40 @@ public class NPCAutonomousBehaviorSystem
         switch (behavior.Role)
         {
             case "Banker":
-                if (roll < 40)
-                    behavior.CurrentBehavior = "VisitBank";
-                else if (roll < 75)
-                    behavior.CurrentBehavior = "ManageFunds";
-                else
-                    behavior.CurrentBehavior = "Idle";
+                behavior.CurrentBehavior = roll < 40
+                    ? "VisitBank"
+                    : roll < 75 ? "ManageFunds" : "Idle";
                 break;
 
             case "Shop Owner":
             case "Gunsmith":
-                if (roll < 30)
-                    behavior.CurrentBehavior = "TransferFundsToBank";
-                else if (roll < 65)
-                    behavior.CurrentBehavior = "WorkAtShop";
-                else if (roll < 85)
-                    behavior.CurrentBehavior = "InteractWithOthers";
-                else
-                    behavior.CurrentBehavior = "Idle";
+                behavior.CurrentBehavior = roll < 30
+                    ? "TransferFundsToBank"
+                    : roll < 65 ? "WorkAtShop"
+                    : roll < 85 ? "InteractWithOthers"
+                    : "Idle";
                 break;
 
             case "Bartender":
-                if (roll < 55)
-                    behavior.CurrentBehavior = "WorkAtSaloon";
-                else if (roll < 75)
-                    behavior.CurrentBehavior = "VisitBank";
-                else
-                    behavior.CurrentBehavior = "Idle";
+                behavior.CurrentBehavior = roll < 55
+                    ? "WorkAtSaloon"
+                    : roll < 75 ? "VisitBank" : "Idle";
                 break;
 
             case "Traveler":
-                if (roll < 40)
-                    behavior.CurrentBehavior = "Travel";
-                else if (roll < 65)
-                    behavior.CurrentBehavior = "VisitShop";
-                else if (roll < 85)
-                    behavior.CurrentBehavior = "Rest";
-                else
-                    behavior.CurrentBehavior = "Idle";
+                behavior.CurrentBehavior = roll < 40
+                    ? "Travel"
+                    : roll < 65 ? "VisitShop"
+                    : roll < 85 ? "Rest"
+                    : "Idle";
                 break;
 
             case "Merchant":
-                if (roll < 35)
-                    behavior.CurrentBehavior = "TransferGoodsToBank";
-                else if (roll < 65)
-                    behavior.CurrentBehavior = "InteractWithOthers";
-                else if (roll < 85)
-                    behavior.CurrentBehavior = "VisitBank";
-                else
-                    behavior.CurrentBehavior = "Idle";
+                behavior.CurrentBehavior = roll < 35
+                    ? "TransferGoodsToBank"
+                    : roll < 65 ? "InteractWithOthers"
+                    : roll < 85 ? "VisitBank"
+                    : "Idle";
                 break;
 
             default:
@@ -293,8 +263,6 @@ public class NPCAutonomousBehaviorSystem
                 break;
         }
 
-        // One behavior update happens every 120 frames. These values give
-        // approximate behavior durations of three to ten minutes at 30 FPS.
         behavior.BehaviorTimer = _random.Next(45, 151);
         behavior.TargetLocation =
             SelectTargetLocation(behavior.CurrentBehavior, behavior.Role);
@@ -369,7 +337,7 @@ public class NPCAutonomousBehaviorSystem
 
         if (!behavior.HasProcessedAction)
         {
-            ProcessBankTransaction(npcId, npcPed, behavior);
+            ProcessBankTransaction(npcId, behavior);
             behavior.HasProcessedAction = true;
         }
 
@@ -382,13 +350,8 @@ public class NPCAutonomousBehaviorSystem
         Ped npcPed,
         NPCBehaviorState behavior)
     {
-        BankAccountData account = _bankSystem.EnsureAccount(
-            npcId,
-            GetNPCDisplayName(npcId));
+        _bankSystem.EnsureAccount(npcId, GetNPCDisplayName(npcId));
 
-        // This represents business income held before it is deposited.
-        // It is deliberately separate from the bank balance so the same
-        // money is not repeatedly deposited.
         if (_random.Next(0, 100) < 30)
         {
             decimal earnedCash = _random.Next(10, 100);
@@ -396,9 +359,6 @@ public class NPCAutonomousBehaviorSystem
             behavior.RecordMemory(
                 "Earned " + earnedCash + " cash from business activity.");
         }
-
-        if (account.Cash < 0m)
-            account.Cash = 0m;
 
         ExecuteIdleBehavior(npcPed);
     }
@@ -640,7 +600,6 @@ public class NPCAutonomousBehaviorSystem
 
     private void ProcessBankTransaction(
         string npcId,
-        Ped npcPed,
         NPCBehaviorState behavior)
     {
         BankAccountData account = _bankSystem.EnsureAccount(
@@ -794,7 +753,16 @@ public class NPCAutonomousBehaviorSystem
             return;
         }
 
-        npcPed.Task.GoTo(targetLocation, -1);
+        RDR2.Native.TASK.TASK_GO_TO_COORD_ANY_MEANS(
+            npcPed.Handle,
+            targetLocation.X,
+            targetLocation.Y,
+            targetLocation.Z,
+            1.0f,
+            0,
+            false,
+            0,
+            0.0f);
     }
 
     private void GenerateWorldEvents()
