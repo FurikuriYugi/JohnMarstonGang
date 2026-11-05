@@ -2,7 +2,6 @@
 using RDR2.Math;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class CoreAISystem
 {
@@ -14,8 +13,9 @@ public class CoreAISystem
     private readonly Dictionary<string, CompanionAIState> _aiStates =
         new Dictionary<string, CompanionAIState>();
     private readonly Random _random = new Random();
+
     private const int UPDATE_INTERVAL = 30;
-    private int _updateCounter = 0;
+    private int _updateCounter;
 
     public CoreAISystem(
         WorldEntityRegistry registry,
@@ -41,12 +41,16 @@ public class CoreAISystem
         if (_updateCounter % UPDATE_INTERVAL != 0)
             return;
 
-        if (playerPed == null || !playerPed.Exists() || companionPeds == null)
+        if (playerPed == null ||
+            !playerPed.Exists() ||
+            companionPeds == null)
+        {
             return;
+        }
 
         int livingEnemyCount = CountLivingEnemies(nearbyEnemies);
 
-        // Include companions who are staying behind as well as those following.
+        // Include gang members who have been told to stay as well as followers.
         List<WorldEntityData> entities =
             _registry.GetByFaction("PlayerGang");
 
@@ -75,6 +79,10 @@ public class CoreAISystem
                 CompanionPosition = companionPed.Position,
                 DistanceToPlayer =
                     Vector3.Distance(playerPed.Position, companionPed.Position),
+                NearestEnemyDistance =
+                    GetNearestLivingEnemyDistance(
+                        companionPed,
+                        nearbyEnemies),
                 PlayerHealth = playerPed.Health,
                 CompanionHealth = companionPed.Health,
                 IsPlayerInCombat = playerInCombat,
@@ -206,7 +214,7 @@ public class CoreAISystem
         entity.CombatStyle = combatStyle;
         aiState.ExperiencePoints += _random.Next(5, 15);
 
-        // Combat builds fatigue gradually instead of adding it on every AI update.
+        // Combat builds fatigue gradually instead of on every AI update.
         if (_random.Next(0, 30) == 0)
             aiState.Fatigue = Math.Min(100, aiState.Fatigue + 1);
 
@@ -229,15 +237,11 @@ public class CoreAISystem
         if (_random.Next(0, 60) == 0)
             aiState.Thirst = Math.Min(100, aiState.Thirst + 1);
 
-        // Apply occasional morale penalties while needs remain unmet.
         if (aiState.Hunger > 50 && _random.Next(0, 60) == 0)
             aiState.Morale = Math.Max(0, aiState.Morale - 1);
 
         if (aiState.Thirst > 50 && _random.Next(0, 60) == 0)
             aiState.Morale = Math.Max(0, aiState.Morale - 1);
-
-        // Fatigue is accumulated during combat and reduced by the supported
-        // RestAtCamp task. Do not permanently lower the companion's skill.
     }
 
     private string ResolveCombatStyleWithPersonality(
@@ -249,7 +253,7 @@ public class CoreAISystem
         string baseStyle = _tacticalSystem.ResolveCombatStyle(
             threatType,
             aiState.PrefersStealth,
-            context.DistanceToPlayer < 10f,
+            context.NearestEnemyDistance < 10f,
             false,
             false);
 
@@ -276,6 +280,38 @@ public class CoreAISystem
         }
 
         return baseStyle;
+    }
+
+    private float GetNearestLivingEnemyDistance(
+        Ped companionPed,
+        List<Ped> nearbyEnemies)
+    {
+        if (companionPed == null ||
+            !companionPed.Exists() ||
+            nearbyEnemies == null)
+        {
+            return float.MaxValue;
+        }
+
+        float nearestDistance = float.MaxValue;
+
+        foreach (Ped enemy in nearbyEnemies)
+        {
+            if (enemy == null ||
+                !enemy.Exists() ||
+                enemy.IsDeadOrDying)
+            {
+                continue;
+            }
+
+            float distance =
+                Vector3.Distance(companionPed.Position, enemy.Position);
+
+            if (distance < nearestDistance)
+                nearestDistance = distance;
+        }
+
+        return nearestDistance;
     }
 
     private void LevelUp(
@@ -485,6 +521,7 @@ public class CompanionContext
     public Vector3 PlayerPosition { get; set; }
     public Vector3 CompanionPosition { get; set; }
     public float DistanceToPlayer { get; set; }
+    public float NearestEnemyDistance { get; set; }
     public int PlayerHealth { get; set; }
     public int CompanionHealth { get; set; }
     public bool IsPlayerInCombat { get; set; }
