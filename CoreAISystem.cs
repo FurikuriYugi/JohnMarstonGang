@@ -2,7 +2,6 @@
 using RDR2.Math;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class CoreAISystem
 {
@@ -54,8 +53,8 @@ public class CoreAISystem
 
         int livingEnemyCount = CountLivingEnemies(nearbyEnemies);
 
-        // Staying companions must also be updated so their autonomous tasks
-        // can run. GetFollowers() excluded them, making that behavior unreachable.
+        // GetFollowers() excludes companions ordered to stay, so use the
+        // registry's PlayerGang faction to update both followers and stayers.
         List<WorldEntityData> entities =
             _registry.GetByFaction("PlayerGang");
 
@@ -102,6 +101,12 @@ public class CoreAISystem
             }
             else
             {
+                // A companion who resumes following should not retain a
+                // stay-behind task such as resting.
+                _autonomousTaskSystem.CancelTask(entity.EntityId);
+                if (aiState.IsExecutingTask)
+                    aiState.ResetCurrentTask();
+
                 HandleCombatBehavior(
                     entity,
                     aiState,
@@ -113,8 +118,6 @@ public class CoreAISystem
 
             while (aiState.ExperiencePoints >= 100)
                 LevelUp(entity, aiState);
-
-            _registry.UpdateEntity(entity);
         }
     }
 
@@ -157,8 +160,8 @@ public class CoreAISystem
             return;
         }
 
-        // RestAtCamp is the only autonomous task currently implemented by
-        // CompanionAutonomousTaskSystem. Do not enqueue unsupported tasks.
+        // RestAtCamp is the autonomous task currently implemented by
+        // CompanionAutonomousTaskSystem. Do not queue unsupported errands.
         _autonomousTaskSystem.AssignTask(
             entity.EntityId,
             "RestAtCamp",
@@ -228,7 +231,7 @@ public class CoreAISystem
         if (elapsedSeconds < 0 ||
             elapsedSeconds > MAX_NEEDS_CATCH_UP_SECONDS)
         {
-            // Avoid applying a large needs penalty after a long pause or
+            // Do not apply a large needs change after a long pause or
             // loading an old save.
             aiState.LastActivityTimestamp = now;
             return;
@@ -368,10 +371,13 @@ public class CoreAISystem
             decimal companionShare = job.RewardCash / 2m;
             decimal goldShare = job.RewardGold / 2m;
 
-            _bankSystem.Deposit(
-                companionId,
-                companionShare,
-                goldShare);
+            _bankSystem.EnsureAccount(companionId, entity.DisplayName);
+
+            if (companionShare > 0m)
+                _bankSystem.DepositCash(companionId, companionShare);
+
+            if (goldShare > 0m)
+                _bankSystem.DepositGold(companionId, goldShare);
 
             aiState.TotalEarnings += companionShare;
             aiState.CompletedJobs.Add(job.JobId);
