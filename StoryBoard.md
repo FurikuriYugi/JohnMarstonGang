@@ -121,31 +121,34 @@ Progression should offer meaningful choices. For example, resources spent on for
 
 ## Story event: distributing job shares at the base
 
-A successful job can lead to a gang gathering where the player distributes proceeds and the members discuss what comes next. This event connects the job, payout, base progression, and companion relationship systems.
+A successful job creates a pending reward for a safe, in-world gang gathering. The split is fixed and cannot be changed by the player.
 
-### Intended flow
+### Fixed payout rules
 
-1. The job resolves and creates a **pending reward record**. It records the total reward, costs, agreed shares, and any gang reserve.
-2. The gang reaches a safe base state where the event is eligible. Do not interrupt combat, active mission play, or another important scene.
-3. The scene presents the earnings and the proposed split. Members can react based on their needs, expectations, trust, contribution, and earlier promises.
-4. The player chooses whether to distribute the agreed shares, change the split, or put some of the gang’s portion toward a supported investment.
-5. The result is committed **once** to the ledger. A skipped, interrupted, or unavailable scene must use a defined fallback and must not pay twice.
-6. The event updates member reactions, gang funds, supplies or upgrades purchased, and relevant memories.
+1. Calculate net proceeds after job costs.
+2. Put exactly half of the net proceeds in the participants’ pool and half in the gang’s shared funds.
+3. Divide the participants’ pool equally among everyone who went on the job, including the player if they participated.
+4. Put the gang’s half in the camp chest by default. A bank deposit is available only when story progression and the relevant bank state support it.
+5. If there are no participants, do not create a successful payout plan that silently loses or reallocates the participants’ half; define and validate the eligible-participant rule before accepting the job outcome.
 
-### Possible player choices
+The player cannot change the 50/50 split, participant eligibility, or equal-share rule during the gathering.
 
-- Honor the agreed shares.
-- Keep more of the proceeds for the gang.
-- Give an individual member a bonus or make good on a promise.
-- Invest the gang’s reserve in a supported need, such as ammunition, food, medical supplies, a wagon, or a base upgrade.
-- Defer the meeting while preserving the pending reward for a later gathering.
+### Pending reward and gathering flow
+
+1. On successful job completion, create and persist a pending reward record containing the job ID, net proceeds, participant IDs and equal shares, the gang-fund share, and its intended destination.
+2. Keep that reward pending until a safe gathering is available. Do not require a gathering immediately after the job.
+3. Present the pending reward at a safe post-job gathering. Do not trigger it during combat, active mission play, or another important scene.
+4. Settle the ledger once. If the gathering is skipped, unavailable, or interrupted, preserve the pending reward for a later gathering.
+5. Do not pay a second time if the gathering, save/load, or settlement call is repeated.
+6. A bank destination may replace the camp chest only when the relevant story progression permits it; the gathering does not itself unlock that option.
 
 ### Scene requirements
 
-- The scene should be short, skippable, and safe to resume from.
-- Participants should reflect who is present and eligible; unavailable members should not silently lose their share.
-- Scene completion and payout settlement are separate states, so a scene failure cannot erase or duplicate a reward.
-- Reuse a base-game story event or cutscene only after verifying that the event exists, is usable in this mod context, and is supported by the project’s API. Otherwise, design a supported in-game interaction rather than guessing at an event or native.
+- Prefer a verified, supported cutscene only if its availability and use in this mod context are confirmed.
+- Otherwise, present the result through an in-game conversation or interaction supported by the project’s existing APIs.
+- Keep reward creation, persistence, gathering presentation, and settlement as distinct responsibilities.
+- An interrupted or skipped gathering must not erase a pending reward or cause duplicate settlement.
+
 
 ## Job System: gang votes and bank opportunity arc
 
@@ -183,14 +186,15 @@ Do not treat vault access as a permanent, consequence-free unlock. Jobs, suspici
 
 ## Payout and investment rules
 
-- The job outcome creates a reward record; the presentation scene does not invent money.
-- Calculate costs, shares, and gang reserve from explicit data.
-- Validate that shares and reserve reconcile to the total reward.
-- A reward can be settled only once, including after save/load or a scene interruption.
-- Make the owner of every share explicit: player, gang reserve, or named companion.
-- Investments must debit the gang’s available funds and produce a tracked result.
-- Members should react to a changed split in ways consistent with their personalities and relationships.
-- Do not deposit member shares to a bank account unless that is the chosen in-world action. A share handed out at camp and a bank deposit are different outcomes.
+- Calculate the payout from net proceeds, after recorded job costs.
+- The split is fixed: 50% to the participating group and 50% to gang shared funds.
+- Divide the participants’ pool equally among the people who went on the job, including the player if they participated.
+- Do not offer a player-configurable split, contribution-weighted shares, or ad hoc bonuses as part of job settlement.
+- The camp chest is the default destination for gang funds. Use a bank only when story progression supports it.
+- Create and persist a pending reward record before presenting the gathering.
+- Settle each job’s reward once only. Repeated calls, save/load, or an interrupted gathering must not duplicate or erase it.
+- Keep the gathering separate from the ledger’s source-of-truth data.
+- Investment features are a later system: any investment must debit available gang funds and record its result without changing the fixed job split.
 
 ## Persistence and integration notes
 
@@ -264,6 +268,16 @@ Before marking a feature implemented or tested, confirm:
 - [ ] The player receives understandable feedback.
 - [ ] The behavior has been tested in-game or its test limitation is recorded.
 - [ ] This document’s status and known limitations are updated.
+
+### Job reward acceptance criteria
+
+- Net proceeds equal the job reward minus its recorded costs.
+- The participants’ pool and gang-fund pool are each exactly half of net proceeds.
+- All eligible participants, including the player when applicable, receive equal shares; rounding reconciles to the pool total.
+- The reward remains pending if a gathering is skipped, unavailable, or interrupted.
+- Completing or retrying settlement cannot pay the same job twice, including after save/load.
+- Camp-chest funds persist. Bank routing is unavailable until story progression explicitly allows it.
+- Gathering presentation does not change the fixed payout rule or serve as the reward ledger.
 
 ## New idea template
 
