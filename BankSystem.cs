@@ -40,7 +40,6 @@ public class BankSystem
         string ownerName = null)
     {
         BankAccountData account = GetAccount(ownerId);
-
         if (account != null)
             return account;
 
@@ -58,7 +57,6 @@ public class BankSystem
     public void DepositCash(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
-
         if (account == null || amount <= 0m)
             return;
 
@@ -69,7 +67,6 @@ public class BankSystem
     public void DepositGold(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
-
         if (account == null || amount <= 0m)
             return;
 
@@ -83,7 +80,6 @@ public class BankSystem
         decimal goldAmount)
     {
         BankAccountData account = GetAccount(ownerId);
-
         if (account == null ||
             (cashAmount <= 0m && goldAmount <= 0m))
         {
@@ -102,7 +98,6 @@ public class BankSystem
     public bool WithdrawCash(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
-
         if (account == null ||
             amount <= 0m ||
             account.Cash < amount)
@@ -118,7 +113,6 @@ public class BankSystem
     public bool WithdrawGold(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
-
         if (account == null ||
             amount <= 0m ||
             account.Gold < amount)
@@ -136,8 +130,33 @@ public class BankSystem
         string toOwnerId,
         decimal amount)
     {
-        if (WithdrawCash(fromOwnerId, amount))
-            DepositCash(toOwnerId, amount);
+        if (string.IsNullOrWhiteSpace(fromOwnerId) ||
+            string.IsNullOrWhiteSpace(toOwnerId) ||
+            string.Equals(
+                fromOwnerId,
+                toOwnerId,
+                StringComparison.Ordinal) ||
+            amount <= 0m)
+        {
+            return;
+        }
+
+        BankAccountData fromAccount = GetAccount(fromOwnerId);
+        BankAccountData toAccount = GetAccount(toOwnerId);
+
+        if (fromAccount == null ||
+            toAccount == null ||
+            fromAccount.Cash < amount)
+        {
+            return;
+        }
+
+        fromAccount.Cash -= amount;
+        toAccount.Cash += amount;
+
+        DateTime transactionTime = DateTime.UtcNow;
+        fromAccount.LastTransactionUtc = transactionTime;
+        toAccount.LastTransactionUtc = transactionTime;
     }
 
     public void TransferGold(
@@ -145,14 +164,38 @@ public class BankSystem
         string toOwnerId,
         decimal amount)
     {
-        if (WithdrawGold(fromOwnerId, amount))
-            DepositGold(toOwnerId, amount);
+        if (string.IsNullOrWhiteSpace(fromOwnerId) ||
+            string.IsNullOrWhiteSpace(toOwnerId) ||
+            string.Equals(
+                fromOwnerId,
+                toOwnerId,
+                StringComparison.Ordinal) ||
+            amount <= 0m)
+        {
+            return;
+        }
+
+        BankAccountData fromAccount = GetAccount(fromOwnerId);
+        BankAccountData toAccount = GetAccount(toOwnerId);
+
+        if (fromAccount == null ||
+            toAccount == null ||
+            fromAccount.Gold < amount)
+        {
+            return;
+        }
+
+        fromAccount.Gold -= amount;
+        toAccount.Gold += amount;
+
+        DateTime transactionTime = DateTime.UtcNow;
+        fromAccount.LastTransactionUtc = transactionTime;
+        toAccount.LastTransactionUtc = transactionTime;
     }
 
     public void AddDebt(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
-
         if (account == null || amount <= 0m)
             return;
 
@@ -163,7 +206,6 @@ public class BankSystem
     public void ApplySuspicion(string ownerId, bool suspicious)
     {
         BankAccountData account = GetAccount(ownerId);
-
         if (account == null)
             return;
 
