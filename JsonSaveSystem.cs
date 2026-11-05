@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 public static class JsonSaveSystem
 {
-    private static readonly string SaveFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JohnMarstonGang");
-    private static readonly string SaveFilePath = Path.Combine(SaveFolder, "save.json");
+    private static readonly string SaveFolder =
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JohnMarstonGang");
+
+    private static readonly string SaveFilePath =
+        Path.Combine(SaveFolder, "save.json");
+
+    private const int CurrentSaveVersion = 5;
 
     public static SaveRoot Load()
     {
@@ -20,7 +26,9 @@ public static class JsonSaveSystem
                 return new SaveRoot();
 
             JObject root = JObject.Parse(json);
-            int saveVersion = root["SaveVersion"] != null ? root["SaveVersion"].Value<int>() : 1;
+            int saveVersion = root["SaveVersion"] != null
+                ? root["SaveVersion"].Value<int>()
+                : 1;
 
             SaveRoot data = root.ToObject<SaveRoot>();
             if (data == null)
@@ -46,7 +54,6 @@ public static class JsonSaveSystem
                 Directory.CreateDirectory(SaveFolder);
 
             Normalize(data, data.SaveVersion);
-
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
             File.WriteAllText(SaveFilePath, json);
         }
@@ -78,71 +85,91 @@ public static class JsonSaveSystem
         if (data == null)
             return;
 
-        if (data.SaveVersion <= 0)
-            data.SaveVersion = 4;
+        if (saveVersion <= 0)
+            saveVersion = 1;
 
         if (data.World == null)
             data.World = new WorldState();
 
         if (data.GangMembers == null)
-            data.GangMembers = new System.Collections.Generic.List<GangMember>();
+            data.GangMembers = new List<GangMember>();
 
         if (data.BankAccounts == null)
-            data.BankAccounts = new System.Collections.Generic.List<BankAccountData>();
+            data.BankAccounts = new List<BankAccountData>();
 
         if (data.WorldEntities == null)
-            data.WorldEntities = new System.Collections.Generic.List<WorldEntityData>();
+            data.WorldEntities = new List<WorldEntityData>();
 
-        if (data.World.Companions == null)
-            data.World.Companions = new System.Collections.Generic.List<CompanionData>();
-
-        if (data.World.ActiveJobs == null)
-            data.World.ActiveJobs = new System.Collections.Generic.List<JobData>();
-
-        if (data.World.Wagons == null)
-            data.World.Wagons = new System.Collections.Generic.List<WagonData>();
-
-        if (data.World.WeaponPlatforms == null)
-            data.World.WeaponPlatforms = new System.Collections.Generic.List<WeaponPlatformData>();
-
-        if (data.World.FactionRelations == null)
-            data.World.FactionRelations = new System.Collections.Generic.List<FactionRelationData>();
-
-        if (data.World.Locations == null)
-            data.World.Locations = new System.Collections.Generic.List<LocationStateData>();
-
-        if (data.World.Entities == null)
-            data.World.Entities = new System.Collections.Generic.List<EntityStateData>();
-
-        if (data.World.Commands == null)
-            data.World.Commands = new System.Collections.Generic.List<CommandData>();
-
-        if (data.World.Locks == null)
-            data.World.Locks = new System.Collections.Generic.List<LockRecord>();
-
-        if (data.World.Destructibles == null)
-            data.World.Destructibles = new System.Collections.Generic.List<DestructibleRecord>();
-
-        if (data.World.TacticalOrders == null)
-            data.World.TacticalOrders = new System.Collections.Generic.List<TacticalOrderData>();
-
+        NormalizeWorldCollections(data);
         NormalizeJobs(data);
         NormalizeWorldEntities(data);
         NormalizeCompanions(data);
+        NormalizeCompanionAIStates(data);
         NormalizeWagons(data);
         NormalizeWeaponPlatforms(data);
-        NormalizeLocks(data);
         NormalizeDestructibles(data);
         NormalizeTacticalOrders(data);
+        NormalizeCommands(data);
         NormalizeBankAccounts(data);
         NormalizeLocations(data);
-        NormalizeFactionRelations(data);
-        NormalizeCommands(data);
+        NormalizeTrainLoot(data);
+        NormalizeStageCoachLoot(data);
 
         if (saveVersion < 4)
             MigrateFromV3(data);
 
-        data.SaveVersion = 4;
+        data.SaveVersion = CurrentSaveVersion;
+    }
+
+    private static void NormalizeWorldCollections(SaveRoot data)
+    {
+        if (data.World.Companions == null)
+            data.World.Companions = new List<CompanionData>();
+
+        if (data.World.ActiveJobs == null)
+            data.World.ActiveJobs = new List<JobData>();
+
+        if (data.World.Wagons == null)
+            data.World.Wagons = new List<WagonData>();
+
+        if (data.World.WeaponPlatforms == null)
+            data.World.WeaponPlatforms = new List<WeaponPlatformData>();
+
+        if (data.World.FactionRelations == null)
+            data.World.FactionRelations = new List<FactionRelationData>();
+
+        if (data.World.Locations == null)
+            data.World.Locations = new List<LocationStateData>();
+
+        if (data.World.Entities == null)
+            data.World.Entities = new List<EntityStateData>();
+
+        if (data.World.Commands == null)
+            data.World.Commands = new List<CommandData>();
+
+        if (data.World.Locks == null)
+            data.World.Locks = new List<LockRecord>();
+
+        if (data.World.Destructibles == null)
+            data.World.Destructibles = new List<DestructibleRecord>();
+
+        if (data.World.TacticalOrders == null)
+            data.World.TacticalOrders = new List<TacticalOrderData>();
+
+        if (data.World.BankVaults == null)
+            data.World.BankVaults = new List<BankVaultData>();
+
+        if (data.World.TrainLoot == null)
+            data.World.TrainLoot = new List<TrainLootData>();
+
+        if (data.World.StageCoachLoot == null)
+            data.World.StageCoachLoot = new List<StageCoachLootData>();
+
+        if (data.World.ObjectiveStates == null)
+            data.World.ObjectiveStates = new List<ObjectiveStateData>();
+
+        if (data.World.CompanionAIStates == null)
+            data.World.CompanionAIStates = new List<CompanionAIStateData>();
     }
 
     private static void NormalizeJobs(SaveRoot data)
@@ -154,10 +181,10 @@ public static class JsonSaveSystem
                 continue;
 
             if (job.Objectives == null)
-                job.Objectives = new System.Collections.Generic.List<string>();
+                job.Objectives = new List<string>();
 
             if (job.Participants == null)
-                job.Participants = new System.Collections.Generic.List<string>();
+                job.Participants = new List<string>();
         }
     }
 
@@ -170,10 +197,10 @@ public static class JsonSaveSystem
                 continue;
 
             if (entity.InventoryItems == null)
-                entity.InventoryItems = new System.Collections.Generic.List<string>();
+                entity.InventoryItems = new List<string>();
 
             if (entity.KnownGoals == null)
-                entity.KnownGoals = new System.Collections.Generic.List<string>();
+                entity.KnownGoals = new List<string>();
         }
 
         for (int i = 0; i < data.World.Entities.Count; i++)
@@ -183,7 +210,7 @@ public static class JsonSaveSystem
                 continue;
 
             if (entity.InventoryItems == null)
-                entity.InventoryItems = new System.Collections.Generic.List<string>();
+                entity.InventoryItems = new List<string>();
         }
     }
 
@@ -196,13 +223,29 @@ public static class JsonSaveSystem
                 continue;
 
             if (companion.InventoryItems == null)
-                companion.InventoryItems = new System.Collections.Generic.List<string>();
+                companion.InventoryItems = new List<string>();
 
             if (companion.Memories == null)
-                companion.Memories = new System.Collections.Generic.List<string>();
+                companion.Memories = new List<string>();
 
             if (companion.Goals == null)
-                companion.Goals = new System.Collections.Generic.List<string>();
+                companion.Goals = new List<string>();
+        }
+    }
+
+    private static void NormalizeCompanionAIStates(SaveRoot data)
+    {
+        for (int i = 0; i < data.World.CompanionAIStates.Count; i++)
+        {
+            CompanionAIStateData state = data.World.CompanionAIStates[i];
+            if (state == null)
+                continue;
+
+            if (state.SkillProgression == null)
+                state.SkillProgression = new Dictionary<string, int>();
+
+            if (state.CompletedJobs == null)
+                state.CompletedJobs = new List<string>();
         }
     }
 
@@ -215,13 +258,13 @@ public static class JsonSaveSystem
                 continue;
 
             if (wagon.StoredItems == null)
-                wagon.StoredItems = new System.Collections.Generic.List<string>();
+                wagon.StoredItems = new List<string>();
 
             if (wagon.AttachedHorses == null)
-                wagon.AttachedHorses = new System.Collections.Generic.List<string>();
+                wagon.AttachedHorses = new List<string>();
 
             if (wagon.AttachedWeapons == null)
-                wagon.AttachedWeapons = new System.Collections.Generic.List<string>();
+                wagon.AttachedWeapons = new List<string>();
         }
     }
 
@@ -238,16 +281,6 @@ public static class JsonSaveSystem
         }
     }
 
-    private static void NormalizeLocks(SaveRoot data)
-    {
-        for (int i = 0; i < data.World.Locks.Count; i++)
-        {
-            LockRecord record = data.World.Locks[i];
-            if (record == null)
-                continue;
-        }
-    }
-
     private static void NormalizeDestructibles(SaveRoot data)
     {
         for (int i = 0; i < data.World.Destructibles.Count; i++)
@@ -256,14 +289,17 @@ public static class JsonSaveSystem
             if (record == null)
                 continue;
 
-            if (record.MaxHealth < 0)
-                record.MaxHealth = 0;
+            if (record.MaxHealthPoints < 0)
+                record.MaxHealthPoints = 0;
 
-            if (record.Health < 0)
-                record.Health = 0;
+            if (record.HealthPoints < 0)
+                record.HealthPoints = 0;
 
-            if (record.MaxHealth > 0 && record.Health > record.MaxHealth)
-                record.Health = record.MaxHealth;
+            if (record.MaxHealthPoints > 0 &&
+                record.HealthPoints > record.MaxHealthPoints)
+            {
+                record.HealthPoints = record.MaxHealthPoints;
+            }
         }
     }
 
@@ -276,10 +312,10 @@ public static class JsonSaveSystem
                 continue;
 
             if (order.AssignedMemberIds == null)
-                order.AssignedMemberIds = new System.Collections.Generic.List<string>();
+                order.AssignedMemberIds = new List<string>();
 
             if (order.Notes == null)
-                order.Notes = new System.Collections.Generic.List<string>();
+                order.Notes = new List<string>();
         }
     }
 
@@ -291,8 +327,11 @@ public static class JsonSaveSystem
             if (command == null)
                 continue;
 
+            if (command.AssignedMemberIds == null)
+                command.AssignedMemberIds = new List<string>();
+
             if (command.Notes == null)
-                command.Notes = new System.Collections.Generic.List<string>();
+                command.Notes = new List<string>();
         }
     }
 
@@ -327,29 +366,47 @@ public static class JsonSaveSystem
                 continue;
 
             if (location.UnlockedDoors == null)
-                location.UnlockedDoors = new System.Collections.Generic.List<string>();
+                location.UnlockedDoors = new List<string>();
 
             if (location.DestroyedObjects == null)
-                location.DestroyedObjects = new System.Collections.Generic.List<string>();
+                location.DestroyedObjects = new List<string>();
         }
     }
 
-    private static void NormalizeFactionRelations(SaveRoot data)
+    private static void NormalizeTrainLoot(SaveRoot data)
     {
-        for (int i = 0; i < data.World.FactionRelations.Count; i++)
+        for (int i = 0; i < data.World.TrainLoot.Count; i++)
         {
-            FactionRelationData relation = data.World.FactionRelations[i];
-            if (relation == null)
+            TrainLootData loot = data.World.TrainLoot[i];
+            if (loot == null)
                 continue;
+
+            if (loot.Papers == null)
+                loot.Papers = new List<string>();
+        }
+    }
+
+    private static void NormalizeStageCoachLoot(SaveRoot data)
+    {
+        for (int i = 0; i < data.World.StageCoachLoot.Count; i++)
+        {
+            StageCoachLootData loot = data.World.StageCoachLoot[i];
+            if (loot == null)
+                continue;
+
+            if (loot.Papers == null)
+                loot.Papers = new List<string>();
         }
     }
 
     private static void MigrateFromV3(SaveRoot data)
     {
-        if (data == null)
-            return;
-
         if (data.WorldEntities == null)
-            data.WorldEntities = new System.Collections.Generic.List<WorldEntityData>();
+            data.WorldEntities = new List<WorldEntityData>();
+
+        if (data.World == null)
+            data.World = new WorldState();
+
+        NormalizeWorldCollections(data);
     }
 }
