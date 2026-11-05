@@ -14,6 +14,7 @@ public class CoreAISystem
     private readonly Dictionary<string, CompanionAIState> _aiStates =
         new Dictionary<string, CompanionAIState>();
     private readonly Random _random = new Random();
+
     private const int UPDATE_INTERVAL = 30;
     private int _updateCounter = 0;
 
@@ -93,6 +94,7 @@ public class CoreAISystem
             {
                 _autonomousTaskSystem.CancelTask(entity.EntityId);
                 aiState.ResetCurrentTask();
+
                 HandleCombatBehavior(
                     entity,
                     aiState,
@@ -144,8 +146,7 @@ public class CoreAISystem
         if (companionPed == null || !companionPed.Exists())
             return;
 
-        if (context != null &&
-            context.IsPlayerInCombat)
+        if (context != null && context.IsPlayerInCombat)
         {
             aiState.CurrentGoal = "Waiting for combat to end.";
             return;
@@ -202,7 +203,10 @@ public class CoreAISystem
         aiState.LastCombatStyle = combatStyle;
         entity.CombatStyle = combatStyle;
         aiState.ExperiencePoints += _random.Next(5, 15);
-        aiState.Fatigue += _random.Next(1, 3);
+
+        // Combat builds fatigue gradually instead of adding it on every AI update.
+        if (_random.Next(0, 30) == 0)
+            aiState.Fatigue = Math.Min(100, aiState.Fatigue + 1);
 
         if (context.CompanionHealth < companionPed.MaxHealth * 0.5f)
             aiState.Morale = Math.Max(0, aiState.Morale - 5);
@@ -216,24 +220,22 @@ public class CoreAISystem
         CompanionAIState aiState,
         CompanionContext context)
     {
-        aiState.Hunger =
-            Math.Min(100, aiState.Hunger + _random.Next(0, 2));
-        aiState.Thirst =
-            Math.Min(100, aiState.Thirst + _random.Next(0, 2));
-        aiState.Fatigue =
-            Math.Min(100, aiState.Fatigue + _random.Next(0, 2));
+        // Need values change occasionally rather than on every AI update.
+        if (_random.Next(0, 60) == 0)
+            aiState.Hunger = Math.Min(100, aiState.Hunger + 1);
 
-        if (aiState.Hunger > 50)
+        if (_random.Next(0, 60) == 0)
+            aiState.Thirst = Math.Min(100, aiState.Thirst + 1);
+
+        // Apply occasional morale penalties while needs remain unmet.
+        if (aiState.Hunger > 50 && _random.Next(0, 60) == 0)
             aiState.Morale = Math.Max(0, aiState.Morale - 1);
 
-        if (aiState.Thirst > 50)
+        if (aiState.Thirst > 50 && _random.Next(0, 60) == 0)
             aiState.Morale = Math.Max(0, aiState.Morale - 1);
 
-        if (aiState.Fatigue > 70)
-            entity.CombatSkill = Math.Max(0, entity.CombatSkill - 10);
-
-        if (!context.IsPlayerInCombat && aiState.Fatigue > 0)
-            aiState.Fatigue = Math.Max(0, aiState.Fatigue - 2);
+        // Fatigue is accumulated during combat and reduced by the supported
+        // RestAtCamp task. Do not permanently lower the companion's skill.
     }
 
     private string ResolveCombatStyleWithPersonality(
@@ -324,7 +326,12 @@ public class CoreAISystem
         {
             decimal companionShare = job.RewardCash / 2m;
             decimal goldShare = job.RewardGold / 2m;
-            _bankSystem.DepositGold(companionId, companionShare, goldShare);
+
+            _bankSystem.DepositGold(
+                companionId,
+                companionShare,
+                goldShare);
+
             aiState.TotalEarnings += companionShare;
             aiState.CompletedJobs.Add(job.JobId);
             aiState.ExperiencePoints += 50;
@@ -435,6 +442,7 @@ public class CoreAISystem
             return 0;
 
         int count = 0;
+
         foreach (Ped enemy in nearbyEnemies)
         {
             if (enemy == null || !enemy.Exists() || enemy.IsDeadOrDying)
