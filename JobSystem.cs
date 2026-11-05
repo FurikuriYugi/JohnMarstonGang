@@ -4,19 +4,60 @@ using System.Linq;
 
 public class JobSystem
 {
-    private Dictionary<string, JobData> jobs = new Dictionary<string, JobData>();
+    private readonly Dictionary<string, JobData> jobs =
+        new Dictionary<string, JobData>(StringComparer.Ordinal);
 
     public event EventHandler<JobCompletedEventArgs> JobCompleted;
     public event EventHandler<JobFailedEventArgs> JobFailed;
 
-    public void CreateJob(string jobId, string jobType, string title, string description, string sponsorId, string targetId, string locationId, decimal rewardCash, decimal rewardGold, int honorChange, bool isIllegal)
+    public JobData CreateJob(
+        string jobId,
+        string jobType,
+        string title,
+        string description,
+        string sponsorId,
+        string targetId,
+        string locationId,
+        decimal rewardCash,
+        decimal rewardGold,
+        int honorChange,
+        bool isIllegal)
     {
-        if (jobs.ContainsKey(jobId))
+        if (string.IsNullOrWhiteSpace(jobId))
         {
-            throw new InvalidOperationException($"Job {jobId} already exists.");
+            throw new ArgumentException(
+                "A job must have a non-empty job ID.",
+                nameof(jobId));
         }
 
-        var job = new JobData
+        if (string.IsNullOrWhiteSpace(jobType))
+        {
+            throw new ArgumentException(
+                "A job must have a non-empty job type.",
+                nameof(jobType));
+        }
+
+        if (rewardCash < 0m)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(rewardCash),
+                "A job reward cannot be negative.");
+        }
+
+        if (rewardGold < 0m)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(rewardGold),
+                "A job reward cannot be negative.");
+        }
+
+        if (jobs.ContainsKey(jobId))
+        {
+            throw new InvalidOperationException(
+                $"Job {jobId} already exists.");
+        }
+
+        JobData job = new JobData
         {
             JobId = jobId,
             JobType = jobType,
@@ -36,164 +77,358 @@ public class JobSystem
             Participants = new List<string>()
         };
 
-        jobs[jobId] = job;
+        jobs.Add(jobId, job);
+        return job;
+    }
+
+    // Convenience overload for world-generated jobs.
+    public JobData CreateJob(
+        string jobType,
+        string title,
+        string description,
+        string sponsorId,
+        string targetId,
+        string locationId,
+        decimal rewardCash,
+        decimal rewardGold,
+        int honorChange,
+        bool isIllegal)
+    {
+        return CreateJob(
+            Guid.NewGuid().ToString("N"),
+            jobType,
+            title,
+            description,
+            sponsorId,
+            targetId,
+            locationId,
+            rewardCash,
+            rewardGold,
+            honorChange,
+            isIllegal);
     }
 
     public void AddObjective(string jobId, string objective)
     {
-        if (!jobs.ContainsKey(jobId))
+        JobData job = GetRequiredJob(jobId);
+
+        if (string.IsNullOrWhiteSpace(objective))
         {
-            throw new KeyNotFoundException($"Job {jobId} not found.");
+            return;
         }
 
-        jobs[jobId].Objectives.Add(objective);
+        if (job.Objectives == null)
+        {
+            job.Objectives = new List<string>();
+        }
+
+        job.Objectives.Add(objective);
     }
 
     public void AssignParticipant(string jobId, string participantId)
     {
-        if (!jobs.ContainsKey(jobId))
+        JobData job = GetRequiredJob(jobId);
+
+        if (string.IsNullOrWhiteSpace(participantId))
         {
-            throw new KeyNotFoundException($"Job {jobId} not found.");
+            return;
         }
 
-        if (!jobs[jobId].Participants.Contains(participantId))
+        if (job.Participants == null)
         {
-            jobs[jobId].Participants.Add(participantId);
+            job.Participants = new List<string>();
+        }
+
+        if (!job.Participants.Contains(participantId))
+        {
+            job.Participants.Add(participantId);
         }
     }
 
     public void RemoveParticipant(string jobId, string participantId)
     {
-        if (!jobs.ContainsKey(jobId))
+        JobData job = GetRequiredJob(jobId);
+
+        if (job.Participants == null ||
+            string.IsNullOrWhiteSpace(participantId))
         {
-            throw new KeyNotFoundException($"Job {jobId} not found.");
+            return;
         }
 
-        jobs[jobId].Participants.Remove(participantId);
+        job.Participants.Remove(participantId);
     }
 
     public void CompleteJob(string jobId)
     {
-        if (!jobs.ContainsKey(jobId))
+        JobData job = GetRequiredJob(jobId);
+
+        if (job.IsCompleted || job.IsFailed)
         {
-            throw new KeyNotFoundException($"Job {jobId} not found.");
+            return;
         }
 
-        var job = jobs[jobId];
         job.IsCompleted = true;
         job.IsFailed = false;
         job.IsAvailable = false;
 
-        JobCompleted?.Invoke(this, new JobCompletedEventArgs
+        EventHandler<JobCompletedEventArgs> handler = JobCompleted;
+        if (handler != null)
         {
-            JobId = jobId,
-            JobData = job,
-            CompletedAtUtc = DateTime.UtcNow
-        });
+            handler(this, new JobCompletedEventArgs
+            {
+                JobId = job.JobId,
+                JobData = job,
+                CompletedAtUtc = DateTime.UtcNow
+            });
+        }
     }
 
     public void FailJob(string jobId, string reason = "")
     {
-        if (!jobs.ContainsKey(jobId))
+        JobData job = GetRequiredJob(jobId);
+
+        if (job.IsCompleted || job.IsFailed)
         {
-            throw new KeyNotFoundException($"Job {jobId} not found.");
+            return;
         }
 
-        var job = jobs[jobId];
         job.IsCompleted = false;
         job.IsFailed = true;
         job.IsAvailable = false;
 
-        JobFailed?.Invoke(this, new JobFailedEventArgs
+        EventHandler<JobFailedEventArgs> handler = JobFailed;
+        if (handler != null)
         {
-            JobId = jobId,
-            JobData = job,
-            Reason = reason,
-            FailedAtUtc = DateTime.UtcNow
-        });
+            handler(this, new JobFailedEventArgs
+            {
+                JobId = job.JobId,
+                JobData = job,
+                Reason = reason ?? string.Empty,
+                FailedAtUtc = DateTime.UtcNow
+            });
+        }
     }
 
     public JobData GetJob(string jobId)
     {
-        return jobs.ContainsKey(jobId) ? jobs[jobId] : null;
+        if (string.IsNullOrWhiteSpace(jobId))
+        {
+            return null;
+        }
+
+        JobData job;
+        return jobs.TryGetValue(jobId, out job) ? job : null;
     }
 
     public List<JobData> GetAvailableJobs()
     {
-        return jobs.Values.Where(j => j.IsAvailable).ToList();
+        return jobs.Values
+            .Where(job =>
+                job != null &&
+                job.IsAvailable &&
+                !job.IsCompleted &&
+                !job.IsFailed)
+            .ToList();
     }
 
     public List<JobData> GetActiveJobs()
     {
-        return jobs.Values.Where(j => !j.IsCompleted && !j.IsFailed).ToList();
+        return jobs.Values
+            .Where(job =>
+                job != null &&
+                !job.IsCompleted &&
+                !job.IsFailed)
+            .ToList();
     }
 
     public List<JobData> GetCompletedJobs()
     {
-        return jobs.Values.Where(j => j.IsCompleted).ToList();
+        return jobs.Values
+            .Where(job => job != null && job.IsCompleted)
+            .ToList();
     }
 
     public List<JobData> GetFailedJobs()
     {
-        return jobs.Values.Where(j => j.IsFailed).ToList();
+        return jobs.Values
+            .Where(job => job != null && job.IsFailed)
+            .ToList();
     }
 
     public List<JobData> GetJobsByParticipant(string participantId)
     {
-        return jobs.Values.Where(j => j.Participants.Contains(participantId)).ToList();
+        if (string.IsNullOrWhiteSpace(participantId))
+        {
+            return new List<JobData>();
+        }
+
+        return jobs.Values
+            .Where(job =>
+                job != null &&
+                job.Participants != null &&
+                job.Participants.Contains(participantId))
+            .ToList();
     }
 
     public List<JobData> GetJobsByJobType(string jobType)
     {
-        return jobs.Values.Where(j => j.JobType == jobType).ToList();
+        if (string.IsNullOrWhiteSpace(jobType))
+        {
+            return new List<JobData>();
+        }
+
+        return jobs.Values
+            .Where(job =>
+                job != null &&
+                string.Equals(
+                    job.JobType,
+                    jobType,
+                    StringComparison.Ordinal))
+            .ToList();
     }
 
     public List<JobData> GetJobsBySponsor(string sponsorId)
     {
-        return jobs.Values.Where(j => j.SponsorId == sponsorId).ToList();
+        if (string.IsNullOrWhiteSpace(sponsorId))
+        {
+            return new List<JobData>();
+        }
+
+        return jobs.Values
+            .Where(job =>
+                job != null &&
+                string.Equals(
+                    job.SponsorId,
+                    sponsorId,
+                    StringComparison.Ordinal))
+            .ToList();
     }
 
     public List<JobData> GetJobsByLocation(string locationId)
     {
-        return jobs.Values.Where(j => j.LocationId == locationId).ToList();
+        if (string.IsNullOrWhiteSpace(locationId))
+        {
+            return new List<JobData>();
+        }
+
+        return jobs.Values
+            .Where(job =>
+                job != null &&
+                string.Equals(
+                    job.LocationId,
+                    locationId,
+                    StringComparison.Ordinal))
+            .ToList();
     }
 
     public int GetParticipantCount(string jobId)
     {
-        return jobs.ContainsKey(jobId) ? jobs[jobId].Participants.Count : 0;
+        JobData job = GetJob(jobId);
+
+        return job == null || job.Participants == null
+            ? 0
+            : job.Participants.Count;
     }
 
     public decimal GetTotalRewardAmount(string jobId)
     {
-        if (!jobs.ContainsKey(jobId))
-        {
-            return 0;
-        }
+        JobData job = GetJob(jobId);
 
-        var job = jobs[jobId];
-        return job.RewardCash + job.RewardGold;
+        return job == null
+            ? 0m
+            : job.RewardCash + job.RewardGold;
     }
 
     public void UpdateJobAvailability(string jobId, bool isAvailable)
     {
-        if (jobs.ContainsKey(jobId))
+        JobData job = GetJob(jobId);
+
+        if (job == null || job.IsCompleted || job.IsFailed)
         {
-            jobs[jobId].IsAvailable = isAvailable;
+            return;
         }
+
+        job.IsAvailable = isAvailable;
     }
 
     public void LoadJobs(List<JobData> jobDataList)
     {
         jobs.Clear();
-        foreach (var jobData in jobDataList)
+
+        if (jobDataList == null)
         {
-            jobs[jobData.JobId] = jobData;
+            return;
+        }
+
+        foreach (JobData job in jobDataList)
+        {
+            if (job == null || string.IsNullOrWhiteSpace(job.JobId))
+            {
+                continue;
+            }
+
+            NormalizeJob(job);
+            jobs[job.JobId] = job;
         }
     }
 
     public List<JobData> GetAllJobs()
     {
-        return new List<JobData>(jobs.Values);
+        return jobs.Values
+            .Where(job => job != null)
+            .ToList();
+    }
+
+    public void LoadFromSaveRoot(SaveRoot saveRoot)
+    {
+        if (saveRoot == null || saveRoot.World == null)
+        {
+            LoadJobs(null);
+            return;
+        }
+
+        LoadJobs(saveRoot.World.ActiveJobs);
+    }
+
+    public void WriteToSaveRoot(SaveRoot saveRoot)
+    {
+        if (saveRoot == null)
+        {
+            throw new ArgumentNullException(nameof(saveRoot));
+        }
+
+        if (saveRoot.World == null)
+        {
+            saveRoot.World = new WorldState();
+        }
+
+        saveRoot.World.ActiveJobs = GetAllJobs();
+    }
+
+    private JobData GetRequiredJob(string jobId)
+    {
+        JobData job = GetJob(jobId);
+
+        if (job == null)
+        {
+            throw new KeyNotFoundException(
+                $"Job {jobId} not found.");
+        }
+
+        return job;
+    }
+
+    private static void NormalizeJob(JobData job)
+    {
+        if (job.Objectives == null)
+        {
+            job.Objectives = new List<string>();
+        }
+
+        if (job.Participants == null)
+        {
+            job.Participants = new List<string>();
+        }
     }
 }
 
