@@ -4,7 +4,8 @@ using Newtonsoft.Json;
 
 public class WeaponSystem
 {
-    private readonly List<WeaponPlatformData> _platforms = new List<WeaponPlatformData>();
+    private readonly List<WeaponPlatformData> _platforms =
+        new List<WeaponPlatformData>();
 
     public List<WeaponPlatformData> GetPlatforms()
     {
@@ -16,19 +17,31 @@ public class WeaponSystem
         if (string.IsNullOrWhiteSpace(platformId))
             return null;
 
-        return _platforms.Find(x => x != null && x.PlatformId == platformId);
+        return _platforms.Find(
+            x => x != null && x.PlatformId == platformId);
     }
 
     public void RegisterPlatform(WeaponPlatformData platform)
     {
-        if (platform == null || string.IsNullOrWhiteSpace(platform.PlatformId))
+        if (platform == null ||
+            string.IsNullOrWhiteSpace(platform.PlatformId))
+        {
             return;
+        }
 
-        _platforms.RemoveAll(x => x != null && x.PlatformId == platform.PlatformId);
+        _platforms.RemoveAll(
+            x => x != null && x.PlatformId == platform.PlatformId);
+
         _platforms.Add(platform);
+        RecalculateReloadCooldown(platform);
     }
 
-    public WeaponPlatformData CreatePlatform(string ownerId, string platformType, bool portable, bool requiresGunner, bool requiresAssistant)
+    public WeaponPlatformData CreatePlatform(
+        string ownerId,
+        string platformType,
+        bool portable,
+        bool requiresGunner,
+        bool requiresAssistant)
     {
         WeaponPlatformData platform = new WeaponPlatformData
         {
@@ -52,8 +65,7 @@ public class WeaponSystem
             return;
 
         platform.CurrentGunnerId = gunnerId;
-        if (!string.IsNullOrWhiteSpace(gunnerId))
-            platform.ReloadCooldownSeconds = Math.Max(1, platform.ReloadCooldownSeconds - 2);
+        RecalculateReloadCooldown(platform);
     }
 
     public void AssignAssistant(string platformId, string assistantId)
@@ -63,8 +75,7 @@ public class WeaponSystem
             return;
 
         platform.CurrentAssistantId = assistantId;
-        if (!string.IsNullOrWhiteSpace(assistantId))
-            platform.ReloadCooldownSeconds = Math.Max(1, platform.ReloadCooldownSeconds - 1);
+        RecalculateReloadCooldown(platform);
     }
 
     public void SetAmmoType(string platformId, string ammoType)
@@ -84,11 +95,42 @@ public class WeaponSystem
     public void LoadState(string json)
     {
         _platforms.Clear();
+
         if (string.IsNullOrWhiteSpace(json))
             return;
 
-        List<WeaponPlatformData> platforms = JsonConvert.DeserializeObject<List<WeaponPlatformData>>(json);
-        if (platforms != null)
-            _platforms.AddRange(platforms);
+        List<WeaponPlatformData> platforms =
+            JsonConvert.DeserializeObject<List<WeaponPlatformData>>(json);
+
+        if (platforms == null)
+            return;
+
+        foreach (WeaponPlatformData platform in platforms)
+        {
+            if (platform == null ||
+                string.IsNullOrWhiteSpace(platform.PlatformId))
+            {
+                continue;
+            }
+
+            RecalculateReloadCooldown(platform);
+            _platforms.Add(platform);
+        }
+    }
+
+    private void RecalculateReloadCooldown(WeaponPlatformData platform)
+    {
+        if (platform == null)
+            return;
+
+        int baseCooldown = platform.IsPortable ? 6 : 12;
+
+        if (!string.IsNullOrWhiteSpace(platform.CurrentGunnerId))
+            baseCooldown -= 2;
+
+        if (!string.IsNullOrWhiteSpace(platform.CurrentAssistantId))
+            baseCooldown -= 1;
+
+        platform.ReloadCooldownSeconds = Math.Max(1, baseCooldown);
     }
 }
