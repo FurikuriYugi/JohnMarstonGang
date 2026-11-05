@@ -83,7 +83,7 @@ public class CoreAISystem
                 NearbyEnemyCount = livingEnemyCount
             };
 
-            UpdateNeeds(entity, aiState, context);
+            UpdateNeeds(aiState, context);
 
             if (!entity.IsFollowingPlayer)
             {
@@ -247,7 +247,6 @@ public class CoreAISystem
     }
 
     private void UpdateNeeds(
-        WorldEntityData entity,
         CompanionAIState aiState,
         CompanionContext context)
     {
@@ -266,9 +265,6 @@ public class CoreAISystem
 
         if (aiState.Thirst > 50)
             aiState.Morale = Math.Max(0, aiState.Morale - 1);
-
-        if (aiState.Fatigue > 70)
-            entity.CombatSkill = Math.Max(0, entity.CombatSkill - 10);
 
         if (!context.IsPlayerInCombat && aiState.Fatigue > 0)
             aiState.Fatigue = Math.Max(0, aiState.Fatigue - 2);
