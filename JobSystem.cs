@@ -17,21 +17,23 @@ public class JobSystem
         if (string.IsNullOrWhiteSpace(jobId))
             return null;
 
-        return _jobs.Find(x => x != null && x.JobId == jobId);
+        return _jobs.Find(
+            x => x != null && x.JobId == jobId);
     }
 
     public void RegisterJob(JobData job)
     {
-        if (job == null || string.IsNullOrWhiteSpace(job.JobId))
+        if (job == null ||
+            string.IsNullOrWhiteSpace(job.JobId))
+        {
             return;
+        }
 
-        if (job.Objectives == null)
-            job.Objectives = new List<string>();
+        NormalizeJob(job);
 
-        if (job.Participants == null)
-            job.Participants = new List<string>();
+        _jobs.RemoveAll(
+            x => x != null && x.JobId == job.JobId);
 
-        _jobs.RemoveAll(x => x != null && x.JobId == job.JobId);
         _jobs.Add(job);
     }
 
@@ -40,7 +42,8 @@ public class JobSystem
         if (string.IsNullOrWhiteSpace(jobId))
             return;
 
-        _jobs.RemoveAll(x => x != null && x.JobId == jobId);
+        _jobs.RemoveAll(
+            x => x != null && x.JobId == jobId);
     }
 
     public JobData CreateJob(
@@ -79,11 +82,18 @@ public class JobSystem
         return job;
     }
 
-    public void AssignParticipant(string jobId, string participantId)
+    public void AssignParticipant(
+        string jobId,
+        string participantId)
     {
         JobData job = GetJob(jobId);
-        if (job == null || string.IsNullOrWhiteSpace(participantId))
+        if (job == null ||
+            string.IsNullOrWhiteSpace(participantId) ||
+            job.IsCompleted ||
+            job.IsFailed)
+        {
             return;
+        }
 
         if (job.Participants == null)
             job.Participants = new List<string>();
@@ -92,23 +102,34 @@ public class JobSystem
             job.Participants.Add(participantId);
     }
 
-    public void RemoveParticipant(string jobId, string participantId)
+    public void RemoveParticipant(
+        string jobId,
+        string participantId)
     {
         JobData job = GetJob(jobId);
-        if (job == null || string.IsNullOrWhiteSpace(participantId))
+        if (job == null ||
+            string.IsNullOrWhiteSpace(participantId) ||
+            job.Participants == null)
+        {
             return;
+        }
 
-        if (job.Participants == null)
-            return;
-
-        job.Participants.RemoveAll(x => x == participantId);
+        job.Participants.RemoveAll(
+            x => x == participantId);
     }
 
-    public void AddObjective(string jobId, string objective)
+    public void AddObjective(
+        string jobId,
+        string objective)
     {
         JobData job = GetJob(jobId);
-        if (job == null || string.IsNullOrWhiteSpace(objective))
+        if (job == null ||
+            string.IsNullOrWhiteSpace(objective) ||
+            job.IsCompleted ||
+            job.IsFailed)
+        {
             return;
+        }
 
         if (job.Objectives == null)
             job.Objectives = new List<string>();
@@ -119,8 +140,12 @@ public class JobSystem
     public void CompleteJob(string jobId)
     {
         JobData job = GetJob(jobId);
-        if (job == null)
+        if (job == null ||
+            job.IsCompleted ||
+            job.IsFailed)
+        {
             return;
+        }
 
         job.IsCompleted = true;
         job.IsAvailable = false;
@@ -130,19 +155,29 @@ public class JobSystem
     public void FailJob(string jobId)
     {
         JobData job = GetJob(jobId);
-        if (job == null)
+        if (job == null ||
+            job.IsCompleted ||
+            job.IsFailed)
+        {
             return;
+        }
 
         job.IsFailed = true;
         job.IsAvailable = false;
         job.IsCompleted = false;
     }
 
-    public void SetAvailability(string jobId, bool isAvailable)
+    public void SetAvailability(
+        string jobId,
+        bool isAvailable)
     {
         JobData job = GetJob(jobId);
-        if (job == null)
+        if (job == null ||
+            job.IsCompleted ||
+            job.IsFailed)
+        {
             return;
+        }
 
         job.IsAvailable = isAvailable;
     }
@@ -150,59 +185,89 @@ public class JobSystem
     public List<JobData> GetAvailableJobs()
     {
         return _jobs
-            .Where(x => x != null && x.IsAvailable && !x.IsCompleted && !x.IsFailed)
+            .Where(x =>
+                x != null &&
+                x.IsAvailable &&
+                !x.IsCompleted &&
+                !x.IsFailed)
             .ToList();
     }
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_jobs, Formatting.Indented);
+        return JsonConvert.SerializeObject(
+            _jobs,
+            Formatting.Indented);
     }
 
     public void LoadState(string json)
     {
-        _jobs.Clear();
-
         if (string.IsNullOrWhiteSpace(json))
-            return;
-
-        List<JobData> jobs = JsonConvert.DeserializeObject<List<JobData>>(json);
-        if (jobs == null)
-            return;
-
-        foreach (JobData job in jobs)
         {
-            if (job == null || string.IsNullOrWhiteSpace(job.JobId))
-                continue;
-
-            if (job.Objectives == null)
-                job.Objectives = new List<string>();
-
-            if (job.Participants == null)
-                job.Participants = new List<string>();
-
-            _jobs.Add(job);
+            _jobs.Clear();
+            return;
         }
+
+        List<JobData> loadedJobs;
+
+        try
+        {
+            loadedJobs =
+                JsonConvert.DeserializeObject<List<JobData>>(json);
+        }
+        catch (JsonException)
+        {
+            return;
+        }
+
+        List<JobData> validJobs = new List<JobData>();
+        HashSet<string> seenJobIds =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        if (loadedJobs != null)
+        {
+            foreach (JobData job in loadedJobs)
+            {
+                if (job == null ||
+                    string.IsNullOrWhiteSpace(job.JobId) ||
+                    !seenJobIds.Add(job.JobId))
+                {
+                    continue;
+                }
+
+                NormalizeJob(job);
+                validJobs.Add(job);
+            }
+        }
+
+        _jobs.Clear();
+        _jobs.AddRange(validJobs);
     }
 
     public void LoadFromSaveRoot(SaveRoot data)
     {
         _jobs.Clear();
 
-        if (data == null || data.World == null || data.World.ActiveJobs == null)
+        if (data == null ||
+            data.World == null ||
+            data.World.ActiveJobs == null)
+        {
             return;
+        }
+
+        HashSet<string> seenJobIds =
+            new HashSet<string>(StringComparer.Ordinal);
 
         foreach (JobData job in data.World.ActiveJobs)
         {
-            if (job == null || string.IsNullOrWhiteSpace(job.JobId))
+            if (job == null ||
+                string.IsNullOrWhiteSpace(job.JobId) ||
+                !seenJobIds.Add(job.JobId))
+            {
                 continue;
+            }
 
-            if (job.Objectives == null)
-                job.Objectives = new List<string>();
-
-            if (job.Participants == null)
-                job.Participants = new List<string>();
-
+            NormalizeJob(job);
             _jobs.Add(job);
         }
     }
@@ -216,5 +281,24 @@ public class JobSystem
             data.World = new WorldState();
 
         data.World.ActiveJobs = GetAllJobs();
+    }
+
+    private void NormalizeJob(JobData job)
+    {
+        if (job.Objectives == null)
+            job.Objectives = new List<string>();
+
+        if (job.Participants == null)
+            job.Participants = new List<string>();
+
+        if (job.IsCompleted)
+        {
+            job.IsFailed = false;
+            job.IsAvailable = false;
+        }
+        else if (job.IsFailed)
+        {
+            job.IsAvailable = false;
+        }
     }
 }
