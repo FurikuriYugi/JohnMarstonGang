@@ -120,9 +120,9 @@ public class CompanionAutonomousTaskSystem
         }
 
         if (!string.Equals(
-                task.TaskType,
-                "RestAtCamp",
-                StringComparison.OrdinalIgnoreCase))
+            task.TaskType,
+            "RestAtCamp",
+            StringComparison.OrdinalIgnoreCase))
         {
             _activeTasks.Remove(companionId);
             task.IsActive = false;
@@ -141,19 +141,27 @@ public class CompanionAutonomousTaskSystem
             return false;
         }
 
+        if (!task.HasAppliedPedTask)
+        {
+            companionPed.AlwaysKeepTask = true;
+            companionPed.Task.StandStill(-1);
+            task.HasAppliedPedTask = true;
+        }
+
         DateTime now = DateTime.UtcNow;
         double elapsedSeconds =
             (now - task.LastUpdateUtc).TotalSeconds;
 
         if (elapsedSeconds < 0)
             elapsedSeconds = 0;
+
         if (elapsedSeconds > 5)
             elapsedSeconds = 5;
 
         task.LastUpdateUtc = now;
         task.RestProgressSeconds += elapsedSeconds;
 
-        // This changes only the companion AI fatigue value.
+        // This affects the companion's AI fatigue value only.
         // It does not heal the Ped or grant inventory items.
         while (task.RestProgressSeconds >= 30)
         {
@@ -196,6 +204,7 @@ public class CompanionAutonomousTaskSystem
         public DateTime StartTimeUtc { get; set; }
         public DateTime LastUpdateUtc { get; set; }
         public double RestProgressSeconds { get; set; }
+        public bool HasAppliedPedTask { get; set; }
         public bool IsActive { get; set; }
     }
 }
