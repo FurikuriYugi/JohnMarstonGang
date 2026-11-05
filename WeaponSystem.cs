@@ -7,6 +7,9 @@ public class WeaponSystem
     private readonly List<WeaponPlatformData> _platforms =
         new List<WeaponPlatformData>();
 
+    private readonly Dictionary<string, int> _baseReloadCooldowns =
+        new Dictionary<string, int>(StringComparer.Ordinal);
+
     public List<WeaponPlatformData> GetPlatforms()
     {
         return new List<WeaponPlatformData>(_platforms);
@@ -29,8 +32,20 @@ public class WeaponSystem
             return;
         }
 
+        int baseCooldown;
+
+        if (!_baseReloadCooldowns.TryGetValue(
+                platform.PlatformId,
+                out baseCooldown))
+        {
+            baseCooldown = GetBaseCooldownFromSavedValue(platform);
+        }
+
         _platforms.RemoveAll(
             x => x != null && x.PlatformId == platform.PlatformId);
+
+        _baseReloadCooldowns[platform.PlatformId] =
+            Math.Max(1, baseCooldown);
 
         _platforms.Add(platform);
         RecalculateReloadCooldown(platform);
@@ -95,6 +110,7 @@ public class WeaponSystem
     public void LoadState(string json)
     {
         _platforms.Clear();
+        _baseReloadCooldowns.Clear();
 
         if (string.IsNullOrWhiteSpace(json))
             return;
@@ -105,32 +121,69 @@ public class WeaponSystem
         if (platforms == null)
             return;
 
+        HashSet<string> loadedPlatformIds =
+            new HashSet<string>(StringComparer.Ordinal);
+
         foreach (WeaponPlatformData platform in platforms)
         {
             if (platform == null ||
-                string.IsNullOrWhiteSpace(platform.PlatformId))
+                string.IsNullOrWhiteSpace(platform.PlatformId) ||
+                !loadedPlatformIds.Add(platform.PlatformId))
             {
                 continue;
             }
 
-            RecalculateReloadCooldown(platform);
-            _platforms.Add(platform);
+            RegisterPlatform(platform);
         }
     }
 
-    private void RecalculateReloadCooldown(WeaponPlatformData platform)
+    private int GetBaseCooldownFromSavedValue(
+        WeaponPlatformData platform)
     {
-        if (platform == null)
-            return;
+        int savedCooldown = Math.Max(
+            1,
+            platform.ReloadCooldownSeconds);
 
-        int baseCooldown = platform.IsPortable ? 6 : 12;
+        int crewReduction = 0;
 
         if (!string.IsNullOrWhiteSpace(platform.CurrentGunnerId))
-            baseCooldown -= 2;
+            crewReduction += 2;
 
         if (!string.IsNullOrWhiteSpace(platform.CurrentAssistantId))
-            baseCooldown -= 1;
+            crewReduction += 1;
 
-        platform.ReloadCooldownSeconds = Math.Max(1, baseCooldown);
+        return savedCooldown + crewReduction;
+    }
+
+    private void RecalculateReloadCooldown(
+        WeaponPlatformData platform)
+    {
+        if (platform == null ||
+            string.IsNullOrWhiteSpace(platform.PlatformId))
+        {
+            return;
+        }
+
+        int baseCooldown;
+
+        if (!_baseReloadCooldowns.TryGetValue(
+                platform.PlatformId,
+                out baseCooldown))
+        {
+            baseCooldown = GetBaseCooldownFromSavedValue(platform);
+            _baseReloadCooldowns[platform.PlatformId] =
+                Math.Max(1, baseCooldown);
+        }
+
+        int crewReduction = 0;
+
+        if (!string.IsNullOrWhiteSpace(platform.CurrentGunnerId))
+            crewReduction += 2;
+
+        if (!string.IsNullOrWhiteSpace(platform.CurrentAssistantId))
+            crewReduction += 1;
+
+        platform.ReloadCooldownSeconds =
+            Math.Max(1, baseCooldown - crewReduction);
     }
 }
