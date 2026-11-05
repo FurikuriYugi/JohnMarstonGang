@@ -3,7 +3,8 @@ using Newtonsoft.Json;
 
 public class LockSystem
 {
-    private readonly List<LockRecord> _locks = new List<LockRecord>();
+    private readonly List<LockRecord> _locks =
+        new List<LockRecord>();
 
     public List<LockRecord> GetLocks()
     {
@@ -15,15 +16,21 @@ public class LockSystem
         if (string.IsNullOrWhiteSpace(targetId))
             return null;
 
-        return _locks.Find(x => x != null && x.TargetId == targetId);
+        return _locks.Find(
+            x => x != null && x.LockId == targetId);
     }
 
     public void RegisterLock(LockRecord lockRecord)
     {
-        if (lockRecord == null || string.IsNullOrWhiteSpace(lockRecord.TargetId))
+        if (lockRecord == null ||
+            string.IsNullOrWhiteSpace(lockRecord.LockId))
+        {
             return;
+        }
 
-        _locks.RemoveAll(x => x != null && x.TargetId == lockRecord.TargetId);
+        _locks.RemoveAll(
+            x => x != null && x.LockId == lockRecord.LockId);
+
         _locks.Add(lockRecord);
     }
 
@@ -35,51 +42,67 @@ public class LockSystem
     public bool CanPick(string targetId)
     {
         LockRecord record = GetLock(targetId);
-        return record != null && record.IsLocked && !record.IsBroken;
+
+        return record != null &&
+               record.IsLocked &&
+               !record.IsPickedOpen &&
+               !record.IsBlownOpen;
     }
 
     public void Pick(string targetId)
     {
         LockRecord record = GetLock(targetId);
-        if (record == null)
-            return;
 
-        if (!record.IsBroken)
-            record.IsLocked = false;
+        if (record == null ||
+            !record.IsLocked ||
+            record.IsBlownOpen)
+        {
+            return;
+        }
+
+        record.IsLocked = false;
+        record.IsPickedOpen = true;
     }
 
     public void Break(string targetId)
     {
         LockRecord record = GetLock(targetId);
+
         if (record == null)
             return;
 
-        record.IsBroken = true;
         record.IsLocked = false;
+        record.IsBlownOpen = true;
     }
 
     public void SetLocked(string targetId, bool locked)
     {
         LockRecord record = GetLock(targetId);
+
         if (record == null)
             return;
 
-        if (!record.IsBroken)
+        if (!record.IsPickedOpen && !record.IsBlownOpen)
             record.IsLocked = locked;
     }
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_locks, Formatting.Indented);
+        return JsonConvert.SerializeObject(
+            _locks,
+            Formatting.Indented);
     }
 
     public void LoadState(string json)
     {
         _locks.Clear();
+
         if (string.IsNullOrWhiteSpace(json))
             return;
 
-        List<LockRecord> locks = JsonConvert.DeserializeObject<List<LockRecord>>(json);
+        List<LockRecord> locks =
+            JsonConvert.DeserializeObject<List<LockRecord>>(json);
+
         if (locks != null)
             _locks.AddRange(locks);
     }
