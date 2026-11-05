@@ -2,49 +2,62 @@
 using RDR2.Math;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public class NPCAutonomousBehaviorSystem
 {
     private readonly WorldEntityRegistry _registry;
     private readonly BankSystem _bankSystem;
     private readonly JobSystem _jobSystem;
-    private readonly Dictionary<string, NPCBehaviorState> _npcBehaviors = new Dictionary<string, NPCBehaviorState>();
-    private readonly Dictionary<string, string> _npcRoles = new Dictionary<string, string>();
+    private readonly Dictionary<string, NPCBehaviorState> _npcBehaviors =
+        new Dictionary<string, NPCBehaviorState>();
+    private readonly Dictionary<string, string> _npcRoles =
+        new Dictionary<string, string>();
     private readonly Random _random = new Random();
-    private int _updateCounter = 0;
 
-    private const int BEHAVIOR_UPDATE_INTERVAL = 120; // Update every 120 frames (~4 seconds)
-    private const float MOVEMENT_SPEED = 1.5f;
-    private const float LOCATION_ARRIVAL_DISTANCE = 5f;
+    private Dictionary<string, Ped> _currentWorldNPCs =
+        new Dictionary<string, Ped>();
 
-    // Known bank and shop locations
-    private readonly Dictionary<string, Vector3> _bankLocations = new Dictionary<string, Vector3>
+    private int _updateCounter;
+    private int _worldEventCooldown;
+
+    private const int BehaviorUpdateInterval = 120;
+    private const int WorldEventCooldownUpdates = 150;
+    private const float LocationArrivalDistance = 5f;
+    private const float InteractionDistance = 3f;
+
+    private readonly Dictionary<string, Vector3> _bankLocations =
+        new Dictionary<string, Vector3>
+        {
+            { "valentine_bank", new Vector3(214.5f, -907.2f, 43.8f) },
+            { "saint_denis_bank", new Vector3(2713.4f, -382.3f, 45.1f) },
+            { "blackwater_bank", new Vector3(-799.5f, -1297.3f, 43.3f) }
+        };
+
+    private readonly Dictionary<string, Vector3> _shopLocations =
+        new Dictionary<string, Vector3>
+        {
+            { "valentine_general_store", new Vector3(390.2f, -980.5f, 29.4f) },
+            { "saint_denis_general_store", new Vector3(2827.8f, -1349.2f, 45.7f) },
+            { "valentine_gunsmith", new Vector3(-302.5f, -922.3f, 31.3f) },
+            { "saint_denis_gunsmith", new Vector3(2862.1f, -1440.8f, 45.3f) }
+        };
+
+    private readonly Dictionary<string, Vector3> _saloonLocations =
+        new Dictionary<string, Vector3>
+        {
+            { "valentine_saloon", new Vector3(300.5f, -901.2f, 33.1f) },
+            { "saint_denis_saloon", new Vector3(2718.3f, -470.5f, 46.2f) }
+        };
+
+    public NPCAutonomousBehaviorSystem(
+        WorldEntityRegistry registry,
+        BankSystem bankSystem,
+        JobSystem jobSystem)
     {
-        { "valentine_bank", new Vector3(214.5f, -907.2f, 43.8f) },
-        { "saint_denis_bank", new Vector3(2713.4f, -382.3f, 45.1f) },
-        { "blackwater_bank", new Vector3(-799.5f, -1297.3f, 43.3f) }
-    };
+        _registry = registry ?? throw new ArgumentNullException(nameof(registry));
+        _bankSystem = bankSystem ?? throw new ArgumentNullException(nameof(bankSystem));
+        _jobSystem = jobSystem ?? throw new ArgumentNullException(nameof(jobSystem));
 
-    private readonly Dictionary<string, Vector3> _shopLocations = new Dictionary<string, Vector3>
-    {
-        { "valentine_general_store", new Vector3(390.2f, -980.5f, 29.4f) },
-        { "saint_denis_general_store", new Vector3(2827.8f, -1349.2f, 45.7f) },
-        { "valentine_gunsmith", new Vector3(-302.5f, -922.3f, 31.3f) },
-        { "saint_denis_gunsmith", new Vector3(2862.1f, -1440.8f, 45.3f) }
-    };
-
-    private readonly Dictionary<string, Vector3> _saloonLocations = new Dictionary<string, Vector3>
-    {
-        { "valentine_saloon", new Vector3(300.5f, -901.2f, 33.1f) },
-        { "saint_denis_saloon", new Vector3(2718.3f, -470.5f, 46.2f) }
-    };
-
-    public NPCAutonomousBehaviorSystem(WorldEntityRegistry registry, BankSystem bankSystem, JobSystem jobSystem)
-    {
-        _registry = registry;
-        _bankSystem = bankSystem;
-        _jobSystem = jobSystem;
         InitializeNPCRoles();
     }
 
@@ -52,6 +65,7 @@ public class NPCAutonomousBehaviorSystem
     {
         _npcRoles["banker"] = "Banker";
         _npcRoles["shopkeeper"] = "Shop Owner";
+        _npcRoles["shop owner"] = "Shop Owner";
         _npcRoles["gunsmith"] = "Gunsmith";
         _npcRoles["bartender"] = "Bartender";
         _npcRoles["traveler"] = "Traveler";
@@ -59,25 +73,44 @@ public class NPCAutonomousBehaviorSystem
         _npcRoles["worker"] = "Worker";
     }
 
+    /// <summary>
+    /// Advances autonomous behaviors for the NPCs supplied by the caller.
+    /// Behavior decisions are evaluated every 120 script frames.
+    /// </summary>
     public void Update(Dictionary<string, Ped> worldNPCs)
     {
         _updateCounter++;
-        if (_updateCounter % BEHAVIOR_UPDATE_INTERVAL != 0)
+        if (_updateCounter < BehaviorUpdateInterval)
             return;
 
         _updateCounter = 0;
 
-        if (worldNPCs == null || worldNPCs.Count == 0)
+        if (worldNPCs == null)
+        {
+            _currentWorldNPCs = new Dictionary<string, Ped>();
             return;
+        }
+
+        _currentWorldNPCs = worldNPCs;
+
+        if (worldNPCs.Count == 0)
+        {
+            RemoveMissingOrInvalidNPCStates(worldNPCs);
+            return;
+        }
+
+        RemoveMissingOrInvalidNPCStates(worldNPCs);
 
         foreach (KeyValuePair<string, Ped> npcPair in worldNPCs)
         {
             string npcId = npcPair.Key;
             Ped npcPed = npcPair.Value;
 
-            if (npcPed == null || !npcPed.Exists())
+            if (string.IsNullOrWhiteSpace(npcId) ||
+                npcPed == null ||
+                !npcPed.Exists() ||
+                npcPed.IsDeadOrDying)
             {
-                _npcBehaviors.Remove(npcId);
                 continue;
             }
 
@@ -85,8 +118,86 @@ public class NPCAutonomousBehaviorSystem
             UpdateNPCBehavior(npcId, npcPed, behavior);
         }
 
-        // Generate world events and job opportunities
         GenerateWorldEvents();
+    }
+
+    public NPCBehaviorState GetBehaviorState(string npcId)
+    {
+        if (string.IsNullOrWhiteSpace(npcId))
+            return null;
+
+        NPCBehaviorState state;
+        return _npcBehaviors.TryGetValue(npcId, out state) ? state : null;
+    }
+
+    /// <summary>
+    /// Call this when the player has a meaningful interaction with an NPC.
+    /// The system uses the registered entity's loyalty as the relationship value.
+    /// </summary>
+    public void RecordPlayerInteraction(string npcId, bool positiveInteraction, string memory)
+    {
+        if (string.IsNullOrWhiteSpace(npcId))
+            return;
+
+        NPCBehaviorState behavior;
+        if (!_npcBehaviors.TryGetValue(npcId, out behavior))
+            return;
+
+        behavior.RecordMemory(
+            string.IsNullOrWhiteSpace(memory)
+                ? (positiveInteraction ? "Had a positive interaction with the player." : "Had a negative interaction with the player.")
+                : memory);
+
+        WorldEntityData entity = _registry.GetEntity(npcId);
+        if (entity == null)
+            return;
+
+        int change = positiveInteraction ? 5 : -10;
+        entity.Loyalty = Clamp(entity.Loyalty + change, 0, 100);
+        _registry.UpdateEntity(entity);
+    }
+
+    private void RemoveMissingOrInvalidNPCStates(Dictionary<string, Ped> worldNPCs)
+    {
+        List<string> idsToRemove = new List<string>();
+
+        foreach (KeyValuePair<string, NPCBehaviorState> statePair in _npcBehaviors)
+        {
+            Ped ped;
+            if (!worldNPCs.TryGetValue(statePair.Key, out ped) ||
+                ped == null ||
+                !ped.Exists() ||
+                ped.IsDeadOrDying)
+            {
+                idsToRemove.Add(statePair.Key);
+            }
+        }
+
+        for (int i = 0; i < idsToRemove.Count; i++)
+            _npcBehaviors.Remove(idsToRemove[i]);
+    }
+
+    private NPCBehaviorState EnsureBehaviorState(string npcId, Ped npcPed)
+    {
+        NPCBehaviorState behavior;
+        if (_npcBehaviors.TryGetValue(npcId, out behavior))
+            return behavior;
+
+        behavior = new NPCBehaviorState
+        {
+            NpcId = npcId,
+            Role = DetermineNPCRole(npcId, npcPed),
+            CurrentBehavior = "Idle",
+            BehaviorTimer = 0,
+            TargetLocation = Vector3.Zero,
+            HasProcessedAction = false,
+            CashOnHand = 0m,
+            BanksVisited = 0,
+            DepositsWithdrawn = 0
+        };
+
+        _npcBehaviors.Add(npcId, behavior);
+        return behavior;
     }
 
     private void UpdateNPCBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
@@ -94,28 +205,25 @@ public class NPCAutonomousBehaviorSystem
         if (behavior == null || npcPed == null || !npcPed.Exists())
             return;
 
-        // Update behavior timer
         behavior.BehaviorTimer--;
 
-        // If behavior is complete, assign new one
         if (behavior.BehaviorTimer <= 0)
-        {
             AssignNewBehavior(npcId, npcPed, behavior);
-        }
 
-        // Execute current behavior
         ExecuteBehavior(npcId, npcPed, behavior);
 
-        // Update faction relationships based on player actions
-        UpdateFactionRelationships(npcId, npcPed, behavior);
+        WorldEntityData entity = _registry.GetEntity(npcId);
+        if (entity != null)
+        {
+            entity.Loyalty = Clamp(entity.Loyalty, 0, 100);
+            _registry.UpdateEntity(entity);
+        }
     }
 
     private void AssignNewBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
     {
         if (string.IsNullOrWhiteSpace(behavior.Role))
-        {
-            behavior.Role = DetermineNPCRole(npcPed);
-        }
+            behavior.Role = DetermineNPCRole(npcId, npcPed);
 
         int roll = _random.Next(0, 100);
 
@@ -124,7 +232,7 @@ public class NPCAutonomousBehaviorSystem
             case "Banker":
                 if (roll < 40)
                     behavior.CurrentBehavior = "VisitBank";
-                else if (roll < 70)
+                else if (roll < 75)
                     behavior.CurrentBehavior = "ManageFunds";
                 else
                     behavior.CurrentBehavior = "Idle";
@@ -134,16 +242,16 @@ public class NPCAutonomousBehaviorSystem
             case "Gunsmith":
                 if (roll < 30)
                     behavior.CurrentBehavior = "TransferFundsToBank";
-                else if (roll < 60)
+                else if (roll < 65)
                     behavior.CurrentBehavior = "WorkAtShop";
-                else if (roll < 80)
+                else if (roll < 85)
                     behavior.CurrentBehavior = "InteractWithOthers";
                 else
                     behavior.CurrentBehavior = "Idle";
                 break;
 
             case "Bartender":
-                if (roll < 50)
+                if (roll < 55)
                     behavior.CurrentBehavior = "WorkAtSaloon";
                 else if (roll < 75)
                     behavior.CurrentBehavior = "VisitBank";
@@ -154,9 +262,9 @@ public class NPCAutonomousBehaviorSystem
             case "Traveler":
                 if (roll < 40)
                     behavior.CurrentBehavior = "Travel";
-                else if (roll < 60)
+                else if (roll < 65)
                     behavior.CurrentBehavior = "VisitShop";
-                else if (roll < 80)
+                else if (roll < 85)
                     behavior.CurrentBehavior = "Rest";
                 else
                     behavior.CurrentBehavior = "Idle";
@@ -174,15 +282,16 @@ public class NPCAutonomousBehaviorSystem
                 break;
 
             default:
-                if (roll < 50)
-                    behavior.CurrentBehavior = "Idle";
-                else
-                    behavior.CurrentBehavior = "Travel";
+                behavior.CurrentBehavior = roll < 65 ? "Idle" : "Travel";
                 break;
         }
 
-        behavior.BehaviorTimer = _random.Next(180, 600); // 3-10 minutes
-        behavior.TargetLocation = SelectTargetLocation(behavior.CurrentBehavior);
+        // One behavior update happens every 120 frames. These values give
+        // approximate behavior durations of three to ten minutes at 30 FPS.
+        behavior.BehaviorTimer = _random.Next(45, 151);
+        behavior.TargetLocation = SelectTargetLocation(behavior.CurrentBehavior, behavior.Role);
+        behavior.HasProcessedAction = false;
+        behavior.InteractionTargetId = null;
     }
 
     private void ExecuteBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
@@ -192,210 +301,580 @@ public class NPCAutonomousBehaviorSystem
             case "VisitBank":
                 ExecuteVisitBankBehavior(npcId, npcPed, behavior);
                 break;
+
             case "ManageFunds":
                 ExecuteManageFundsBehavior(npcId, npcPed, behavior);
                 break;
+
             case "TransferFundsToBank":
                 ExecuteTransferFundsBehavior(npcId, npcPed, behavior);
                 break;
+
             case "WorkAtShop":
             case "WorkAtSaloon":
                 ExecuteWorkBehavior(npcId, npcPed, behavior);
                 break;
+
             case "VisitShop":
                 ExecuteVisitShopBehavior(npcId, npcPed, behavior);
                 break;
+
             case "Travel":
-                ExecuteTravelBehavior(npcId, npcPed, behavior);
+                ExecuteTravelBehavior(npcPed, behavior);
                 break;
+
             case "Rest":
-                ExecuteRestBehavior(npcId, npcPed, behavior);
+                ExecuteRestBehavior(npcPed, behavior);
                 break;
+
             case "InteractWithOthers":
                 ExecuteInteractionBehavior(npcId, npcPed, behavior);
                 break;
+
             case "TransferGoodsToBank":
-                ExecuteTransferGoodsBehavior(npcId, npcPed, behavior);
+                ExecuteTransferGoodsBehavior(npcPed, behavior);
                 break;
-            case "Idle":
+
             default:
                 ExecuteIdleBehavior(npcPed);
                 break;
         }
     }
 
-    private void ExecuteVisitBankBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
+    private void ExecuteVisitBankBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
     {
         if (behavior.TargetLocation == Vector3.Zero)
-            behavior.TargetLocation = SelectRandomBankLocation();
+            behavior.TargetLocation = SelectRandomLocation(_bankLocations);
 
-        // Move toward bank
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LOCATION_ARRIVAL_DISTANCE)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
+            return;
         }
-        else
-        {
-            // At bank - perform transaction
-            if (!behavior.HasProcessedAction)
-            {
-                ProcessBankTransaction(npcId, npcPed, behavior);
-                behavior.HasProcessedAction = true;
-            }
 
-            // Stay for a bit then leave
-            if (behavior.BehaviorTimer < 100)
-            {
-                behavior.BehaviorTimer = 0;
-            }
+        if (!behavior.HasProcessedAction)
+        {
+            ProcessBankTransaction(npcId, npcPed, behavior);
+            behavior.HasProcessedAction = true;
         }
+
+        if (behavior.BehaviorTimer < 10)
+            behavior.BehaviorTimer = 0;
     }
 
-    private void ExecuteManageFundsBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
+    private void ExecuteManageFundsBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
     {
-        // Bankers review accounts and audit transactions
-        BankAccountData account = _bankSystem.GetAccount(npcId);
+        BankAccountData account = _bankSystem.EnsureAccount(
+            npcId,
+            npcPed.GetShorthandName());
 
-        if (account == null)
-        {
-            account = _bankSystem.EnsureAccount(npcId, npcPed.GetShorthandName());
-        }
-
-        // NPCs accumulate funds naturally over time
+        // This represents business income held before it is deposited.
+        // It is deliberately separate from the bank balance so the same
+        // money is not repeatedly deposited.
         if (_random.Next(0, 100) < 30)
         {
-            decimal earnedCash = (decimal)_random.Next(10, 100);
-            _bankSystem.DepositCash(npcId, earnedCash);
-            behavior.RecordMemory($"Earned {earnedCash} cash from work");
+            decimal earnedCash = _random.Next(10, 100);
+            behavior.CashOnHand += earnedCash;
+            behavior.RecordMemory("Earned " + earnedCash + " cash from business activity.");
         }
+
+        if (account.Cash < 0m)
+            account.Cash = 0m;
 
         ExecuteIdleBehavior(npcPed);
     }
 
-    private void ExecuteTransferFundsBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
+    private void ExecuteTransferFundsBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
     {
-        // Shop owners and business NPCs transfer daily earnings to bank
-        BankAccountData account = _bankSystem.GetAccount(npcId);
+        if (behavior.TargetLocation == Vector3.Zero)
+            behavior.TargetLocation = SelectRandomLocation(_bankLocations);
 
-        if (account != null && account.Cash > 100m)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
         {
-            decimal transferAmount = account.Cash * 0.3m; // Transfer 30% to bank
+            MoveNPCToward(npcPed, behavior.TargetLocation);
+            return;
+        }
+
+        if (behavior.HasProcessedAction)
+            return;
+
+        if (behavior.CashOnHand > 0m)
+        {
+            decimal transferAmount = behavior.CashOnHand * 0.30m;
+            if (transferAmount < 1m)
+                transferAmount = behavior.CashOnHand;
+
+            _bankSystem.EnsureAccount(npcId, npcPed.GetShorthandName());
             _bankSystem.DepositCash(npcId, transferAmount);
-            behavior.RecordMemory($"Transferred {transferAmount} cash to bank account");
-
-            // Move toward bank to complete transfer
-            if (behavior.TargetLocation == Vector3.Zero)
-                behavior.TargetLocation = SelectRandomBankLocation();
-
-            if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LOCATION_ARRIVAL_DISTANCE)
-            {
-                MoveNPCToward(npcPed, behavior.TargetLocation);
-            }
-        }
-    }
-
-    private void ExecuteTransferGoodsBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
-    {
-        // Merchants move goods and inventory between locations
-        if (behavior.TargetLocation == Vector3.Zero)
-            behavior.TargetLocation = SelectRandomShopLocation();
-
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LOCATION_ARRIVAL_DISTANCE)
-        {
-            MoveNPCToward(npcPed, behavior.TargetLocation);
+            behavior.CashOnHand -= transferAmount;
+            behavior.BanksVisited++;
+            behavior.RecordMemory("Deposited " + transferAmount + " cash into a bank account.");
         }
         else
         {
-            // Simulate goods transfer
-            if (!behavior.HasProcessedAction)
-            {
-                behavior.RecordMemory("Transferred goods to/from location");
-                behavior.HasProcessedAction = true;
-            }
+            behavior.RecordMemory("Visited a bank but had no business cash to deposit.");
+        }
+
+        behavior.HasProcessedAction = true;
+    }
+
+    private void ExecuteTransferGoodsBehavior(
+        Ped npcPed,
+        NPCBehaviorState behavior)
+    {
+        if (behavior.TargetLocation == Vector3.Zero)
+            behavior.TargetLocation = SelectRandomLocation(_shopLocations);
+
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
+        {
+            MoveNPCToward(npcPed, behavior.TargetLocation);
+            return;
+        }
+
+        if (!behavior.HasProcessedAction)
+        {
+            behavior.RecordMemory("Completed a goods transfer between business locations.");
+            behavior.HasProcessedAction = true;
         }
     }
 
-    private void ExecuteWorkBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
+    private void ExecuteWorkBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
     {
-        // NPCs stay at their workplace and periodically gain funds
         if (behavior.TargetLocation == Vector3.Zero)
         {
-            if (behavior.Role == "Bartender")
-                behavior.TargetLocation = SelectRandomSaloonLocation();
-            else
-                behavior.TargetLocation = SelectRandomShopLocation();
+            behavior.TargetLocation = behavior.Role == "Bartender"
+                ? SelectRandomLocation(_saloonLocations)
+                : SelectRandomLocation(_shopLocations);
         }
 
-        // Stay at location
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LOCATION_ARRIVAL_DISTANCE)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
+            return;
         }
-        else
+
+        if (_random.Next(0, 100) < 25)
         {
-            // Earn money while working
-            if (_random.Next(0, 100) < 25)
-            {
-                decimal earned = (decimal)_random.Next(5, 30);
-                BankAccountData account = _bankSystem.EnsureAccount(npcId, npcPed.GetShorthandName());
-                account.Cash += earned;
-                behavior.RecordMemory($"Earned {earned} cash while working");
-            }
+            decimal earned = _random.Next(5, 30);
+            behavior.CashOnHand += earned;
+            _bankSystem.EnsureAccount(npcId, npcPed.GetShorthandName());
+            behavior.RecordMemory("Earned " + earned + " cash while working.");
         }
     }
 
-    private void ExecuteVisitShopBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
+    private void ExecuteVisitShopBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
     {
-        // NPCs visit shops to purchase items
         if (behavior.TargetLocation == Vector3.Zero)
-            behavior.TargetLocation = SelectRandomShopLocation();
+            behavior.TargetLocation = SelectRandomLocation(_shopLocations);
 
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LOCATION_ARRIVAL_DISTANCE)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
+            return;
         }
-        else
+
+        if (behavior.HasProcessedAction)
+            return;
+
+        decimal purchaseCost = _random.Next(5, 50);
+
+        if (behavior.CashOnHand < purchaseCost)
         {
-            // Simulate shopping
-            if (!behavior.HasProcessedAction)
+            BankAccountData account = _bankSystem.GetAccount(npcId);
+            if (account != null && account.Cash >= purchaseCost)
             {
-                BankAccountData account = _bankSystem.GetAccount(npcId);
-                if (account != null && account.Cash > 0m)
+                if (_bankSystem.WithdrawCash(npcId, purchaseCost))
                 {
-                    decimal spent = (decimal)_random.Next(5, 50);
-                    if (account.Cash >= spent)
-                    {
-                        _bankSystem.WithdrawCash(npcId, spent);
-                        behavior.RecordMemory($"Spent {spent} cash at shop");
-                    }
+                    behavior.DepositsWithdrawn++;
+                    behavior.RecordMemory("Withdrew " + purchaseCost + " cash for a purchase.");
+                    behavior.RecordMemory("Spent " + purchaseCost + " cash at a shop.");
                 }
-                behavior.HasProcessedAction = true;
+                else
+                {
+                    behavior.RecordMemory("Could not withdraw cash for a shop purchase.");
+                }
             }
-        }
-    }
-
-    private void ExecuteTravelBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
-    {
-        // NPCs travel between locations
-        if (behavior.TargetLocation == Vector3.Zero)
-        {
-            int roll = _random.Next(0, 3);
-            behavior.TargetLocation = roll == 0
-                ? SelectRandomBankLocation()
-                : roll == 1
-                    ? SelectRandomShopLocation()
-                    : SelectRandomSaloonLocation();
-        }
-
-        float distance = Vector3.Distance(npcPed.Position, behavior.TargetLocation);
-        if (distance > LOCATION_ARRIVAL_DISTANCE)
-        {
-            MoveNPCToward(npcPed, behavior.TargetLocation);
+            else
+            {
+                behavior.RecordMemory("Visited a shop but could not afford a purchase.");
+            }
         }
         else
         {
-            behavior.BehaviorTimer = 0; // Change behavior when arrival reached
+            behavior.CashOnHand -= purchaseCost;
+            behavior.RecordMemory("Spent " + purchaseCost + " cash at a shop.");
+        }
+
+        behavior.HasProcessedAction = true;
+    }
+
+    private void ExecuteTravelBehavior(
+        Ped npcPed,
+        NPCBehaviorState behavior)
+    {
+        if (behavior.TargetLocation == Vector3.Zero)
+            behavior.TargetLocation = SelectRandomTravelLocation();
+
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
+        {
+            MoveNPCToward(npcPed, behavior.TargetLocation);
+            return;
+        }
+
+        behavior.BehaviorTimer = 0;
+    }
+
+    private void ExecuteRestBehavior(Ped npcPed)
+    {
+        if (npcPed != null && npcPed.Exists())
+            npcPed.Task.StandStill(-1);
+    }
+
+    private void ExecuteInteractionBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
+    {
+        Ped otherPed = null;
+        string otherNpcId = null;
+        float closestDistance = float.MaxValue;
+
+        foreach (KeyValuePair<string, Ped> pair in _currentWorldNPCs)
+        {
+            if (pair.Key == npcId ||
+                pair.Value == null ||
+                !pair.Value.Exists() ||
+                pair.Value.IsDeadOrDying)
+            {
+                continue;
+            }
+
+            float distance = Vector3.Distance(npcPed.Position, pair.Value.Position);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                otherPed = pair.Value;
+                otherNpcId = pair.Key;
+            }
+        }
+
+        if (otherPed == null)
+        {
+            ExecuteIdleBehavior(npcPed);
+            return;
+        }
+
+        behavior.InteractionTargetId = otherNpcId;
+
+        if (closestDistance > InteractionDistance)
+        {
+            MoveNPCToward(npcPed, otherPed.Position);
+            return;
+        }
+
+        if (!behavior.HasProcessedAction)
+        {
+            behavior.RecordMemory("Spoke with another person in the world.");
+
+            NPCBehaviorState otherBehavior;
+            if (_npcBehaviors.TryGetValue(otherNpcId, out otherBehavior))
+                otherBehavior.RecordMemory("Spoke with " + npcPed.GetShorthandName() + ".");
+
+            behavior.HasProcessedAction = true;
+        }
+
+        npcPed.Task.StandStill(-1);
+    }
+
+    private void ExecuteIdleBehavior(Ped npcPed)
+    {
+        if (npcPed != null && npcPed.Exists())
+            npcPed.Task.StandStill(-1);
+    }
+
+    private void ProcessBankTransaction(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
+    {
+        BankAccountData account = _bankSystem.EnsureAccount(
+            npcId,
+            npcPed.GetShorthandName());
+
+        if (behavior.CashOnHand > 0m)
+        {
+            decimal depositAmount = behavior.CashOnHand;
+            _bankSystem.DepositCash(npcId, depositAmount);
+            behavior.CashOnHand = 0m;
+            behavior.BanksVisited++;
+            behavior.RecordMemory("Deposited " + depositAmount + " cash at a bank.");
+            return;
+        }
+
+        if (account.Cash > 0m)
+        {
+            decimal withdrawalAmount = Math.Min(account.Cash, _random.Next(5, 50));
+            if (_bankSystem.WithdrawCash(npcId, withdrawalAmount))
+            {
+                behavior.CashOnHand += withdrawalAmount;
+                behavior.DepositsWithdrawn++;
+                behavior.RecordMemory("Withdrew " + withdrawalAmount + " cash from a bank.");
+                return;
+            }
+        }
+
+        behavior.BanksVisited++;
+        behavior.RecordMemory("Visited a bank and checked the account.");
+    }
+
+    private string DetermineNPCRole(string npcId, Ped npcPed)
+    {
+        string identity = npcId ?? string.Empty;
+
+        WorldEntityData entity = _registry.GetEntity(npcId);
+        if (entity != null)
+        {
+            identity += " " + (entity.DisplayName ?? string.Empty);
+            identity += " " + (entity.EntityType ?? string.Empty);
+            identity += " " + (entity.LocationId ?? string.Empty);
+        }
+
+        if (npcPed != null && npcPed.Exists())
+            identity += " " + npcPed.GetShorthandName();
+
+        foreach (KeyValuePair<string, string> role in _npcRoles)
+        {
+            if (identity.IndexOf(role.Key, StringComparison.OrdinalIgnoreCase) >= 0)
+                return role.Value;
+        }
+
+        if (identity.IndexOf("bank", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Banker";
+
+        if (identity.IndexOf("shop", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Shop Owner";
+
+        if (identity.IndexOf("store", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Shop Owner";
+
+        return "Traveler";
+    }
+
+    private Vector3 SelectTargetLocation(string behavior, string role)
+    {
+        switch (behavior)
+        {
+            case "VisitBank":
+            case "TransferFundsToBank":
+                return SelectRandomLocation(_bankLocations);
+
+            case "VisitShop":
+            case "WorkAtShop":
+            case "TransferGoodsToBank":
+                return SelectRandomLocation(_shopLocations);
+
+            case "WorkAtSaloon":
+                return SelectRandomLocation(_saloonLocations);
+
+            case "Travel":
+                return SelectRandomTravelLocation();
+
+            default:
+                if (role == "Banker")
+                    return SelectRandomLocation(_bankLocations);
+
+                return Vector3.Zero;
         }
     }
 
-    private
+    private Vector3 SelectRandomTravelLocation()
+    {
+        int choice = _random.Next(0, 3);
+
+        if (choice == 0)
+            return SelectRandomLocation(_bankLocations);
+
+        if (choice == 1)
+            return SelectRandomLocation(_shopLocations);
+
+        return SelectRandomLocation(_saloonLocations);
+    }
+
+    private Vector3 SelectRandomLocation(Dictionary<string, Vector3> locations)
+    {
+        if (locations == null || locations.Count == 0)
+            return Vector3.Zero;
+
+        int selectedIndex = _random.Next(0, locations.Count);
+        int index = 0;
+
+        foreach (KeyValuePair<string, Vector3> location in locations)
+        {
+            if (index == selectedIndex)
+                return location.Value;
+
+            index++;
+        }
+
+        return Vector3.Zero;
+    }
+
+    private void MoveNPCToward(Ped npcPed, Vector3 targetLocation)
+    {
+        if (npcPed == null || !npcPed.Exists())
+            return;
+
+        if (Vector3.Distance(npcPed.Position, targetLocation) <= LocationArrivalDistance)
+            return;
+
+        npcPed.Task.GoTo(targetLocation);
+    }
+
+    private void GenerateWorldEvents()
+    {
+        if (_worldEventCooldown > 0)
+        {
+            _worldEventCooldown--;
+            return;
+        }
+
+        foreach (KeyValuePair<string, NPCBehaviorState> pair in _npcBehaviors)
+        {
+            NPCBehaviorState behavior = pair.Value;
+            if (behavior == null ||
+                (behavior.Role != "Banker" &&
+                 behavior.Role != "Merchant" &&
+                 behavior.Role != "Shop Owner"))
+            {
+                continue;
+            }
+
+            bool sponsorAlreadyHasAvailableJob = false;
+            List<JobData> availableJobs = _jobSystem.GetAvailableJobs();
+
+            for (int i = 0; i < availableJobs.Count; i++)
+            {
+                JobData job = availableJobs[i];
+                if (job != null && job.SponsorId == pair.Key)
+                {
+                    sponsorAlreadyHasAvailableJob = true;
+                    break;
+                }
+            }
+
+            if (sponsorAlreadyHasAvailableJob)
+                continue;
+
+            WorldEntityData sponsor = _registry.GetEntity(pair.Key);
+            string sponsorName = sponsor != null && !string.IsNullOrWhiteSpace(sponsor.DisplayName)
+                ? sponsor.DisplayName
+                : "A local business owner";
+
+            string locationId = GetNearestBankLocationId(
+                behavior.TargetLocation == Vector3.Zero
+                    ? SelectRandomLocation(_bankLocations)
+                    : behavior.TargetLocation);
+
+            JobData generatedJob = _jobSystem.CreateJob(
+                "Protection",
+                "Protect a bank-coach deposit",
+                sponsorName + " needs help protecting a coach carrying business funds to the bank.",
+                pair.Key,
+                "bank_coach",
+                locationId,
+                _random.Next(100, 301),
+                0m,
+                5,
+                false);
+
+            if (generatedJob != null)
+            {
+                _jobSystem.AddObjective(
+                    generatedJob.JobId,
+                    "Escort the bank coach safely to its destination.");
+                behavior.RecordMemory("A bank-coach protection job became available.");
+                _worldEventCooldown = WorldEventCooldownUpdates;
+                return;
+            }
+        }
+
+        _worldEventCooldown = 15;
+    }
+
+    private string GetNearestBankLocationId(Vector3 position)
+    {
+        string nearestLocationId = "valentine_bank";
+        float nearestDistance = float.MaxValue;
+
+        foreach (KeyValuePair<string, Vector3> location in _bankLocations)
+        {
+            float distance = Vector3.Distance(position, location.Value);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestLocationId = location.Key;
+            }
+        }
+
+        return nearestLocationId;
+    }
+
+    private static int Clamp(int value, int minimum, int maximum)
+    {
+        if (value < minimum)
+            return minimum;
+
+        if (value > maximum)
+            return maximum;
+
+        return value;
+    }
+}
+
+public class NPCBehaviorState
+{
+    private const int MaximumMemoryCount = 20;
+
+    public string NpcId { get; set; }
+    public string Role { get; set; }
+    public string CurrentBehavior { get; set; }
+    public int BehaviorTimer { get; set; }
+    public Vector3 TargetLocation { get; set; }
+    public bool HasProcessedAction { get; set; }
+    public string InteractionTargetId { get; set; }
+    public decimal CashOnHand { get; set; }
+    public int BanksVisited { get; set; }
+    public int DepositsWithdrawn { get; set; }
+    public List<string> Memories { get; private set; }
+
+    public NPCBehaviorState()
+    {
+        Memories = new List<string>();
+    }
+
+    public void RecordMemory(string memory)
+    {
+        if (string.IsNullOrWhiteSpace(memory))
+            return;
+
+        Memories.Add(memory);
+
+        while (Memories.Count > MaximumMemoryCount)
+            Memories.RemoveAt(0);
+    }
+}
