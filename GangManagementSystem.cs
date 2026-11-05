@@ -5,19 +5,38 @@ using Newtonsoft.Json;
 
 public class GangManagementSystem
 {
-    private Dictionary<string, GangMember> gangMembers = new Dictionary<string, GangMember>();
-    private Dictionary<string, Hideout> hideouts = new Dictionary<string, Hideout>();
-    private Dictionary<string, PendingJobReward> pendingRewards = new Dictionary<string, PendingJobReward>();
-    private Dictionary<string, GangMilestone> milestones = new Dictionary<string, GangMilestone>();
-    private GangJobPayoutSystem payoutSystem;
-    private BankSystem bankSystem;
+    private readonly Dictionary<string, GangMember> gangMembers =
+        new Dictionary<string, GangMember>(StringComparer.Ordinal);
+
+    private readonly Dictionary<string, Hideout> hideouts =
+        new Dictionary<string, Hideout>(StringComparer.Ordinal);
+
+    private readonly Dictionary<string, PendingJobReward> pendingRewards =
+        new Dictionary<string, PendingJobReward>(StringComparer.Ordinal);
+
+    private readonly Dictionary<string, GangMilestone> milestones =
+        new Dictionary<string, GangMilestone>(StringComparer.Ordinal);
+
+    private readonly BankSystem bankSystem;
 
     public string ActiveHideoutId { get; set; }
 
-    public GangManagementSystem(GangJobPayoutSystem payoutSystem, BankSystem bankSystem)
+    public GangManagementSystem()
+        : this(new GangJobPayoutSystem(), new BankSystem())
     {
-        this.payoutSystem = payoutSystem ?? throw new ArgumentNullException(nameof(payoutSystem));
-        this.bankSystem = bankSystem ?? throw new ArgumentNullException(nameof(bankSystem));
+    }
+
+    public GangManagementSystem(
+        GangJobPayoutSystem payoutSystem,
+        BankSystem bankSystem)
+    {
+        if (payoutSystem == null)
+        {
+            throw new ArgumentNullException(nameof(payoutSystem));
+        }
+
+        this.bankSystem = bankSystem ??
+            throw new ArgumentNullException(nameof(bankSystem));
     }
 
     #region Gang Member Management
@@ -29,9 +48,28 @@ public class GangManagementSystem
             throw new ArgumentNullException(nameof(member));
         }
 
+        if (string.IsNullOrWhiteSpace(member.MemberId))
+        {
+            throw new ArgumentException(
+                "A gang member must have a non-empty member ID.",
+                nameof(member));
+        }
+
         if (gangMembers.ContainsKey(member.MemberId))
         {
-            throw new InvalidOperationException($"Gang member {member.MemberId} already exists.");
+            throw new InvalidOperationException(
+                $"Gang member {member.MemberId} already exists.");
+        }
+
+        gangMembers.Add(member.MemberId, member);
+    }
+
+    // Retains GangManager's upsert behavior for existing callers.
+    public void RegisterMember(GangMember member)
+    {
+        if (member == null || string.IsNullOrWhiteSpace(member.MemberId))
+        {
+            return;
         }
 
         gangMembers[member.MemberId] = member;
@@ -39,27 +77,42 @@ public class GangManagementSystem
 
     public void RemoveMember(string memberId)
     {
-        if (!gangMembers.ContainsKey(memberId))
+        if (string.IsNullOrWhiteSpace(memberId) ||
+            !gangMembers.Remove(memberId))
         {
-            throw new KeyNotFoundException($"Gang member {memberId} not found.");
+            throw new KeyNotFoundException(
+                $"Gang member {memberId} not found.");
         }
-
-        gangMembers.Remove(memberId);
     }
 
     public GangMember GetMember(string memberId)
     {
-        return gangMembers.ContainsKey(memberId) ? gangMembers[memberId] : null;
+        if (string.IsNullOrWhiteSpace(memberId))
+        {
+            return null;
+        }
+
+        GangMember member;
+        return gangMembers.TryGetValue(memberId, out member)
+            ? member
+            : null;
+    }
+
+    public List<GangMember> GetMembers()
+    {
+        return gangMembers.Values.ToList();
     }
 
     public List<GangMember> GetAllMembers()
     {
-        return new List<GangMember>(gangMembers.Values);
+        return GetMembers();
     }
 
     public List<GangMember> GetMembersByRole(string role)
     {
-        return gangMembers.Values.Where(m => m.Role == role).ToList();
+        return gangMembers.Values
+            .Where(member => member != null && member.Role == role)
+            .ToList();
     }
 
     public int GetMemberCount()
@@ -69,52 +122,84 @@ public class GangManagementSystem
 
     public bool MemberExists(string memberId)
     {
-        return gangMembers.ContainsKey(memberId);
+        return !string.IsNullOrWhiteSpace(memberId) &&
+            gangMembers.ContainsKey(memberId);
     }
 
     public void UpdateMemberRole(string memberId, string newRole)
     {
-        if (!gangMembers.ContainsKey(memberId))
-        {
-            throw new KeyNotFoundException($"Gang member {memberId} not found.");
-        }
-
-        gangMembers[memberId].Role = newRole;
+        GangMember member = GetRequiredMember(memberId);
+        member.Role = newRole;
     }
 
     public void UpdateMemberLoyalty(string memberId, int loyaltyChange)
     {
-        if (!gangMembers.ContainsKey(memberId))
-        {
-            throw new KeyNotFoundException($"Gang member {memberId} not found.");
-        }
-
-        var member = gangMembers[memberId];
-        member.Loyalty = Math.Max(0, Math.Min(100, member.Loyalty + loyaltyChange));
+        GangMember member = GetRequiredMember(memberId);
+        member.Loyalty = Clamp(member.Loyalty + loyaltyChange, 0, 100);
     }
 
     public void UpdateMemberTask(string memberId, string task)
     {
-        if (!gangMembers.ContainsKey(memberId))
+        GangMember member = GetRequiredMember(memberId);
+        member.CurrentTask = task;
+    }
+
+    // Absorbed from GangManager.
+    public void ApplyTacticalContext(
+        string memberId,
+        string combatStyle,
+        string currentTask,
+        bool followingPlayer)
+    {
+        GangMember member = GetMember(memberId);
+        if (member == null)
         {
-            throw new KeyNotFoundException($"Gang member {memberId} not found.");
+            return;
         }
 
-        gangMembers[memberId].CurrentTask = task;
+        member.CombatStyle = combatStyle;
+        member.CurrentTask = currentTask;
+        member.IsFollowingPlayer = followingPlayer;
+    }
+
+    private GangMember GetRequiredMember(string memberId)
+    {
+        GangMember member = GetMember(memberId);
+        if (member == null)
+        {
+            throw new KeyNotFoundException(
+                $"Gang member {memberId} not found.");
+        }
+
+        return member;
     }
 
     #endregion
 
     #region Hideout Management
 
-    public void CreateHideout(string hideoutId, string locationName, float positionX, float positionY, float positionZ, string stage)
+    public void CreateHideout(
+        string hideoutId,
+        string locationName,
+        float positionX,
+        float positionY,
+        float positionZ,
+        string stage)
     {
-        if (hideouts.ContainsKey(hideoutId))
+        if (string.IsNullOrWhiteSpace(hideoutId))
         {
-            throw new InvalidOperationException($"Hideout {hideoutId} already exists.");
+            throw new ArgumentException(
+                "A hideout must have a non-empty ID.",
+                nameof(hideoutId));
         }
 
-        var hideout = new Hideout
+        if (hideouts.ContainsKey(hideoutId))
+        {
+            throw new InvalidOperationException(
+                $"Hideout {hideoutId} already exists.");
+        }
+
+        hideouts.Add(hideoutId, new Hideout
         {
             HideoutId = hideoutId,
             LocationName = locationName,
@@ -122,40 +207,40 @@ public class GangManagementSystem
             PositionY = positionY,
             PositionZ = positionZ,
             Stage = stage,
-            ChestInventory = new ChestInventory
-            {
-                Cash = 0,
-                Gold = 0,
-                StolenItems = new List<string>(),
-                Valuables = new List<string>(),
-                LastUpdatedUtc = DateTime.UtcNow
-            },
+            ChestInventory = CreateEmptyChest(),
             CreatedAtUtc = DateTime.UtcNow
-        };
-
-        hideouts[hideoutId] = hideout;
+        });
     }
 
     public Hideout GetHideout(string hideoutId)
     {
-        return hideouts.ContainsKey(hideoutId) ? hideouts[hideoutId] : null;
+        if (string.IsNullOrWhiteSpace(hideoutId))
+        {
+            return null;
+        }
+
+        Hideout hideout;
+        return hideouts.TryGetValue(hideoutId, out hideout)
+            ? hideout
+            : null;
     }
 
     public List<Hideout> GetAllHideouts()
     {
-        return new List<Hideout>(hideouts.Values);
+        return hideouts.Values.ToList();
     }
 
     public Hideout GetActiveHideout()
     {
-        return string.IsNullOrEmpty(ActiveHideoutId) ? null : GetHideout(ActiveHideoutId);
+        return GetHideout(ActiveHideoutId);
     }
 
     public void SetActiveHideout(string hideoutId)
     {
         if (!hideouts.ContainsKey(hideoutId))
         {
-            throw new KeyNotFoundException($"Hideout {hideoutId} not found.");
+            throw new KeyNotFoundException(
+                $"Hideout {hideoutId} not found.");
         }
 
         ActiveHideoutId = hideoutId;
@@ -163,12 +248,14 @@ public class GangManagementSystem
 
     public void UpgradeHideoutStage(string hideoutId, string newStage)
     {
-        if (!hideouts.ContainsKey(hideoutId))
+        Hideout hideout = GetHideout(hideoutId);
+        if (hideout == null)
         {
-            throw new KeyNotFoundException($"Hideout {hideoutId} not found.");
+            throw new KeyNotFoundException(
+                $"Hideout {hideoutId} not found.");
         }
 
-        hideouts[hideoutId].Stage = newStage;
+        hideout.Stage = newStage;
         CompleteMilestone("HideoutUpgraded");
     }
 
@@ -176,35 +263,54 @@ public class GangManagementSystem
 
     #region Hideout Chest Management
 
-    public void DepositToCommunalChest(decimal cash, decimal gold, List<string> stolenItems = null)
+    public void DepositToCommunalChest(
+        decimal cash,
+        decimal gold,
+        List<string> stolenItems = null)
     {
-        var activeHideout = GetActiveHideout();
-        if (activeHideout == null)
+        if (cash < 0m || gold < 0m)
         {
-            throw new InvalidOperationException("No active hideout set.");
+            throw new ArgumentOutOfRangeException(
+                nameof(cash),
+                "Chest deposits cannot be negative.");
         }
 
-        var chest = activeHideout.ChestInventory;
-        chest.Cash += cash;
-        chest.Gold += gold;
-
-        if (stolenItems != null && stolenItems.Count > 0)
+        Hideout hideout = GetActiveHideout();
+        if (hideout == null)
         {
-            chest.StolenItems.AddRange(stolenItems);
+            throw new InvalidOperationException(
+                "No active hideout set.");
         }
 
-        chest.LastUpdatedUtc = DateTime.UtcNow;
+        EnsureChest(hideout);
+        hideout.ChestInventory.Cash += cash;
+        hideout.ChestInventory.Gold += gold;
+
+        if (stolenItems != null)
+        {
+            hideout.ChestInventory.StolenItems.AddRange(
+                stolenItems.Where(item => item != null));
+        }
+
+        hideout.ChestInventory.LastUpdatedUtc = DateTime.UtcNow;
     }
 
     public bool WithdrawFromCommunalChest(decimal cash, decimal gold)
     {
-        var activeHideout = GetActiveHideout();
-        if (activeHideout == null)
+        if (cash < 0m || gold < 0m)
         {
-            throw new InvalidOperationException("No active hideout set.");
+            return false;
         }
 
-        var chest = activeHideout.ChestInventory;
+        Hideout hideout = GetActiveHideout();
+        if (hideout == null)
+        {
+            throw new InvalidOperationException(
+                "No active hideout set.");
+        }
+
+        EnsureChest(hideout);
+        ChestInventory chest = hideout.ChestInventory;
 
         if (chest.Cash < cash || chest.Gold < gold)
         {
@@ -214,37 +320,62 @@ public class GangManagementSystem
         chest.Cash -= cash;
         chest.Gold -= gold;
         chest.LastUpdatedUtc = DateTime.UtcNow;
-
         return true;
     }
 
     public ChestInventory GetChestInventory(string hideoutId)
     {
-        var hideout = GetHideout(hideoutId);
-        return hideout?.ChestInventory;
-    }
-
-    public void AddStolenItemsToChest(string hideoutId, List<string> stolenItems)
-    {
-        var hideout = GetHideout(hideoutId);
+        Hideout hideout = GetHideout(hideoutId);
         if (hideout == null)
         {
-            throw new KeyNotFoundException($"Hideout {hideoutId} not found.");
+            return null;
         }
 
-        hideout.ChestInventory.StolenItems.AddRange(stolenItems);
+        EnsureChest(hideout);
+        return hideout.ChestInventory;
+    }
+
+    public void AddStolenItemsToChest(
+        string hideoutId,
+        List<string> stolenItems)
+    {
+        Hideout hideout = GetHideout(hideoutId);
+        if (hideout == null)
+        {
+            throw new KeyNotFoundException(
+                $"Hideout {hideoutId} not found.");
+        }
+
+        if (stolenItems == null || stolenItems.Count == 0)
+        {
+            return;
+        }
+
+        EnsureChest(hideout);
+        hideout.ChestInventory.StolenItems.AddRange(
+            stolenItems.Where(item => item != null));
         hideout.ChestInventory.LastUpdatedUtc = DateTime.UtcNow;
     }
 
-    public void RemoveStolenItemsFromChest(string hideoutId, List<string> stolenItems)
+    public void RemoveStolenItemsFromChest(
+        string hideoutId,
+        List<string> stolenItems)
     {
-        var hideout = GetHideout(hideoutId);
+        Hideout hideout = GetHideout(hideoutId);
         if (hideout == null)
         {
-            throw new KeyNotFoundException($"Hideout {hideoutId} not found.");
+            throw new KeyNotFoundException(
+                $"Hideout {hideoutId} not found.");
         }
 
-        foreach (var item in stolenItems)
+        if (stolenItems == null || stolenItems.Count == 0)
+        {
+            return;
+        }
+
+        EnsureChest(hideout);
+
+        foreach (string item in stolenItems)
         {
             hideout.ChestInventory.StolenItems.Remove(item);
         }
@@ -252,47 +383,89 @@ public class GangManagementSystem
         hideout.ChestInventory.LastUpdatedUtc = DateTime.UtcNow;
     }
 
+    private static ChestInventory CreateEmptyChest()
+    {
+        return new ChestInventory
+        {
+            Cash = 0m,
+            Gold = 0m,
+            StolenItems = new List<string>(),
+            Valuables = new List<string>(),
+            LastUpdatedUtc = DateTime.UtcNow
+        };
+    }
+
+    private static void EnsureChest(Hideout hideout)
+    {
+        if (hideout.ChestInventory == null)
+        {
+            hideout.ChestInventory = CreateEmptyChest();
+        }
+
+        if (hideout.ChestInventory.StolenItems == null)
+        {
+            hideout.ChestInventory.StolenItems = new List<string>();
+        }
+
+        if (hideout.ChestInventory.Valuables == null)
+        {
+            hideout.ChestInventory.Valuables = new List<string>();
+        }
+    }
+
     #endregion
 
-    #region Job Completion and Reward Ledger
+    #region Job Reward Ledger
 
     public void OnJobCompleted(object sender, JobCompletedEventArgs args)
     {
-        if (args == null || args.JobData == null)
+        if (args == null ||
+            args.JobData == null ||
+            string.IsNullOrWhiteSpace(args.JobData.JobId) ||
+            args.JobData.Participants == null ||
+            args.JobData.Participants.Count == 0)
         {
             return;
         }
 
-        var jobData = args.JobData;
+        JobData job = args.JobData;
 
-        if (jobData.Participants == null || jobData.Participants.Count == 0)
+        // A repeated completion event must not create another pending reward.
+        if (pendingRewards.Values.Any(
+            reward => reward != null && reward.JobId == job.JobId))
         {
             return;
         }
 
-        var aliveParticipants = jobData.Participants.Where(p => gangMembers.ContainsKey(p)).ToList();
+        List<string> participants = job.Participants
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
 
-        if (aliveParticipants.Count == 0)
+        if (participants.Count == 0)
         {
             return;
         }
 
-        var totalAmount = jobData.RewardCash + jobData.RewardGold;
-
-        var shares = payoutSystem.CalculatePayouts(
-            totalAmount,
-            aliveParticipants,
-            new Dictionary<string, int>()
-        );
-
-        var reward = new PendingJobReward
+        decimal totalAmount = RoundCash(job.RewardCash + job.RewardGold);
+        if (totalAmount <= 0m)
         {
-            RewardId = Guid.NewGuid().ToString(),
-            JobId = jobData.JobId,
+            return;
+        }
+
+        decimal gangShare = RoundCash(totalAmount / 2m);
+        decimal participantPool = totalAmount - gangShare;
+        Dictionary<string, decimal> shares =
+            SplitEqually(participantPool, participants);
+
+        PendingJobReward rewardRecord = new PendingJobReward
+        {
+            RewardId = Guid.NewGuid().ToString("N"),
+            JobId = job.JobId,
             TotalAmount = totalAmount,
-            GangShareAmount = shares.ContainsKey("gang_fund") ? shares["gang_fund"] : 0,
-            MemberShares = new Dictionary<string, decimal>(),
-            ParticipantIds = new List<string>(aliveParticipants),
+            GangShareAmount = gangShare,
+            MemberShares = shares,
+            ParticipantIds = participants,
             DestinationType = "hideout_chest",
             DestinationId = ActiveHideoutId,
             IsSettled = false,
@@ -300,55 +473,74 @@ public class GangManagementSystem
             SettledAtUtc = DateTime.MinValue
         };
 
-        foreach (var participantId in aliveParticipants)
-        {
-            if (shares.ContainsKey(participantId))
-            {
-                reward.MemberShares[participantId] = shares[participantId];
-            }
-        }
-
-        pendingRewards[reward.RewardId] = reward;
+        pendingRewards.Add(rewardRecord.RewardId, rewardRecord);
     }
 
     public PendingJobReward GetPendingReward(string rewardId)
     {
-        return pendingRewards.ContainsKey(rewardId) ? pendingRewards[rewardId] : null;
+        if (string.IsNullOrWhiteSpace(rewardId))
+        {
+            return null;
+        }
+
+        PendingJobReward reward;
+        return pendingRewards.TryGetValue(rewardId, out reward)
+            ? reward
+            : null;
     }
 
     public List<PendingJobReward> GetAllPendingRewards()
     {
-        return pendingRewards.Values.Where(r => !r.IsSettled).ToList();
+        return pendingRewards.Values
+            .Where(reward => reward != null && !reward.IsSettled)
+            .ToList();
     }
 
-    public List<PendingJobReward> GetUnsettledRewardsForHideout(string hideoutId)
+    public List<PendingJobReward> GetUnsettledRewardsForHideout(
+        string hideoutId)
     {
         return pendingRewards.Values
-            .Where(r => !r.IsSettled && r.DestinationId == hideoutId)
+            .Where(reward =>
+                reward != null &&
+                !reward.IsSettled &&
+                reward.DestinationId == hideoutId)
             .ToList();
     }
 
     public void SettleReward(string rewardId)
     {
-        if (!pendingRewards.ContainsKey(rewardId))
+        PendingJobReward reward = GetPendingReward(rewardId);
+        if (reward == null)
         {
-            throw new KeyNotFoundException($"Pending reward {rewardId} not found.");
+            throw new KeyNotFoundException(
+                $"Pending reward {rewardId} not found.");
         }
-
-        var reward = pendingRewards[rewardId];
 
         if (reward.IsSettled)
         {
             return;
         }
 
-        if (reward.DestinationType == "hideout_chest")
+        string destinationType = reward.DestinationType ?? "hideout_chest";
+
+        if (destinationType == "hideout_chest")
         {
             SettleToHideoutChest(reward);
         }
-        else if (reward.DestinationType == "bank_account")
+        else if (destinationType == "bank_account")
         {
+            if (!CanUseBankDestination())
+            {
+                throw new InvalidOperationException(
+                    "The bank reward destination has not been unlocked.");
+            }
+
             SettleToBank(reward);
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                $"Unsupported reward destination: {destinationType}.");
         }
 
         reward.IsSettled = true;
@@ -357,61 +549,106 @@ public class GangManagementSystem
 
     private void SettleToHideoutChest(PendingJobReward reward)
     {
-        var hideout = GetHideout(reward.DestinationId);
+        string hideoutId = string.IsNullOrWhiteSpace(reward.DestinationId)
+            ? ActiveHideoutId
+            : reward.DestinationId;
+
+        Hideout hideout = GetHideout(hideoutId);
         if (hideout == null)
         {
-            throw new InvalidOperationException($"Hideout {reward.DestinationId} not found for reward settlement.");
+            throw new InvalidOperationException(
+                "A valid hideout is required before this reward can be settled.");
         }
 
-        var chest = hideout.ChestInventory;
-        chest.Cash += reward.GangShareAmount;
+        EnsureChest(hideout);
+        hideout.ChestInventory.Cash += reward.GangShareAmount;
+        hideout.ChestInventory.LastUpdatedUtc = DateTime.UtcNow;
 
-        foreach (var memberShare in reward.MemberShares)
-        {
-            var member = GetMember(memberShare.Key);
-            if (member != null)
-            {
-                member.Loyalty = Math.Min(100, member.Loyalty + 5);
-            }
-        }
-
-        chest.LastUpdatedUtc = DateTime.UtcNow;
+        DepositParticipantShares(reward);
     }
 
     private void SettleToBank(PendingJobReward reward)
     {
-        var bankAccountId = $"gang_reserve_{reward.DestinationId}";
+        string accountId = string.IsNullOrWhiteSpace(reward.DestinationId)
+            ? "gang_reserve"
+            : reward.DestinationId;
 
-        var account = new BankAccountData
-        {
-            OwnerId = bankAccountId,
-            OwnerName = "Gang Reserve",
-            Cash = reward.GangShareAmount,
-            Gold = 0,
-            CreditLimit = 5000,
-            Debt = 0,
-            IsSuspicious = false,
-            LastTransactionUtc = DateTime.UtcNow
-        };
+        bankSystem.EnsureAccount(accountId, "Gang Reserve");
+        bankSystem.DepositCash(accountId, reward.GangShareAmount);
 
-        try
+        DepositParticipantShares(reward);
+    }
+
+    private void DepositParticipantShares(PendingJobReward reward)
+    {
+        if (reward.MemberShares == null)
         {
-            bankSystem.CreateAccount(account.OwnerId, account.OwnerName, account.CreditLimit);
-            bankSystem.Deposit(account.OwnerId, reward.GangShareAmount, 0);
-        }
-        catch
-        {
-            bankSystem.Deposit(bankAccountId, reward.GangShareAmount, 0);
+            return;
         }
 
-        foreach (var memberShare in reward.MemberShares)
+        foreach (KeyValuePair<string, decimal> share in reward.MemberShares)
         {
-            var member = GetMember(memberShare.Key);
+            if (string.IsNullOrWhiteSpace(share.Key) || share.Value <= 0m)
+            {
+                continue;
+            }
+
+            GangMember member = GetMember(share.Key);
+            string ownerName = member == null ||
+                string.IsNullOrWhiteSpace(member.Name)
+                    ? share.Key
+                    : member.Name;
+
+            bankSystem.EnsureAccount(share.Key, ownerName);
+            bankSystem.DepositCash(share.Key, share.Value);
+
             if (member != null)
             {
-                member.Loyalty = Math.Min(100, member.Loyalty + 5);
+                member.Loyalty = Clamp(member.Loyalty + 5, 0, 100);
             }
         }
+    }
+
+    private static Dictionary<string, decimal> SplitEqually(
+        decimal amount,
+        List<string> participantIds)
+    {
+        Dictionary<string, decimal> shares =
+            new Dictionary<string, decimal>(StringComparer.Ordinal);
+
+        if (amount <= 0m ||
+            participantIds == null ||
+            participantIds.Count == 0)
+        {
+            return shares;
+        }
+
+        decimal totalCents = amount * 100m;
+        decimal centsPerParticipant =
+            decimal.Floor(totalCents / participantIds.Count);
+        int remainingCents =
+            (int)(totalCents - centsPerParticipant * participantIds.Count);
+
+        for (int i = 0; i < participantIds.Count; i++)
+        {
+            decimal cents = centsPerParticipant;
+            if (i < remainingCents)
+            {
+                cents += 1m;
+            }
+
+            shares[participantIds[i]] = cents / 100m;
+        }
+
+        return shares;
+    }
+
+    private static decimal RoundCash(decimal amount)
+    {
+        return decimal.Round(
+            amount,
+            2,
+            MidpointRounding.AwayFromZero);
     }
 
     #endregion
@@ -420,11 +657,15 @@ public class GangManagementSystem
 
     public void CompleteMilestone(string milestoneName)
     {
-        var milestoneId = Guid.NewGuid().ToString();
-
-        var milestone = new GangMilestone
+        if (string.IsNullOrWhiteSpace(milestoneName) ||
+            IsMilestoneCompleted(milestoneName))
         {
-            MilestoneId = milestoneId,
+            return;
+        }
+
+        GangMilestone milestone = new GangMilestone
+        {
+            MilestoneId = Guid.NewGuid().ToString("N"),
             MilestoneName = milestoneName,
             CompletedAtUtc = DateTime.UtcNow,
             Description = $"Gang milestone: {milestoneName}",
@@ -436,53 +677,77 @@ public class GangManagementSystem
             case "FirstMemberRecruited":
                 milestone.UnlockedCapabilities["CanDoJobs"] = "true";
                 break;
+
             case "CompletedFiveJobs":
                 milestone.UnlockedCapabilities["CanUpgradeHideout"] = "true";
                 break;
+
             case "BankerInteractionInitiated":
                 milestone.UnlockedCapabilities["CanUseBankDestination"] = "true";
                 break;
+
             case "FenceMeetsGang":
                 milestone.UnlockedCapabilities["CanSellStolenGoods"] = "true";
                 break;
+
             case "HideoutUpgraded":
                 milestone.UnlockedCapabilities["UpgradedHideout"] = "true";
                 break;
         }
 
-        milestones[milestoneId] = milestone;
+        milestones.Add(milestone.MilestoneId, milestone);
     }
 
     public GangMilestone GetMilestone(string milestoneId)
     {
-        return milestones.ContainsKey(milestoneId) ? milestones[milestoneId] : null;
+        if (string.IsNullOrWhiteSpace(milestoneId))
+        {
+            return null;
+        }
+
+        GangMilestone milestone;
+        return milestones.TryGetValue(milestoneId, out milestone)
+            ? milestone
+            : null;
     }
 
     public List<GangMilestone> GetAllMilestones()
     {
-        return new List<GangMilestone>(milestones.Values);
+        return milestones.Values.ToList();
     }
 
     public bool IsMilestoneCompleted(string milestoneName)
     {
-        return milestones.Values.Any(m => m.MilestoneName == milestoneName);
+        return !string.IsNullOrWhiteSpace(milestoneName) &&
+            milestones.Values.Any(
+                milestone => milestone != null &&
+                    milestone.MilestoneName == milestoneName);
     }
 
     public bool CanUseBankDestination()
     {
-        var milestone = milestones.Values.FirstOrDefault(m => m.MilestoneName == "BankerInteractionInitiated");
-        return milestone != null;
+        return IsMilestoneCompleted("BankerInteractionInitiated");
     }
 
     public bool CanSellStolenGoods()
     {
-        var milestone = milestones.Values.FirstOrDefault(m => m.MilestoneName == "FenceMeetsGang");
-        return milestone != null;
+        return IsMilestoneCompleted("FenceMeetsGang");
     }
 
     #endregion
 
-    #region Data Persistence
+    #region Persistence
+
+    public GangManagementData ExportManagementData()
+    {
+        return new GangManagementData
+        {
+            Hideouts = hideouts.Values.ToList(),
+            PendingRewards = pendingRewards.Values.ToList(),
+            Milestones = milestones.Values.ToList(),
+            ActiveHideoutId = ActiveHideoutId
+        };
+    }
 
     public void LoadFromData(GangManagementData data)
     {
@@ -492,16 +757,184 @@ public class GangManagementSystem
         }
 
         hideouts.Clear();
+        pendingRewards.Clear();
+        milestones.Clear();
+
         if (data.Hideouts != null)
         {
-            foreach (var hideout in data.Hideouts)
+            foreach (Hideout hideout in data.Hideouts)
             {
+                if (hideout == null ||
+                    string.IsNullOrWhiteSpace(hideout.HideoutId))
+                {
+                    continue;
+                }
+
+                EnsureChest(hideout);
                 hideouts[hideout.HideoutId] = hideout;
             }
         }
 
-        pendingRewards.Clear();
         if (data.PendingRewards != null)
         {
-            foreach (var reward in data.PendingRewards)
+            foreach (PendingJobReward reward in data.PendingRewards)
+            {
+                if (reward == null ||
+                    string.IsNullOrWhiteSpace(reward.RewardId))
+                {
+                    continue;
+                }
 
+                if (reward.MemberShares == null)
+                {
+                    reward.MemberShares =
+                        new Dictionary<string, decimal>();
+                }
+
+                if (reward.ParticipantIds == null)
+                {
+                    reward.ParticipantIds = new List<string>();
+                }
+
+                pendingRewards[reward.RewardId] = reward;
+            }
+        }
+
+        if (data.Milestones != null)
+        {
+            foreach (GangMilestone milestone in data.Milestones)
+            {
+                if (milestone == null ||
+                    string.IsNullOrWhiteSpace(milestone.MilestoneId))
+                {
+                    continue;
+                }
+
+                if (milestone.UnlockedCapabilities == null)
+                {
+                    milestone.UnlockedCapabilities =
+                        new Dictionary<string, string>();
+                }
+
+                milestones[milestone.MilestoneId] = milestone;
+            }
+        }
+
+        ActiveHideoutId = hideouts.ContainsKey(data.ActiveHideoutId)
+            ? data.ActiveHideoutId
+            : null;
+    }
+
+    // Absorbed from GangManager; SaveRoot remains the repository's
+    // persistence contract for the roster and gang-management data.
+    public SaveRoot ExportSaveData()
+    {
+        SaveRoot data = new SaveRoot
+        {
+            GangMembers = GetMembers(),
+            GangManagement = ExportManagementData()
+        };
+
+        return data;
+    }
+
+    public void ImportSaveData(SaveRoot data)
+    {
+        gangMembers.Clear();
+
+        if (data == null)
+        {
+            LoadFromData(null);
+            return;
+        }
+
+        if (data.GangMembers != null)
+        {
+            foreach (GangMember member in data.GangMembers)
+            {
+                if (member == null ||
+                    string.IsNullOrWhiteSpace(member.MemberId))
+                {
+                    continue;
+                }
+
+                gangMembers[member.MemberId] = member;
+            }
+        }
+
+        LoadFromData(data.GangManagement);
+    }
+
+    public void WriteToSaveRoot(SaveRoot data)
+    {
+        if (data == null)
+        {
+            throw new ArgumentNullException(nameof(data));
+        }
+
+        data.GangMembers = GetMembers();
+        data.GangManagement = ExportManagementData();
+    }
+
+    public void LoadFromSaveRoot(SaveRoot data)
+    {
+        ImportSaveData(data);
+    }
+
+    public string SaveState()
+    {
+        return JsonConvert.SerializeObject(
+            ExportSaveData(),
+            Formatting.Indented);
+    }
+
+    public void LoadState(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            ImportSaveData(new SaveRoot());
+            return;
+        }
+
+        try
+        {
+            SaveRoot saveRoot =
+                JsonConvert.DeserializeObject<SaveRoot>(json);
+
+            if (saveRoot != null)
+            {
+                ImportSaveData(saveRoot);
+                return;
+            }
+        }
+        catch (JsonException)
+        {
+            // Try the legacy GangManager format below.
+        }
+
+        try
+        {
+            List<GangMember> legacyMembers =
+                JsonConvert.DeserializeObject<List<GangMember>>(json);
+
+            SaveRoot legacySave = new SaveRoot
+            {
+                GangMembers = legacyMembers ??
+                    new List<GangMember>()
+            };
+
+            ImportSaveData(legacySave);
+        }
+        catch (JsonException)
+        {
+            // Leave the current in-memory state unchanged for invalid data.
+        }
+    }
+
+    #endregion
+
+    private static int Clamp(int value, int minimum, int maximum)
+    {
+        return Math.Max(minimum, Math.Min(maximum, value));
+    }
+}
