@@ -30,6 +30,7 @@ public class Main : Script
     private int _interactionTargetHandle = -1;
     private int _selectedInteractionOption;
     private bool _interactionMenuVisible;
+    private bool _previousRmbState = false;  // Track previous RMB state to detect rising edge (click)
 
     public Main()
     {
@@ -98,7 +99,7 @@ public class Main : Script
     {
         Ped targetPed = GetInteractionTargetPed();
         string companionId = GetRuntimeCompanionId(targetPed);
-        if (targetPed == null)
+        if (targetPed == null || !targetPed.Exists())
         {
             _interactionMenuVisible = false;
             _interactionTargetPed = null;
@@ -116,9 +117,77 @@ public class Main : Script
         _interactionMenuVisible = true;
         _interactionTargetPed = targetPed;
         _interactionTargetCompanionId = companionId;
-        _interactionMenuText.Caption = BuildInteractionMenuCaption();
-        _interactionMenuText.Position = new System.Drawing.PointF(RDR2.UI.Screen.ScaledWidth * 0.68f, 360f);
-        _interactionMenuText.ScaledDraw();
+
+        // Use native lock-on prompts instead of TextElement overlay
+        RegisterNativeInteractionPrompts(targetPed, companionId);
+    }
+
+    private void RegisterNativeInteractionPrompts(Ped targetPed, string companionId)
+    {
+        if (targetPed == null || !targetPed.Exists())
+            return;
+
+        float interactionRadius = 2.5f;
+        bool isCompanion = !string.IsNullOrEmpty(companionId);
+
+        if (!isCompanion)
+        {
+            // Non-companion: Show "Recruit" or "Recruit Animal"
+            string recruitLabel = targetPed.IsHuman ? "Recruit" : "Recruit Animal";
+            RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                targetPed.Handle,
+                recruitLabel,
+                interactionRadius,
+                interactionRadius,
+                1, 0.0f, 0.0f, 0,
+                true,  // p8: enable lock-on UI
+                0
+            );
+        }
+        else
+        {
+            // Companion: Cycle through actions based on _selectedInteractionOption
+            // This allows Up/Down keys to navigate between Follow/Stay and Dismiss
+            WorldEntityData entity = _entityRegistry.GetEntity(companionId);
+            string displayLabel;
+
+            if (_selectedInteractionOption == 0)
+            {
+                // First action: Follow/Stay
+                displayLabel = entity != null && entity.IsFollowingPlayer ? "Stay" : "Follow";
+            }
+            else
+            {
+                // Second action: Dismiss
+                displayLabel = "Dismiss";
+            }
+
+            // Register the selected prompt for this frame
+            RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                targetPed.Handle,
+                displayLabel,
+                interactionRadius,
+                interactionRadius,
+                1, 0.0f, 0.0f, 0,
+                true,  // p8: enable lock-on UI
+                0
+            );
+
+            // Optional: Also show both prompts simultaneously if the native supports it
+            // This is experimental; if only one prompt shows, the Up/Down cycling above handles it.
+            // Uncomment below to test if multiple prompts render:
+            /*
+            RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                targetPed.Handle,
+                "Dismiss",
+                interactionRadius,
+                interactionRadius,
+                1, 0.0f, 0.0f, 0,
+                true,
+                0
+            );
+            */
+        }
     }
 
     private string BuildInteractionMenuCaption()
@@ -400,6 +469,9 @@ public class Main : Script
     {
         UpdateInteractionMenu();
 
+        // Detect Right Mouse Button (RMB) press for native prompt interaction
+        DetectNativePromptInput();
+
         _tickCounter++;
 
         if (_tickCounter % 30 != 0)
@@ -408,6 +480,30 @@ public class Main : Script
         SyncWorldStateFromSystems();
         UpdateEntityAI();
         SaveAll();
+    }
+
+    private void DetectNativePromptInput()
+    {
+        // Check if interaction menu is visible
+        if (!_interactionMenuVisible)
+        {
+            _previousRmbState = false;  // Reset state when menu not visible
+            return;
+        }
+
+        // RMB input detection using Windows.Forms - detect rising edge (click, not hold)
+        MouseButtons mouseButtons = Control.MouseButtons;
+        bool currentRmbState = (mouseButtons & MouseButtons.Right) == MouseButtons.Right;
+
+        // Only execute if RMB transitions from NOT pressed to pressed (rising edge)
+        if (currentRmbState && !_previousRmbState)
+        {
+            // RMB click detected - execute the current interaction option
+            ExecuteInteractionMenuOption();
+        }
+
+        // Update state for next frame
+        _previousRmbState = currentRmbState;
     }
 
     private void LoadAll()
@@ -529,5 +625,117 @@ public class Main : Script
     {
         SyncWorldStateFromSystems();
         JsonSaveSystem.Save(_saveRoot);
+    }
+
+    // ========== REGISTER_INTERACTION_LOCKON_PROMPT Test Implementation ==========
+    // This method demonstrates how to use the native REGISTER_INTERACTION_LOCKON_PROMPT
+    // native for native Rockstar-style lock-on interaction menus with button glyphs.
+    //
+    // Call this in OnTick when you have a valid target entity.
+    // The native automatically renders Rockstar-style UI including button states.
+    //
+    // Expected behavior:
+    // - Displays native lock-on prompt with glyph for interaction
+    // - Player can RMB (Right Mouse Button) to trigger interaction
+    // - Prompts show native-style button labels (no custom text overlays)
+    private void TestNativeLockonPrompt()
+    {
+        Ped targetPed = GetInteractionTargetPed();
+        if (targetPed == null || !targetPed.Exists())
+            return;
+
+        // Interaction radius in game units (similar to proximity for lock-on)
+        float interactionRadius = 2.5f;
+
+        // Single action example: "Recruit"
+        // REGISTER_INTERACTION_LOCKON_PROMPT parameters:
+        // p0: Entity handle (the NPC/target)
+        // p1: Action label/text ("Recruit", "Loot", etc.)
+        // p2: Interaction radius (float)
+        // p3: Usually same as p2 (radius)
+        // p4: Unknown - type/flags (try 1 or 0)
+        // p5: Unknown - positioning offset (try 0.0f)
+        // p6: Unknown - behavior/animation (try 0.0f)
+        // p7: Unknown - timeout/priority (try 0)
+        // p8: Boolean - TRUE for lock-on prompt with RMB, FALSE for other
+        // p9: Unknown - group/category (try 0)
+        RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+            targetPed.Handle,           // p0: entity
+            "Recruit",                  // p1: label
+            interactionRadius,          // p2: radius
+            interactionRadius,          // p3: radius (same as p2)
+            1,                          // p4: type/flags
+            0.0f,                       // p5: offset/param
+            0.0f,                       // p6: offset/param
+            0,                          // p7: timeout/priority
+            true,                       // p8: LOCK-ON PROMPT (key parameter - true for native UI)
+            0                           // p9: group/category
+        );
+
+        // TODO: Detect button press - likely via:
+        // - GET_LAST_INPUT_COMMAND_WAS_ACCEPTED
+        // - Or a new native like _IS_INTERACTION_LOCKON_PROMPT_PRESSED
+        // - Or check if player is in RMB interaction state
+        // This requires further investigation in-game or via native exploration.
+
+        // For now, you can keep keyboard fallback (F7 key) to execute the action
+    }
+
+    // Multi-action variant: Register multiple prompts for same entity
+    // This might require calling REGISTER_INTERACTION_LOCKON_PROMPT multiple times
+    // or using a different parameter set to support multiple actions.
+    private void TestNativeLockonPromptMultiAction()
+    {
+        Ped targetPed = GetInteractionTargetPed();
+        if (targetPed == null || !targetPed.Exists())
+            return;
+
+        float interactionRadius = 2.5f;
+
+        string companionId = GetRuntimeCompanionId(targetPed);
+        bool isCompanion = !string.IsNullOrEmpty(companionId);
+
+        if (!isCompanion)
+        {
+            // Not a companion - show Recruit prompt
+            RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                targetPed.Handle,
+                "Recruit",
+                interactionRadius,
+                interactionRadius,
+                1, 0.0f, 0.0f, 0,
+                true,  // p8: enable lock-on
+                0
+            );
+        }
+        else
+        {
+            // Companion - show Follow/Stay and Dismiss
+            // Attempt 1: Call native twice (may or may not work)
+            WorldEntityData entity = _entityRegistry.GetEntity(companionId);
+            string followLabel = entity != null && entity.IsFollowingPlayer ? "Stay" : "Follow";
+
+            RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                targetPed.Handle,
+                followLabel,
+                interactionRadius,
+                interactionRadius,
+                1, 0.0f, 0.0f, 0,
+                true,
+                0
+            );
+
+            RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                targetPed.Handle,
+                "Dismiss",
+                interactionRadius,
+                interactionRadius,
+                1, 0.0f, 0.0f, 0,
+                true,
+                0
+            );
+            // Note: Unknown if this creates multiple prompts or overwrites the first.
+            // If it overwrites, you may need a different native or approach for multi-action.
+        }
     }
 }
