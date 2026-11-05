@@ -13,10 +13,8 @@ public class NPCAutonomousBehaviorSystem
     private readonly Dictionary<string, string> _npcRoles =
         new Dictionary<string, string>();
     private readonly Random _random = new Random();
-
     private Dictionary<string, Ped> _currentWorldNPCs =
         new Dictionary<string, Ped>();
-
     private int _updateCounter;
     private int _worldEventCooldown;
 
@@ -37,7 +35,7 @@ public class NPCAutonomousBehaviorSystem
         new Dictionary<string, Vector3>
         {
             { "valentine_general_store", new Vector3(390.2f, -980.5f, 29.4f) },
-            { "saint_denis_general_store", new Vector3(2827.8f, -1349.2f, 45.7f) },
+            { "saint_denis_general_store", new Vector3(2827.8f, -1349.2f, 45.3f) },
             { "valentine_gunsmith", new Vector3(-302.5f, -922.3f, 31.3f) },
             { "saint_denis_gunsmith", new Vector3(2862.1f, -1440.8f, 45.3f) }
         };
@@ -57,7 +55,6 @@ public class NPCAutonomousBehaviorSystem
         _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         _bankSystem = bankSystem ?? throw new ArgumentNullException(nameof(bankSystem));
         _jobSystem = jobSystem ?? throw new ArgumentNullException(nameof(jobSystem));
-
         InitializeNPCRoles();
     }
 
@@ -134,7 +131,10 @@ public class NPCAutonomousBehaviorSystem
     /// Call this when the player has a meaningful interaction with an NPC.
     /// The system uses the registered entity's loyalty as the relationship value.
     /// </summary>
-    public void RecordPlayerInteraction(string npcId, bool positiveInteraction, string memory)
+    public void RecordPlayerInteraction(
+        string npcId,
+        bool positiveInteraction,
+        string memory)
     {
         if (string.IsNullOrWhiteSpace(npcId))
             return;
@@ -145,7 +145,9 @@ public class NPCAutonomousBehaviorSystem
 
         behavior.RecordMemory(
             string.IsNullOrWhiteSpace(memory)
-                ? (positiveInteraction ? "Had a positive interaction with the player." : "Had a negative interaction with the player.")
+                ? (positiveInteraction
+                    ? "Had a positive interaction with the player."
+                    : "Had a negative interaction with the player.")
                 : memory);
 
         WorldEntityData entity = _registry.GetEntity(npcId);
@@ -200,13 +202,15 @@ public class NPCAutonomousBehaviorSystem
         return behavior;
     }
 
-    private void UpdateNPCBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
+    private void UpdateNPCBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
     {
         if (behavior == null || npcPed == null || !npcPed.Exists())
             return;
 
         behavior.BehaviorTimer--;
-
         if (behavior.BehaviorTimer <= 0)
             AssignNewBehavior(npcId, npcPed, behavior);
 
@@ -220,7 +224,10 @@ public class NPCAutonomousBehaviorSystem
         }
     }
 
-    private void AssignNewBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
+    private void AssignNewBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
     {
         if (string.IsNullOrWhiteSpace(behavior.Role))
             behavior.Role = DetermineNPCRole(npcId, npcPed);
@@ -289,12 +296,16 @@ public class NPCAutonomousBehaviorSystem
         // One behavior update happens every 120 frames. These values give
         // approximate behavior durations of three to ten minutes at 30 FPS.
         behavior.BehaviorTimer = _random.Next(45, 151);
-        behavior.TargetLocation = SelectTargetLocation(behavior.CurrentBehavior, behavior.Role);
+        behavior.TargetLocation =
+            SelectTargetLocation(behavior.CurrentBehavior, behavior.Role);
         behavior.HasProcessedAction = false;
         behavior.InteractionTargetId = null;
     }
 
-    private void ExecuteBehavior(string npcId, Ped npcPed, NPCBehaviorState behavior)
+    private void ExecuteBehavior(
+        string npcId,
+        Ped npcPed,
+        NPCBehaviorState behavior)
     {
         switch (behavior.CurrentBehavior)
         {
@@ -324,7 +335,7 @@ public class NPCAutonomousBehaviorSystem
                 break;
 
             case "Rest":
-                ExecuteRestBehavior(npcPed, behavior);
+                ExecuteRestBehavior(npcPed);
                 break;
 
             case "InteractWithOthers":
@@ -349,7 +360,8 @@ public class NPCAutonomousBehaviorSystem
         if (behavior.TargetLocation == Vector3.Zero)
             behavior.TargetLocation = SelectRandomLocation(_bankLocations);
 
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) >
+            LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
             return;
@@ -372,7 +384,7 @@ public class NPCAutonomousBehaviorSystem
     {
         BankAccountData account = _bankSystem.EnsureAccount(
             npcId,
-            npcPed.GetShorthandName());
+            GetNPCDisplayName(npcId));
 
         // This represents business income held before it is deposited.
         // It is deliberately separate from the bank balance so the same
@@ -381,7 +393,8 @@ public class NPCAutonomousBehaviorSystem
         {
             decimal earnedCash = _random.Next(10, 100);
             behavior.CashOnHand += earnedCash;
-            behavior.RecordMemory("Earned " + earnedCash + " cash from business activity.");
+            behavior.RecordMemory(
+                "Earned " + earnedCash + " cash from business activity.");
         }
 
         if (account.Cash < 0m)
@@ -398,7 +411,8 @@ public class NPCAutonomousBehaviorSystem
         if (behavior.TargetLocation == Vector3.Zero)
             behavior.TargetLocation = SelectRandomLocation(_bankLocations);
 
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) >
+            LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
             return;
@@ -413,15 +427,17 @@ public class NPCAutonomousBehaviorSystem
             if (transferAmount < 1m)
                 transferAmount = behavior.CashOnHand;
 
-            _bankSystem.EnsureAccount(npcId, npcPed.GetShorthandName());
+            _bankSystem.EnsureAccount(npcId, GetNPCDisplayName(npcId));
             _bankSystem.DepositCash(npcId, transferAmount);
             behavior.CashOnHand -= transferAmount;
             behavior.BanksVisited++;
-            behavior.RecordMemory("Deposited " + transferAmount + " cash into a bank account.");
+            behavior.RecordMemory(
+                "Deposited " + transferAmount + " cash into a bank account.");
         }
         else
         {
-            behavior.RecordMemory("Visited a bank but had no business cash to deposit.");
+            behavior.RecordMemory(
+                "Visited a bank but had no business cash to deposit.");
         }
 
         behavior.HasProcessedAction = true;
@@ -434,7 +450,8 @@ public class NPCAutonomousBehaviorSystem
         if (behavior.TargetLocation == Vector3.Zero)
             behavior.TargetLocation = SelectRandomLocation(_shopLocations);
 
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) >
+            LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
             return;
@@ -442,7 +459,8 @@ public class NPCAutonomousBehaviorSystem
 
         if (!behavior.HasProcessedAction)
         {
-            behavior.RecordMemory("Completed a goods transfer between business locations.");
+            behavior.RecordMemory(
+                "Completed a goods transfer between business locations.");
             behavior.HasProcessedAction = true;
         }
     }
@@ -459,7 +477,8 @@ public class NPCAutonomousBehaviorSystem
                 : SelectRandomLocation(_shopLocations);
         }
 
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) >
+            LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
             return;
@@ -469,7 +488,7 @@ public class NPCAutonomousBehaviorSystem
         {
             decimal earned = _random.Next(5, 30);
             behavior.CashOnHand += earned;
-            _bankSystem.EnsureAccount(npcId, npcPed.GetShorthandName());
+            _bankSystem.EnsureAccount(npcId, GetNPCDisplayName(npcId));
             behavior.RecordMemory("Earned " + earned + " cash while working.");
         }
     }
@@ -482,7 +501,8 @@ public class NPCAutonomousBehaviorSystem
         if (behavior.TargetLocation == Vector3.Zero)
             behavior.TargetLocation = SelectRandomLocation(_shopLocations);
 
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) >
+            LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
             return;
@@ -501,23 +521,28 @@ public class NPCAutonomousBehaviorSystem
                 if (_bankSystem.WithdrawCash(npcId, purchaseCost))
                 {
                     behavior.DepositsWithdrawn++;
-                    behavior.RecordMemory("Withdrew " + purchaseCost + " cash for a purchase.");
-                    behavior.RecordMemory("Spent " + purchaseCost + " cash at a shop.");
+                    behavior.RecordMemory(
+                        "Withdrew " + purchaseCost + " cash for a purchase.");
+                    behavior.RecordMemory(
+                        "Spent " + purchaseCost + " cash at a shop.");
                 }
                 else
                 {
-                    behavior.RecordMemory("Could not withdraw cash for a shop purchase.");
+                    behavior.RecordMemory(
+                        "Could not withdraw cash for a shop purchase.");
                 }
             }
             else
             {
-                behavior.RecordMemory("Visited a shop but could not afford a purchase.");
+                behavior.RecordMemory(
+                    "Visited a shop but could not afford a purchase.");
             }
         }
         else
         {
             behavior.CashOnHand -= purchaseCost;
-            behavior.RecordMemory("Spent " + purchaseCost + " cash at a shop.");
+            behavior.RecordMemory(
+                "Spent " + purchaseCost + " cash at a shop.");
         }
 
         behavior.HasProcessedAction = true;
@@ -530,7 +555,8 @@ public class NPCAutonomousBehaviorSystem
         if (behavior.TargetLocation == Vector3.Zero)
             behavior.TargetLocation = SelectRandomTravelLocation();
 
-        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) > LocationArrivalDistance)
+        if (Vector3.Distance(npcPed.Position, behavior.TargetLocation) >
+            LocationArrivalDistance)
         {
             MoveNPCToward(npcPed, behavior.TargetLocation);
             return;
@@ -564,7 +590,9 @@ public class NPCAutonomousBehaviorSystem
                 continue;
             }
 
-            float distance = Vector3.Distance(npcPed.Position, pair.Value.Position);
+            float distance =
+                Vector3.Distance(npcPed.Position, pair.Value.Position);
+
             if (distance < closestDistance)
             {
                 closestDistance = distance;
@@ -593,7 +621,10 @@ public class NPCAutonomousBehaviorSystem
 
             NPCBehaviorState otherBehavior;
             if (_npcBehaviors.TryGetValue(otherNpcId, out otherBehavior))
-                otherBehavior.RecordMemory("Spoke with " + npcPed.GetShorthandName() + ".");
+            {
+                otherBehavior.RecordMemory(
+                    "Spoke with " + GetNPCDisplayName(npcId) + ".");
+            }
 
             behavior.HasProcessedAction = true;
         }
@@ -614,7 +645,7 @@ public class NPCAutonomousBehaviorSystem
     {
         BankAccountData account = _bankSystem.EnsureAccount(
             npcId,
-            npcPed.GetShorthandName());
+            GetNPCDisplayName(npcId));
 
         if (behavior.CashOnHand > 0m)
         {
@@ -622,18 +653,22 @@ public class NPCAutonomousBehaviorSystem
             _bankSystem.DepositCash(npcId, depositAmount);
             behavior.CashOnHand = 0m;
             behavior.BanksVisited++;
-            behavior.RecordMemory("Deposited " + depositAmount + " cash at a bank.");
+            behavior.RecordMemory(
+                "Deposited " + depositAmount + " cash at a bank.");
             return;
         }
 
         if (account.Cash > 0m)
         {
-            decimal withdrawalAmount = Math.Min(account.Cash, _random.Next(5, 50));
+            decimal withdrawalAmount =
+                Math.Min(account.Cash, _random.Next(5, 50));
+
             if (_bankSystem.WithdrawCash(npcId, withdrawalAmount))
             {
                 behavior.CashOnHand += withdrawalAmount;
                 behavior.DepositsWithdrawn++;
-                behavior.RecordMemory("Withdrew " + withdrawalAmount + " cash from a bank.");
+                behavior.RecordMemory(
+                    "Withdrew " + withdrawalAmount + " cash from a bank.");
                 return;
             }
         }
@@ -645,8 +680,8 @@ public class NPCAutonomousBehaviorSystem
     private string DetermineNPCRole(string npcId, Ped npcPed)
     {
         string identity = npcId ?? string.Empty;
-
         WorldEntityData entity = _registry.GetEntity(npcId);
+
         if (entity != null)
         {
             identity += " " + (entity.DisplayName ?? string.Empty);
@@ -655,12 +690,16 @@ public class NPCAutonomousBehaviorSystem
         }
 
         if (npcPed != null && npcPed.Exists())
-            identity += " " + npcPed.GetShorthandName();
+            identity += " " + GetNPCDisplayName(npcId);
 
         foreach (KeyValuePair<string, string> role in _npcRoles)
         {
-            if (identity.IndexOf(role.Key, StringComparison.OrdinalIgnoreCase) >= 0)
+            if (identity.IndexOf(
+                    role.Key,
+                    StringComparison.OrdinalIgnoreCase) >= 0)
+            {
                 return role.Value;
+            }
         }
 
         if (identity.IndexOf("bank", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -673,6 +712,16 @@ public class NPCAutonomousBehaviorSystem
             return "Shop Owner";
 
         return "Traveler";
+    }
+
+    private string GetNPCDisplayName(string npcId)
+    {
+        WorldEntityData entity = _registry.GetEntity(npcId);
+
+        if (entity != null && !string.IsNullOrWhiteSpace(entity.DisplayName))
+            return entity.DisplayName;
+
+        return string.IsNullOrWhiteSpace(npcId) ? "Unknown NPC" : npcId;
     }
 
     private Vector3 SelectTargetLocation(string behavior, string role)
@@ -697,7 +746,6 @@ public class NPCAutonomousBehaviorSystem
             default:
                 if (role == "Banker")
                     return SelectRandomLocation(_bankLocations);
-
                 return Vector3.Zero;
         }
     }
@@ -715,7 +763,8 @@ public class NPCAutonomousBehaviorSystem
         return SelectRandomLocation(_saloonLocations);
     }
 
-    private Vector3 SelectRandomLocation(Dictionary<string, Vector3> locations)
+    private Vector3 SelectRandomLocation(
+        Dictionary<string, Vector3> locations)
     {
         if (locations == null || locations.Count == 0)
             return Vector3.Zero;
@@ -739,10 +788,13 @@ public class NPCAutonomousBehaviorSystem
         if (npcPed == null || !npcPed.Exists())
             return;
 
-        if (Vector3.Distance(npcPed.Position, targetLocation) <= LocationArrivalDistance)
+        if (Vector3.Distance(npcPed.Position, targetLocation) <=
+            LocationArrivalDistance)
+        {
             return;
+        }
 
-        npcPed.Task.GoTo(targetLocation);
+        npcPed.Task.GoTo(targetLocation, -1);
     }
 
     private void GenerateWorldEvents()
@@ -756,6 +808,7 @@ public class NPCAutonomousBehaviorSystem
         foreach (KeyValuePair<string, NPCBehaviorState> pair in _npcBehaviors)
         {
             NPCBehaviorState behavior = pair.Value;
+
             if (behavior == null ||
                 (behavior.Role != "Banker" &&
                  behavior.Role != "Merchant" &&
@@ -781,9 +834,11 @@ public class NPCAutonomousBehaviorSystem
                 continue;
 
             WorldEntityData sponsor = _registry.GetEntity(pair.Key);
-            string sponsorName = sponsor != null && !string.IsNullOrWhiteSpace(sponsor.DisplayName)
-                ? sponsor.DisplayName
-                : "A local business owner";
+            string sponsorName =
+                sponsor != null &&
+                !string.IsNullOrWhiteSpace(sponsor.DisplayName)
+                    ? sponsor.DisplayName
+                    : "A local business owner";
 
             string locationId = GetNearestBankLocationId(
                 behavior.TargetLocation == Vector3.Zero
@@ -793,7 +848,8 @@ public class NPCAutonomousBehaviorSystem
             JobData generatedJob = _jobSystem.CreateJob(
                 "Protection",
                 "Protect a bank-coach deposit",
-                sponsorName + " needs help protecting a coach carrying business funds to the bank.",
+                sponsorName +
+                    " needs help protecting a coach carrying business funds to the bank.",
                 pair.Key,
                 "bank_coach",
                 locationId,
@@ -807,7 +863,9 @@ public class NPCAutonomousBehaviorSystem
                 _jobSystem.AddObjective(
                     generatedJob.JobId,
                     "Escort the bank coach safely to its destination.");
-                behavior.RecordMemory("A bank-coach protection job became available.");
+
+                behavior.RecordMemory(
+                    "A bank-coach protection job became available.");
                 _worldEventCooldown = WorldEventCooldownUpdates;
                 return;
             }
