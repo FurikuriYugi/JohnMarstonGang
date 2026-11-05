@@ -1,6 +1,5 @@
-﻿using GTA;
-using GTA.Math;
-using RDR2;
+﻿using RDR2;
+using RDR2.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +8,12 @@ public class CompanionAutonomousTaskSystem
 {
     private readonly WorldEntityRegistry _registry;
     private readonly BankSystem _bankSystem;
-    private readonly Dictionary<string, CompanionTask> _activeTasks = new Dictionary<string, CompanionTask>();
+    private readonly Dictionary<string, CompanionTaskData> _activeTasks = new Dictionary<string, CompanionTaskData>();
     private readonly Random _random = new Random();
 
-    private const float SHOP_SEARCH_RADIUS = 150f;
-    private const float LOOT_SEARCH_RADIUS = 50f;
-    private const int TASK_UPDATE_INTERVAL = 10;
+    private const float TASK_UPDATE_INTERVAL = 1f;
+    private const float SHOP_DISTANCE_THRESHOLD = 100f;
+    private const float BANK_DISTANCE_THRESHOLD = 150f;
 
     public CompanionAutonomousTaskSystem(WorldEntityRegistry registry, BankSystem bankSystem)
     {
@@ -24,248 +23,223 @@ public class CompanionAutonomousTaskSystem
 
     public void AssignTask(string companionId, string taskType, Dictionary<string, object> parameters)
     {
-        _activeTasks[companionId] = new CompanionTask
+        if (string.IsNullOrWhiteSpace(companionId) || string.IsNullOrWhiteSpace(taskType))
+            return;
+
+        _activeTasks[companionId] = new CompanionTaskData
         {
             CompanionId = companionId,
             TaskType = taskType,
-            Parameters = parameters,
-            StartTime = Environment.TickCount,
-            IsActive = true,
-            Progress = 0f
+            Parameters = parameters ?? new Dictionary<string, object>(),
+            StartTime = DateTime.UtcNow,
+            IsActive = true
         };
     }
 
     public bool UpdateCompanionTask(string companionId, Ped companionPed, CompanionAIState aiState, CompanionContext context)
     {
+        if (string.IsNullOrWhiteSpace(companionId) || companionPed == null || !companionPed.Exists())
+            return false;
+
         if (!_activeTasks.ContainsKey(companionId))
             return false;
 
-        CompanionTask task = _activeTasks[companionId];
+        CompanionTaskData task = _activeTasks[companionId];
 
-        if (!task.IsActive || companionPed == null || !companionPed.Exists())
+        if (!task.IsActive)
         {
             _activeTasks.Remove(companionId);
             return false;
         }
 
-        int elapsedTime = Environment.TickCount - task.StartTime;
-        if (elapsedTime > 60000) // 60 second timeout
+        // Check if task has timed out (default 5 minutes)
+        TimeSpan elapsed = DateTime.UtcNow - task.StartTime;
+        if (elapsed.TotalSeconds > 300)
         {
             _activeTasks.Remove(companionId);
-            aiState.CurrentGoal = null;
             return false;
         }
 
         switch (task.TaskType)
         {
             case "Heal":
-                return ExecuteHealTask(companionId, companionPed, aiState, task);
+                return ExecuteHealTask(companionPed, task, aiState);
             case "FindFood":
-                return ExecuteFindFoodTask(companionId, companionPed, aiState, task, context);
+                return ExecuteFindFoodTask(companionPed, task, aiState, context);
             case "FindAmmo":
-                return ExecuteFindAmmoTask(companionId, companionPed, aiState, task, context);
+                return ExecuteFindAmmoTask(companionPed, task, aiState, context);
             case "LootNearby":
-                return ExecuteLootNearbyTask(companionId, companionPed, aiState, task, context);
-            case "Rest":
-                return ExecuteRestTask(companionId, companionPed, aiState, task);
-            case "Invest":
-                return ExecuteInvestTask(companionId, companionPed, aiState, task);
+                return ExecuteLootTask(companionPed, task, aiState, context);
+            case "RestAtCamp":
+                return ExecuteRestTask(companionPed, task, aiState);
+            case "Visit Bank":
+                return ExecuteVisitBankTask(companionPed, task, aiState, companionId);
             default:
                 return false;
         }
     }
 
-    private bool ExecuteHealTask(string companionId, Ped companionPed, CompanionAIState aiState, CompanionTask task)
+    private bool ExecuteHealTask(Ped companionPed, CompanionTaskData task, CompanionAIState aiState)
     {
-        if (!task.Parameters.ContainsKey("targetHealth"))
+        if (companionPed == null || !companionPed.Exists())
             return false;
 
-        int targetHealth = (int)task.Parameters["targetHealth"];
+        int targetHealth = (int)task.GetParameter("targetHealth", companionPed.MaxHealth);
 
-        // Find healing items in inventory or search for them
-        if (companionPed.Health >= targetHealth * 0.95f)
+        // If health is sufficient, mark task complete
+        if (companionPed.Health >= targetHealth)
         {
             task.IsActive = false;
-            aiState.CurrentGoal = null;
-            _activeTasks.Remove(companionId);
-            aiState.Hunger += 10;
-            aiState.Thirst += 10;
+            aiState.Hunger += 10; // Eating makes you hungry after
             return false;
         }
 
-        // Use healing items if available (simplified - assumes companion carries items)
+        // Healing logic - apply first aid or consumables
+        // This would integrate with RDR2 healing items
+        // For now, gradually recover
         companionPed.Health = Math.Min(targetHealth, companionPed.Health + 5);
-        task.Progress += 0.05f;
+        aiState.CurrentGoal = $"Healing... {companionPed.Health}/{targetHealth}";
 
         return true;
     }
 
-    private bool ExecuteFindFoodTask(string companionId, Ped companionPed, CompanionAIState aiState, CompanionTask task, CompanionContext context)
+    private bool ExecuteFindFoodTask(Ped companionPed, CompanionTaskData task, CompanionAIState aiState, CompanionContext context)
     {
-        float targetRadius = task.Parameters.ContainsKey("targetNearbyRadius") ? (float)task.Parameters["targetNearbyRadius"] : 100f;
-        decimal maxPrice = task.Parameters.ContainsKey("maxPrice") ? (decimal)task.Parameters["maxPrice"] : 50m;
+        if (companionPed == null || !companionPed.Exists())
+            return false;
 
-        if (aiState.Hunger < 20)
+        if (!task.Parameters.ContainsKey("targetNearbyRadius"))
+            task.Parameters["targetNearbyRadius"] = 100f;
+
+        if (!task.Parameters.ContainsKey("maxPrice"))
+            task.Parameters["maxPrice"] = 50m;
+
+        // Companion moves toward nearby shops or camp
+        // For now, simulate food consumption
+        if (_random.Next(0, 100) < 30)
         {
+            aiState.Hunger = Math.Max(0, aiState.Hunger - 30);
             task.IsActive = false;
-            aiState.CurrentGoal = null;
-            aiState.Hunger = 0;
-            aiState.Thirst = 0;
-            _activeTasks.Remove(companionId);
-            aiState.Morale = Math.Min(100, aiState.Morale + 5);
+            aiState.CurrentGoal = "Ate food";
             return false;
         }
 
-        // Simulate searching for food vendors/restaurants
-        // In a real implementation, this would pathfind to nearby shops
-        Vector3 companionPos = companionPed.Position;
-
-        // Find nearby shops (simplified - would need actual shop data from RDR2)
-        // For now, simulate the action
-        task.Progress += 0.02f;
-
-        // Companion eats if it finds food
-        if (task.Progress > 0.5f)
-        {
-            decimal companionFunds = _bankSystem.GetBalance(companionId).Cash;
-            if (companionFunds >= maxPrice)
-            {
-                // Deduct cost and reduce hunger
-                _bankSystem.Withdraw(companionId, maxPrice, 0m);
-                aiState.Hunger = Math.Max(0, aiState.Hunger - 40);
-                aiState.Thirst = Math.Max(0, aiState.Thirst - 20);
-                aiState.Morale = Math.Min(100, aiState.Morale + 3);
-
-                task.IsActive = false;
-                aiState.CurrentGoal = null;
-                _activeTasks.Remove(companionId);
-                return false;
-            }
-        }
-
+        aiState.CurrentGoal = "Looking for food...";
         return true;
     }
 
-    private bool ExecuteFindAmmoTask(string companionId, Ped companionPed, CompanionAIState aiState, CompanionTask task, CompanionContext context)
+    private bool ExecuteFindAmmoTask(Ped companionPed, CompanionTaskData task, CompanionAIState aiState, CompanionContext context)
     {
-        int targetAmmoCount = task.Parameters.ContainsKey("targetAmmoCount") ? (int)task.Parameters["targetAmmoCount"] : 30;
-        decimal maxPrice = task.Parameters.ContainsKey("maxPrice") ? (decimal)task.Parameters["maxPrice"] : 50m;
+        if (companionPed == null || !companionPed.Exists())
+            return false;
 
+        int targetAmmoCount = (int)task.GetParameter("targetAmmoCount", 30);
         int currentAmmo = GetCompanionAmmoCount(companionPed);
+
         if (currentAmmo >= targetAmmoCount)
         {
             task.IsActive = false;
-            aiState.CurrentGoal = null;
-            _activeTasks.Remove(companionId);
             return false;
         }
 
-        // Simulate searching for ammo vendors
-        task.Progress += 0.03f;
-
-        if (task.Progress > 0.6f)
+        // Simulate ammo restocking
+        if (_random.Next(0, 100) < 25)
         {
-            decimal companionFunds = _bankSystem.GetBalance(companionId).Cash;
-            if (companionFunds >= maxPrice)
-            {
-                // Buy ammo and update weapon
-                _bankSystem.Withdraw(companionId, maxPrice, 0m);
-
-                // Add ammo to companion's current weapon
-                Weapon companionWeapon = companionPed.Weapons.Current;
-                if (companionWeapon != null)
-                {
-                    companionWeapon.Ammo = Math.Min(companionWeapon.MaxAmmo, companionWeapon.Ammo + 30);
-                }
-
-                aiState.ExperiencePoints += 10;
-                task.IsActive = false;
-                aiState.CurrentGoal = null;
-                _activeTasks.Remove(companionId);
-                return false;
-            }
+            int ammoGained = _random.Next(5, 15);
+            aiState.CurrentGoal = $"Restocked {ammoGained} ammo";
+            task.IsActive = false;
+            return false;
         }
 
+        aiState.CurrentGoal = "Searching for ammunition...";
         return true;
     }
 
-    private bool ExecuteLootNearbyTask(string companionId, Ped companionPed, CompanionAIState aiState, CompanionTask task, CompanionContext context)
+    private bool ExecuteLootTask(Ped companionPed, CompanionTaskData task, CompanionAIState aiState, CompanionContext context)
     {
-        float searchRadius = task.Parameters.ContainsKey("searchRadius") ? (float)task.Parameters["searchRadius"] : 50f;
-        bool prioritizeHigh = task.Parameters.ContainsKey("prioritizeHigh") && (bool)task.Parameters["prioritizeHigh"];
-
-        if (task.Progress > 0.7f)
-        {
-            task.IsActive = false;
-            aiState.CurrentGoal = null;
-            _activeTasks.Remove(companionId);
-            aiState.ExperiencePoints += 5;
+        if (companionPed == null || !companionPed.Exists())
             return false;
-        }
+
+        float searchRadius = (float)task.GetParameter("searchRadius", 50f);
 
         // Simulate looting nearby items
-        // In real implementation, would search for actual item pickups in world
-        Vector3 companionPos = companionPed.Position;
-
-        // Simulate finding and picking up items
-        task.Progress += 0.05f;
-
-        // Random chance to find something valuable
-        if (task.Progress > 0.4f && _random.Next(0, 100) < 40)
+        if (_random.Next(0, 100) < 35)
         {
-            decimal lootValue = _random.Next(10, 50);
-            _bankSystem.Deposit(companionId, lootValue, 0m);
-            aiState.ExperiencePoints += 5;
+            string item = GenerateRandomLoot();
+            _registry.GiveItem(companionPed.Handle.ToString(), item);
+            aiState.CurrentGoal = $"Found {item}";
+            task.IsActive = false;
+            return false;
         }
 
+        aiState.CurrentGoal = "Scavenging nearby...";
         return true;
     }
 
-    private bool ExecuteRestTask(string companionId, Ped companionPed, CompanionAIState aiState, CompanionTask task)
+    private bool ExecuteRestTask(Ped companionPed, CompanionTaskData task, CompanionAIState aiState)
     {
-        if (aiState.Fatigue < 10)
-        {
-            task.IsActive = false;
-            aiState.CurrentGoal = "Rested and ready";
-            _activeTasks.Remove(companionId);
+        if (companionPed == null || !companionPed.Exists())
             return false;
-        }
 
         // Reduce fatigue while resting
         aiState.Fatigue = Math.Max(0, aiState.Fatigue - 5);
-        task.Progress += 0.1f;
+        aiState.Hunger = Math.Min(100, aiState.Hunger + 2); // Get hungry while resting
 
-        return true;
-    }
-
-    private bool ExecuteInvestTask(string companionId, Ped companionPed, CompanionAIState aiState, CompanionTask task)
-    {
-        decimal investAmount = task.Parameters.ContainsKey("investAmount") ? (decimal)task.Parameters["investAmount"] : 100m;
-        string investType = task.Parameters.ContainsKey("investType") ? (string)task.Parameters["investType"] : "Gang";
-
-        AccountBalance balance = _bankSystem.GetBalance(companionId);
-        if (balance.Cash < investAmount)
+        if (aiState.Fatigue <= 20)
         {
             task.IsActive = false;
-            aiState.CurrentGoal = "Lacks funds to invest";
-            _activeTasks.Remove(companionId);
+            aiState.CurrentGoal = "Rested";
             return false;
         }
 
-        // Withdraw investment amount
-        _bankSystem.Withdraw(companionId, investAmount, 0m);
+        aiState.CurrentGoal = "Resting...";
+        return true;
+    }
 
-        // Add investment record
-        if (!aiState.SkillProgression.ContainsKey("Investments"))
-            aiState.SkillProgression["Investments"] = 0;
+    private bool ExecuteVisitBankTask(Ped companionPed, CompanionTaskData task, CompanionAIState aiState, string companionId)
+    {
+        if (companionPed == null || !companionPed.Exists() || string.IsNullOrWhiteSpace(companionId))
+            return false;
 
-        aiState.SkillProgression["Investments"] += 1;
-        aiState.Morale = Math.Min(100, aiState.Morale + 10);
-        aiState.ExperiencePoints += 30;
+        bool isDepositing = (bool)task.GetParameter("isDepositing", true);
+        decimal amount = (decimal)task.GetParameter("amount", 0m);
+        string assetType = (string)task.GetParameter("assetType", "Cash");
+
+        // Ensure bank account exists
+        BankAccountData account = _bankSystem.EnsureAccount(companionId, companionPed.GetShorthandName());
+
+        if (isDepositing)
+        {
+            if (assetType == "Cash")
+                _bankSystem.DepositCash(companionId, amount);
+            else if (assetType == "Gold")
+                _bankSystem.DepositGold(companionId, amount);
+
+            aiState.BanksVisited++;
+            aiState.RecordMemory($"Deposited {amount} {assetType} to bank");
+        }
+        else
+        {
+            if (assetType == "Cash")
+            {
+                if (_bankSystem.WithdrawCash(companionId, amount))
+                {
+                    aiState.DepositsWithdrawn++;
+                    aiState.RecordMemory($"Withdrew {amount} {assetType} from bank");
+                }
+            }
+            else if (assetType == "Gold")
+            {
+                if (_bankSystem.WithdrawGold(companionId, amount))
+                {
+                    aiState.DepositsWithdrawn++;
+                    aiState.RecordMemory($"Withdrew {amount} {assetType} from bank");
+                }
+            }
+        }
 
         task.IsActive = false;
-        aiState.CurrentGoal = $"Invested {investAmount} in {investType}";
-        _activeTasks.Remove(companionId);
+        aiState.CurrentGoal = $"{(isDepositing ? "Deposited" : "Withdrew")} funds at bank";
 
         return false;
     }
@@ -275,115 +249,48 @@ public class CompanionAutonomousTaskSystem
         if (companionPed == null || !companionPed.Exists())
             return 0;
 
-        try
+        // This would query the actual ammo from the Ped's weapons
+        // For now, return a simulated value
+        int totalAmmo = 0;
+
+        // Get current weapon
+        uint currentWeapon = companionPed.Weapons.Current;
+        if (currentWeapon != 0)
         {
-            Weapon currentWeapon = companionPed.Weapons.Current;
-            if (currentWeapon != null)
-            {
-                return currentWeapon.Ammo;
-            }
-
-            int totalAmmo = 0;
-            foreach (Weapon weapon in companionPed.Weapons)
-            {
-                totalAmmo += weapon.Ammo;
-            }
-            return totalAmmo;
+            // Count ammo in current weapon (would use RDR2 API)
+            totalAmmo += _random.Next(10, 50);
         }
-        catch
+
+        return totalAmmo;
+    }
+
+    private string GenerateRandomLoot()
+    {
+        int roll = _random.Next(0, 100);
+
+        if (roll < 30)
+            return "Bullet";
+        else if (roll < 50)
+            return "Consumable";
+        else if (roll < 75)
+            return "Food";
+        else if (roll < 90)
+            return "Medicine";
+        else
+            return "Valuables";
+    }
+
+    private class CompanionTaskData
+    {
+        public string CompanionId { get; set; }
+        public string TaskType { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
+        public DateTime StartTime { get; set; }
+        public bool IsActive { get; set; }
+
+        public object GetParameter(string key, object defaultValue)
         {
-            return 0;
+            return Parameters.ContainsKey(key) ? Parameters[key] : defaultValue;
         }
-    }
-
-    public void CancelTask(string companionId)
-    {
-        if (_activeTasks.ContainsKey(companionId))
-        {
-            _activeTasks.Remove(companionId);
-        }
-    }
-
-    public bool HasActiveTask(string companionId)
-    {
-        return _activeTasks.ContainsKey(companionId) && _activeTasks[companionId].IsActive;
-    }
-
-    public CompanionTask GetActiveTask(string companionId)
-    {
-        if (_activeTasks.ContainsKey(companionId))
-            return _activeTasks[companionId];
-        return null;
-    }
-
-    public Dictionary<string, CompanionTask> GetAllActiveTasks()
-    {
-        return new Dictionary<string, CompanionTask>(_activeTasks);
-    }
-
-    public void ClearCompletedTasks()
-    {
-        List<string> completedIds = _activeTasks
-            .Where(x => !x.Value.IsActive)
-            .Select(x => x.Key)
-            .ToList();
-
-        foreach (string id in completedIds)
-        {
-            _activeTasks.Remove(id);
-        }
-    }
-}
-
-public class CompanionTask
-{
-    public string CompanionId { get; set; }
-    public string TaskType { get; set; }
-    public Dictionary<string, object> Parameters { get; set; }
-    public int StartTime { get; set; }
-    public bool IsActive { get; set; }
-    public float Progress { get; set; }
-}
-
-public class CompanionAIState
-{
-    public string EntityId { get; set; }
-    public string Personality { get; set; }
-    public int Morale { get; set; }
-    public int Fatigue { get; set; }
-    public int Hunger { get; set; }
-    public int Thirst { get; set; }
-    public bool PrefersStealth { get; set; }
-    public string CurrentGoal { get; set; }
-    public int GoalTimer { get; set; }
-    public int ExperiencePoints { get; set; }
-    public string LastCombatStyle { get; set; }
-    public Dictionary<string, int> SkillProgression { get; set; }
-    public List<string> CompletedJobs { get; set; }
-    public decimal TotalEarnings { get; set; }
-    public int BanksVisited { get; set; }
-    public int DepositsWithdrawn { get; set; }
-
-    [JsonConstructor]
-    public CompanionAIState() { }
-
-    public CompanionAIState(string entityId)
-    {
-        EntityId = entityId;
-        Personality = "Neutral";
-        Morale = 50;
-        Fatigue = 0;
-        Hunger = 0;
-        Thirst = 0;
-        PrefersStealth = false;
-        CurrentGoal = null;
-        GoalTimer = 0;
-        ExperiencePoints = 0;
-        LastCombatStyle = "Ranged Medium";
-        SkillProgression = new Dictionary<string, int>();
-        CompletedJobs = new List<string>();
-        TotalEarnings = 0m;
-        BanksVisited = 0;
-        DepositsWithdrawn = 0;
     }
 }
