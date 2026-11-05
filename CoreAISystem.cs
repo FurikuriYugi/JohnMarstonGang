@@ -45,7 +45,10 @@ public class CoreAISystem
             return;
 
         int livingEnemyCount = CountLivingEnemies(nearbyEnemies);
-        List<WorldEntityData> entities = _registry.GetFollowers();
+
+        // Include companions who are staying behind as well as those following.
+        List<WorldEntityData> entities =
+            _registry.GetByFaction("PlayerGang");
 
         foreach (WorldEntityData entity in entities)
         {
