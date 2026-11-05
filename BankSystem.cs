@@ -39,6 +39,9 @@ public class BankSystem
         string ownerId,
         string ownerName = null)
     {
+        if (string.IsNullOrWhiteSpace(ownerId))
+            return null;
+
         BankAccountData account = GetAccount(ownerId);
         if (account != null)
             return account;
@@ -130,16 +133,8 @@ public class BankSystem
         string toOwnerId,
         decimal amount)
     {
-        if (string.IsNullOrWhiteSpace(fromOwnerId) ||
-            string.IsNullOrWhiteSpace(toOwnerId) ||
-            string.Equals(
-                fromOwnerId,
-                toOwnerId,
-                StringComparison.Ordinal) ||
-            amount <= 0m)
-        {
+        if (!CanTransfer(fromOwnerId, toOwnerId, amount))
             return;
-        }
 
         BankAccountData fromAccount = GetAccount(fromOwnerId);
         BankAccountData toAccount = GetAccount(toOwnerId);
@@ -164,16 +159,8 @@ public class BankSystem
         string toOwnerId,
         decimal amount)
     {
-        if (string.IsNullOrWhiteSpace(fromOwnerId) ||
-            string.IsNullOrWhiteSpace(toOwnerId) ||
-            string.Equals(
-                fromOwnerId,
-                toOwnerId,
-                StringComparison.Ordinal) ||
-            amount <= 0m)
-        {
+        if (!CanTransfer(fromOwnerId, toOwnerId, amount))
             return;
-        }
 
         BankAccountData fromAccount = GetAccount(fromOwnerId);
         BankAccountData toAccount = GetAccount(toOwnerId);
@@ -191,6 +178,20 @@ public class BankSystem
         DateTime transactionTime = DateTime.UtcNow;
         fromAccount.LastTransactionUtc = transactionTime;
         toAccount.LastTransactionUtc = transactionTime;
+    }
+
+    private bool CanTransfer(
+        string fromOwnerId,
+        string toOwnerId,
+        decimal amount)
+    {
+        return !string.IsNullOrWhiteSpace(fromOwnerId) &&
+            !string.IsNullOrWhiteSpace(toOwnerId) &&
+            !string.Equals(
+                fromOwnerId,
+                toOwnerId,
+                StringComparison.Ordinal) &&
+            amount > 0m;
     }
 
     public void AddDebt(string ownerId, decimal amount)
@@ -221,15 +222,45 @@ public class BankSystem
 
     public void LoadState(string json)
     {
-        _accounts.Clear();
-
         if (string.IsNullOrWhiteSpace(json))
+        {
+            _accounts.Clear();
             return;
+        }
 
-        List<BankAccountData> accounts =
-            JsonConvert.DeserializeObject<List<BankAccountData>>(json);
+        List<BankAccountData> loadedAccounts;
 
-        if (accounts != null)
-            _accounts.AddRange(accounts);
+        try
+        {
+            loadedAccounts =
+                JsonConvert.DeserializeObject<List<BankAccountData>>(json);
+        }
+        catch (JsonException)
+        {
+            return;
+        }
+
+        List<BankAccountData> validAccounts =
+            new List<BankAccountData>();
+        HashSet<string> seenOwnerIds =
+            new HashSet<string>(StringComparer.Ordinal);
+
+        if (loadedAccounts != null)
+        {
+            foreach (BankAccountData account in loadedAccounts)
+            {
+                if (account == null ||
+                    string.IsNullOrWhiteSpace(account.OwnerId) ||
+                    !seenOwnerIds.Add(account.OwnerId))
+                {
+                    continue;
+                }
+
+                validAccounts.Add(account);
+            }
+        }
+
+        _accounts.Clear();
+        _accounts.AddRange(validAccounts);
     }
 }
