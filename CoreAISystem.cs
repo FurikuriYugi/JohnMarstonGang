@@ -11,14 +11,15 @@ public class CoreAISystem
     private readonly BankSystem _bankSystem;
     private readonly JobSystem _jobSystem;
     private readonly CompanionAutonomousTaskSystem _autonomousTaskSystem;
-
     private readonly Dictionary<string, CompanionAIState> _aiStates =
         new Dictionary<string, CompanionAIState>();
-
     private readonly Random _random = new Random();
 
     private const int UPDATE_INTERVAL = 30;
-    private int _updateCounter = 0;
+    private const long NEEDS_UPDATE_INTERVAL_SECONDS = 60;
+    private const long MAX_NEEDS_CATCH_UP_SECONDS = 600;
+
+    private int _updateCounter;
 
     public CoreAISystem(
         WorldEntityRegistry registry,
@@ -41,29 +42,34 @@ public class CoreAISystem
         List<Ped> nearbyEnemies)
     {
         _updateCounter++;
-
         if (_updateCounter % UPDATE_INTERVAL != 0)
             return;
 
-        if (playerPed == null || !playerPed.Exists() || companionPeds == null)
+        if (playerPed == null ||
+            !playerPed.Exists() ||
+            companionPeds == null)
+        {
             return;
+        }
 
         int livingEnemyCount = CountLivingEnemies(nearbyEnemies);
-        List<WorldEntityData> entities = _registry.GetFollowers();
+
+        // Staying companions must also be updated so their autonomous tasks
+        // can run. GetFollowers() excluded them, making that behavior unreachable.
+        List<WorldEntityData> entities =
+            _registry.GetByFaction("PlayerGang");
 
         foreach (WorldEntityData entity in entities)
         {
-            if (entity == null || !entity.IsAlive)
-                continue;
-
-            if (string.IsNullOrWhiteSpace(entity.EntityId) ||
+            if (entity == null ||
+                !entity.IsAlive ||
+                string.IsNullOrWhiteSpace(entity.EntityId) ||
                 !companionPeds.ContainsKey(entity.EntityId))
             {
                 continue;
             }
 
             Ped companionPed = companionPeds[entity.EntityId];
-
             if (companionPed == null || !companionPed.Exists())
                 continue;
 
@@ -83,7 +89,7 @@ public class CoreAISystem
                 NearbyEnemyCount = livingEnemyCount
             };
 
-            UpdateNeeds(aiState, context);
+            UpdateNeeds(entity, aiState, context);
 
             if (!entity.IsFollowingPlayer)
             {
@@ -144,68 +150,25 @@ public class CoreAISystem
         Ped playerPed,
         CompanionContext context)
     {
-        if (companionPed.Health < companionPed.MaxHealth * 0.7f)
+        if (context == null ||
+            context.IsPlayerInCombat ||
+            aiState.Fatigue < 70)
         {
-            _autonomousTaskSystem.AssignTask(
-                entity.EntityId,
-                "Heal",
-                new Dictionary<string, object>
-                {
-                    { "targetHealth", companionPed.MaxHealth }
-                });
-
-            aiState.CurrentGoal = "Finding healing items";
             return;
         }
 
-        if (aiState.Hunger > 70)
+        // RestAtCamp is the only autonomous task currently implemented by
+        // CompanionAutonomousTaskSystem. Do not enqueue unsupported tasks.
+        _autonomousTaskSystem.AssignTask(
+            entity.EntityId,
+            "RestAtCamp",
+            new Dictionary<string, object>());
+
+        if (_autonomousTaskSystem.HasActiveTask(
+            entity.EntityId,
+            "RestAtCamp"))
         {
-            _autonomousTaskSystem.AssignTask(
-                entity.EntityId,
-                "FindFood",
-                new Dictionary<string, object>
-                {
-                    { "targetNearbyRadius", 100f },
-                    { "maxPrice", (decimal)(aiState.Morale > 50 ? 50 : 30) }
-                });
-
-            aiState.CurrentGoal = "Finding food and water";
-            aiState.GoalTimer = _random.Next(60, 180);
-            return;
-        }
-
-        int ammoCount =
-            _autonomousTaskSystem.GetCompanionAmmoCount(companionPed);
-
-        if (ammoCount < 20)
-        {
-            _autonomousTaskSystem.AssignTask(
-                entity.EntityId,
-                "FindAmmo",
-                new Dictionary<string, object>
-                {
-                    { "targetAmmoCount", 30 },
-                    { "maxPrice", (decimal)(aiState.Morale > 50 ? 100 : 50) }
-                });
-
-            aiState.CurrentGoal = "Restocking ammunition";
-            aiState.GoalTimer = _random.Next(120, 300);
-            return;
-        }
-
-        if (_random.Next(0, 100) < 30 && aiState.Hunger < 30)
-        {
-            _autonomousTaskSystem.AssignTask(
-                entity.EntityId,
-                "LootNearby",
-                new Dictionary<string, object>
-                {
-                    { "searchRadius", 50f },
-                    { "prioritizeHigh", true }
-                });
-
-            aiState.CurrentGoal = "Scavenging for supplies";
-            aiState.GoalTimer = _random.Next(30, 90);
+            aiState.CurrentGoal = "Resting at camp";
         }
     }
 
@@ -235,9 +198,10 @@ public class CoreAISystem
 
         aiState.LastCombatStyle = combatStyle;
         entity.CombatStyle = combatStyle;
-
         aiState.ExperiencePoints += _random.Next(5, 15);
-        aiState.Fatigue += _random.Next(1, 3);
+        aiState.Fatigue = Math.Min(
+            100,
+            aiState.Fatigue + _random.Next(1, 3));
 
         if (context.CompanionHealth < companionPed.MaxHealth * 0.5f)
             aiState.Morale = Math.Max(0, aiState.Morale - 5);
@@ -247,27 +211,60 @@ public class CoreAISystem
     }
 
     private void UpdateNeeds(
+        WorldEntityData entity,
         CompanionAIState aiState,
         CompanionContext context)
     {
-        aiState.Hunger =
-            Math.Min(100, aiState.Hunger + _random.Next(0, 2));
+        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        aiState.Thirst =
-            Math.Min(100, aiState.Thirst + _random.Next(0, 2));
+        if (aiState.LastActivityTimestamp <= 0)
+        {
+            aiState.LastActivityTimestamp = now;
+            return;
+        }
 
-        // Random.Next uses an exclusive upper bound; (0, 1) always returned 0.
-        aiState.Fatigue =
-            Math.Min(100, aiState.Fatigue + _random.Next(0, 2));
+        long elapsedSeconds = now - aiState.LastActivityTimestamp;
+
+        if (elapsedSeconds < 0 ||
+            elapsedSeconds > MAX_NEEDS_CATCH_UP_SECONDS)
+        {
+            // Avoid applying a large needs penalty after a long pause or
+            // loading an old save.
+            aiState.LastActivityTimestamp = now;
+            return;
+        }
+
+        long elapsedMinutes =
+            elapsedSeconds / NEEDS_UPDATE_INTERVAL_SECONDS;
+
+        if (elapsedMinutes <= 0)
+            return;
+
+        aiState.LastActivityTimestamp +=
+            elapsedMinutes * NEEDS_UPDATE_INTERVAL_SECONDS;
+
+        int minutes = (int)elapsedMinutes;
+
+        aiState.Hunger = Math.Min(100, aiState.Hunger + minutes);
+        aiState.Thirst = Math.Min(100, aiState.Thirst + minutes);
+
+        if (context != null && context.IsPlayerInCombat)
+        {
+            aiState.Fatigue = Math.Min(100, aiState.Fatigue + minutes);
+        }
+        else
+        {
+            aiState.Fatigue = Math.Max(0, aiState.Fatigue - minutes * 2);
+        }
 
         if (aiState.Hunger > 50)
-            aiState.Morale = Math.Max(0, aiState.Morale - 1);
+            aiState.Morale = Math.Max(0, aiState.Morale - minutes);
 
         if (aiState.Thirst > 50)
-            aiState.Morale = Math.Max(0, aiState.Morale - 1);
+            aiState.Morale = Math.Max(0, aiState.Morale - minutes);
 
-        if (!context.IsPlayerInCombat && aiState.Fatigue > 0)
-            aiState.Fatigue = Math.Max(0, aiState.Fatigue - 2);
+        if (aiState.Fatigue > 70)
+            entity.CombatSkill = Math.Max(0, entity.CombatSkill - minutes);
     }
 
     private string ResolveCombatStyleWithPersonality(
@@ -283,7 +280,10 @@ public class CoreAISystem
             false,
             false);
 
-        if (aiState.Personality == "Bold")
+        if (string.Equals(
+            aiState.Personality,
+            "Bold",
+            StringComparison.OrdinalIgnoreCase))
         {
             if (baseStyle == "Ranged Medium")
                 return "Ranged Short";
@@ -291,15 +291,21 @@ public class CoreAISystem
             if (baseStyle == "Stealth")
                 return "Lethal Melee";
         }
-        else if (aiState.Personality == "Cautious")
+        else if (string.Equals(
+            aiState.Personality,
+            "Cautious",
+            StringComparison.OrdinalIgnoreCase))
         {
-            if (baseStyle == "Ranged Short")
+            if (baseStyle == "Ranged Short" ||
+                baseStyle == "Lethal Melee")
+            {
                 return "Ranged Medium";
-
-            if (baseStyle == "Lethal Melee")
-                return "Ranged Medium";
+            }
         }
-        else if (aiState.Personality == "Loyal")
+        else if (string.Equals(
+            aiState.Personality,
+            "Loyal",
+            StringComparison.OrdinalIgnoreCase))
         {
             if (context.DistanceToPlayer > 15f)
                 return "Ranged Short";
@@ -308,9 +314,12 @@ public class CoreAISystem
         return baseStyle;
     }
 
-    private void LevelUp(WorldEntityData entity, CompanionAIState aiState)
+    private void LevelUp(
+        WorldEntityData entity,
+        CompanionAIState aiState)
     {
         aiState.ExperiencePoints -= 100;
+
         int levelGains = _random.Next(2, 5);
 
         switch (_random.Next(0, 3))
@@ -359,7 +368,10 @@ public class CoreAISystem
             decimal companionShare = job.RewardCash / 2m;
             decimal goldShare = job.RewardGold / 2m;
 
-            _bankSystem.Deposit(companionId, companionShare, goldShare);
+            _bankSystem.Deposit(
+                companionId,
+                companionShare,
+                goldShare);
 
             aiState.TotalEarnings += companionShare;
             aiState.CompletedJobs.Add(job.JobId);
@@ -421,7 +433,9 @@ public class CoreAISystem
         return EnsureAIState(entityId);
     }
 
-    public void SetAIState(string entityId, CompanionAIState state)
+    public void SetAIState(
+        string entityId,
+        CompanionAIState state)
     {
         if (string.IsNullOrWhiteSpace(entityId) || state == null)
             return;
@@ -462,6 +476,12 @@ public class CoreAISystem
             _aiStates[entityId] = aiState;
         }
 
+        if (aiState.SkillProgression == null)
+            aiState.SkillProgression = new Dictionary<string, int>();
+
+        if (aiState.CompletedJobs == null)
+            aiState.CompletedJobs = new List<string>();
+
         return aiState;
     }
 
@@ -474,8 +494,12 @@ public class CoreAISystem
 
         foreach (Ped enemy in nearbyEnemies)
         {
-            if (enemy == null || !enemy.Exists() || enemy.IsDeadOrDying)
+            if (enemy == null ||
+                !enemy.Exists() ||
+                enemy.IsDeadOrDying)
+            {
                 continue;
+            }
 
             count++;
         }
