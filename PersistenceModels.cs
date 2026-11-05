@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class SaveRoot
 {
-    public int SaveVersion { get; set; } = 4;
+    public int SaveVersion { get; set; } = 5;
     public WorldState World { get; set; } = new WorldState();
     public List<GangMember> GangMembers { get; set; } = new List<GangMember>();
     public List<BankAccountData> BankAccounts { get; set; } = new List<BankAccountData>();
@@ -23,6 +23,10 @@ public class WorldState
     public List<LockRecord> Locks { get; set; } = new List<LockRecord>();
     public List<DestructibleRecord> Destructibles { get; set; } = new List<DestructibleRecord>();
     public List<TacticalOrderData> TacticalOrders { get; set; } = new List<TacticalOrderData>();
+    public List<BankVaultData> BankVaults { get; set; } = new List<BankVaultData>();
+    public List<TrainLootData> TrainLoot { get; set; } = new List<TrainLootData>();
+    public List<StageCoachLootData> StageCoachLoot { get; set; } = new List<StageCoachLootData>();
+    public List<ObjectiveStateData> ObjectiveStates { get; set; } = new List<ObjectiveStateData>();
 }
 
 public class GangMember
@@ -93,6 +97,54 @@ public class BankAccountData
     public decimal Debt { get; set; }
     public bool IsSuspicious { get; set; }
     public DateTime LastTransactionUtc { get; set; }
+}
+
+public class BankVaultData
+{
+    public string VaultId { get; set; }
+    public string BankId { get; set; }
+    public string LocationId { get; set; }
+    public decimal StoredCash { get; set; }
+    public decimal StoredGold { get; set; }
+    public decimal RobbedCash { get; set; }
+    public decimal RobbedGold { get; set; }
+    public int SuspicionLevel { get; set; }
+    public bool HasBeenRobbed { get; set; }
+}
+
+public class TrainLootData
+{
+    public string TrainId { get; set; }
+    public string LocationId { get; set; }
+    public decimal Cash { get; set; }
+    public decimal Gold { get; set; }
+    public int JewelCount { get; set; }
+    public List<string> Papers { get; set; } = new List<string>();
+    public bool IsLocked { get; set; }
+    public bool IsCracked { get; set; }
+    public bool IsBlasted { get; set; }
+}
+
+public class StageCoachLootData
+{
+    public string CoachId { get; set; }
+    public string LocationId { get; set; }
+    public decimal Cash { get; set; }
+    public decimal Gold { get; set; }
+    public int JewelCount { get; set; }
+    public List<string> Papers { get; set; } = new List<string>();
+    public bool IsLocked { get; set; }
+    public bool IsCracked { get; set; }
+    public bool IsBlasted { get; set; }
+}
+
+public class ObjectiveStateData
+{
+    public string ObjectiveId { get; set; }
+    public string RelatedJobId { get; set; }
+    public string Description { get; set; }
+    public bool IsCompleted { get; set; }
+    public bool IsFailed { get; set; }
 }
 
 public class WagonData
@@ -216,6 +268,8 @@ public class LockRecord
     public string TargetId { get; set; }
     public bool IsLocked { get; set; }
     public bool IsBroken { get; set; }
+    public bool CanBePicked { get; set; }
+    public bool CanBeBlasted { get; set; }
 }
 
 public class DestructibleRecord
@@ -228,4 +282,5 @@ public class DestructibleRecord
     public int MaxHealth { get; set; }
     public bool CanBeBlasted { get; set; }
     public bool CanBePicked { get; set; }
+    public bool CanBeDamagedByDynamite { get; set; }
 }
