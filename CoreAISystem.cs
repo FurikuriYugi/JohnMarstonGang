@@ -327,7 +327,7 @@ public class CoreAISystem
             decimal companionShare = job.RewardCash / 2m;
             decimal goldShare = job.RewardGold / 2m;
 
-            _bankSystem.DepositGold(
+            _bankSystem.DepositMoney(
                 companionId,
                 companionShare,
                 goldShare);

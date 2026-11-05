@@ -4,7 +4,8 @@ using Newtonsoft.Json;
 
 public class BankSystem
 {
-    private readonly List<BankAccountData> _accounts = new List<BankAccountData>();
+    private readonly List<BankAccountData> _accounts =
+        new List<BankAccountData>();
 
     public List<BankAccountData> GetAllAccounts()
     {
@@ -16,21 +17,30 @@ public class BankSystem
         if (string.IsNullOrWhiteSpace(ownerId))
             return null;
 
-        return _accounts.Find(x => x != null && x.OwnerId == ownerId);
+        return _accounts.Find(
+            x => x != null && x.OwnerId == ownerId);
     }
 
     public void RegisterAccount(BankAccountData account)
     {
-        if (account == null || string.IsNullOrWhiteSpace(account.OwnerId))
+        if (account == null ||
+            string.IsNullOrWhiteSpace(account.OwnerId))
+        {
             return;
+        }
 
-        _accounts.RemoveAll(x => x != null && x.OwnerId == account.OwnerId);
+        _accounts.RemoveAll(
+            x => x != null && x.OwnerId == account.OwnerId);
+
         _accounts.Add(account);
     }
 
-    public BankAccountData EnsureAccount(string ownerId, string ownerName = null)
+    public BankAccountData EnsureAccount(
+        string ownerId,
+        string ownerName = null)
     {
         BankAccountData account = GetAccount(ownerId);
+
         if (account != null)
             return account;
 
@@ -48,6 +58,7 @@ public class BankSystem
     public void DepositCash(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
+
         if (account == null || amount <= 0m)
             return;
 
@@ -55,9 +66,13 @@ public class BankSystem
         account.LastTransactionUtc = DateTime.UtcNow;
     }
 
-    public void DepositGold(string ownerId, decimal amount, decimal goldShare)
+    /// <summary>
+    /// Deposits gold only. Used by gold transfers.
+    /// </summary>
+    public void DepositGold(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
+
         if (account == null || amount <= 0m)
             return;
 
@@ -65,11 +80,42 @@ public class BankSystem
         account.LastTransactionUtc = DateTime.UtcNow;
     }
 
+    /// <summary>
+    /// Deposits a cash amount and a gold amount.
+    /// The first amount is cash; the second amount is gold.
+    /// </summary>
+    public void DepositMoney(
+        string ownerId,
+        decimal cashAmount,
+        decimal goldAmount)
+    {
+        BankAccountData account = GetAccount(ownerId);
+
+        if (account == null ||
+            (cashAmount <= 0m && goldAmount <= 0m))
+        {
+            return;
+        }
+
+        if (cashAmount > 0m)
+            account.Cash += cashAmount;
+
+        if (goldAmount > 0m)
+            account.Gold += goldAmount;
+
+        account.LastTransactionUtc = DateTime.UtcNow;
+    }
+
     public bool WithdrawCash(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
-        if (account == null || amount <= 0m || account.Cash < amount)
+
+        if (account == null ||
+            amount <= 0m ||
+            account.Cash < amount)
+        {
             return false;
+        }
 
         account.Cash -= amount;
         account.LastTransactionUtc = DateTime.UtcNow;
@@ -79,21 +125,32 @@ public class BankSystem
     public bool WithdrawGold(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
-        if (account == null || amount <= 0m || account.Gold < amount)
+
+        if (account == null ||
+            amount <= 0m ||
+            account.Gold < amount)
+        {
             return false;
+        }
 
         account.Gold -= amount;
         account.LastTransactionUtc = DateTime.UtcNow;
         return true;
     }
 
-    public void TransferCash(string fromOwnerId, string toOwnerId, decimal amount)
+    public void TransferCash(
+        string fromOwnerId,
+        string toOwnerId,
+        decimal amount)
     {
         if (WithdrawCash(fromOwnerId, amount))
             DepositCash(toOwnerId, amount);
     }
 
-    public void TransferGold(string fromOwnerId, string toOwnerId, decimal amount)
+    public void TransferGold(
+        string fromOwnerId,
+        string toOwnerId,
+        decimal amount)
     {
         if (WithdrawGold(fromOwnerId, amount))
             DepositGold(toOwnerId, amount);
@@ -102,6 +159,7 @@ public class BankSystem
     public void AddDebt(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
+
         if (account == null || amount <= 0m)
             return;
 
@@ -112,6 +170,7 @@ public class BankSystem
     public void ApplySuspicion(string ownerId, bool suspicious)
     {
         BankAccountData account = GetAccount(ownerId);
+
         if (account == null)
             return;
 
@@ -120,16 +179,21 @@ public class BankSystem
 
     public string SaveState()
     {
-        return JsonConvert.SerializeObject(_accounts, Formatting.Indented);
+        return JsonConvert.SerializeObject(
+            _accounts,
+            Formatting.Indented);
     }
 
     public void LoadState(string json)
     {
         _accounts.Clear();
+
         if (string.IsNullOrWhiteSpace(json))
             return;
 
-        List<BankAccountData> accounts = JsonConvert.DeserializeObject<List<BankAccountData>>(json);
+        List<BankAccountData> accounts =
+            JsonConvert.DeserializeObject<List<BankAccountData>>(json);
+
         if (accounts != null)
             _accounts.AddRange(accounts);
     }
