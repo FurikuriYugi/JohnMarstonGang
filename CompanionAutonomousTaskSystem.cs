@@ -5,22 +5,14 @@ using System.Collections.Generic;
 public class CompanionAutonomousTaskSystem
 {
     private readonly WorldEntityRegistry _registry;
-    private readonly BankSystem _bankSystem;
     private readonly Dictionary<string, CompanionTaskData> _activeTasks =
         new Dictionary<string, CompanionTaskData>();
-
-    private static readonly HashSet<string> SupportedTaskTypes =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "RestAtCamp"
-        };
 
     public CompanionAutonomousTaskSystem(
         WorldEntityRegistry registry,
         BankSystem bankSystem)
     {
         _registry = registry;
-        _bankSystem = bankSystem;
     }
 
     public void AssignTask(
@@ -29,29 +21,37 @@ public class CompanionAutonomousTaskSystem
         Dictionary<string, object> parameters)
     {
         if (string.IsNullOrWhiteSpace(companionId) ||
-            string.IsNullOrWhiteSpace(taskType))
+            !string.Equals(
+                taskType,
+                "RestAtCamp",
+                StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
-        // Do not create task records that would invent items, money,
-        // healing, or purchases the game did not actually provide.
-        if (!SupportedTaskTypes.Contains(taskType))
+        WorldEntityData entity = _registry.GetEntity(companionId);
+        if (entity == null ||
+            !entity.IsAlive ||
+            entity.IsFollowingPlayer)
+        {
             return;
+        }
 
         _activeTasks[companionId] = new CompanionTaskData
         {
             CompanionId = companionId,
-            TaskType = taskType,
+            TaskType = "RestAtCamp",
             Parameters = parameters ??
                 new Dictionary<string, object>(),
             StartTimeUtc = DateTime.UtcNow,
-            LastProgressUtc = DateTime.UtcNow,
+            LastUpdateUtc = DateTime.UtcNow,
             IsActive = true
         };
     }
 
-    public bool HasActiveTask(string companionId, string taskType)
+    public bool HasActiveTask(
+        string companionId,
+        string taskType)
     {
         if (string.IsNullOrWhiteSpace(companionId) ||
             string.IsNullOrWhiteSpace(taskType))
@@ -100,58 +100,61 @@ public class CompanionAutonomousTaskSystem
             return false;
         }
 
+        WorldEntityData entity = _registry.GetEntity(companionId);
+        if (entity == null ||
+            !entity.IsAlive ||
+            entity.IsFollowingPlayer)
+        {
+            _activeTasks.Remove(companionId);
+            aiState.ResetCurrentTask();
+            return false;
+        }
+
         if ((DateTime.UtcNow - task.StartTimeUtc).TotalMinutes >= 30)
         {
-            task.IsActive = false;
             _activeTasks.Remove(companionId);
+            task.IsActive = false;
             aiState.ResetCurrentTask();
             aiState.CurrentGoal = "Rest interrupted.";
             return false;
         }
 
-        if (string.Equals(
+        if (!string.Equals(
                 task.TaskType,
                 "RestAtCamp",
                 StringComparison.OrdinalIgnoreCase))
         {
-            return ExecuteRestTask(task, aiState, context);
+            _activeTasks.Remove(companionId);
+            task.IsActive = false;
+            aiState.ResetCurrentTask();
+            aiState.CurrentGoal =
+                "This task has no supported in-game action.";
+            return false;
         }
 
-        // Defensive fallback: unknown or unsupported tasks never produce
-        // items, change health, or alter bank balances.
-        task.IsActive = false;
-        _activeTasks.Remove(companionId);
-        aiState.ResetCurrentTask();
-        aiState.CurrentGoal =
-            "This companion task has no supported in-game action.";
-        return false;
-    }
-
-    private bool ExecuteRestTask(
-        CompanionTaskData task,
-        CompanionAIState aiState,
-        CompanionContext context)
-    {
         if (context != null && context.IsPlayerInCombat)
         {
-            task.LastProgressUtc = DateTime.UtcNow;
+            _activeTasks.Remove(companionId);
+            task.IsActive = false;
+            aiState.ResetCurrentTask();
             aiState.CurrentGoal = "Rest interrupted by combat.";
-            return true;
+            return false;
         }
 
         DateTime now = DateTime.UtcNow;
         double elapsedSeconds =
-            (now - task.LastProgressUtc).TotalSeconds;
+            (now - task.LastUpdateUtc).TotalSeconds;
 
         if (elapsedSeconds < 0)
             elapsedSeconds = 0;
-        if (elapsedSeconds > 10)
-            elapsedSeconds = 10;
+        if (elapsedSeconds > 5)
+            elapsedSeconds = 5;
 
-        task.LastProgressUtc = now;
+        task.LastUpdateUtc = now;
         task.RestProgressSeconds += elapsedSeconds;
 
-        // Reduce fatigue slowly over real elapsed time, not once per AI tick.
+        // This changes only the companion AI fatigue value.
+        // It does not heal the Ped or grant inventory items.
         while (task.RestProgressSeconds >= 30)
         {
             task.RestProgressSeconds -= 30;
@@ -160,8 +163,8 @@ public class CompanionAutonomousTaskSystem
 
         if (aiState.Fatigue <= 20)
         {
+            _activeTasks.Remove(companionId);
             task.IsActive = false;
-            _activeTasks.Remove(task.CompanionId);
             aiState.ResetCurrentTask();
             aiState.CurrentGoal = "Rested.";
             return false;
@@ -174,8 +177,8 @@ public class CompanionAutonomousTaskSystem
     }
 
     /// <summary>
-    /// The current project has no verified API call for reading a Ped's
-    /// actual ammunition reserve. Returns -1 to mean unavailable.
+    /// Returns -1 because this project currently has no verified API call
+    /// for reading a companion Ped's actual ammunition reserve.
     /// </summary>
     public int GetCompanionAmmoCount(Ped companionPed)
     {
@@ -191,7 +194,7 @@ public class CompanionAutonomousTaskSystem
         public string TaskType { get; set; }
         public Dictionary<string, object> Parameters { get; set; }
         public DateTime StartTimeUtc { get; set; }
-        public DateTime LastProgressUtc { get; set; }
+        public DateTime LastUpdateUtc { get; set; }
         public double RestProgressSeconds { get; set; }
         public bool IsActive { get; set; }
     }
