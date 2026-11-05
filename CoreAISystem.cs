@@ -14,7 +14,6 @@ public class CoreAISystem
     private readonly Dictionary<string, CompanionAIState> _aiStates =
         new Dictionary<string, CompanionAIState>();
     private readonly Random _random = new Random();
-
     private const int UPDATE_INTERVAL = 30;
     private int _updateCounter = 0;
 
@@ -276,7 +275,9 @@ public class CoreAISystem
         return baseStyle;
     }
 
-    private void LevelUp(WorldEntityData entity, CompanionAIState aiState)
+    private void LevelUp(
+        WorldEntityData entity,
+        CompanionAIState aiState)
     {
         aiState.ExperiencePoints -= 100;
         int levelGains = _random.Next(2, 5);
@@ -308,8 +309,12 @@ public class CoreAISystem
         JobData job,
         bool jobCompleted)
     {
-        if (string.IsNullOrWhiteSpace(companionId) || job == null)
+        if (string.IsNullOrWhiteSpace(companionId) ||
+            job == null ||
+            string.IsNullOrWhiteSpace(job.JobId))
+        {
             return;
+        }
 
         CompanionAIState aiState;
         if (!_aiStates.TryGetValue(companionId, out aiState) ||
@@ -324,6 +329,17 @@ public class CoreAISystem
 
         if (jobCompleted)
         {
+            if (aiState.CompletedJobs == null)
+                aiState.CompletedJobs = new List<string>();
+
+            // A repeated completion notification must not pay the companion twice.
+            if (aiState.CompletedJobs.Contains(job.JobId))
+                return;
+
+            _bankSystem.EnsureAccount(
+                companionId,
+                entity.DisplayName);
+
             decimal companionShare = job.RewardCash / 2m;
             decimal goldShare = job.RewardGold / 2m;
 
@@ -392,7 +408,9 @@ public class CoreAISystem
         return EnsureAIState(entityId);
     }
 
-    public void SetAIState(string entityId, CompanionAIState state)
+    public void SetAIState(
+        string entityId,
+        CompanionAIState state)
     {
         if (string.IsNullOrWhiteSpace(entityId) || state == null)
             return;
@@ -445,8 +463,12 @@ public class CoreAISystem
 
         foreach (Ped enemy in nearbyEnemies)
         {
-            if (enemy == null || !enemy.Exists() || enemy.IsDeadOrDying)
+            if (enemy == null ||
+                !enemy.Exists() ||
+                enemy.IsDeadOrDying)
+            {
                 continue;
+            }
 
             count++;
         }
