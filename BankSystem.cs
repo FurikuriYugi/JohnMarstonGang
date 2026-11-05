@@ -29,9 +29,10 @@ public class BankSystem
             return;
         }
 
+        NormalizeAccount(account);
+
         _accounts.RemoveAll(
             x => x != null && x.OwnerId == account.OwnerId);
-
         _accounts.Add(account);
     }
 
@@ -84,17 +85,15 @@ public class BankSystem
     {
         BankAccountData account = GetAccount(ownerId);
         if (account == null ||
-            (cashAmount <= 0m && goldAmount <= 0m))
+            cashAmount < 0m ||
+            goldAmount < 0m ||
+            (cashAmount == 0m && goldAmount == 0m))
         {
             return;
         }
 
-        if (cashAmount > 0m)
-            account.Cash += cashAmount;
-
-        if (goldAmount > 0m)
-            account.Gold += goldAmount;
-
+        account.Cash += cashAmount;
+        account.Gold += goldAmount;
         account.LastTransactionUtc = DateTime.UtcNow;
     }
 
@@ -128,13 +127,96 @@ public class BankSystem
         return true;
     }
 
+    public decimal GetAvailableCredit(string ownerId)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null)
+            return 0m;
+
+        decimal availableCredit =
+            account.CreditLimit - account.Debt;
+
+        return availableCredit > 0m
+            ? availableCredit
+            : 0m;
+    }
+
+    public bool CanBorrow(string ownerId, decimal amount)
+    {
+        if (amount <= 0m)
+            return false;
+
+        return amount <= GetAvailableCredit(ownerId);
+    }
+
+    public bool TryBorrowCash(string ownerId, decimal amount)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null ||
+            amount <= 0m ||
+            amount > GetAvailableCredit(ownerId))
+        {
+            return false;
+        }
+
+        account.Cash += amount;
+        account.Debt += amount;
+        account.LastTransactionUtc = DateTime.UtcNow;
+        return true;
+    }
+
+    public bool TryRepayDebt(string ownerId, decimal amount)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null ||
+            amount <= 0m ||
+            account.Debt <= 0m)
+        {
+            return false;
+        }
+
+        decimal repayment = Math.Min(amount, account.Debt);
+        if (account.Cash < repayment)
+            return false;
+
+        account.Cash -= repayment;
+        account.Debt -= repayment;
+        account.LastTransactionUtc = DateTime.UtcNow;
+        return true;
+    }
+
+    public bool TrySetCreditLimit(
+        string ownerId,
+        decimal creditLimit)
+    {
+        BankAccountData account = GetAccount(ownerId);
+        if (account == null ||
+            creditLimit < 0m ||
+            creditLimit < account.Debt)
+        {
+            return false;
+        }
+
+        account.CreditLimit = creditLimit;
+        account.LastTransactionUtc = DateTime.UtcNow;
+        return true;
+    }
+
     public void TransferCash(
         string fromOwnerId,
         string toOwnerId,
         decimal amount)
     {
+        TryTransferCash(fromOwnerId, toOwnerId, amount);
+    }
+
+    public bool TryTransferCash(
+        string fromOwnerId,
+        string toOwnerId,
+        decimal amount)
+    {
         if (!CanTransfer(fromOwnerId, toOwnerId, amount))
-            return;
+            return false;
 
         BankAccountData fromAccount = GetAccount(fromOwnerId);
         BankAccountData toAccount = GetAccount(toOwnerId);
@@ -143,7 +225,7 @@ public class BankSystem
             toAccount == null ||
             fromAccount.Cash < amount)
         {
-            return;
+            return false;
         }
 
         fromAccount.Cash -= amount;
@@ -152,6 +234,7 @@ public class BankSystem
         DateTime transactionTime = DateTime.UtcNow;
         fromAccount.LastTransactionUtc = transactionTime;
         toAccount.LastTransactionUtc = transactionTime;
+        return true;
     }
 
     public void TransferGold(
@@ -159,8 +242,16 @@ public class BankSystem
         string toOwnerId,
         decimal amount)
     {
+        TryTransferGold(fromOwnerId, toOwnerId, amount);
+    }
+
+    public bool TryTransferGold(
+        string fromOwnerId,
+        string toOwnerId,
+        decimal amount)
+    {
         if (!CanTransfer(fromOwnerId, toOwnerId, amount))
-            return;
+            return false;
 
         BankAccountData fromAccount = GetAccount(fromOwnerId);
         BankAccountData toAccount = GetAccount(toOwnerId);
@@ -169,7 +260,7 @@ public class BankSystem
             toAccount == null ||
             fromAccount.Gold < amount)
         {
-            return;
+            return false;
         }
 
         fromAccount.Gold -= amount;
@@ -178,6 +269,7 @@ public class BankSystem
         DateTime transactionTime = DateTime.UtcNow;
         fromAccount.LastTransactionUtc = transactionTime;
         toAccount.LastTransactionUtc = transactionTime;
+        return true;
     }
 
     private bool CanTransfer(
@@ -229,7 +321,6 @@ public class BankSystem
         }
 
         List<BankAccountData> loadedAccounts;
-
         try
         {
             loadedAccounts =
@@ -256,11 +347,27 @@ public class BankSystem
                     continue;
                 }
 
+                NormalizeAccount(account);
                 validAccounts.Add(account);
             }
         }
 
         _accounts.Clear();
         _accounts.AddRange(validAccounts);
+    }
+
+    private void NormalizeAccount(BankAccountData account)
+    {
+        if (account.Cash < 0m)
+            account.Cash = 0m;
+
+        if (account.Gold < 0m)
+            account.Gold = 0m;
+
+        if (account.CreditLimit < 0m)
+            account.CreditLimit = 0m;
+
+        if (account.Debt < 0m)
+            account.Debt = 0m;
     }
 }
