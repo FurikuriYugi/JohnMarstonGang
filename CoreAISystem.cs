@@ -1,4 +1,5 @@
 ﻿using RDR2;
+using RDR2.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
