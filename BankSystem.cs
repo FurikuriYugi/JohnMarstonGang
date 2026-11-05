@@ -66,7 +66,6 @@ public class BankSystem
         account.LastTransactionUtc = DateTime.UtcNow;
     }
 
-    // Gold-only deposit. Used by TransferGold.
     public void DepositGold(string ownerId, decimal amount)
     {
         BankAccountData account = GetAccount(ownerId);
@@ -78,8 +77,7 @@ public class BankSystem
         account.LastTransactionUtc = DateTime.UtcNow;
     }
 
-    // Retains the existing CoreAISystem call: cash share first, gold share second.
-    public void DepositGold(
+    public void DepositMoney(
         string ownerId,
         decimal cashAmount,
         decimal goldAmount)
