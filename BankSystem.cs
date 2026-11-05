@@ -55,7 +55,7 @@ public class BankSystem
         account.LastTransactionUtc = DateTime.UtcNow;
     }
 
-    public void DepositGold(string ownerId, decimal amount)
+    public void DepositGold(string ownerId, decimal amount, decimal goldShare)
     {
         BankAccountData account = GetAccount(ownerId);
         if (account == null || amount <= 0m)
