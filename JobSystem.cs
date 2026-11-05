@@ -1,66 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 
 public class JobSystem
 {
-    private readonly List<JobData> _jobs = new List<JobData>();
+    private Dictionary<string, JobData> jobs = new Dictionary<string, JobData>();
 
-    public List<JobData> GetAllJobs()
+    public event EventHandler<JobCompletedEventArgs> JobCompleted;
+    public event EventHandler<JobFailedEventArgs> JobFailed;
+
+    public void CreateJob(string jobId, string jobType, string title, string description, string sponsorId, string targetId, string locationId, decimal rewardCash, decimal rewardGold, int honorChange, bool isIllegal)
     {
-        return new List<JobData>(_jobs);
-    }
-
-    public JobData GetJob(string jobId)
-    {
-        if (string.IsNullOrWhiteSpace(jobId))
-            return null;
-
-        return _jobs.Find(
-            x => x != null && x.JobId == jobId);
-    }
-
-    public void RegisterJob(JobData job)
-    {
-        if (job == null ||
-            string.IsNullOrWhiteSpace(job.JobId))
+        if (jobs.ContainsKey(jobId))
         {
-            return;
+            throw new InvalidOperationException($"Job {jobId} already exists.");
         }
 
-        NormalizeJob(job);
-
-        _jobs.RemoveAll(
-            x => x != null && x.JobId == job.JobId);
-
-        _jobs.Add(job);
-    }
-
-    public void RemoveJob(string jobId)
-    {
-        if (string.IsNullOrWhiteSpace(jobId))
-            return;
-
-        _jobs.RemoveAll(
-            x => x != null && x.JobId == jobId);
-    }
-
-    public JobData CreateJob(
-        string jobType,
-        string title,
-        string description,
-        string sponsorId,
-        string targetId,
-        string locationId,
-        decimal rewardCash,
-        decimal rewardGold,
-        int honorChange,
-        bool isIllegal)
-    {
-        JobData job = new JobData
+        var job = new JobData
         {
-            JobId = Guid.NewGuid().ToString("N"),
+            JobId = jobId,
             JobType = jobType,
             Title = title,
             Description = description,
@@ -71,234 +29,185 @@ public class JobSystem
             RewardGold = rewardGold,
             HonorChange = honorChange,
             IsIllegal = isIllegal,
-            IsAvailable = true,
             IsCompleted = false,
             IsFailed = false,
+            IsAvailable = true,
             Objectives = new List<string>(),
             Participants = new List<string>()
         };
 
-        RegisterJob(job);
-        return job;
+        jobs[jobId] = job;
     }
 
-    public void AssignParticipant(
-        string jobId,
-        string participantId)
+    public void AddObjective(string jobId, string objective)
     {
-        JobData job = GetJob(jobId);
-        if (job == null ||
-            string.IsNullOrWhiteSpace(participantId) ||
-            job.IsCompleted ||
-            job.IsFailed)
+        if (!jobs.ContainsKey(jobId))
         {
-            return;
+            throw new KeyNotFoundException($"Job {jobId} not found.");
         }
 
-        if (job.Participants == null)
-            job.Participants = new List<string>();
-
-        if (!job.Participants.Contains(participantId))
-            job.Participants.Add(participantId);
+        jobs[jobId].Objectives.Add(objective);
     }
 
-    public void RemoveParticipant(
-        string jobId,
-        string participantId)
+    public void AssignParticipant(string jobId, string participantId)
     {
-        JobData job = GetJob(jobId);
-        if (job == null ||
-            string.IsNullOrWhiteSpace(participantId) ||
-            job.Participants == null)
+        if (!jobs.ContainsKey(jobId))
         {
-            return;
+            throw new KeyNotFoundException($"Job {jobId} not found.");
         }
 
-        job.Participants.RemoveAll(
-            x => x == participantId);
+        if (!jobs[jobId].Participants.Contains(participantId))
+        {
+            jobs[jobId].Participants.Add(participantId);
+        }
     }
 
-    public void AddObjective(
-        string jobId,
-        string objective)
+    public void RemoveParticipant(string jobId, string participantId)
     {
-        JobData job = GetJob(jobId);
-        if (job == null ||
-            string.IsNullOrWhiteSpace(objective) ||
-            job.IsCompleted ||
-            job.IsFailed)
+        if (!jobs.ContainsKey(jobId))
         {
-            return;
+            throw new KeyNotFoundException($"Job {jobId} not found.");
         }
 
-        if (job.Objectives == null)
-            job.Objectives = new List<string>();
-
-        job.Objectives.Add(objective);
+        jobs[jobId].Participants.Remove(participantId);
     }
 
     public void CompleteJob(string jobId)
     {
-        JobData job = GetJob(jobId);
-        if (job == null ||
-            job.IsCompleted ||
-            job.IsFailed)
+        if (!jobs.ContainsKey(jobId))
         {
-            return;
+            throw new KeyNotFoundException($"Job {jobId} not found.");
         }
 
+        var job = jobs[jobId];
         job.IsCompleted = true;
-        job.IsAvailable = false;
         job.IsFailed = false;
+        job.IsAvailable = false;
+
+        JobCompleted?.Invoke(this, new JobCompletedEventArgs
+        {
+            JobId = jobId,
+            JobData = job,
+            CompletedAtUtc = DateTime.UtcNow
+        });
     }
 
-    public void FailJob(string jobId)
+    public void FailJob(string jobId, string reason = "")
     {
-        JobData job = GetJob(jobId);
-        if (job == null ||
-            job.IsCompleted ||
-            job.IsFailed)
+        if (!jobs.ContainsKey(jobId))
         {
-            return;
+            throw new KeyNotFoundException($"Job {jobId} not found.");
         }
 
+        var job = jobs[jobId];
+        job.IsCompleted = false;
         job.IsFailed = true;
         job.IsAvailable = false;
-        job.IsCompleted = false;
+
+        JobFailed?.Invoke(this, new JobFailedEventArgs
+        {
+            JobId = jobId,
+            JobData = job,
+            Reason = reason,
+            FailedAtUtc = DateTime.UtcNow
+        });
     }
 
-    public void SetAvailability(
-        string jobId,
-        bool isAvailable)
+    public JobData GetJob(string jobId)
     {
-        JobData job = GetJob(jobId);
-        if (job == null ||
-            job.IsCompleted ||
-            job.IsFailed)
-        {
-            return;
-        }
-
-        job.IsAvailable = isAvailable;
+        return jobs.ContainsKey(jobId) ? jobs[jobId] : null;
     }
 
     public List<JobData> GetAvailableJobs()
     {
-        return _jobs
-            .Where(x =>
-                x != null &&
-                x.IsAvailable &&
-                !x.IsCompleted &&
-                !x.IsFailed)
-            .ToList();
+        return jobs.Values.Where(j => j.IsAvailable).ToList();
     }
 
-    public string SaveState()
+    public List<JobData> GetActiveJobs()
     {
-        return JsonConvert.SerializeObject(
-            _jobs,
-            Formatting.Indented);
+        return jobs.Values.Where(j => !j.IsCompleted && !j.IsFailed).ToList();
     }
 
-    public void LoadState(string json)
+    public List<JobData> GetCompletedJobs()
     {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            _jobs.Clear();
-            return;
-        }
-
-        List<JobData> loadedJobs;
-
-        try
-        {
-            loadedJobs =
-                JsonConvert.DeserializeObject<List<JobData>>(json);
-        }
-        catch (JsonException)
-        {
-            return;
-        }
-
-        List<JobData> validJobs = new List<JobData>();
-        HashSet<string> seenJobIds =
-            new HashSet<string>(StringComparer.Ordinal);
-
-        if (loadedJobs != null)
-        {
-            foreach (JobData job in loadedJobs)
-            {
-                if (job == null ||
-                    string.IsNullOrWhiteSpace(job.JobId) ||
-                    !seenJobIds.Add(job.JobId))
-                {
-                    continue;
-                }
-
-                NormalizeJob(job);
-                validJobs.Add(job);
-            }
-        }
-
-        _jobs.Clear();
-        _jobs.AddRange(validJobs);
+        return jobs.Values.Where(j => j.IsCompleted).ToList();
     }
 
-    public void LoadFromSaveRoot(SaveRoot data)
+    public List<JobData> GetFailedJobs()
     {
-        _jobs.Clear();
-
-        if (data == null ||
-            data.World == null ||
-            data.World.ActiveJobs == null)
-        {
-            return;
-        }
-
-        HashSet<string> seenJobIds =
-            new HashSet<string>(StringComparer.Ordinal);
-
-        foreach (JobData job in data.World.ActiveJobs)
-        {
-            if (job == null ||
-                string.IsNullOrWhiteSpace(job.JobId) ||
-                !seenJobIds.Add(job.JobId))
-            {
-                continue;
-            }
-
-            NormalizeJob(job);
-            _jobs.Add(job);
-        }
+        return jobs.Values.Where(j => j.IsFailed).ToList();
     }
 
-    public void WriteToSaveRoot(SaveRoot data)
+    public List<JobData> GetJobsByParticipant(string participantId)
     {
-        if (data == null)
-            return;
-
-        if (data.World == null)
-            data.World = new WorldState();
-
-        data.World.ActiveJobs = GetAllJobs();
+        return jobs.Values.Where(j => j.Participants.Contains(participantId)).ToList();
     }
 
-    private void NormalizeJob(JobData job)
+    public List<JobData> GetJobsByJobType(string jobType)
     {
-        if (job.Objectives == null)
-            job.Objectives = new List<string>();
+        return jobs.Values.Where(j => j.JobType == jobType).ToList();
+    }
 
-        if (job.Participants == null)
-            job.Participants = new List<string>();
+    public List<JobData> GetJobsBySponsor(string sponsorId)
+    {
+        return jobs.Values.Where(j => j.SponsorId == sponsorId).ToList();
+    }
 
-        if (job.IsCompleted)
+    public List<JobData> GetJobsByLocation(string locationId)
+    {
+        return jobs.Values.Where(j => j.LocationId == locationId).ToList();
+    }
+
+    public int GetParticipantCount(string jobId)
+    {
+        return jobs.ContainsKey(jobId) ? jobs[jobId].Participants.Count : 0;
+    }
+
+    public decimal GetTotalRewardAmount(string jobId)
+    {
+        if (!jobs.ContainsKey(jobId))
         {
-            job.IsFailed = false;
-            job.IsAvailable = false;
+            return 0;
         }
-        else if (job.IsFailed)
+
+        var job = jobs[jobId];
+        return job.RewardCash + job.RewardGold;
+    }
+
+    public void UpdateJobAvailability(string jobId, bool isAvailable)
+    {
+        if (jobs.ContainsKey(jobId))
         {
-            job.IsAvailable = false;
+            jobs[jobId].IsAvailable = isAvailable;
         }
     }
+
+    public void LoadJobs(List<JobData> jobDataList)
+    {
+        jobs.Clear();
+        foreach (var jobData in jobDataList)
+        {
+            jobs[jobData.JobId] = jobData;
+        }
+    }
+
+    public List<JobData> GetAllJobs()
+    {
+        return new List<JobData>(jobs.Values);
+    }
+}
+
+public class JobCompletedEventArgs : EventArgs
+{
+    public string JobId { get; set; }
+    public JobData JobData { get; set; }
+    public DateTime CompletedAtUtc { get; set; }
+}
+
+public class JobFailedEventArgs : EventArgs
+{
+    public string JobId { get; set; }
+    public JobData JobData { get; set; }
+    public string Reason { get; set; }
+    public DateTime FailedAtUtc { get; set; }
 }

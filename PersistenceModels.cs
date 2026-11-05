@@ -8,6 +8,7 @@ public class SaveRoot
     public List<GangMember> GangMembers { get; set; } = new List<GangMember>();
     public List<BankAccountData> BankAccounts { get; set; } = new List<BankAccountData>();
     public List<WorldEntityData> WorldEntities { get; set; } = new List<WorldEntityData>();
+    public GangManagementData GangManagement { get; set; } = new GangManagementData();
 }
 
 public class WorldState
@@ -28,6 +29,59 @@ public class WorldState
     public List<StageCoachLootData> StageCoachLoot { get; set; } = new List<StageCoachLootData>();
     public List<ObjectiveStateData> ObjectiveStates { get; set; } = new List<ObjectiveStateData>();
     public List<CompanionAIStateData> CompanionAIStates { get; set; } = new List<CompanionAIStateData>();
+}
+
+public class GangManagementData
+{
+    public List<Hideout> Hideouts { get; set; } = new List<Hideout>();
+    public List<PendingJobReward> PendingRewards { get; set; } = new List<PendingJobReward>();
+    public List<GangMilestone> Milestones { get; set; } = new List<GangMilestone>();
+    public string ActiveHideoutId { get; set; }
+}
+
+public class Hideout
+{
+    public string HideoutId { get; set; }
+    public string LocationName { get; set; }
+    public float PositionX { get; set; }
+    public float PositionY { get; set; }
+    public float PositionZ { get; set; }
+    public string Stage { get; set; }
+    public ChestInventory ChestInventory { get; set; } = new ChestInventory();
+    public DateTime CreatedAtUtc { get; set; }
+}
+
+public class ChestInventory
+{
+    public decimal Cash { get; set; }
+    public decimal Gold { get; set; }
+    public List<string> StolenItems { get; set; } = new List<string>();
+    public List<string> Valuables { get; set; } = new List<string>();
+    public DateTime LastUpdatedUtc { get; set; }
+}
+
+public class PendingJobReward
+{
+    public string RewardId { get; set; }
+    public string JobId { get; set; }
+    public decimal TotalAmount { get; set; }
+    public decimal GangShareAmount { get; set; }
+    public Dictionary<string, decimal> MemberShares { get; set; } = new Dictionary<string, decimal>();
+    public List<string> ParticipantIds { get; set; } = new List<string>();
+    public string DestinationType { get; set; }
+    public string DestinationId { get; set; }
+    public bool IsSettled { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public DateTime SettledAtUtc { get; set; }
+}
+
+public class GangMilestone
+{
+    public string MilestoneId { get; set; }
+    public string MilestoneName { get; set; }
+    public DateTime CompletedAtUtc { get; set; }
+    public string Description { get; set; }
+    public Dictionary<string, string> UnlockedCapabilities { get; set; } = new Dictionary<string, string>();
 }
 
 public class GangMember
@@ -271,43 +325,28 @@ public class CommandData
 {
     public string CommandId { get; set; }
     public string IssuerId { get; set; }
-    public string SquadId { get; set; }
-    public string TargetId { get; set; }
     public string CommandType { get; set; }
-    public string CombatStyle { get; set; }
-    public string CurrentTask { get; set; }
-    public bool IsStealthMode { get; set; }
-    public bool IsFollowMode { get; set; }
+    public List<string> TargetIds { get; set; } = new List<string>();
+    public string Parameter { get; set; }
     public bool IsCompleted { get; set; }
-    public string LinkedOrderId { get; set; }
-    public List<string> AssignedMemberIds { get; set; } = new List<string>();
-    public List<string> Notes { get; set; } = new List<string>();
 }
 
 public class LockRecord
 {
     public string LockId { get; set; }
     public string LocationId { get; set; }
-    public string LockType { get; set; }
-    public string LockName { get; set; }
+    public string ObjectType { get; set; }
     public bool IsLocked { get; set; }
-    public bool IsPickedOpen { get; set; }
-    public bool IsBlownOpen { get; set; }
-    public int DifficultyRating { get; set; }
-    public DateTime LastAttemptUtc { get; set; }
-    public int FailedAttempts { get; set; }
+    public bool IsPickable { get; set; }
+    public bool IsBypassable { get; set; }
 }
 
 public class DestructibleRecord
 {
     public string DestructibleId { get; set; }
     public string LocationId { get; set; }
-    public string DestructibleName { get; set; }
-    public string DestructibleType { get; set; }
+    public string ObjectType { get; set; }
     public bool IsDestroyed { get; set; }
-    public int HealthPoints { get; set; }
-    public int MaxHealthPoints { get; set; }
-    public bool CanBeBlasted { get; set; }
-    public int BlastResistance { get; set; }
-    public DateTime LastDamagedUtc { get; set; }
+    public bool IsDestroyableByExplosives { get; set; }
+    public bool IsDestroyableByMelee { get; set; }
 }
