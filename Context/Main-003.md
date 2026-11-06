@@ -1,5 +1,12 @@
-﻿<!-- Main lines 501-750 of 1034 -->
+﻿<!-- Main lines 501-750 of 1041 -->
 ```csharp
+
+        targetPed.AlwaysKeepTask = true;
+        targetPed.Task.FollowToOffsetOfEntity(
+            playerPed,
+            new Vector3(0f, -2f, 0f),
+            2f,
+            -1,
             3f,
             true);
 
@@ -243,11 +250,4 @@
         {
             _lockSystem.LoadState(
                 JsonConvert.SerializeObject(_saveRoot.World.Locks));
-        }
-
-        if (_saveRoot.World != null &&
-            _saveRoot.World.Destructibles != null)
-        {
-            _dynamiteSystem.LoadState(
-                JsonConvert.SerializeObject(
 ```

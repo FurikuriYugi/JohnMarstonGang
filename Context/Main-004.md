@@ -1,5 +1,12 @@
-﻿<!-- Main lines 751-1000 of 1034 -->
+﻿<!-- Main lines 751-1000 of 1041 -->
 ```csharp
+        }
+
+        if (_saveRoot.World != null &&
+            _saveRoot.World.Destructibles != null)
+        {
+            _dynamiteSystem.LoadState(
+                JsonConvert.SerializeObject(
                     _saveRoot.World.Destructibles));
         }
 
@@ -243,11 +250,4 @@
             {
                 entity.SupportSkill = 0;
             }
-
-            if (entity.CombatSkill < 0)
-            {
-                entity.CombatSkill = 0;
-            }
-
-            if (entity.StealthSkill < 0)
 ```

@@ -1,4 +1,4 @@
-﻿<!-- Main lines 1-250 of 1034 -->
+﻿<!-- Main lines 1-250 of 1041 -->
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -92,7 +92,7 @@ public class Main : Script
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.KeyCode == Keys.F7)
+        if (e.KeyCode == Keys.G)
         {
             if (!_interactionMenuVisible)
             {
@@ -122,6 +122,7 @@ public class Main : Script
                     : (_selectedInteractionOption + optionCount - 1) %
                       optionCount;
 
+            _interactionMenuText.Caption = BuildInteractionMenuCaption();
             e.Handled = true;
         }
         else if (_interactionMenuVisible && e.KeyCode == Keys.Enter)
@@ -146,6 +147,7 @@ public class Main : Script
             _interactionTargetPed = null;
             _interactionTargetCompanionId = null;
             _interactionTargetHandle = -1;
+            _interactionMenuText.Caption = string.Empty;
             return;
         }
 
@@ -168,6 +170,11 @@ public class Main : Script
 
     private string BuildInteractionMenuCaption()
     {
+        if (_interactionTargetPed == null)
+        {
+            return string.Empty;
+        }
+
         if (string.IsNullOrEmpty(_interactionTargetCompanionId))
         {
             string targetType =
@@ -181,7 +188,7 @@ public class Main : Script
             return targetType + "\n" +
                    (_selectedInteractionOption == 0 ? "> " : " ") +
                    action + "\n\n" +
-                   "Up/Down: Select Enter/F7: Choose";
+                   "G/Enter: Choose";
         }
 
         WorldEntityData entity =
@@ -197,7 +204,7 @@ public class Main : Script
                followOption + "\n" +
                (_selectedInteractionOption == 1 ? "> " : " ") +
                "Dismiss\n\n" +
-               "Up/Down: Select Enter/F7: Choose";
+               "G/Enter: Choose";
     }
 
     private int GetInteractionOptionCount()
@@ -242,12 +249,5 @@ public class Main : Script
     private unsafe Ped GetInteractionLockonTargetPed()
     {
         int entityHandle = 0;
-
-        bool hasTarget =
-            RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(
-                Game.Player.Handle,
-                &entityHandle,
-                false,
-                false);
 
 ```

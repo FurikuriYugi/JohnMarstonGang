@@ -1,5 +1,12 @@
-﻿<!-- Main lines 251-500 of 1034 -->
+﻿<!-- Main lines 251-500 of 1041 -->
 ```csharp
+        bool hasTarget =
+            RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(
+                Game.Player.Handle,
+                &entityHandle,
+                false,
+                false);
+
         if (!hasTarget || entityHandle == 0)
         {
             return null;
@@ -243,11 +250,4 @@
         _entityRegistry.RegisterEntity(entity);
         _gangManagementSystem.RegisterMember(gangMember);
         _runtimeCompanionPeds[companionId] = targetPed;
-
-        targetPed.AlwaysKeepTask = true;
-        targetPed.Task.FollowToOffsetOfEntity(
-            playerPed,
-            new Vector3(0f, -2f, 0f),
-            2f,
-            -1,
 ```

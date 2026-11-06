@@ -1,5 +1,12 @@
-﻿<!-- Main lines 1001-1034 of 1034 -->
+﻿<!-- Main lines 1001-1041 of 1041 -->
 ```csharp
+
+            if (entity.CombatSkill < 0)
+            {
+                entity.CombatSkill = 0;
+            }
+
+            if (entity.StealthSkill < 0)
             {
                 entity.StealthSkill = 0;
             }
