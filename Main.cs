@@ -7,7 +7,7 @@ using RDR2.Math;
 
 public class Main : Script
 {
-    private readonly GangManager _gangManager;
+    private readonly GangManagementSystem _gangManagementSystem;
     private readonly CompanionSystem _companionSystem;
     private readonly BankSystem _bankSystem;
     private readonly JobSystem _jobSystem;
@@ -22,8 +22,10 @@ public class Main : Script
     private readonly InteractionSystem _interactionSystem;
     private readonly CommandSystem _commandSystem;
     private readonly RDR2.UI.TextElement _interactionMenuText;
+
     private readonly Dictionary<string, Ped> _runtimeCompanionPeds =
         new Dictionary<string, Ped>();
+
     private List<Ped> _cachedNearbyEnemies = new List<Ped>();
     private SaveRoot _saveRoot;
     private int _tickCounter;
@@ -36,9 +38,13 @@ public class Main : Script
     public Main()
     {
         _saveRoot = new SaveRoot();
-        _gangManager = new GangManager();
-        _companionSystem = new CompanionSystem();
+
         _bankSystem = new BankSystem();
+        _gangManagementSystem = new GangManagementSystem(
+            new GangJobPayoutSystem(),
+            _bankSystem);
+
+        _companionSystem = new CompanionSystem();
         _jobSystem = new JobSystem();
         _lockSystem = new LockSystem();
         _dynamiteSystem = new DynamiteSystem();
@@ -46,14 +52,21 @@ public class Main : Script
         _wagonSystem = new WagonSystem();
         _tacticalSquadAiSystem = new TacticalSquadAiSystem();
         _entityRegistry = new WorldEntityRegistry();
+
         _tacticalDecisionSystem =
-            new TacticalDecisionSystem(_entityRegistry, _tacticalSquadAiSystem);
+            new TacticalDecisionSystem(
+                _entityRegistry,
+                _tacticalSquadAiSystem);
+
         _coreAISystem = new CoreAISystem(
             _entityRegistry,
             _tacticalDecisionSystem,
             _bankSystem,
             _jobSystem);
-        _interactionSystem = new InteractionSystem(_lockSystem, _dynamiteSystem);
+
+        _interactionSystem =
+            new InteractionSystem(_lockSystem, _dynamiteSystem);
+
         _commandSystem = new CommandSystem();
 
         _interactionMenuText = new RDR2.UI.TextElement(
@@ -67,6 +80,8 @@ public class Main : Script
 
         _interactionMenuText.Enabled = true;
 
+        _jobSystem.JobCompleted += _gangManagementSystem.OnJobCompleted;
+
         Tick += OnTick;
         KeyDown += OnKeyDown;
 
@@ -78,13 +93,19 @@ public class Main : Script
         if (e.KeyCode == Keys.F7)
         {
             if (!_interactionMenuVisible)
+            {
                 UpdateInteractionMenu();
+            }
 
             if (_interactionMenuVisible)
+            {
                 ExecuteInteractionMenuOption();
+            }
             else
+            {
                 RDR2.UI.Screen.PrintSubtitle(
                     "Aim at a nearby person or animal to interact with the gang.");
+            }
 
             e.Handled = true;
         }
@@ -93,9 +114,11 @@ public class Main : Script
         {
             int optionCount = GetInteractionOptionCount();
 
-            _selectedInteractionOption = e.KeyCode == Keys.Down
-                ? (_selectedInteractionOption + 1) % optionCount
-                : (_selectedInteractionOption + optionCount - 1) % optionCount;
+            _selectedInteractionOption =
+                e.KeyCode == Keys.Down
+                    ? (_selectedInteractionOption + 1) % optionCount
+                    : (_selectedInteractionOption + optionCount - 1) %
+                      optionCount;
 
             e.Handled = true;
         }
@@ -137,6 +160,7 @@ public class Main : Script
         _interactionMenuText.Position = new System.Drawing.PointF(
             RDR2.UI.Screen.ScaledWidth * 0.68f,
             360f);
+
         _interactionMenuText.ScaledDraw();
     }
 
@@ -144,10 +168,13 @@ public class Main : Script
     {
         if (string.IsNullOrEmpty(_interactionTargetCompanionId))
         {
-            string targetType = _interactionTargetPed.IsHuman ? "PERSON" : "ANIMAL";
-            string action = _interactionTargetPed.IsHuman
-                ? "Recruit"
-                : "Recruit Animal";
+            string targetType =
+                _interactionTargetPed.IsHuman ? "PERSON" : "ANIMAL";
+
+            string action =
+                _interactionTargetPed.IsHuman
+                    ? "Recruit"
+                    : "Recruit Animal";
 
             return targetType + "\n" +
                    (_selectedInteractionOption == 0 ? "> " : " ") +
@@ -157,8 +184,11 @@ public class Main : Script
 
         WorldEntityData entity =
             _entityRegistry.GetEntity(_interactionTargetCompanionId);
+
         string followOption =
-            entity != null && entity.IsFollowingPlayer ? "Stay" : "Follow";
+            entity != null && entity.IsFollowingPlayer
+                ? "Stay"
+                : "Follow";
 
         return "GANG MEMBER\n" +
                (_selectedInteractionOption == 0 ? "> " : " ") +
@@ -176,7 +206,9 @@ public class Main : Script
     private string GetRuntimeCompanionId(Ped ped)
     {
         if (ped == null || !ped.Exists())
+        {
             return null;
+        }
 
         foreach (KeyValuePair<string, Ped> pair in _runtimeCompanionPeds)
         {
@@ -196,30 +228,38 @@ public class Main : Script
         Ped targetPed = GetInteractionLockonTargetPed();
 
         if (IsInteractionMenuTarget(targetPed))
+        {
             return targetPed;
+        }
 
         targetPed = Game.Player.GetFreeAimEntity() as Ped;
+
         return IsInteractionMenuTarget(targetPed) ? targetPed : null;
     }
 
     private unsafe Ped GetInteractionLockonTargetPed()
     {
         int entityHandle = 0;
-        bool hasTarget = RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(
-            Game.Player.Handle,
-            &entityHandle,
-            false,
-            false);
+
+        bool hasTarget =
+            RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(
+                Game.Player.Handle,
+                &entityHandle,
+                false,
+                false);
 
         if (!hasTarget || entityHandle == 0)
+        {
             return null;
+        }
 
         return Entity.FromHandle(entityHandle) as Ped;
     }
 
     private bool IsInteractionMenuTarget(Ped ped)
     {
-        return GetRuntimeCompanionId(ped) != null || IsRecruitmentCandidate(ped);
+        return GetRuntimeCompanionId(ped) != null ||
+               IsRecruitmentCandidate(ped);
     }
 
     private void ExecuteInteractionMenuOption()
@@ -238,7 +278,9 @@ public class Main : Script
         if (string.IsNullOrEmpty(_interactionTargetCompanionId))
         {
             if (_selectedInteractionOption == 0)
+            {
                 RecruitPed(currentTarget);
+            }
 
             return;
         }
@@ -268,8 +310,11 @@ public class Main : Script
             return;
         }
 
-        WorldEntityData entity = _entityRegistry.GetEntity(companionId);
-        CompanionData companion = _companionSystem.GetCompanion(companionId);
+        WorldEntityData entity =
+            _entityRegistry.GetEntity(companionId);
+
+        CompanionData companion =
+            _companionSystem.GetCompanion(companionId);
 
         bool shouldFollow = entity != null
             ? !entity.IsFollowingPlayer
@@ -277,20 +322,31 @@ public class Main : Script
 
         Ped playerPed = shouldFollow ? Game.Player.Character : null;
 
-        if (shouldFollow && (playerPed == null || !playerPed.Exists()))
+        if (shouldFollow &&
+            (playerPed == null || !playerPed.Exists()))
+        {
             return;
+        }
+
+        string task = shouldFollow ? "FollowPlayer" : "Stay";
 
         if (entity != null)
         {
             entity.IsFollowingPlayer = shouldFollow;
-            entity.CurrentTask = shouldFollow ? "FollowPlayer" : "Stay";
+            entity.CurrentTask = task;
         }
 
         if (companion != null)
         {
             companion.IsFollowingPlayer = shouldFollow;
-            companion.CurrentTask = shouldFollow ? "FollowPlayer" : "Stay";
+            companion.CurrentTask = task;
         }
+
+        _gangManagementSystem.ApplyTacticalContext(
+            companionId,
+            companion != null ? companion.CurrentCombatStyle : null,
+            task,
+            shouldFollow);
 
         companionPed.AlwaysKeepTask = true;
 
@@ -310,13 +366,16 @@ public class Main : Script
         }
 
         SaveAll();
+
         RDR2.UI.Screen.PrintSubtitle(
             shouldFollow
                 ? "Gang member is following you."
                 : "Gang member will stay here.");
     }
 
-    private void DismissCompanion(string companionId, Ped companionPed)
+    private void DismissCompanion(
+        string companionId,
+        Ped companionPed)
     {
         if (string.IsNullOrWhiteSpace(companionId) ||
             companionPed == null ||
@@ -327,9 +386,15 @@ public class Main : Script
 
         companionPed.Task.ClearTasks(true);
         companionPed.AlwaysKeepTask = false;
+
         _runtimeCompanionPeds.Remove(companionId);
         _companionSystem.RemoveCompanion(companionId);
         _entityRegistry.RemoveEntity(companionId);
+
+        if (_gangManagementSystem.MemberExists(companionId))
+        {
+            _gangManagementSystem.RemoveMember(companionId);
+        }
 
         SaveAll();
         RDR2.UI.Screen.PrintSubtitle("Gang member dismissed.");
@@ -375,19 +440,23 @@ public class Main : Script
         }
 
         string companionId = Guid.NewGuid().ToString("N");
+        string name =
+            targetPed.IsHuman ? "Gang Member" : "Animal Companion";
+        string role =
+            targetPed.IsHuman ? "Companion" : "Animal Companion";
+        string combatStyle =
+            targetPed.IsHuman ? "Ranged Medium" : "Animal Support";
 
         CompanionData companion = new CompanionData
         {
             CompanionId = companionId,
-            Name = targetPed.IsHuman ? "Gang Member" : "Animal Companion",
+            Name = name,
             Species = targetPed.IsHuman ? "Human" : "Animal",
             IsHuman = targetPed.IsHuman,
-            Role = targetPed.IsHuman ? "Companion" : "Animal Companion",
+            Role = role,
             Personality = "Undetermined",
             Loyalty = 50,
-            CurrentCombatStyle = targetPed.IsHuman
-                ? "Ranged Medium"
-                : "Animal Support",
+            CurrentCombatStyle = combatStyle,
             CurrentTask = "FollowPlayer",
             IsRecruitable = false,
             IsFollowingPlayer = true
@@ -397,7 +466,7 @@ public class Main : Script
         {
             EntityId = companionId,
             EntityType = targetPed.IsHuman ? "Human" : "Animal",
-            DisplayName = companion.Name,
+            DisplayName = name,
             FactionId = "PlayerGang",
             IsAlive = true,
             IsRecruitable = false,
@@ -407,9 +476,21 @@ public class Main : Script
             Loyalty = companion.Loyalty
         };
 
+        GangMember gangMember = new GangMember
+        {
+            MemberId = companionId,
+            Name = name,
+            Role = role,
+            CombatStyle = combatStyle,
+            CurrentTask = "FollowPlayer",
+            Loyalty = companion.Loyalty,
+            IsFollowingPlayer = true
+        };
+
         _companionSystem.RegisterCompanion(companion);
         _entityRegistry.RegisterEntity(entity);
-        _runtimeCompanionPeds.Add(companionId, targetPed);
+        _gangManagementSystem.RegisterMember(gangMember);
+        _runtimeCompanionPeds[companionId] = targetPed;
 
         targetPed.AlwaysKeepTask = true;
         targetPed.Task.FollowToOffsetOfEntity(
@@ -451,14 +532,19 @@ public class Main : Script
         foreach (KeyValuePair<string, Ped> pair in _runtimeCompanionPeds)
         {
             if (pair.Value == null || !pair.Value.Exists())
+            {
                 continue;
+            }
 
             hasRuntimeCompanion = true;
 
-            WorldEntityData entity = _entityRegistry.GetEntity(pair.Key);
+            WorldEntityData entity =
+                _entityRegistry.GetEntity(pair.Key);
 
             if (entity != null && entity.IsFollowingPlayer)
+            {
                 hasFollowingCompanion = true;
+            }
         }
 
         if (!hasRuntimeCompanion)
@@ -471,7 +557,8 @@ public class Main : Script
         bool shouldFollow = !hasFollowingCompanion;
         Ped playerPed = shouldFollow ? Game.Player.Character : null;
 
-        if (shouldFollow && (playerPed == null || !playerPed.Exists()))
+        if (shouldFollow &&
+            (playerPed == null || !playerPed.Exists()))
         {
             RDR2.UI.Screen.PrintSubtitle("Unable to find the player.");
             return;
@@ -482,14 +569,19 @@ public class Main : Script
             Ped companionPed = pair.Value;
 
             if (companionPed == null || !companionPed.Exists())
+            {
                 continue;
+            }
 
-            WorldEntityData entity = _entityRegistry.GetEntity(pair.Key);
+            string task = shouldFollow ? "FollowPlayer" : "Stay";
+
+            WorldEntityData entity =
+                _entityRegistry.GetEntity(pair.Key);
 
             if (entity != null)
             {
                 entity.IsFollowingPlayer = shouldFollow;
-                entity.CurrentTask = shouldFollow ? "FollowPlayer" : "Stay";
+                entity.CurrentTask = task;
             }
 
             CompanionData companion =
@@ -498,8 +590,14 @@ public class Main : Script
             if (companion != null)
             {
                 companion.IsFollowingPlayer = shouldFollow;
-                companion.CurrentTask = shouldFollow ? "FollowPlayer" : "Stay";
+                companion.CurrentTask = task;
             }
+
+            _gangManagementSystem.ApplyTacticalContext(
+                pair.Key,
+                companion != null ? companion.CurrentCombatStyle : null,
+                task,
+                shouldFollow);
 
             companionPed.AlwaysKeepTask = true;
 
@@ -530,10 +628,13 @@ public class Main : Script
     private void OnTick(object sender, EventArgs e)
     {
         UpdateInteractionMenu();
+
         _tickCounter++;
 
         if (_tickCounter % 30 == 0)
+        {
             _cachedNearbyEnemies = GetNearbyCombatPeds();
+        }
 
         Ped playerPed = Game.Player.Character;
 
@@ -547,7 +648,9 @@ public class Main : Script
         }
 
         if (_tickCounter % 30 != 0)
+        {
             return;
+        }
 
         UpdateEntityAI();
         SaveAll();
@@ -559,12 +662,16 @@ public class Main : Script
         Ped playerPed = Game.Player.Character;
 
         if (playerPed == null || !playerPed.Exists())
+        {
             return nearbyEnemies;
+        }
 
         Ped[] worldPeds = World.GetAllPeds();
 
         if (worldPeds == null)
+        {
             return nearbyEnemies;
+        }
 
         foreach (Ped ped in worldPeds)
         {
@@ -579,7 +686,9 @@ public class Main : Script
             }
 
             if (ped.Position.DistanceTo(playerPed.Position) > 50f)
+            {
                 continue;
+            }
 
             nearbyEnemies.Add(ped);
         }
@@ -592,9 +701,11 @@ public class Main : Script
         _saveRoot = JsonSaveSystem.Load();
 
         if (_saveRoot == null)
+        {
             _saveRoot = new SaveRoot();
+        }
 
-        _gangManager.ImportSaveData(_saveRoot);
+        _gangManagementSystem.LoadFromSaveRoot(_saveRoot);
         _jobSystem.LoadFromSaveRoot(_saveRoot);
 
         if (_saveRoot.World != null &&
@@ -621,7 +732,8 @@ public class Main : Script
             _saveRoot.World.WeaponPlatforms != null)
         {
             _weaponSystem.LoadState(
-                JsonConvert.SerializeObject(_saveRoot.World.WeaponPlatforms));
+                JsonConvert.SerializeObject(
+                    _saveRoot.World.WeaponPlatforms));
         }
 
         if (_saveRoot.World != null &&
@@ -635,14 +747,16 @@ public class Main : Script
             _saveRoot.World.Destructibles != null)
         {
             _dynamiteSystem.LoadState(
-                JsonConvert.SerializeObject(_saveRoot.World.Destructibles));
+                JsonConvert.SerializeObject(
+                    _saveRoot.World.Destructibles));
         }
 
         if (_saveRoot.World != null &&
             _saveRoot.World.TacticalOrders != null)
         {
             _tacticalSquadAiSystem.LoadState(
-                JsonConvert.SerializeObject(_saveRoot.World.TacticalOrders));
+                JsonConvert.SerializeObject(
+                    _saveRoot.World.TacticalOrders));
         }
 
         if (_saveRoot.World != null &&
@@ -683,61 +797,56 @@ public class Main : Script
             CompanionAIState state = new CompanionAIState
             {
                 EntityId = savedState.CompanionId,
-                Personality = string.IsNullOrWhiteSpace(savedState.Personality)
-                    ? "Neutral"
-                    : savedState.Personality,
+                Personality =
+                    string.IsNullOrWhiteSpace(savedState.Personality)
+                        ? "Neutral"
+                        : savedState.Personality,
                 Morale = savedState.Morale,
                 Fatigue = savedState.Fatigue,
                 Hunger = savedState.Hunger,
                 Thirst = savedState.Thirst,
                 PrefersStealth = savedState.PrefersStealth,
                 CurrentGoal = savedState.CurrentGoal,
-                LastActivityTimestamp = savedState.LastActivityTimestamp,
+                LastActivityTimestamp =
+                    savedState.LastActivityTimestamp,
                 ExperiencePoints = savedState.ExperiencePoints,
-                SkillProgression = savedState.SkillProgression ??
-                                   new Dictionary<string, int>(),
-                CompletedJobs = savedState.CompletedJobs ??
-                                new List<string>(),
+                SkillProgression =
+                    savedState.SkillProgression ??
+                    new Dictionary<string, int>(),
+                CompletedJobs =
+                    savedState.CompletedJobs ??
+                    new List<string>(),
                 TotalEarnings = savedState.TotalEarnings,
                 BanksVisited = savedState.BanksVisited,
                 DepositsWithdrawn = savedState.DepositsWithdrawn
             };
 
-            if (state.Morale < 0)
-                state.Morale = 0;
-            else if (state.Morale > 100)
-                state.Morale = 100;
+            state.Morale = Clamp(state.Morale, 0, 100);
+            state.Fatigue = Clamp(state.Fatigue, 0, 100);
+            state.Hunger = Clamp(state.Hunger, 0, 100);
+            state.Thirst = Clamp(state.Thirst, 0, 100);
 
-            if (state.Fatigue < 0)
-                state.Fatigue = 0;
-            else if (state.Fatigue > 100)
-                state.Fatigue = 100;
-
-            if (state.Hunger < 0)
-                state.Hunger = 0;
-            else if (state.Hunger > 100)
-                state.Hunger = 100;
-
-            if (state.Thirst < 0)
-                state.Thirst = 0;
-            else if (state.Thirst > 100)
-                state.Thirst = 100;
-
-            _coreAISystem.SetAIState(savedState.CompanionId, state);
+            _coreAISystem.SetAIState(
+                savedState.CompanionId,
+                state);
         }
     }
 
     private void SyncInteractionRecordsFromSave()
     {
         if (_saveRoot == null || _saveRoot.World == null)
+        {
             return;
+        }
 
         if (_saveRoot.World.Locks != null)
         {
             foreach (LockRecord record in _saveRoot.World.Locks)
             {
                 if (record != null)
+                {
                     _interactionSystem.RegisterLock(record);
+                }
             }
         }
 
@@ -747,7 +856,9 @@ public class Main : Script
                      in _saveRoot.World.Destructibles)
             {
                 if (record != null)
+                {
                     _interactionSystem.RegisterDestructible(record);
+                }
             }
         }
     }
@@ -755,22 +866,45 @@ public class Main : Script
     private void SyncWorldStateFromSystems()
     {
         if (_saveRoot == null)
+        {
             _saveRoot = new SaveRoot();
+        }
 
         if (_saveRoot.World == null)
+        {
             _saveRoot.World = new WorldState();
+        }
 
-        _saveRoot.GangMembers = _gangManager.GetMembers();
-        _saveRoot.World.Companions = _companionSystem.GetCompanions();
-        _saveRoot.BankAccounts = _bankSystem.GetAllAccounts();
+        _gangManagementSystem.WriteToSaveRoot(_saveRoot);
+
+        _saveRoot.World.Companions =
+            _companionSystem.GetCompanions();
+
+        _saveRoot.BankAccounts =
+            _bankSystem.GetAllAccounts();
+
         _jobSystem.WriteToSaveRoot(_saveRoot);
-        _saveRoot.World.Wagons = _wagonSystem.GetWagons();
-        _saveRoot.World.WeaponPlatforms = _weaponSystem.GetPlatforms();
-        _saveRoot.World.Locks = _lockSystem.GetLocks();
-        _saveRoot.World.Destructibles = _dynamiteSystem.GetDestructibles();
-        _saveRoot.World.TacticalOrders = _tacticalSquadAiSystem.GetOrders();
-        _saveRoot.World.Commands = _commandSystem.GetCommands();
-        _saveRoot.WorldEntities = _entityRegistry.GetEntities();
+
+        _saveRoot.World.Wagons =
+            _wagonSystem.GetWagons();
+
+        _saveRoot.World.WeaponPlatforms =
+            _weaponSystem.GetPlatforms();
+
+        _saveRoot.World.Locks =
+            _lockSystem.GetLocks();
+
+        _saveRoot.World.Destructibles =
+            _dynamiteSystem.GetDestructibles();
+
+        _saveRoot.World.TacticalOrders =
+            _tacticalSquadAiSystem.GetOrders();
+
+        _saveRoot.World.Commands =
+            _commandSystem.GetCommands();
+
+        _saveRoot.WorldEntities =
+            _entityRegistry.GetEntities();
 
         List<CompanionAIStateData> savedAIStates =
             new List<CompanionAIStateData>();
@@ -788,7 +922,9 @@ public class Main : Script
                 _coreAISystem.GetAIState(entity.EntityId);
 
             if (state == null)
+            {
                 continue;
+            }
 
             savedAIStates.Add(new CompanionAIStateData
             {
@@ -802,10 +938,12 @@ public class Main : Script
                 CurrentGoal = state.CurrentGoal,
                 LastActivityTimestamp = state.LastActivityTimestamp,
                 ExperiencePoints = state.ExperiencePoints,
-                SkillProgression = state.SkillProgression ??
-                                   new Dictionary<string, int>(),
-                CompletedJobs = state.CompletedJobs ??
-                                new List<string>(),
+                SkillProgression =
+                    state.SkillProgression ??
+                    new Dictionary<string, int>(),
+                CompletedJobs =
+                    state.CompletedJobs ??
+                    new List<string>(),
                 TotalEarnings = state.TotalEarnings,
                 BanksVisited = state.BanksVisited,
                 DepositsWithdrawn = state.DepositsWithdrawn
@@ -817,12 +955,15 @@ public class Main : Script
 
     private void UpdateEntityAI()
     {
-        _commandSystem.ProcessActiveCommands(_tacticalDecisionSystem);
+        _commandSystem.ProcessActiveCommands(
+            _tacticalDecisionSystem);
 
         foreach (WorldEntityData entity in _entityRegistry.GetEntities())
         {
             if (entity == null || !entity.IsAlive)
+            {
                 continue;
+            }
 
             if (string.IsNullOrWhiteSpace(entity.CombatStyle))
             {
@@ -842,23 +983,39 @@ public class Main : Script
             }
 
             if (entity.IsRecruitable && entity.Loyalty < 0)
+            {
                 entity.Loyalty = 0;
+            }
 
             if (entity.SupportSkill < 0)
+            {
                 entity.SupportSkill = 0;
+            }
 
             if (entity.CombatSkill < 0)
+            {
                 entity.CombatSkill = 0;
+            }
 
             if (entity.StealthSkill < 0)
+            {
                 entity.StealthSkill = 0;
+            }
+
+            _gangManagementSystem.ApplyTacticalContext(
+                entity.EntityId,
+                entity.CombatStyle,
+                entity.CurrentTask,
+                entity.IsFollowingPlayer);
         }
 
         foreach (TacticalOrderData order
                  in _tacticalSquadAiSystem.GetOrders())
         {
             if (order == null || order.IsCompleted)
+            {
                 continue;
+            }
 
             _tacticalDecisionSystem.ApplyOrderToSquad(order);
         }
@@ -868,5 +1025,10 @@ public class Main : Script
     {
         SyncWorldStateFromSystems();
         JsonSaveSystem.Save(_saveRoot);
+    }
+
+    private static int Clamp(int value, int minimum, int maximum)
+    {
+        return Math.Max(minimum, Math.Min(maximum, value));
     }
 }

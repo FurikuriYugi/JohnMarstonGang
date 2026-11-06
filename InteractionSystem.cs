@@ -29,17 +29,8 @@ public class InteractionSystem
     public bool TryBreakLock(string targetId)
     {
         if (_lockSystem == null ||
-            string.IsNullOrWhiteSpace(targetId))
-        {
-            return false;
-        }
-
-        LockRecord record = _lockSystem.GetLock(targetId);
-
-        if (record == null ||
-            !record.IsLocked ||
-            record.IsPickedOpen ||
-            record.IsBlownOpen)
+            string.IsNullOrWhiteSpace(targetId) ||
+            !_lockSystem.CanBreak(targetId))
         {
             return false;
         }
@@ -59,6 +50,18 @@ public class InteractionSystem
         }
 
         _dynamiteSystem.ApplyExplosion(targetId, damage);
+
+        if (!IsDestroyed(targetId))
+        {
+            return false;
+        }
+
+        if (_lockSystem != null &&
+            _lockSystem.CanBreak(targetId))
+        {
+            _lockSystem.Break(targetId);
+        }
+
         return true;
     }
 
@@ -74,20 +77,12 @@ public class InteractionSystem
 
         return record != null &&
                record.IsLocked &&
-               !record.IsPickedOpen &&
-               !record.IsBlownOpen;
+               !IsDestroyed(targetId);
     }
 
     public bool IsBroken(string targetId)
     {
-        if (_lockSystem == null ||
-            string.IsNullOrWhiteSpace(targetId))
-        {
-            return false;
-        }
-
-        LockRecord record = _lockSystem.GetLock(targetId);
-        return record != null && record.IsBlownOpen;
+        return IsDestroyed(targetId);
     }
 
     public bool IsDestroyed(string targetId)
@@ -119,7 +114,9 @@ public class InteractionSystem
     public void RegisterLock(LockRecord record)
     {
         if (_lockSystem == null || record == null)
+        {
             return;
+        }
 
         _lockSystem.RegisterLock(record);
     }
@@ -127,7 +124,9 @@ public class InteractionSystem
     public void RegisterDestructible(DestructibleRecord record)
     {
         if (_dynamiteSystem == null || record == null)
+        {
             return;
+        }
 
         _dynamiteSystem.RegisterDestructible(record);
     }
@@ -142,11 +141,14 @@ public class InteractionSystem
         int maxHealth)
     {
         if (string.IsNullOrWhiteSpace(targetId))
+        {
             return;
+        }
 
         if (_lockSystem != null)
         {
-            LockRecord lockRecord = _lockSystem.GetLock(targetId);
+            LockRecord lockRecord =
+                _lockSystem.GetLock(targetId);
 
             if (lockRecord == null)
             {
@@ -154,22 +156,28 @@ public class InteractionSystem
                 {
                     LockId = targetId,
                     IsLocked = isLocked && !isBroken,
-                    IsPickedOpen = !isLocked && !isBroken,
-                    IsBlownOpen = isBroken
+                    IsPickable = isLocked && !isBroken,
+                    IsBypassable = true
                 };
 
                 _lockSystem.RegisterLock(lockRecord);
             }
             else
             {
-                lockRecord.IsLocked = isLocked && !isBroken;
-                lockRecord.IsPickedOpen = !isLocked && !isBroken;
-                lockRecord.IsBlownOpen = isBroken;
+                lockRecord.IsLocked =
+                    isLocked && !isBroken;
+
+                lockRecord.IsPickable =
+                    isLocked && !isBroken;
+
+                lockRecord.IsBypassable = true;
             }
         }
 
         if (_dynamiteSystem == null || !isDestructible)
+        {
             return;
+        }
 
         DestructibleRecord destructibleRecord =
             _dynamiteSystem.GetDestructible(targetId);
@@ -179,20 +187,20 @@ public class InteractionSystem
             destructibleRecord = new DestructibleRecord
             {
                 DestructibleId = targetId,
-                IsDestroyed = isDestroyed,
-                HealthPoints = health,
-                MaxHealthPoints = maxHealth,
-                CanBeBlasted = true
+                IsDestroyed = isDestroyed || isBroken,
+                IsDestroyableByExplosives = true,
+                IsDestroyableByMelee = false
             };
 
-            _dynamiteSystem.RegisterDestructible(destructibleRecord);
+            _dynamiteSystem.RegisterDestructible(
+                destructibleRecord);
         }
         else
         {
-            destructibleRecord.IsDestroyed = isDestroyed;
-            destructibleRecord.HealthPoints = health;
-            destructibleRecord.MaxHealthPoints = maxHealth;
-            destructibleRecord.CanBeBlasted = true;
+            destructibleRecord.IsDestroyed =
+                isDestroyed || isBroken;
+
+            destructibleRecord.IsDestroyableByExplosives = true;
         }
     }
 }
