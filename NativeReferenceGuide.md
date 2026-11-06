@@ -15,6 +15,16 @@ Record the ScriptHookRDR2DotNet-V2 API patterns and native declarations relevant
 - Do not assume a native's parameter meaning from a placeholder parameter name such as `p4`.
 - Confirm exact C# names and parameter types against the installed API wrapper/XML before writing calls.
 
+## Player interaction target
+
+ScriptHookRDR2DotNet-V2 release notes for v2.1.0.0 list:
+
+- `Player.GetFreeAimEntity()`
+- `Player.GetInteractionLockonTargetEntity()`
+- `Player.IsFreeFocusing`
+
+Use the lock-on target accessor for the native lock-on test. Do not treat free aim as equivalent to the player's focused interaction target. A fallback to free aim may remain in other project behavior, but the lock-on prompt test should distinguish those paths.
+
 ## Interaction-lock-on prompt
 
 The installed XML reference recorded in this project documents this signature:
@@ -58,7 +68,7 @@ These values are reported for `p4`; only use a flag after confirming that it sui
 - `256`: allows interaction-lock-on prompts to show without looking directly at the target in third person.
 - `512`: hides the prompt icon border.
 - `1024`: also reported to suppress the focus prompt while still allowing focus.
-- Other documented flag values remain unknown for this prototype.
+- Other flag values remain unknown for this prototype.
 
 ### Registration lifecycle
 
@@ -82,26 +92,39 @@ To show and accept a G recruitment action while the target is focused:
 
 The native research reports `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY` as hash `0xB796970BD125FCE8` and `_UI_PROMPT_SET_GROUP` as hash `0x2F11D3A254169EA4`. Confirm the installed `RDR2.Native` wrapper names and signatures before using them.
 
-Do not infer that `p7` in `REGISTER_INTERACTION_LOCKON_PROMPT` is the G action prompt. Research could not confirm custom prompt use through that parameter. The UI action prompt is a distinct prompt and needs its own input-acceptance check.
+Do not infer that `p7` in `REGISTER_INTERACTION_LOCKON_PROMPT` is the G action prompt. Research could not confirm custom prompt use through that parameter. The UI action prompt is distinct and needs its own input-acceptance check.
 
-For this prototype, G is a **test recruitment key**. Use the project's existing recruitment path and ensure the action fires once per acceptance. Do not allow the old `KeyDown` G handler and the new prompt completion handler to recruit the same target twice.
+### Test control
+
+The controls reference reports:
+
+- `INPUT_INTERACT_LOCKON`: hash `0xF8982F00`; default QWERTY binding Mouse Right and Xbox binding LT.
+- `INPUT_INTERACT_OPTION1`: hash `0x760A9C6F`; default QWERTY binding G and Xbox binding D-pad Up.
+- `INPUT_INTERACT_LOCKON_ANIMAL`: hash `0x5415BE48`; default QWERTY binding G and Xbox binding X.
+
+For the generic NPC recruit test, `INPUT_INTERACT_OPTION1` is the candidate prompt control because its default keyboard binding is G. Confirm the installed API's supported prompt-control setup and the resulting glyph in game. Do not assume that the physical `G` key and a game control action are interchangeable in every input mode.
+
+Ensure the existing G `KeyDown` recruitment path and the prompt completion path cannot recruit the same target twice.
 
 ## API-version notes
 
 - ScriptHookRDR2DotNet-V2 release notes state that `Function.Call()` is not a valid script-level native invocation in v2.1.1.0 and later; use the generated `RDR2.Native` functions.
 - Releases advise using the ASI and API DLL files from the same release archive because internal structure may change.
-- The repository currently identifies v2.2.0 as a release. Confirm the version actually referenced by this project before implementing native calls.
+- The repository lists v2.2.0 as a release. Confirm the version actually referenced by this project before implementing native calls.
+- v2.1.0.1 release notes state that prompt text did not work in that version. The v2.2.0 release notes do not say whether that issue was resolved. Treat custom prompt text display as unverified until tested in the project’s actual runtime.
 
 ## Sources and verification status
 
-The signature above is recorded in the project's installed-XML notes. The argument explanations, prompt-group approach, and native hashes are documented by external RDR2 prompt research; they are not confirmed by an in-game test in this project.
+The signature above is recorded in the project's installed-XML notes. Argument explanations, flag descriptions, hashes, and prompt-group behavior are documented by external RDR2 native research; they are not confirmed by an in-game test in this project.
 
 - **Documented in local reference:** ILO native signature and `RDR2.Native` usage pattern.
-- **Documented in external native research:** Argument interpretations, flag notes, hashes, and prompt-group behavior.
-- **Open:** Exact wrapper signatures for the prompt-related natives in this project's currently referenced API.
-- **Open:** G binding, prompt appearance, acceptance detection, cleanup, and controller behavior in-game.
+- **Documented in external research:** Argument interpretations, flag notes, hashes, control defaults, and prompt-group behavior.
+- **Documented in ScriptHook release notes:** Lock-on target accessor, native-call API changes, and release pairing guidance.
+- **Open:** Exact wrapper signatures for prompt-related natives in this project's currently referenced API.
+- **Open:** Prompt label display, acceptance detection, cleanup, and controller behavior in game.
 
 ## Sources
 
 - Halen84/ScriptHookRDR2DotNet-V2 repository and release notes.
 - Published RDR2 prompt research dated December 15, 2023.
+- Published RDR2 controls reference.
