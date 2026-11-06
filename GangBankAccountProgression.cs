@@ -50,10 +50,15 @@ public sealed class GangBankAccountProgression
                 "The required banker trust score must be at least one.");
         }
 
-        _bankerNpcIds = NormalizeSet(bankerNpcIds, nameof(bankerNpcIds));
+        _bankerNpcIds = NormalizeSet(
+            bankerNpcIds,
+            nameof(bankerNpcIds),
+            true);
+
         _requiredStoryMilestones = NormalizeSet(
             requiredStoryMilestones,
-            nameof(requiredStoryMilestones));
+            nameof(requiredStoryMilestones),
+            true);
 
         State = state ?? new GangBankAccountProgressionState();
         _requiredInteractions = requiredInteractions;
@@ -65,8 +70,8 @@ public sealed class GangBankAccountProgression
 
     /// <summary>
     /// Records a meaningful interaction with a configured bank-connected NPC.
-    /// Call this only after an actual interaction choice, not merely when the
-    /// player targets or approaches an NPC.
+    /// Call only after the player completes an interaction choice, not merely
+    /// when the player targets or approaches an NPC.
     /// Returns true only if this interaction newly unlocks the gang account.
     /// </summary>
     public bool RecordBankerInteraction(string bankerNpcId, int trustChange)
@@ -116,7 +121,7 @@ public sealed class GangBankAccountProgression
     }
 
     /// <summary>
-    /// Records a completed gang-story milestone. Only the configured required
+    /// Records a completed story milestone. Only configured required
     /// milestones contribute to unlocking the gang account.
     /// Returns true only if this milestone newly unlocks the gang account.
     /// </summary>
@@ -211,8 +216,10 @@ public sealed class GangBankAccountProgression
         State.BankerTrustScores =
             NormalizeDictionary(State.BankerTrustScores);
 
-        State.CompletedStoryMilestones =
-            NormalizeSet(State.CompletedStoryMilestones, nameof(State.CompletedStoryMilestones));
+        State.CompletedStoryMilestones = NormalizeSet(
+            State.CompletedStoryMilestones,
+            nameof(State.CompletedStoryMilestones),
+            false);
     }
 
     private static Dictionary<string, int> NormalizeDictionary(
@@ -235,7 +242,8 @@ public sealed class GangBankAccountProgression
 
     private static HashSet<string> NormalizeSet(
         IEnumerable<string> values,
-        string parameterName)
+        string parameterName,
+        bool requireAtLeastOne)
     {
         if (values == null)
         {
@@ -254,7 +262,7 @@ public sealed class GangBankAccountProgression
             }
         }
 
-        if (normalized.Count == 0)
+        if (requireAtLeastOne && normalized.Count == 0)
         {
             throw new ArgumentException(
                 "At least one identifier must be provided.",
