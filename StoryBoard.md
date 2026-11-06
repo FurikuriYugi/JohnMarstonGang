@@ -1,66 +1,353 @@
-# JohnMarstonGang — Storyboard and Architecture Plan
+# JohnMarstonGang — StoryBoard and Architecture Plan
 
 ## Purpose
 
-This document is the living design source for the story, gameplay loops, and system boundaries of the JohnMarstonGang mod for Red Dead Redemption 2. Add new ideas here before or while building them so their prerequisites, consequences, persistence, and integration points stay visible.
+This is the living design source for the story, gameplay loops, system
+boundaries, decisions, and implementation order of the JohnMarstonGang
+mod for Red Dead Redemption 2.
 
-This is a design plan, not a claim that any listed feature is implemented. Update each feature’s status only after checking the repository and testing the behavior.
+This document is a design plan, not proof that a feature works. A feature
+may be marked implemented when its code exists, but mark it tested only
+after confirming its behavior in game under recorded conditions.
+
+Add new ideas here before or while building them so their prerequisites,
+consequences, persistence, and integration points stay visible.
 
 ## Project constraints
 
 - **Project:** JohnMorstonGang
 - **Game:** Red Dead Redemption 2
 - **Environment:** Visual Studio, C#
-- **Script API:** ScriptHookRDRNetAPI.dll from ScriptHookRDR2DotNet-V2
-- Use the repository as the source of truth for existing files, class members, and system contracts.
-- Keep code aligned with the owning file’s actual contract.
+- **Script API:** `ScriptHookRDRNetAPI.dll` from ScriptHookRDR2DotNet-V2
+- The GitHub repository is the source of truth for current files, members,
+  and system contracts.
+- Before changing code, read this document and the current owning files.
+- Match callers to the actual contract in the owning file.
 - Use Newtonsoft.Json for JSON; do not use System.Text.Json.
-- Do not assume an unverified game native, event, scene, or cutscene API exists.
-- Keep this document synchronized with implemented behavior and known limitations.
+- Do not assume an unverified game native, event, scene, cutscene, or asset
+  is available.
+- Do not treat a data model or system class as a game-integrated feature
+  until the running mod calls it and its behavior has been checked.
+- Keep this document and `ResearchNotes.md` updated as decisions and
+  research results change.
 
 ## Status key
 
-- **Unverified:** Check the repository and test before describing current behavior.
-- **Planned:** Design agreed; implementation not yet confirmed.
-- **In progress:** Code is being built.
-- **Implemented:** Present in the repository.
-- **Tested:** Confirmed in-game under the documented conditions.
+- **Unverified:** The repository or behavior needs inspection.
+- **Planned:** The design is agreed; implementation is not confirmed.
+- **In progress:** Implementation is underway.
+- **Implemented:** Code is present in the repository.
+- **Tested:** Behavior has been confirmed in game under documented
+  conditions.
+
+Add a note when code exists but has not been tested in game, for example:
+**Implemented; runtime behavior unverified.**
 
 ## Design pillars
 
-1. **The gang is a persistent group.** Members have identities, skills, preferences, relationships, memories, equipment, and goals.
-2. **The world responds to actions.** Jobs, banks, businesses, coaches, trains, and local people should react to prior events and relationships.
-3. **Choices have consequences.** Honor, suspicion, trust, alliances, resources, and gang morale can change.
-4. **AI decisions must be understandable.** Each choice should follow the member’s traits, orders, situation, and available information.
-5. **Gameplay resolves safely.** Saved state must not grant duplicate payouts, duplicate loot, or contradictory mission outcomes.
-6. **Story moments serve systems.** Scenes and conversations should present meaningful outcomes, not replace the underlying gameplay rules.
-7. **Build in vertical slices.** Complete and test one connected gameplay loop before adding a broad set of disconnected systems.
+1. **The gang is a persistent group.** Members have identity, skills,
+   preferences, relationships, memories, equipment, needs, and goals.
+2. **The world responds to actions.** Jobs, businesses, factions, banks,
+   transport, and local people react to events and relationships.
+3. **Choices have consequences.** Honor, suspicion, trust, alliances,
+   resources, and morale can change.
+4. **Character decisions are explainable.** Decisions follow personality,
+   needs, goals, orders, situation, and available information.
+5. **Gameplay resolves safely.** Save/load and repeated events must not
+   duplicate loot, payouts, jobs, or contradictory outcomes.
+6. **Conversations present system outcomes.** Dialogue and scenes are not
+   the source of truth for jobs, inventory, relationships, or money.
+7. **Build vertical slices.** Complete and test one connected loop before
+   expanding to many disconnected systems.
+8. **Respect the base game.** Prefer verified native interactions and
+   familiar presentation; provide a fallback if a native feature cannot be
+   made reliable.
 
 ## Core gameplay loop
 
-1. The player recruits companions, meets people, discovers opportunities, or receives a job.
-2. The gang evaluates the opportunity based on honor, relationships, risk, resources, alliances, and member preferences.
-3. The player and gang choose an approach and prepare people, weapons, supplies, wagons, and tactics.
-4. The job plays out in the world, with AI decisions reacting to orders and changing circumstances.
-5. The outcome updates money, goods, honor, suspicion, relationships, memories, and world state.
-6. At an appropriate time and place, the gang discusses the result, receives shares, and considers investing in future needs.
-7. The player’s choices affect future opportunities and the gang’s progression.
+1. The player meets people, recruits companions, receives information, or
+   discovers an opportunity.
+2. The gang evaluates the opportunity using risk, honor, relationships,
+   alliances, abilities, resources, and member preferences.
+3. Members discuss and may vote; the player chooses whether to follow the
+   recommendation, override it, postpone, or decline.
+4. The gang prepares people, weapons, supplies, transport, and tactics.
+5. The job or activity plays out in the world. Companions react to orders
+   and changing circumstances.
+6. Members may collect eligible loot and resources. Carried gang property
+   is recorded and transferred to the gang stores when returned to camp.
+7. Outcomes update jobs, money, inventory, honor, suspicion,
+   relationships, memories, and world state.
+8. At a suitable time and place, the gang may discuss results, settle
+   pending job shares, or decide how to use shared resources.
+9. The player’s choices shape future opportunities, relationships, and
+   gang progression.
 
-## System map
+## System responsibilities
 
-These are conceptual responsibilities. Before implementation, confirm how the current repository names and organizes each system.
+### Core AI and NPC simulation
 
-### Core AI intelligence
+Core AI coordinates decisions for companions and relevant NPCs. Decisions
+consider current orders, traits, needs, goals, memories, relationships,
+danger, resources, and world context.
 
-Coordinates decisions for companions and relevant NPCs. Decisions should account for current orders, personal traits, memories, relationships, goals, danger, resources, and world context.
+Use local, bounded simulation for NPCs and factions. When relevant
+characters are present, use supported in-world behavior. For distant
+characters, update compact persistent state rather than requiring every
+NPC to run full AI continuously.
 
-### Companion system
+### Companions and social relationships
 
-Tracks companion identity, appearance, clothing, weapons, abilities, skills, experience, needs, memories, relationships, and personal goals. The design includes human and animal companions.
+Track a companion’s identity, appearance, clothing, weapons, abilities,
+skills, experience, needs, memories, relationships, and personal goals.
+The design includes human and animal companions.
 
-### Tactical combat system
+Distinguish:
 
-Chooses behavior using orders, combat style, individual ability, team role, threat, terrain, visibility, ammunition, and mission goals.
+- **Traits/personality:** relatively stable tendencies such as cautious,
+  generous, ambitious, loyal, or quick-tempered.
+- **Needs:** changing conditions such as food, rest, safety, medicine, or
+  money.
+- **Goals:** desired outcomes such as revenge, advancement, security, or
+  helping a particular person.
+- **Relationships and memories:** specific history between people that
+  changes trust, fear, resentment, affection, and willingness to help.
+
+Use those factors to explain reactions, not just produce an invisible
+score. Recruitment requires a conversation and a willing NPC; it is not
+an automatic result of selecting a recruit action. Refusal may lead to a
+later opportunity, lasting rejection, or hostility depending on the
+person and what happened.
+
+### Interaction, conversation, and recruitment
+
+The intended player-facing interaction is the base game’s right-mouse
+lock-on interaction while unarmed, if the project’s installed API and
+in-game testing confirm it can support the required prompt and action
+selection.
+
+Use contextual actions appropriate to the target and state, such as:
+
+- Talk or greet.
+- Discuss an available job lead.
+- Invite a person to join the gang.
+- Follow, stay, or receive another command from an existing companion.
+- Request an item or assistance where supported.
+
+A conversation should account for who the NPC is, what they know, their
+relationship with the player and gang, and their current needs and goals.
+An interaction prompt is a presentation affordance; the conversation and
+social systems own the outcome.
+
+The present custom F7/F9 controls are test controls, not the intended
+finished interaction design. According to the inspected `Main.cs`, F7
+opens the current custom interaction overlay, while F9 toggles companion
+follow. Replace these as normal player controls only after the native
+interaction path is verified in game. Keep a debug fallback temporarily
+if required for testing.
+
+### Job leads, discussions, and votes
+
+A lead begins as information, not an accepted job. It may come from a
+gang member’s conversation, a local incident, a faction conflict, or
+another supported world event.
+
+Persist an opportunity with a stable ID and enough state to explain it:
+source, location, involved people or factions, known facts, uncertainty,
+possible approaches, risks, rewards, required resources, consequences,
+and expiration or change conditions.
+
+Suggested opportunity states:
+
+- Rumored
+- Reported
+- Awaiting discussion
+- Discussing
+- Awaiting player decision
+- Accepted
+- Declined
+- Expired
+- Resolved
+
+A member with a lead should try to approach the player and, when
+appropriate, the gang. If the player is busy or absent, keep the lead
+available rather than losing or silently accepting it. Use a marker or
+notification only after confirming the game API supports it. A clear
+interaction or subtitle fallback is acceptable.
+
+Members may support, oppose, or abstain from a proposal. Their reasons
+come from relevant traits, needs, skills, memories, relationships, goals,
+alliances, and knowledge of the situation. Record reasons so dialogue
+and debugging can explain their views.
+
+The player may:
+
+- Hear the discussion and accept the gang’s recommendation.
+- Override the gang and choose another available approach.
+- Postpone the decision while the lead remains available.
+- Decline the opportunity.
+
+A vote informs the player; it does not remove player agency. Ignoring or
+postponing a lead must not silently accept or decline it.
+
+A scene or conversation presents the decision but must not be the only
+record of whether a job was accepted. Persist the opportunity and job
+state independently of scene completion.
+
+### Jobs and world events
+
+The Job System owns job proposals, voting state, accepted jobs, objectives,
+outcomes, costs, and job consequences. Other systems own their own state:
+the bank owns accounts and vault state; the inventory owns goods; the
+relationship system owns relationships.
+
+World events may create opportunities, but not every incident must become
+a job. For example, if a person is wronged by a gang or faction, they may
+ask for help, seek revenge, consider joining, reject the player, or do
+nothing. Their response depends on their own motives and the event’s
+context.
+
+### Field salvage and gang stores
+
+Companions may collect eligible loot and resources while travelling,
+fighting, or working. They may scavenge when circumstances are safe or
+follow an explicit player order to collect a requested item.
+
+Potential sources include bodies, horses, containers, dropped weapons,
+plants, and other supported world objects. Do not assume that every
+source can be searched or looted by a script. Verify each interaction
+against the installed API and in-game behavior.
+
+Scavenging decisions account for danger, distance, orders, carrying
+capacity, available time, and individual traits. Companions should not
+instantly collect everything nearby or repeatedly attempt an unavailable
+pickup.
+
+Track carried items per member separately from gang storage. On returning
+to a valid camp, members deposit eligible gang property. Interrupted
+trips, death, capture, dismissal, or a missing companion need defined
+outcomes. Do not silently duplicate or erase a transfer.
+
+Store inventory by meaningful category, such as money, valuables,
+weapons, food, ingredients, and supplies. Record deposits, withdrawals,
+consumption, sales, and other transfers. Use durable identities and
+outcomes rather than transient game entity handles.
+
+The player may request an item or assistance from a member. Resolve the
+request against that member’s carried items, the chest’s stock, access
+rules, availability, and the member’s disposition. Tell the player
+whether the request was fulfilled, refused, unavailable, or delayed.
+
+### Chest access, camp roles, and theft
+
+The gang chest is shared property used for gang needs; it is not a
+universal, unrestricted personal inventory.
+
+Potential roles include:
+
+- **Quartermaster:** manages routine withdrawals and records their
+  purpose and recipient.
+- **Cook:** plans meals and draws suitable ingredients.
+- **Hunter/gatherer:** collects requested food, plants, or supplies.
+- **Fence-runner:** transports authorized valuables to a fence and records
+  the goods sold, proceeds, and relevant risks.
+
+Members may have multiple skills, rotate duties, or assist one another.
+Cooks may request that the player or another member hunt or gather.
+Role assignment and supply use should have understandable consequences.
+
+The player and explicitly authorized senior members may access shared
+resources. Routine member behavior should respect gang property when
+loyalty and circumstances support it.
+
+A member’s loyalty, needs, personality, goals, relationships, and
+grievances can lead to an attempt to steal from the chest. Record theft
+attempts as persistent events: person, item or amount, time, location,
+and possible witnesses. Detection depends on who is present and what
+they can perceive.
+
+Possible responses include restitution, a hearing, confinement where
+supported, exile, or violence. Gang rules and the people involved should
+shape the outcome. A violent reaction is possible but must not be the
+automatic response to every theft. Avoid promising a holding area until
+the relevant location and game behavior are verified.
+
+### Payout marker and fixed job shares
+
+Separate **shared chest inventory** from **pending job payouts**.
+
+Ordinary field loot and supplies go into shared stores by default and do
+not automatically trigger a payout scene. A payout marker means a pending
+job reward needs presentation or settlement; it does not mean only that
+the chest contains items.
+
+A successful job creates a pending reward for an appropriate, safe gang
+gathering. The split is fixed and cannot be changed by the player:
+
+1. Calculate net proceeds after recorded job costs.
+2. Put exactly half of net proceeds in the participants’ pool and half in
+   the gang’s shared funds.
+3. Divide the participants’ pool equally among everyone who went on the
+   job, including the player if they participated.
+4. Put the gang’s half in the camp chest by default.
+5. Use a bank destination only when story progression and bank state
+   explicitly support it.
+6. Define and validate eligible-participant behavior before accepting an
+   outcome with no participants. Do not silently lose or reallocate the
+   participants’ pool.
+
+The player cannot change the 50/50 split, participant eligibility, or
+equal-share rule during the gathering. Valuable goods must be valued or
+sold through an explicitly defined system before they count as job
+proceeds; do not invent a value during the payout scene.
+
+On job completion, persist a pending reward with job ID, net proceeds,
+participants and shares, gang-fund share, and intended destination.
+Present it only when a safe gathering is available—not during combat,
+active mission play, or another important scene. If skipped, unavailable,
+or interrupted, keep it pending. Settle it once only, including across
+save/load and repeated calls.
+
+Keep reward creation, ledger persistence, gathering presentation, and
+settlement as separate responsibilities.
+
+### Camp and base progression
+
+A gang base is both a practical resource hub and a place for
+relationships and story events.
+
+Conceptual stages:
+
+- **Mobile camp:** rest, regrouping, basic supplies, and small
+  discussions.
+- **Established hideout:** more storage, job briefings, and earnings
+  discussions.
+- **Fortified base:** expanded defenses and advanced logistics.
+
+These are design concepts, not confirmed map locations or available
+assets. Confirm feasible locations and facilities before implementing
+them.
+
+Track base stage and location, facilities, upgrades, supplies, equipment,
+gang funds, assigned duties if supported, safety/threat state, and
+pending story events. Resources spent on one upgrade are not available
+for weapons, food, medicine, or transport unless separately earned.
+
+### Factions and local simulation
+
+Factions have relationships, territory or areas of influence, goals,
+rivals, and relevant event history. Simulate activity locally and
+persist bounded state for distant factions.
+
+A conflict can create a local event that an NPC witnesses or reports.
+Possible consequences include a job, a request for help, a revenge
+opportunity, recruitment interest, hostility, or no player-facing event.
+Do not make every NPC recruitable or every conflict into a mission.
+
+### Tactical combat
+
+Choose behavior using orders, combat style, individual ability, team role,
+threat, terrain, visibility, ammunition, and mission goals.
 
 Combat styles to support:
 
@@ -69,240 +356,181 @@ Combat styles to support:
 - Short-range combat, including melee and handguns.
 - Medium-range combat, including bows and repeaters.
 - Long-range combat, including rifles.
-- Stealth, which can use nonlethal melee, lethal melee, or bows.
+- Stealth, which may use nonlethal melee, lethal melee, or bows.
 
-The AI should coordinate roles rather than have every companion independently choose the same action. Tactical choices may include following, holding position, taking cover, suppressing, flanking, retreating, picking a lock, breaching, or using a wagon or artillery piece when appropriate.
+Coordinate roles instead of having every companion independently choose
+the same action. Choices may include following, holding, taking cover,
+suppressing, flanking, retreating, picking a lock, breaching, or using
+supported transport or artillery.
 
-### Interaction, locks, and destruction
+### Locks and destruction
 
-Supports doors, safes, and other valid targets through appropriate interaction choices: use a breaker tool, force entry, or use dynamite when the target and situation allow it. Destruction must be constrained to supported world objects and should produce consistent changes in the world.
+Support doors, safes, and other valid targets through appropriate
+interaction choices: use a breaker tool, force entry, or use dynamite
+when the target and situation allow it. Destruction is limited to
+supported world objects and must produce consistent world changes.
+Verify target support and consequences before implementation.
 
-### Banking and world economy
+### Banking and economy
 
-Tracks player, gang, and NPC accounts; deposits, withdrawals, debt, credit, business transfers, and bank vault contents. Businesses and people should move money and goods over time in ways that reflect their activity. Vault contents should arise from the recorded economic state rather than a fixed reward.
+Track player, gang, and NPC accounts; deposits, withdrawals, debt, credit,
+business transfers, and bank vault contents. Businesses and people should
+move money and goods over time in ways that reflect their activity.
 
-### Jobs and opportunities
-
-Supports both gang-planned jobs and opportunities that arise from the world. Job outcomes should account for honor, relationships, alliances, resources, and approach. Gang members can recommend, debate, and vote on jobs.
+Vault contents arise from recorded economic state rather than a fixed
+reward. Bank access, suspicion, security, manager relationships, and
+deposits or withdrawals affect later opportunities. Do not treat vault
+access as a permanent consequence-free unlock.
 
 ### Trains and stagecoaches
 
-Supports protection or robbery opportunities, with safes and strongboxes that can be picked, blasted, or otherwise opened through supported interactions. Potential rewards may include cash, gold, valuables, or information that leads to future jobs.
+Support protection or robbery opportunities with safes or strongboxes
+that can be opened through verified interactions. Potential rewards
+include cash, gold, valuables, or information leading to future jobs.
+Connect outcomes to the job ledger, suspicion, and world state.
 
 ### Wagons, animals, and artillery
 
-Supports acquiring, using, storing, and recovering wagons and their contents. Wagons and animals should persist appropriately through death, crashes, and reloads. Artillery should have crew roles, movement and reload considerations, and supported towing or transport behavior.
+Support acquiring, using, storing, and recovering wagons and their
+contents. Wagons and animals should persist appropriately through death,
+crashes, and reloads.
 
-## Gang base progression
+Artillery should have crew roles, movement and reload considerations, and
+supported towing or transport behavior. Do not claim a weapon, hitching,
+or persistence behavior until tested against the game API and in-game.
 
-A gang base is both a practical resource hub and a place for relationships and story events to develop.
+## Current repository observations
 
-### Base stages
+These observations are not a claim of in-game functionality:
 
-These are progression concepts, not assumed map locations:
-
-- **Mobile camp:** Basic rest, regrouping, simple supplies, and small gang discussions.
-- **Established hideout:** More storage and planning capacity; regular job briefings and earnings discussions.
-- **Fortified base:** Expanded defenses and facilities; larger planning gatherings and advanced gang logistics.
-
-Define specific locations, upgrades, and gameplay gates only after confirming what is feasible in the repository and game API.
-
-### Base progression should track
-
-- Current base stage and location.
-- Unlocked facilities and their effects.
-- Stored supplies, equipment, and gang funds.
-- Relevant upgrades and their costs.
-- Members assigned to duties, if that system is supported.
-- Whether the base is safe, threatened, discovered, or unavailable.
-- Pending story events that should wait until the player can attend.
-
-Progression should offer meaningful choices. For example, resources spent on fortifications may not also be available for weapons, food, medical supplies, or a wagon.
-
-## Story event: distributing job shares at the base
-
-A successful job creates a pending reward for a safe, in-world gang gathering. The split is fixed and cannot be changed by the player.
-
-### Fixed payout rules
-
-1. Calculate net proceeds after job costs.
-2. Put exactly half of the net proceeds in the participants’ pool and half in the gang’s shared funds.
-3. Divide the participants’ pool equally among everyone who went on the job, including the player if they participated.
-4. Put the gang’s half in the camp chest by default. A bank deposit is available only when story progression and the relevant bank state support it.
-5. If there are no participants, do not create a successful payout plan that silently loses or reallocates the participants’ half; define and validate the eligible-participant rule before accepting the job outcome.
-
-The player cannot change the 50/50 split, participant eligibility, or equal-share rule during the gathering.
-
-### Pending reward and gathering flow
-
-1. On successful job completion, create and persist a pending reward record containing the job ID, net proceeds, participant IDs and equal shares, the gang-fund share, and its intended destination.
-2. Keep that reward pending until a safe gathering is available. Do not require a gathering immediately after the job.
-3. Present the pending reward at a safe post-job gathering. Do not trigger it during combat, active mission play, or another important scene.
-4. Settle the ledger once. If the gathering is skipped, unavailable, or interrupted, preserve the pending reward for a later gathering.
-5. Do not pay a second time if the gathering, save/load, or settlement call is repeated.
-6. A bank destination may replace the camp chest only when the relevant story progression permits it; the gathering does not itself unlock that option.
-
-### Scene requirements
-
-- Prefer a verified, supported cutscene only if its availability and use in this mod context are confirmed.
-- Otherwise, present the result through an in-game conversation or interaction supported by the project’s existing APIs.
-- Keep reward creation, persistence, gathering presentation, and settlement as distinct responsibilities.
-- An interrupted or skipped gathering must not erase a pending reward or cause duplicate settlement.
-
-
-## Job System: gang votes and bank opportunity arc
-
-The Job System owns proposals, voting, mission outcomes, and their consequences. The bank system owns account, vault, suspicion, and access state. The story event presents important decisions but should not be the source of truth for those systems.
-
-### Gang job proposals
-
-A proposal should describe:
-
-- Job identity, source, and objective.
-- Potential reward and costs.
-- Expected risk and likely consequences.
-- Honor impact and relevant alliances.
-- Required people, skills, tools, and supplies.
-- Possible approaches and known constraints.
-- Which members support, oppose, or abstain, and why.
-- The result of the vote and any player override.
-
-Members should vote according to their traits and experiences, not random selection. Relevant factors can include loyalty, greed, courage, honor alignment, skills, relationships, personal goals, and memories. Make the reason for a recommendation available for dialogue or debugging.
-
-### Bank influence and vault access
-
-A bank-related opportunity can introduce a progression arc in which the gang seeks influence or access to a bank vault. Possible fictional approaches may involve building trust, bribery, recruiting an insider, or other risky plans. Each approach must have distinct costs and consequences.
-
-The result should be represented as explicit world state, such as:
-
-- Manager relationship or allegiance.
-- Whether the gang has legitimate or illicit access, and its scope.
-- Current suspicion and security attention.
-- Known security conditions or a job-specific opportunity.
-- A history of deposits, withdrawals, losses, or transfers that informs vault contents.
-- Future risks if the plan is exposed or the arrangement changes.
-
-Do not treat vault access as a permanent, consequence-free unlock. Jobs, suspicion, the bank’s records, and changes in personnel should be able to affect it.
-
-## Payout and investment rules
-
-- Calculate the payout from net proceeds, after recorded job costs.
-- The split is fixed: 50% to the participating group and 50% to gang shared funds.
-- Divide the participants’ pool equally among the people who went on the job, including the player if they participated.
-- Do not offer a player-configurable split, contribution-weighted shares, or ad hoc bonuses as part of job settlement.
-- The camp chest is the default destination for gang funds. Use a bank only when story progression supports it.
-- Create and persist a pending reward record before presenting the gathering.
-- Settle each job’s reward once only. Repeated calls, save/load, or an interrupted gathering must not duplicate or erase it.
-- Keep the gathering separate from the ledger’s source-of-truth data.
-- Investment features are a later system: any investment must debit available gang funds and record its result without changing the fixed job split.
-
-## Persistence and integration notes
-
-- Before changing code, inspect the current owning files and use their actual types and members.
-- Store durable identifiers and outcomes, not transient game handles or object references.
-- Keep a clear distinction between pending, presented, committed, interrupted, and completed events.
-- Define defaults and load behavior for older or incomplete save data.
-- Use Newtonsoft.Json in line with the project’s requirements.
-- Check save/load and repeated-call behavior for every system that moves money, loot, supplies, or progression.
-- Keep systems separated by responsibility, but integrate them through explicit data and calls. Avoid adding modules that are never invoked by the running mod.
-- Confirm project-file inclusion rules before adding a new `.cs` file.
+- `Main.cs` contains a custom F7 interaction overlay. It uses the
+  interaction target native and a free-aim target fallback.
+- `Main.cs` currently maps F9 to toggling companion follow.
+- The current overlay supports immediate recruitment for eligible nearby
+  people or animals, and follow/stay/dismiss actions for existing
+  companions.
+- `NativeReferenceGuide.md` documents a possible lock-on prompt native,
+  but labels several parameters and input-detection behavior as unknown or
+  hypotheses.
+- Job, companion, banking, and payout code exists in the repository.
+  In-world conversations, opportunity presentation, automated looting,
+  camp chest interactions, and the full job-to-gathering experience must
+  be separately verified.
+- Repository presence is not the same as in-game integration or testing.
 
 ## Suggested implementation order
 
-### Milestone 0: Repository and runtime audit
+### Milestone 0: Repository and runtime baseline
 
-- Verify the current project structure, system contracts, save flow, and available game API.
-- Record which features are already implemented, incomplete, or placeholders.
-- Identify the actual in-game interaction and command entry points.
-- Confirm how new source files are included in the Visual Studio project.
+- Inspect current source, project-file inclusion, save flow, and system
+  contracts before each implementation.
+- Record what exists, what is a placeholder, and what is connected to the
+  running script.
+- Confirm the game/API version and collect in-game test conditions.
+- **Status:** Repository review underway; runtime/API verification remains.
 
-### Milestone 1: Job reward ledger
+### Milestone 1: Native interaction research and prototype
 
-- Define the job outcome and reward record using current project conventions.
-- Calculate costs, member shares, and gang reserve.
-- Add persistence and duplicate-settlement protection.
-- Test invalid, interrupted, and repeated settlement paths.
+- Check the installed API XML and wrapper signature for the candidate
+  lock-on interaction prompt.
+- Verify target selection, prompt display, button acceptance, cleanup,
+  and behavior when a target becomes invalid.
+- Test one simple contextual action before adding branching dialogue.
+- Keep F7/F9 as debug controls only during the transition.
+- **Status:** Planned; see `ResearchNotes.md`.
 
-### Milestone 2: Base gathering and share presentation
+### Milestone 2: One conversation and recruitment flow
 
-- Define event eligibility and pending-event behavior.
-- Present the reward and player choices at a safe base state.
-- Apply the payout once, whether the scene completes normally or uses a fallback.
-- Update member reactions and memories.
+- Replace immediate recruitment with a conversation and invitation.
+- Use one NPC archetype and a small number of personality/relationship
+  outcomes.
+- Support acceptance, refusal, interruption, and a clear fallback if a
+  native interaction cannot run.
+- Persist relationship changes and recruitment outcome once only.
+- **Status:** Planned.
 
-### Milestone 3: Gang job voting
+### Milestone 3: Reported lead, discussion, and player decision
 
-- Connect proposals to the actual job model.
-- Add member preference scoring and recorded votes.
-- Allow the player to participate or override, with consequences.
-- Test ties, unavailable members, changing votes, and save/load.
+- Persist one gang member’s job lead.
+- Present it to the player without losing it when the player is busy.
+- Add a short discussion with explainable member recommendations.
+- Support accept, override, postpone, and decline.
+- Connect exactly one accepted choice to the current job model.
+- **Status:** Planned.
 
-### Milestone 4: Base progression and investment
+### Milestone 4: One field-loot-to-camp transfer
 
-- Add persisted base stage and supported upgrades.
-- Connect gang reserve spending to supplies or facilities.
-- Make upgrades affect gameplay rather than only display text.
+- Verify one supported loot source and one item type.
+- Let one companion collect it and track it as carried property.
+- Return to a valid camp and deposit it into persisted gang storage once.
+- Test interruptions, invalid targets, save/load, and repeated ticks.
+- **Status:** Planned.
 
-### Milestone 5: Bank opportunity arc
+### Milestone 5: One playable job and recorded outcome
 
-- Connect job proposals to bank state and NPC relationships.
-- Implement scoped access, vault accounting, and suspicion consequences.
-- Test branch outcomes and persistence after manager or security changes.
+- Connect one accepted job to an in-world objective.
+- Record costs, participants, outcome, honor, suspicion, and eligible
+  proceeds.
+- Keep mission completion distinct from reward presentation.
+- **Status:** Planned.
 
-### Milestone 6: Expand world jobs and logistics
+### Milestone 6: Safe gathering and payout presentation
 
-- Add train, stagecoach, protection, wagon, artillery, and supply opportunities in integrated slices.
-- Connect rewards to the ledger and equipment or transport systems.
-- Continue with companion needs, tactical coordination, locks, and destruction as their dependencies are ready.
+- Create a pending reward on successful job completion.
+- Present it at a safe gathering and show the fixed shares.
+- Settle exactly once; preserve pending state if skipped or interrupted.
+- Update relevant member reactions and memories.
+- **Status:** Reward-related code exists in the repository; in-game
+  gathering and settlement behavior remain to be verified.
 
-## Acceptance checklist for each feature
+### Milestone 7: Chest permissions, camp duties, and expanded salvage
 
-Before marking a feature implemented or tested, confirm:
+- Add categorized chest inventory and withdrawal permissions.
+- Add quartermaster, cooking, hunting/gathering, and fence-running as
+  supported vertical slices.
+- Expand tested field salvage sources without duplicating world loot.
+- Add theft attempts and deliberate, persistent responses.
+- **Status:** Planned.
 
-- [ ] It is connected to the running mod’s actual entry points.
-- [ ] The code matches the current repository contracts.
-- [ ] Success, failure, cancellation, and interruption are defined.
-- [ ] Save/load preserves the intended state.
-- [ ] Repeating the action does not duplicate money, loot, jobs, or progression.
-- [ ] Related systems receive the correct outcome.
-- [ ] The player receives understandable feedback.
-- [ ] The behavior has been tested in-game or its test limitation is recorded.
-- [ ] This document’s status and known limitations are updated.
+### Milestone 8: Expand world opportunities and other systems
 
-### Job reward acceptance criteria
+- Add faction incidents, local jobs, bank arcs, trains, stagecoaches,
+  wagons, artillery, and broader tactical or destruction behavior in
+  integrated slices.
+- Verify APIs and persistence for each before marking them implemented
+  or tested.
+- **Status:** Planned.
 
-- Net proceeds equal the job reward minus its recorded costs.
-- The participants’ pool and gang-fund pool are each exactly half of net proceeds.
-- All eligible participants, including the player when applicable, receive equal shares; rounding reconciles to the pool total.
-- The reward remains pending if a gathering is skipped, unavailable, or interrupted.
-- Completing or retrying settlement cannot pay the same job twice, including after save/load.
-- Camp-chest funds persist. Bank routing is unavailable until story progression explicitly allows it.
-- Gathering presentation does not change the fixed payout rule or serve as the reward ledger.
+## Acceptance checklist
 
-## New idea template
+Before marking any feature implemented or tested, confirm:
 
-Copy this section for each proposed feature.
-
-### Idea: [Short name]
-
-- **Player-facing goal:**
-- **Story purpose:**
-- **Systems involved:**
-- **Prerequisites:**
-- **Player choices:**
-- **Companion or NPC reactions:**
-- **Costs and rewards:**
-- **Honor, trust, suspicion, or alliance effects:**
-- **World-state changes:**
-- **Persistence requirements:**
-- **Failure, interruption, and fallback behavior:**
-- **Acceptance tests:**
-- **Status:** Planned
+- It is connected to the running mod’s actual entry points.
+- The code matches current repository contracts.
+- Success, failure, cancellation, invalid targets, and interruption are
+  defined.
+- Save/load preserves intended state.
+- Repeating the action does not duplicate money, loot, jobs, or
+  progression.
+- Related systems receive the correct outcome.
+- The player receives understandable feedback.
+- In-game testing conditions and limitations are recorded.
+- This document and `ResearchNotes.md` reflect the current status.
 
 ## Decision log
 
-Record decisions that change the architecture or story direction.
-
-- **2026-11-05:** Job payouts are designed as pending, in-world gang events at an appropriate base, rather than automatic account deposits. The event must settle the ledger exactly once.
-- **2026-11-05:** Bank-manager influence and vault access belong to a Job System progression arc; the bank system records access, accounts, security, and vault state.
-- **2026-11-05:** Any reuse of base-game story events or cutscenes must be verified against the repository and supported API before implementation.
+- **2026-11-05:** Job payouts are pending in-world gang events at an
+  appropriate base, rather than automatic account deposits. Settlement
+  must occur once only.
+- **2026-11-05:** Bank-manager influence and vault access belong to a Job
+  System progression arc; the bank system owns accounts, access, security,
+  and vault state.
+- **2026-11-05:** Reuse of base-game story events or cutscenes must be
+  verified against the repository and supported API before implementation.
+- **2026-11-06:** Ordinary scavenged loot belongs in shared gang stores by
+  default; it does not itself trigger job-share payout. Job proceeds retain
+  the fixed 50/50 split and equal participant shares.
+- **2026-11-06:** The intended conversation/recruitment interaction is the
+  base game's right-mouse lock-on prompt if verified in the installed API
+  and in game. The custom F7/F9 controls are transitional/debug controls,
+  not the intended finished interaction design.
