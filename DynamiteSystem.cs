@@ -15,10 +15,16 @@ public class DynamiteSystem
     public DestructibleRecord GetDestructible(string targetId)
     {
         if (string.IsNullOrWhiteSpace(targetId))
+        {
             return null;
+        }
 
-        return _destructibles.Find(
-            x => x != null && x.DestructibleId == targetId);
+        return _destructibles.Find(record =>
+            record != null &&
+            string.Equals(
+                record.DestructibleId,
+                targetId,
+                StringComparison.Ordinal));
     }
 
     public void RegisterDestructible(DestructibleRecord record)
@@ -29,24 +35,12 @@ public class DynamiteSystem
             return;
         }
 
-        if (record.MaxHealthPoints < 0)
-            record.MaxHealthPoints = 0;
-
-        if (record.HealthPoints < 0)
-            record.HealthPoints = 0;
-
-        if (record.MaxHealthPoints > 0 &&
-            record.HealthPoints > record.MaxHealthPoints)
-        {
-            record.HealthPoints = record.MaxHealthPoints;
-        }
-
-        if (record.IsDestroyed)
-            record.HealthPoints = 0;
-
-        _destructibles.RemoveAll(
-            x => x != null &&
-                 x.DestructibleId == record.DestructibleId);
+        _destructibles.RemoveAll(existing =>
+            existing != null &&
+            string.Equals(
+                existing.DestructibleId,
+                record.DestructibleId,
+                StringComparison.Ordinal));
 
         _destructibles.Add(record);
     }
@@ -56,36 +50,18 @@ public class DynamiteSystem
         DestructibleRecord record = GetDestructible(targetId);
 
         return record != null &&
-               record.CanBeBlasted &&
+               record.IsDestroyableByExplosives &&
                !record.IsDestroyed;
     }
 
     public void ApplyExplosion(string targetId, int damage)
     {
-        DestructibleRecord record = GetDestructible(targetId);
-
-        if (record == null ||
-            !record.CanBeBlasted ||
-            record.IsDestroyed ||
-            damage <= 0)
+        if (damage <= 0 || !CanDestroy(targetId))
         {
             return;
         }
 
-        int effectiveDamage =
-            damage - Math.Max(0, record.BlastResistance);
-
-        if (effectiveDamage <= 0)
-            return;
-
-        record.HealthPoints -= effectiveDamage;
-        record.LastDamagedUtc = DateTime.UtcNow;
-
-        if (record.HealthPoints <= 0)
-        {
-            record.HealthPoints = 0;
-            record.IsDestroyed = true;
-        }
+        SetDestroyed(targetId, true);
     }
 
     public void Damage(string targetId, int amount)
@@ -98,18 +74,11 @@ public class DynamiteSystem
         DestructibleRecord record = GetDestructible(targetId);
 
         if (record == null)
+        {
             return;
+        }
 
         record.IsDestroyed = destroyed;
-
-        if (destroyed)
-        {
-            record.HealthPoints = 0;
-        }
-        else if (record.MaxHealthPoints > 0)
-        {
-            record.HealthPoints = record.MaxHealthPoints;
-        }
     }
 
     public string SaveState()
@@ -124,15 +93,29 @@ public class DynamiteSystem
         _destructibles.Clear();
 
         if (string.IsNullOrWhiteSpace(json))
+        {
             return;
+        }
 
-        List<DestructibleRecord> destructibles =
-            JsonConvert.DeserializeObject<List<DestructibleRecord>>(json);
+        try
+        {
+            List<DestructibleRecord> destructibles =
+                JsonConvert.DeserializeObject<List<DestructibleRecord>>(
+                    json);
 
-        if (destructibles == null)
-            return;
+            if (destructibles == null)
+            {
+                return;
+            }
 
-        foreach (DestructibleRecord record in destructibles)
-            RegisterDestructible(record);
+            foreach (DestructibleRecord record in destructibles)
+            {
+                RegisterDestructible(record);
+            }
+        }
+        catch (JsonException)
+        {
+            _destructibles.Clear();
+        }
     }
 }
