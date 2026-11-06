@@ -1,9 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using RDR2;
+using RDR2.Math;
 
 public class InteractionSystem
 {
     private readonly LockSystem _lockSystem;
     private readonly DynamiteSystem _dynamiteSystem;
+
+    private readonly Dictionary<int, InteractionLockState> _lockStates =
+        new Dictionary<int, InteractionLockState>();
+
+    private readonly Dictionary<int, InteractionDestructibleState> _destructibleStates =
+        new Dictionary<int, InteractionDestructibleState>();
 
     public InteractionSystem(
         LockSystem lockSystem,
@@ -13,194 +23,250 @@ public class InteractionSystem
         _dynamiteSystem = dynamiteSystem;
     }
 
-    public bool TryPickLock(string targetId)
-    {
-        if (_lockSystem == null ||
-            string.IsNullOrWhiteSpace(targetId) ||
-            !_lockSystem.CanPick(targetId))
-        {
-            return false;
-        }
-
-        _lockSystem.Pick(targetId);
-        return true;
-    }
-
-    public bool TryBreakLock(string targetId)
-    {
-        if (_lockSystem == null ||
-            string.IsNullOrWhiteSpace(targetId) ||
-            !_lockSystem.CanBreak(targetId))
-        {
-            return false;
-        }
-
-        _lockSystem.Break(targetId);
-        return true;
-    }
-
-    public bool TryBlowOpen(string targetId, int damage)
-    {
-        if (_dynamiteSystem == null ||
-            string.IsNullOrWhiteSpace(targetId) ||
-            damage <= 0 ||
-            !_dynamiteSystem.CanDestroy(targetId))
-        {
-            return false;
-        }
-
-        _dynamiteSystem.ApplyExplosion(targetId, damage);
-
-        if (!IsDestroyed(targetId))
-        {
-            return false;
-        }
-
-        if (_lockSystem != null &&
-            _lockSystem.CanBreak(targetId))
-        {
-            _lockSystem.Break(targetId);
-        }
-
-        return true;
-    }
-
-    public bool IsLocked(string targetId)
-    {
-        if (_lockSystem == null ||
-            string.IsNullOrWhiteSpace(targetId))
-        {
-            return false;
-        }
-
-        LockRecord record = _lockSystem.GetLock(targetId);
-
-        return record != null &&
-               record.IsLocked &&
-               !IsDestroyed(targetId);
-    }
-
-    public bool IsBroken(string targetId)
-    {
-        return IsDestroyed(targetId);
-    }
-
-    public bool IsDestroyed(string targetId)
-    {
-        if (_dynamiteSystem == null ||
-            string.IsNullOrWhiteSpace(targetId))
-        {
-            return false;
-        }
-
-        DestructibleRecord record =
-            _dynamiteSystem.GetDestructible(targetId);
-
-        return record != null && record.IsDestroyed;
-    }
-
-    public bool CanPickLock(string targetId)
-    {
-        return _lockSystem != null &&
-               _lockSystem.CanPick(targetId);
-    }
-
-    public bool CanBlowOpen(string targetId)
-    {
-        return _dynamiteSystem != null &&
-               _dynamiteSystem.CanDestroy(targetId);
-    }
-
     public void RegisterLock(LockRecord record)
     {
-        if (_lockSystem == null || record == null)
+        if (record == null)
         {
             return;
         }
 
-        _lockSystem.RegisterLock(record);
+        _lockStates[record.EntityHandle] = new InteractionLockState
+        {
+            EntityHandle = record.EntityHandle,
+            IsLocked = record.IsLocked,
+            CanBePicked = record.CanBePicked,
+            CanBeBlown = record.CanBeBlown,
+            IsOpen = record.IsOpen
+        };
     }
 
     public void RegisterDestructible(DestructibleRecord record)
     {
-        if (_dynamiteSystem == null || record == null)
+        if (record == null)
         {
             return;
         }
 
-        _dynamiteSystem.RegisterDestructible(record);
+        _destructibleStates[record.EntityHandle] = new InteractionDestructibleState
+        {
+            EntityHandle = record.EntityHandle,
+            IsDestroyed = record.IsDestroyed,
+            Integrity = record.Integrity
+        };
     }
 
-    public void SyncTarget(
-        string targetId,
-        bool isLocked,
-        bool isBroken,
-        bool isDestructible,
-        bool isDestroyed,
-        int health,
-        int maxHealth)
+    public bool CanPickLock(int entityHandle)
     {
-        if (string.IsNullOrWhiteSpace(targetId))
+        InteractionLockState state = GetLockState(entityHandle);
+        return state != null && state.IsLocked && state.CanBePicked;
+    }
+
+    public bool CanBlowOpen(int entityHandle)
+    {
+        InteractionLockState state = GetLockState(entityHandle);
+        return state != null && state.IsLocked && state.CanBeBlown;
+    }
+
+    public bool TryPickLock(int entityHandle)
+    {
+        InteractionLockState state = GetLockState(entityHandle);
+
+        if (state == null || !state.IsLocked || !state.CanBePicked)
         {
-            return;
+            return false;
+        }
+
+        state.IsLocked = false;
+        state.IsOpen = true;
+
+        if (_lockSystem != null)
+        {
+            _lockSystem.SetLockState(entityHandle, false, true);
+        }
+
+        return true;
+    }
+
+    public bool TryBlowOpen(int entityHandle)
+    {
+        InteractionLockState state = GetLockState(entityHandle);
+
+        if (state == null || !state.IsLocked || !state.CanBeBlown)
+        {
+            return false;
+        }
+
+        state.IsLocked = false;
+        state.IsOpen = true;
+
+        if (_dynamiteSystem != null)
+        {
+            _dynamiteSystem.MarkDestructibleDamaged(entityHandle, 100);
         }
 
         if (_lockSystem != null)
         {
-            LockRecord lockRecord =
-                _lockSystem.GetLock(targetId);
-
-            if (lockRecord == null)
-            {
-                lockRecord = new LockRecord
-                {
-                    LockId = targetId,
-                    IsLocked = isLocked && !isBroken,
-                    IsPickable = isLocked && !isBroken,
-                    IsBypassable = true
-                };
-
-                _lockSystem.RegisterLock(lockRecord);
-            }
-            else
-            {
-                lockRecord.IsLocked =
-                    isLocked && !isBroken;
-
-                lockRecord.IsPickable =
-                    isLocked && !isBroken;
-
-                lockRecord.IsBypassable = true;
-            }
+            _lockSystem.SetLockState(entityHandle, false, true);
         }
 
-        if (_dynamiteSystem == null || !isDestructible)
+        return true;
+    }
+
+    public bool DamageDestructible(int entityHandle, int damage)
+    {
+        InteractionDestructibleState state = GetDestructibleState(entityHandle);
+
+        if (state == null || state.IsDestroyed)
+        {
+            return false;
+        }
+
+        state.Integrity -= Math.Max(0, damage);
+
+        if (state.Integrity <= 0)
+        {
+            state.Integrity = 0;
+            state.IsDestroyed = true;
+
+            if (_dynamiteSystem != null)
+            {
+                _dynamiteSystem.SetDestroyed(entityHandle, true);
+            }
+
+            return true;
+        }
+
+        if (_dynamiteSystem != null)
+        {
+            _dynamiteSystem.SetIntegrity(entityHandle, state.Integrity);
+        }
+
+        return false;
+    }
+
+    public List<LockRecord> GetLocks()
+    {
+        List<LockRecord> records = new List<LockRecord>();
+
+        foreach (InteractionLockState state in _lockStates.Values)
+        {
+            records.Add(new LockRecord
+            {
+                EntityHandle = state.EntityHandle,
+                IsLocked = state.IsLocked,
+                CanBePicked = state.CanBePicked,
+                CanBeBlown = state.CanBeBlown,
+                IsOpen = state.IsOpen
+            });
+        }
+
+        return records;
+    }
+
+    public List<DestructibleRecord> GetDestructibles()
+    {
+        List<DestructibleRecord> records = new List<DestructibleRecord>();
+
+        foreach (InteractionDestructibleState state in _destructibleStates.Values)
+        {
+            records.Add(new DestructibleRecord
+            {
+                EntityHandle = state.EntityHandle,
+                IsDestroyed = state.IsDestroyed,
+                Integrity = state.Integrity
+            });
+        }
+
+        return records;
+    }
+
+    public void LoadState(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
         {
             return;
         }
 
-        DestructibleRecord destructibleRecord =
-            _dynamiteSystem.GetDestructible(targetId);
+        InteractionSystemSaveData data =
+            JsonConvert.DeserializeObject<InteractionSystemSaveData>(json);
 
-        if (destructibleRecord == null)
+        _lockStates.Clear();
+        _destructibleStates.Clear();
+
+        if (data == null)
         {
-            destructibleRecord = new DestructibleRecord
-            {
-                DestructibleId = targetId,
-                IsDestroyed = isDestroyed || isBroken,
-                IsDestroyableByExplosives = true,
-                IsDestroyableByMelee = false
-            };
-
-            _dynamiteSystem.RegisterDestructible(
-                destructibleRecord);
+            return;
         }
-        else
-        {
-            destructibleRecord.IsDestroyed =
-                isDestroyed || isBroken;
 
-            destructibleRecord.IsDestroyableByExplosives = true;
+        if (data.Locks != null)
+        {
+            foreach (InteractionLockState state in data.Locks)
+            {
+                if (state == null)
+                {
+                    continue;
+                }
+
+                _lockStates[state.EntityHandle] = state;
+            }
+        }
+
+        if (data.Destructibles != null)
+        {
+            foreach (InteractionDestructibleState state in data.Destructibles)
+            {
+                if (state == null)
+                {
+                    continue;
+                }
+
+                _destructibleStates[state.EntityHandle] = state;
+            }
         }
     }
+
+    public string SaveState()
+    {
+        InteractionSystemSaveData data = new InteractionSystemSaveData
+        {
+            Locks = new List<InteractionLockState>(_lockStates.Values),
+            Destructibles = new List<InteractionDestructibleState>(_destructibleStates.Values)
+        };
+
+        return JsonConvert.SerializeObject(data, Formatting.Indented);
+    }
+
+    private InteractionLockState GetLockState(int entityHandle)
+    {
+        InteractionLockState state;
+        return _lockStates.TryGetValue(entityHandle, out state) ? state : null;
+    }
+
+    private InteractionDestructibleState GetDestructibleState(int entityHandle)
+    {
+        InteractionDestructibleState state;
+        return _destructibleStates.TryGetValue(entityHandle, out state) ? state : null;
+    }
+}
+
+public class InteractionSystemSaveData
+{
+    public List<InteractionLockState> Locks { get; set; }
+    public List<InteractionDestructibleState> Destructibles { get; set; }
+}
+
+public class InteractionLockState
+{
+    public int EntityHandle { get; set; }
+    public bool IsLocked { get; set; }
+    public bool CanBePicked { get; set; }
+    public bool CanBeBlown { get; set; }
+    public bool IsOpen { get; set; }
+}
+
+public class InteractionDestructibleState
+{
+    public int EntityHandle { get; set; }
+    public bool IsDestroyed { get; set; }
+    public int Integrity { get; set; }
 }
