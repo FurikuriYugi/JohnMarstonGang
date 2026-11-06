@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class SaveRoot
 {
-    public int SaveVersion { get; set; } = 5;
+    public int SaveVersion { get; set; } = 6;
     public WorldState World { get; set; } = new WorldState();
     public List<GangMember> GangMembers { get; set; } = new List<GangMember>();
     public List<BankAccountData> BankAccounts { get; set; } = new List<BankAccountData>();
@@ -62,11 +62,32 @@ public class ChestInventory
 
 public class PendingJobReward
 {
+    // Zero means this record was written by the previous ledger format.
+    public int LedgerVersion { get; set; }
+
     public string RewardId { get; set; }
     public string JobId { get; set; }
+
+    public decimal GrossCash { get; set; }
+    public decimal GrossGold { get; set; }
+    public decimal JobCostCash { get; set; }
+    public decimal JobCostGold { get; set; }
+    public decimal NetCash { get; set; }
+    public decimal NetGold { get; set; }
+
+    public decimal GangShareCash { get; set; }
+    public decimal GangShareGold { get; set; }
+    public Dictionary<string, decimal> MemberCashShares { get; set; } =
+        new Dictionary<string, decimal>();
+    public Dictionary<string, decimal> MemberGoldShares { get; set; } =
+        new Dictionary<string, decimal>();
+
+    // Legacy fields are retained so older save data can be migrated.
     public decimal TotalAmount { get; set; }
     public decimal GangShareAmount { get; set; }
-    public Dictionary<string, decimal> MemberShares { get; set; } = new Dictionary<string, decimal>();
+    public Dictionary<string, decimal> MemberShares { get; set; } =
+        new Dictionary<string, decimal>();
+
     public List<string> ParticipantIds { get; set; } = new List<string>();
     public string DestinationType { get; set; }
     public string DestinationId { get; set; }
@@ -81,7 +102,8 @@ public class GangMilestone
     public string MilestoneName { get; set; }
     public DateTime CompletedAtUtc { get; set; }
     public string Description { get; set; }
-    public Dictionary<string, string> UnlockedCapabilities { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, string> UnlockedCapabilities { get; set; } =
+        new Dictionary<string, string>();
 }
 
 public class GangMember
@@ -134,7 +156,8 @@ public class CompanionAIStateData
     public string CurrentGoal { get; set; }
     public long LastActivityTimestamp { get; set; }
     public int ExperiencePoints { get; set; }
-    public Dictionary<string, int> SkillProgression { get; set; } = new Dictionary<string, int>();
+    public Dictionary<string, int> SkillProgression { get; set; } =
+        new Dictionary<string, int>();
     public List<string> CompletedJobs { get; set; } = new List<string>();
     public decimal TotalEarnings { get; set; }
     public int BanksVisited { get; set; }
@@ -152,6 +175,8 @@ public class JobData
     public string LocationId { get; set; }
     public decimal RewardCash { get; set; }
     public decimal RewardGold { get; set; }
+    public decimal CostCash { get; set; }
+    public decimal CostGold { get; set; }
     public int HonorChange { get; set; }
     public bool IsIllegal { get; set; }
     public bool IsCompleted { get; set; }

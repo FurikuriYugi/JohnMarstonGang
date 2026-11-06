@@ -16,6 +16,8 @@ public sealed class GangJobPayoutShare
     public string OwnerName { get; set; }
     public decimal ContributionWeight { get; set; }
     public decimal Amount { get; set; }
+    public decimal CashAmount { get; set; }
+    public decimal GoldAmount { get; set; }
 }
 
 public sealed class GangJobPayoutPlan
@@ -24,6 +26,11 @@ public sealed class GangJobPayoutPlan
     public decimal TotalAmount { get; set; }
     public decimal GangReserveAmount { get; set; }
     public List<GangJobPayoutShare> MemberShares { get; set; }
+
+    public decimal TotalCash { get; set; }
+    public decimal TotalGold { get; set; }
+    public decimal GangReserveCash { get; set; }
+    public decimal GangReserveGold { get; set; }
 
     public GangJobPayoutPlan()
     {
@@ -46,6 +53,46 @@ public sealed class GangJobPayoutSystem
     private readonly HashSet<string> _settledJobIds =
         new HashSet<string>(StringComparer.Ordinal);
 
+    public GangJobPayoutPlan CreatePlan(JobData job)
+    {
+        if (job == null ||
+            string.IsNullOrWhiteSpace(job.JobId) ||
+            job.RewardCash < 0m ||
+            job.RewardGold < 0m ||
+            job.CostCash < 0m ||
+            job.CostGold < 0m)
+        {
+            return null;
+        }
+
+        List<string> participantIds = NormalizeParticipantIds(job.Participants);
+        if (participantIds.Count == 0)
+        {
+            return null;
+        }
+
+        decimal netCash = GetNetAmount(job.RewardCash, job.CostCash);
+        decimal netGold = GetNetAmount(job.RewardGold, job.CostGold);
+
+        if (netCash <= 0m && netGold <= 0m)
+        {
+            return null;
+        }
+
+        List<GangJobPayoutMember> members = participantIds
+            .Select(id => new GangJobPayoutMember
+            {
+                OwnerId = id,
+                OwnerName = id,
+                ContributionWeight = 1m
+            })
+            .ToList();
+
+        return BuildPlan(job.JobId, netCash, netGold, members);
+    }
+
+    // Compatibility overload. Reserve percentage and contribution weights no
+    // longer control payouts: the reserve is fixed at 50% and shares are equal.
     public GangJobPayoutPlan CreatePlan(
         string jobId,
         decimal totalAmount,
@@ -54,46 +101,28 @@ public sealed class GangJobPayoutSystem
     {
         if (string.IsNullOrWhiteSpace(jobId) ||
             totalAmount <= 0m ||
-            reservePercent < 0m ||
-            reservePercent > 100m)
+            reservePercent != 50m)
         {
             return null;
         }
 
-        decimal roundedTotal = RoundCash(totalAmount);
-        if (roundedTotal <= 0m)
-            return null;
-
-        List<GangJobPayoutMember> validMembers =
-            NormalizeMembers(members);
-
-        decimal reserveAmount = RoundCash(
-            roundedTotal * reservePercent / 100m);
-
-        if (reserveAmount > roundedTotal)
-            reserveAmount = roundedTotal;
-
-        decimal memberPool = roundedTotal - reserveAmount;
-
-        if (memberPool > 0m && validMembers.Count == 0)
-            return null;
-
-        List<GangJobPayoutShare> shares =
-            SplitMemberPool(memberPool, validMembers);
-
-        return new GangJobPayoutPlan
+        List<GangJobPayoutMember> validMembers = NormalizeMembers(members);
+        if (validMembers.Count == 0)
         {
-            JobId = jobId,
-            TotalAmount = roundedTotal,
-            GangReserveAmount = reserveAmount,
-            MemberShares = shares
-        };
+            return null;
+        }
+
+        return BuildPlan(
+            jobId,
+            RoundCash(totalAmount),
+            0m,
+            validMembers);
     }
 
     public bool IsJobSettled(string jobId)
     {
         return !string.IsNullOrWhiteSpace(jobId) &&
-               _settledJobIds.Contains(jobId);
+            _settledJobIds.Contains(jobId);
     }
 
     public bool TrySettlePlan(
@@ -111,36 +140,40 @@ public sealed class GangJobPayoutSystem
             return false;
         }
 
-        if (plan.GangReserveAmount > 0m)
+        if (plan.GangReserveCash > 0m ||
+            plan.GangReserveGold > 0m)
         {
-            EnsureAccount(
-                bankSystem,
+            bankSystem.EnsureAccount(
                 gangReserveOwnerId,
                 gangReserveOwnerName);
         }
 
         foreach (GangJobPayoutShare share in plan.MemberShares)
         {
-            if (share.Amount > 0m)
+            if (share.CashAmount > 0m || share.GoldAmount > 0m)
             {
-                EnsureAccount(
-                    bankSystem,
-                    share.OwnerId,
-                    share.OwnerName);
+                bankSystem.EnsureAccount(share.OwnerId, share.OwnerName);
             }
         }
 
-        if (plan.GangReserveAmount > 0m)
+        if (plan.GangReserveCash > 0m ||
+            plan.GangReserveGold > 0m)
         {
-            bankSystem.DepositCash(
+            bankSystem.DepositMoney(
                 gangReserveOwnerId,
-                plan.GangReserveAmount);
+                plan.GangReserveCash,
+                plan.GangReserveGold);
         }
 
         foreach (GangJobPayoutShare share in plan.MemberShares)
         {
-            if (share.Amount > 0m)
-                bankSystem.DepositCash(share.OwnerId, share.Amount);
+            if (share.CashAmount > 0m || share.GoldAmount > 0m)
+            {
+                bankSystem.DepositMoney(
+                    share.OwnerId,
+                    share.CashAmount,
+                    share.GoldAmount);
+            }
         }
 
         _settledJobIds.Add(plan.JobId);
@@ -152,13 +185,11 @@ public sealed class GangJobPayoutSystem
         GangJobPayoutState state = new GangJobPayoutState
         {
             SettledJobIds = _settledJobIds
-                .OrderBy(x => x, StringComparer.Ordinal)
+                .OrderBy(id => id, StringComparer.Ordinal)
                 .ToList()
         };
 
-        return JsonConvert.SerializeObject(
-            state,
-            Formatting.Indented);
+        return JsonConvert.SerializeObject(state, Formatting.Indented);
     }
 
     public void LoadState(string json)
@@ -172,8 +203,7 @@ public sealed class GangJobPayoutSystem
         GangJobPayoutState state;
         try
         {
-            state =
-                JsonConvert.DeserializeObject<GangJobPayoutState>(json);
+            state = JsonConvert.DeserializeObject<GangJobPayoutState>(json);
         }
         catch (JsonException)
         {
@@ -192,23 +222,79 @@ public sealed class GangJobPayoutSystem
         foreach (string jobId in state.SettledJobIds)
         {
             if (!string.IsNullOrWhiteSpace(jobId))
+            {
                 validIds.Add(jobId);
+            }
         }
 
         _settledJobIds.Clear();
         foreach (string jobId in validIds)
+        {
             _settledJobIds.Add(jobId);
+        }
     }
 
-    private List<GangJobPayoutMember> NormalizeMembers(
+    private static GangJobPayoutPlan BuildPlan(
+        string jobId,
+        decimal netCash,
+        decimal netGold,
+        List<GangJobPayoutMember> members)
+    {
+        netCash = RoundCash(netCash);
+        netGold = RoundCash(netGold);
+
+        decimal gangCash = GetGangHalf(netCash);
+        decimal gangGold = GetGangHalf(netGold);
+        decimal participantCash = netCash - gangCash;
+        decimal participantGold = netGold - gangGold;
+
+        Dictionary<string, decimal> cashShares =
+            SplitEqually(participantCash, members);
+        Dictionary<string, decimal> goldShares =
+            SplitEqually(participantGold, members);
+
+        List<GangJobPayoutShare> shares = members
+            .OrderBy(member => member.OwnerId, StringComparer.Ordinal)
+            .Select(member =>
+            {
+                decimal cash = cashShares[member.OwnerId];
+                decimal gold = goldShares[member.OwnerId];
+
+                return new GangJobPayoutShare
+                {
+                    OwnerId = member.OwnerId,
+                    OwnerName = member.OwnerName,
+                    ContributionWeight = 1m,
+                    CashAmount = cash,
+                    GoldAmount = gold,
+                    Amount = cash + gold
+                };
+            })
+            .ToList();
+
+        return new GangJobPayoutPlan
+        {
+            JobId = jobId,
+            TotalCash = netCash,
+            TotalGold = netGold,
+            TotalAmount = netCash + netGold,
+            GangReserveCash = gangCash,
+            GangReserveGold = gangGold,
+            GangReserveAmount = gangCash + gangGold,
+            MemberShares = shares
+        };
+    }
+
+    private static List<GangJobPayoutMember> NormalizeMembers(
         IEnumerable<GangJobPayoutMember> members)
     {
         if (members == null)
+        {
             return new List<GangJobPayoutMember>();
+        }
 
         List<GangJobPayoutMember> validMembers =
             new List<GangJobPayoutMember>();
-
         HashSet<string> seenOwnerIds =
             new HashSet<string>(StringComparer.Ordinal);
 
@@ -226,144 +312,174 @@ public sealed class GangJobPayoutSystem
             {
                 OwnerId = member.OwnerId,
                 OwnerName = member.OwnerName,
-                ContributionWeight = member.ContributionWeight
+                ContributionWeight = 1m
             });
         }
 
-        return validMembers;
+        return validMembers
+            .OrderBy(member => member.OwnerId, StringComparer.Ordinal)
+            .ToList();
     }
 
-    private List<GangJobPayoutShare> SplitMemberPool(
-        decimal memberPool,
-        List<GangJobPayoutMember> members)
+    private static List<string> NormalizeParticipantIds(
+        IEnumerable<string> participantIds)
     {
-        List<GangJobPayoutShare> shares =
-            new List<GangJobPayoutShare>();
-
-        if (memberPool <= 0m || members == null || members.Count == 0)
-            return shares;
-
-        decimal totalWeight = members.Sum(
-            x => x.ContributionWeight);
-
-        if (totalWeight <= 0m)
-            return shares;
-
-        decimal poolCents = memberPool * 100m;
-        decimal allocatedCents = 0m;
-        List<PayoutAllocation> allocations =
-            new List<PayoutAllocation>();
-
-        foreach (GangJobPayoutMember member in members)
+        if (participantIds == null)
         {
-            decimal exactCents =
-                poolCents * member.ContributionWeight / totalWeight;
-            decimal wholeCents = decimal.Floor(exactCents);
-
-            allocations.Add(new PayoutAllocation
-            {
-                Member = member,
-                WholeCents = wholeCents,
-                FractionalCents = exactCents - wholeCents
-            });
-
-            allocatedCents += wholeCents;
+            return new List<string>();
         }
 
-        int remainingCents =
-            (int)(poolCents - allocatedCents);
+        return participantIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(id => id, StringComparer.Ordinal)
+            .ToList();
+    }
 
-        List<PayoutAllocation> remainderOrder = allocations
-            .OrderByDescending(x => x.FractionalCents)
-            .ThenBy(x => x.Member.OwnerId, StringComparer.Ordinal)
+    private static Dictionary<string, decimal> SplitEqually(
+        decimal amount,
+        List<GangJobPayoutMember> members)
+    {
+        Dictionary<string, decimal> shares =
+            new Dictionary<string, decimal>(StringComparer.Ordinal);
+
+        if (members == null || members.Count == 0)
+        {
+            return shares;
+        }
+
+        decimal totalCents = RoundCash(amount) * 100m;
+        decimal centsPerMember = decimal.Floor(totalCents / members.Count);
+        int remainingCents =
+            (int)(totalCents - centsPerMember * members.Count);
+
+        List<GangJobPayoutMember> orderedMembers = members
+            .OrderBy(member => member.OwnerId, StringComparer.Ordinal)
             .ToList();
 
-        for (int i = 0; i < remainingCents; i++)
-            remainderOrder[i].WholeCents += 1m;
-
-        foreach (PayoutAllocation allocation in allocations)
+        for (int i = 0; i < orderedMembers.Count; i++)
         {
-            shares.Add(new GangJobPayoutShare
+            decimal cents = centsPerMember;
+            if (i < remainingCents)
             {
-                OwnerId = allocation.Member.OwnerId,
-                OwnerName = allocation.Member.OwnerName,
-                ContributionWeight =
-                    allocation.Member.ContributionWeight,
-                Amount = allocation.WholeCents / 100m
-            });
+                cents += 1m;
+            }
+
+            shares[orderedMembers[i].OwnerId] = cents / 100m;
         }
 
         return shares;
     }
 
-    private bool IsValidPlan(
+    private static bool IsValidPlan(
         GangJobPayoutPlan plan,
         string gangReserveOwnerId)
     {
-        if (plan.TotalAmount <= 0m ||
-            plan.GangReserveAmount < 0m ||
-            plan.GangReserveAmount > plan.TotalAmount ||
+        if (plan.TotalCash < 0m ||
+            plan.TotalGold < 0m ||
+            plan.GangReserveCash < 0m ||
+            plan.GangReserveGold < 0m ||
             plan.MemberShares == null)
         {
             return false;
         }
 
-        if (plan.GangReserveAmount > 0m &&
+        if ((plan.GangReserveCash > 0m ||
+             plan.GangReserveGold > 0m) &&
             string.IsNullOrWhiteSpace(gangReserveOwnerId))
         {
             return false;
         }
 
-        decimal shareTotal = 0m;
-        HashSet<string> seenOwnerIds =
+        if (RoundCash(plan.TotalAmount) !=
+                RoundCash(plan.TotalCash + plan.TotalGold) ||
+            RoundCash(plan.GangReserveAmount) !=
+                RoundCash(plan.GangReserveCash + plan.GangReserveGold) ||
+            plan.GangReserveCash != GetGangHalf(plan.TotalCash) ||
+            plan.GangReserveGold != GetGangHalf(plan.TotalGold))
+        {
+            return false;
+        }
+
+        HashSet<string> seenIds =
             new HashSet<string>(StringComparer.Ordinal);
+        decimal memberCashTotal = 0m;
+        decimal memberGoldTotal = 0m;
 
         foreach (GangJobPayoutShare share in plan.MemberShares)
         {
             if (share == null ||
                 string.IsNullOrWhiteSpace(share.OwnerId) ||
-                share.Amount < 0m ||
-                share.ContributionWeight < 0m ||
-                !seenOwnerIds.Add(share.OwnerId))
+                share.CashAmount < 0m ||
+                share.GoldAmount < 0m ||
+                !seenIds.Add(share.OwnerId))
             {
                 return false;
             }
 
-            shareTotal += share.Amount;
+            if (RoundCash(share.Amount) !=
+                RoundCash(share.CashAmount + share.GoldAmount))
+            {
+                return false;
+            }
+
+            memberCashTotal += share.CashAmount;
+            memberGoldTotal += share.GoldAmount;
         }
 
-        return RoundCash(
-            plan.GangReserveAmount + shareTotal) ==
-            RoundCash(plan.TotalAmount);
-    }
-
-    private void EnsureAccount(
-        BankSystem bankSystem,
-        string ownerId,
-        string ownerName)
-    {
-        if (bankSystem.GetAccount(ownerId) != null)
-            return;
-
-        bankSystem.RegisterAccount(new BankAccountData
+        if (seenIds.Count == 0)
         {
-            OwnerId = ownerId,
-            OwnerName = ownerName
-        });
+            return false;
+        }
+
+        List<GangJobPayoutMember> members = plan.MemberShares
+            .Select(share => new GangJobPayoutMember
+            {
+                OwnerId = share.OwnerId,
+                OwnerName = share.OwnerName,
+                ContributionWeight = 1m
+            })
+            .ToList();
+
+        Dictionary<string, decimal> expectedCash = SplitEqually(
+            plan.TotalCash - plan.GangReserveCash,
+            members);
+        Dictionary<string, decimal> expectedGold = SplitEqually(
+            plan.TotalGold - plan.GangReserveGold,
+            members);
+
+        foreach (GangJobPayoutShare share in plan.MemberShares)
+        {
+            if (share.CashAmount != expectedCash[share.OwnerId] ||
+                share.GoldAmount != expectedGold[share.OwnerId])
+            {
+                return false;
+            }
+        }
+
+        return RoundCash(plan.GangReserveCash + memberCashTotal) ==
+                   RoundCash(plan.TotalCash) &&
+               RoundCash(plan.GangReserveGold + memberGoldTotal) ==
+                   RoundCash(plan.TotalGold);
     }
 
-    private decimal RoundCash(decimal amount)
+    private static decimal GetNetAmount(decimal reward, decimal cost)
+    {
+        decimal net = RoundCash(reward) - RoundCash(cost);
+        return net > 0m ? net : 0m;
+    }
+
+    private static decimal GetGangHalf(decimal amount)
+    {
+        decimal totalCents = RoundCash(amount) * 100m;
+        return decimal.Floor(totalCents / 2m) / 100m;
+    }
+
+    private static decimal RoundCash(decimal amount)
     {
         return decimal.Round(
             amount,
             2,
             MidpointRounding.AwayFromZero);
-    }
-
-    private sealed class PayoutAllocation
-    {
-        public GangJobPayoutMember Member { get; set; }
-        public decimal WholeCents { get; set; }
-        public decimal FractionalCents { get; set; }
     }
 }

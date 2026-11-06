@@ -68,6 +68,8 @@ public class JobSystem
             LocationId = locationId,
             RewardCash = rewardCash,
             RewardGold = rewardGold,
+            CostCash = 0m,
+            CostGold = 0m,
             HonorChange = honorChange,
             IsIllegal = isIllegal,
             IsCompleted = false,
@@ -129,6 +131,12 @@ public class JobSystem
     {
         JobData job = GetRequiredJob(jobId);
 
+        if (job.IsCompleted || job.IsFailed)
+        {
+            throw new InvalidOperationException(
+                "Participants cannot be changed after a job has ended.");
+        }
+
         if (string.IsNullOrWhiteSpace(participantId))
         {
             return;
@@ -149,6 +157,12 @@ public class JobSystem
     {
         JobData job = GetRequiredJob(jobId);
 
+        if (job.IsCompleted || job.IsFailed)
+        {
+            throw new InvalidOperationException(
+                "Participants cannot be changed after a job has ended.");
+        }
+
         if (job.Participants == null ||
             string.IsNullOrWhiteSpace(participantId))
         {
@@ -156,6 +170,37 @@ public class JobSystem
         }
 
         job.Participants.Remove(participantId);
+    }
+
+    public void SetJobCosts(
+        string jobId,
+        decimal cashCost,
+        decimal goldCost)
+    {
+        JobData job = GetRequiredJob(jobId);
+
+        if (job.IsCompleted || job.IsFailed)
+        {
+            throw new InvalidOperationException(
+                "Job costs cannot be changed after a job has ended.");
+        }
+
+        if (cashCost < 0m)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(cashCost),
+                "Job costs cannot be negative.");
+        }
+
+        if (goldCost < 0m)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(goldCost),
+                "Job costs cannot be negative.");
+        }
+
+        job.CostCash = RoundMoney(cashCost);
+        job.CostGold = RoundMoney(goldCost);
     }
 
     public void CompleteJob(string jobId)
@@ -167,6 +212,14 @@ public class JobSystem
             return;
         }
 
+        List<string> participants = NormalizeParticipantIds(job.Participants);
+        if (participants.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "A job cannot be completed without at least one assigned participant.");
+        }
+
+        job.Participants = participants;
         job.IsCompleted = true;
         job.IsFailed = false;
         job.IsAvailable = false;
@@ -324,7 +377,6 @@ public class JobSystem
     public int GetParticipantCount(string jobId)
     {
         JobData job = GetJob(jobId);
-
         return job == null || job.Participants == null
             ? 0
             : job.Participants.Count;
@@ -333,10 +385,33 @@ public class JobSystem
     public decimal GetTotalRewardAmount(string jobId)
     {
         JobData job = GetJob(jobId);
-
         return job == null
             ? 0m
             : job.RewardCash + job.RewardGold;
+    }
+
+    public decimal GetTotalCostAmount(string jobId)
+    {
+        JobData job = GetJob(jobId);
+        return job == null
+            ? 0m
+            : job.CostCash + job.CostGold;
+    }
+
+    public decimal GetNetRewardCash(string jobId)
+    {
+        JobData job = GetJob(jobId);
+        return job == null
+            ? 0m
+            : GetNetAmount(job.RewardCash, job.CostCash);
+    }
+
+    public decimal GetNetRewardGold(string jobId)
+    {
+        JobData job = GetJob(jobId);
+        return job == null
+            ? 0m
+            : GetNetAmount(job.RewardGold, job.CostGold);
     }
 
     public void UpdateJobAvailability(string jobId, bool isAvailable)
@@ -429,6 +504,48 @@ public class JobSystem
         {
             job.Participants = new List<string>();
         }
+
+        if (job.CostCash < 0m)
+        {
+            job.CostCash = 0m;
+        }
+
+        if (job.CostGold < 0m)
+        {
+            job.CostGold = 0m;
+        }
+
+        job.CostCash = RoundMoney(job.CostCash);
+        job.CostGold = RoundMoney(job.CostGold);
+    }
+
+    private static List<string> NormalizeParticipantIds(
+        IEnumerable<string> participantIds)
+    {
+        if (participantIds == null)
+        {
+            return new List<string>();
+        }
+
+        return participantIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(id => id, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    private static decimal GetNetAmount(decimal reward, decimal cost)
+    {
+        decimal net = RoundMoney(reward) - RoundMoney(cost);
+        return net > 0m ? net : 0m;
+    }
+
+    private static decimal RoundMoney(decimal amount)
+    {
+        return decimal.Round(
+            amount,
+            2,
+            MidpointRounding.AwayFromZero);
     }
 }
 
