@@ -2,22 +2,16 @@
 
 ## Purpose
 
-Record what has been checked about the repository, ScriptHookRDR2DotNet-V2,
-RDR2 natives, and in-game behavior. This file distinguishes verified facts
-from hypotheses and test plans so uncertain API details do not become
-assumed contracts.
+Record what has been checked about the repository, ScriptHookRDR2DotNet-V2, RDR2 natives, and in-game behavior. Distinguish verified facts from hypotheses and test plans so uncertain API details do not become assumed contracts.
 
-Update this file when a native signature is checked, an in-game test is
-performed, or a design decision changes. Keep the larger gameplay design
-in `StoryBoard.md`.
+Update this file when a native signature is checked, an in-game test is performed, or a design decision changes. Keep the larger gameplay design in `StoryBoard.md`.
 
 ## Status labels
 
 - **Verified in repository:** Confirmed in current project files.
-- **Documented in local reference:** Listed in a project note or installed
-  API documentation, but not necessarily confirmed in game.
-- **Hypothesis:** Plausible usage or interpretation; do not depend on it
-  in production code.
+- **Documented in local reference:** Listed in a project note or installed API documentation, but not necessarily confirmed in game.
+- **Documented in external research:** Reported by external native research; not yet confirmed against this project's installed wrapper or in-game.
+- **Hypothesis:** Plausible usage or interpretation; do not depend on it in production code.
 - **Tested in game:** Confirmed in game; record the environment and steps.
 - **Open:** Needs further investigation.
 
@@ -25,127 +19,89 @@ in `StoryBoard.md`.
 
 ### Goal
 
-Use the base game's right-mouse lock-on interaction while unarmed for
-conversation and recruitment, if the installed API can register an
-appropriate prompt and reliably detect its acceptance. The prompt should
-use the game's own label and input glyph rather than a separate custom
-F7 overlay.
+Use the base game's right-mouse lock-on interaction while unarmed to focus an eligible NPC, then show a recruitment action prompt using **G** as the test key. The native interaction-lock-on prompt and the recruitment action prompt are separate: lock-on registration makes the target focusable; a UI prompt attached to the target's prompt group handles the action and its acceptance.
 
-The native prompt is not the source of truth for conversation outcomes.
-It should identify an eligible target and dispatch an action into the
-mod's conversation/recruitment logic.
+The native prompt is not the source of truth for conversation outcomes. It should identify an eligible target and dispatch an action into the mod's conversation/recruitment logic.
 
 ### Findings from the current repository
 
-- **Verified in repository:** `Main.cs` subscribes to the Script `Tick`
-  event and a `KeyDown` handler. Do not implement `public override void
-  Tick()`.
-- **Verified in repository:** The current target-selection path calls
-  `PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY` and falls back to
-  `Game.Player.GetFreeAimEntity()`.
-- **Verified in repository:** F7 opens or executes the custom interaction
-  overlay. That overlay currently offers recruitment for an eligible
-  nearby person or animal, and follow/stay/dismiss actions for an existing
-  companion.
-- **Verified in repository:** F9 toggles companion follow; it is not the
-  recruit action.
-- **Verified in repository:** The overlay uses a `TextElement` and custom
-  keyboard selection. This is useful as a temporary test/fallback path,
-  not the intended final presentation.
-- **Documented in local reference:** `NativeReferenceGuide.md` identifies
-  `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT` as a candidate
-  prompt native.
-- **Documented in local reference:** The guide reports that the installed
-  XML describes p8 as determining whether the ILO prompt is a lock-on
-  prompt with RMB, and that p3 is usually the same as the radius value.
-- **Open:** The installed API XML and DLL cannot be verified from this
-  note alone. The guide refers to a local XML path; inspect the actual
-  game installation used for testing before treating that path or
-  signature as current.
+- **Verified in repository:** `Main.cs` subscribes to the Script `Tick` event and a `KeyDown` handler. Do not implement `public override void Tick()`.
+- **Verified in repository:** The target-selection path calls `PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY` and falls back to `Game.Player.GetFreeAimEntity()`.
+- **Verified in repository:** **G** is the current test recruitment key. The existing recruitment action should be reused rather than duplicated when the native UI prompt is added.
+- **Verified in repository:** F9 toggles companion follow; it is not the recruit action.
+- **Verified in repository:** The current custom interaction UI is temporary. Do not treat its current presentation as the intended native prompt.
+- **Verified in repository:** The native right-mouse interaction-lock-on prompt is not yet implemented.
+- **Documented in local reference:** `NativeReferenceGuide.md` records the signature for `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT`.
+- **Correction:** An earlier version of this note described F7 as the current interaction/recruitment control. That is stale for the current G-key recruitment test and has been corrected here.
 
-### Unverified details in the existing native guide
+### Native-research findings
 
-The existing guide explicitly marks these details as uncertain:
+- **Documented in external research:** `REGISTER_INTERACTION_LOCKON_PROMPT` is identified by hash `0x870708A6E147A9AD`.
+- **Documented in external research:** Its first argument is the entity; the second is approach/focus prompt text; the third is prompt radius; and the fourth is focus distance, commonly the same as the radius.
+- **Documented in external research:** The fourth integer argument is an interaction-lock-on flag value. Reported flag meanings include `1` (changes prompt priority among nearby peds), `8` and `1024` (suppress the focus prompt while allowing focus), `64` (disable camera lock while allowing look-around), `256` (show prompts without looking directly at the target in third person), and `512` (hide the prompt icon border). Other values remain unknown for this prototype.
+- **Documented in external research:** The fifth and sixth numeric arguments are unknown and commonly reported as `0.0`; the seventh is commonly reported as `0` and custom prompt behavior through it has not been confirmed; the final argument is commonly reported as `-1`.
+- **Documented in external research:** The boolean argument controls whether the approach prompt appears. Focus may still be possible when it is false. This is distinct from accepting the G recruitment action.
+- **Documented in external research:** A UI action prompt can be attached to the prompt group for the target entity. The target's group is obtained with `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY` (hash `0xB796970BD125FCE8`), and `_UI_PROMPT_SET_GROUP` is reported as hash `0x2F11D3A254169EA4`.
+- **Documented in external research:** The reported unregister native is `0xE98D55C5983F2509`.
+- **Open:** These external native names and signatures must be matched to the `RDR2.Native` wrappers in the API version referenced by the project before code relies on them.
+- **Open:** The actual G control mapping and the game glyph shown by the UI prompt need testing. A physical keyboard key should not be assumed to be a stable or controller-compatible control binding.
 
-- The meaning and correct values of p4, p5, p6, p7, and p9.
-- Whether the native must be called every frame or registered on a
-  different lifecycle.
-- How to detect acceptance of the prompt.
-- Whether prompt rendering and glyph selection are automatic in this
-  ScriptHook/API version.
-- How the prompt should be removed or invalidated when the target changes,
-  dies, leaves range, or enters combat.
-- Whether multiple prompts can be registered safely and how they are
-  prioritized.
-- Whether the prompt behaves as intended for both mouse/keyboard and
-  controller input.
+### API-version findings
 
-The usage pattern in `NativeReferenceGuide.md`, including proposed
-parameter values, is a hypothesis until checked against the installed
-wrapper and tested in game. Do not copy it into production code as a
-verified signature.
+- **Documented in external project:** ScriptHookRDR2DotNet-V2 release notes state that `Function.Call()` is not a valid script-level native invocation in v2.1.1.0 and later; use generated functions in `RDR2.Native`.
+- **Documented in external project:** The release notes advise using the ASI and API DLLs from the same release archive because internal structures can change.
+- **Open:** Confirm the version currently referenced by this project before implementing calls. Do not infer wrapper availability or signatures from a different API release.
 
-### Verification plan
+### Details still requiring in-game verification
 
-1. Inspect the exact `ScriptHookRDRNetAPI.dll` and XML documentation
-   installed for the game version used in testing.
-2. Confirm the native's generated C# signature and parameter types in the
-   installed API documentation or assembly.
-3. Check the project's current references and version before adding or
-   changing any native call.
-4. Build an isolated prototype with one valid target and one harmless
-   action label.
-5. Test whether the game displays the prompt and correct input glyph while
-   locked onto the target and unarmed.
-6. Test how acceptance is detected. Confirm the action runs once—not
-   repeatedly while the input remains held.
-7. Test target changes, leaving range, target death, combat, fleeing,
-   vehicles, invalid handles, and repeated registration.
-8. Test mouse/keyboard and controller behavior if both are in scope.
-9. Test prompt cleanup and confirm the prompt does not remain attached to
-   a stale target.
-10. If the native path is unreliable or unavailable, keep a clearly
-    documented fallback interaction while preserving the intended
-    base-game-style presentation goal.
+- Whether the target's lock-on interaction and approach prompt appear as intended while the player is unarmed.
+- Whether the UI action prompt displays the intended G binding and correct glyph.
+- How prompt acceptance is detected in the installed wrapper.
+- Confirm the action runs once per acceptance, not repeatedly while a control is held.
+- How prompt registration and cleanup behave when the target changes, dies, leaves range, flees, enters combat, or becomes invalid.
+- Whether the prompt behaves correctly with mouse/keyboard and controller.
+- Whether repeated registration or multiple nearby targets cause priority or cleanup problems.
+- Whether the game's default ped focus behavior requires explicit lock-on registration for this use case.
 
-### Current decision
+## Verification plan
 
-**Planned:** Prototype the native interaction before building the full
-conversation system.
+1. Confirm the project's ScriptHookRDR2DotNet-V2 API reference and DLL version.
+2. Check the installed wrapper/XML for the ILO registration, unregister, prompt-group, UI-prompt, and prompt-completion functions.
+3. Implement an isolated prototype for one eligible NPC, keeping target selection, ILO registration, UI prompt state, action completion, and cleanup separate.
+4. Test while unarmed: focus the NPC with right mouse and confirm the intended approach/focus behavior.
+5. Confirm the action prompt is attached to the focused target and displays the intended G test binding.
+6. Accept the prompt and confirm recruitment runs once.
+7. Change targets, leave range, invalidate the target, and enter combat; confirm the prompt is hidden/removed and cannot act on a stale target.
+8. Repeat the test and verify prompt registration does not accumulate or create duplicates.
+9. Test controller behavior if it is in scope.
+10. Record the observed result in the test record below. Do not mark behavior **Tested in game** until it has actually been tested.
 
-Do not remove the temporary controls until the native path and at least
-one contextual action are tested in game. Once the replacement is
-confirmed, remove F7/F9 from ordinary player-facing use. Retain a
-debug-only path only if it remains useful for development.
+## Current decision
+
+**Planned:** Prototype the native interaction before building the full conversation system.
+
+Keep the existing G recruitment logic available as a test/fallback path until the UI prompt and its action completion have been tested in game. Preserve F9 as the current follow toggle. Do not remove or repurpose controls based only on native-research findings.
 
 ## Follow-up research topics
 
-These are open research items, not confirmed capabilities:
+These remain open research items, not confirmed capabilities:
 
 - Native interaction prompt registration, input acceptance, and cleanup.
-- Conversation, dialogue, subtitle, and menu presentation supported by
-  this ScriptHook version.
+- Conversation, dialogue, subtitle, and menu presentation supported by this ScriptHook version.
 - Whether any base-game scene or cutscene assets can be safely reused.
-- Companion task and movement APIs for realistic travel to and return from
-  camp.
+- Companion task and movement APIs for realistic travel to and return from camp.
 - Body, horse, container, weapon pickup, and plant collection interactions.
-- Persistent identity for lootable world entities and duplicate-loot
-  prevention.
+- Persistent identity for lootable world entities and duplicate-loot prevention.
 - Inventory transfer and item ownership limitations imposed by the game.
-- Reliable marker or notification presentation for job discussions and
-  pending payouts.
+- Reliable marker or notification presentation for job discussions and pending payouts.
 - Camp gathering and safe-scene detection.
 - Faction and distant-NPC simulation constraints.
 
-For each topic, record the exact file, native, API version, or in-game
-test that supports a claim. Leave unsupported items marked **Open** or
-**Hypothesis**.
+For each topic, record the exact file, native, API version, or in-game test that supports a claim. Leave unsupported items marked **Open** or **Hypothesis**.
 
 ## Test record template
 
 Copy this block for each experiment:
-
-### Test: [short name]
 
 - **Date:**
 - **Game version/build:**
@@ -158,12 +114,9 @@ Copy this block for each experiment:
 - **Observed result:**
 - **Mouse/keyboard or controller:**
 - **Failure, cleanup, and repeat behavior:**
-- **Conclusion:** Verified in repository / Documented in local reference /
-  Hypothesis / Tested in game / Open
+- **Conclusion:** Verified in repository / Documented in local reference / Documented in external research / Hypothesis / Tested in game / Open
 - **Follow-up:**
 
 ## Change log
 
-- **2026-11-06:** Created this file to track API and in-game verification
-  separately from design decisions. Recorded current `Main.cs` interaction
-  behavior and the uncertainty already documented for the lock-on prompt.
+- **2026-11-06:** Recorded the distinction between interaction-lock-on registration and the separate UI action prompt. Added reported native hashes, argument interpretations, flags, and API release cautions. Corrected the stale F7 description; preserved in-game testing as open.
