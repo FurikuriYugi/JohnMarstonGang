@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using RDR2;
@@ -21,7 +22,6 @@ public class Main : Script
     private readonly CoreAISystem _coreAISystem;
     private readonly InteractionSystem _interactionSystem;
     private readonly CommandSystem _commandSystem;
-    private readonly RDR2.UI.TextElement _interactionMenuText;
 
     private readonly Dictionary<string, Ped> _runtimeCompanionPeds =
         new Dictionary<string, Ped>();
@@ -29,11 +29,13 @@ public class Main : Script
     private List<Ped> _cachedNearbyEnemies = new List<Ped>();
     private SaveRoot _saveRoot;
     private int _tickCounter;
-    private Ped _interactionTargetPed;
-    private string _interactionTargetCompanionId;
-    private int _interactionTargetHandle = -1;
-    private int _selectedInteractionOption;
-    private bool _interactionMenuVisible;
+
+    private RDR2.UI.Prompt _recruitmentPrompt;
+    private int _recruitmentPromptTargetHandle = -1;
+    private int _recruitmentPromptGroup = -1;
+    private int _recruitmentPromptNativeHandle = -1;
+    private bool _recruitmentPromptAttached;
+    private bool _promptHandleFailureReported;
 
     public Main()
     {
@@ -53,10 +55,9 @@ public class Main : Script
         _tacticalSquadAiSystem = new TacticalSquadAiSystem();
         _entityRegistry = new WorldEntityRegistry();
 
-        _tacticalDecisionSystem =
-            new TacticalDecisionSystem(
-                _entityRegistry,
-                _tacticalSquadAiSystem);
+        _tacticalDecisionSystem = new TacticalDecisionSystem(
+            _entityRegistry,
+            _tacticalSquadAiSystem);
 
         _coreAISystem = new CoreAISystem(
             _entityRegistry,
@@ -64,21 +65,11 @@ public class Main : Script
             _bankSystem,
             _jobSystem);
 
-        _interactionSystem =
-            new InteractionSystem(_lockSystem, _dynamiteSystem);
+        _interactionSystem = new InteractionSystem(
+            _lockSystem,
+            _dynamiteSystem);
 
         _commandSystem = new CommandSystem();
-
-        _interactionMenuText = new RDR2.UI.TextElement(
-            string.Empty,
-            new System.Drawing.PointF(0f, 0f),
-            0.45f,
-            System.Drawing.Color.White,
-            RDR2.UI.Alignment.Left,
-            true,
-            true);
-
-        _interactionMenuText.Enabled = true;
 
         _jobSystem.JobCompleted += _gangManagementSystem.OnJobCompleted;
 
@@ -90,220 +81,318 @@ public class Main : Script
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.KeyCode == Keys.G)
-        {
-            if (!_interactionMenuVisible)
-            {
-                UpdateInteractionMenu();
-            }
-
-            if (_interactionMenuVisible)
-            {
-                ExecuteInteractionMenuOption();
-            }
-            else
-            {
-                RDR2.UI.Screen.PrintSubtitle(
-                    "Aim at a nearby person or animal to interact with the gang.");
-            }
-
-            e.Handled = true;
-        }
-        else if (_interactionMenuVisible &&
-                 (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down))
-        {
-            int optionCount = GetInteractionOptionCount();
-
-            _selectedInteractionOption =
-                e.KeyCode == Keys.Down
-                    ? (_selectedInteractionOption + 1) % optionCount
-                    : (_selectedInteractionOption + optionCount - 1) %
-                      optionCount;
-
-            _interactionMenuText.Caption = BuildInteractionMenuCaption();
-            e.Handled = true;
-        }
-        else if (_interactionMenuVisible && e.KeyCode == Keys.Enter)
-        {
-            ExecuteInteractionMenuOption();
-            e.Handled = true;
-        }
-        else if (e.KeyCode == Keys.F9)
+        if (e.KeyCode == Keys.F9)
         {
             ToggleCompanionFollowState();
+            e.Handled = true;
         }
     }
 
-    private void UpdateInteractionMenu()
-    {
-        Ped targetPed = GetInteractionTargetPed();
-        string companionId = GetRuntimeCompanionId(targetPed);
-
-        if (targetPed == null)
-        {
-            _interactionMenuVisible = false;
-            _interactionTargetPed = null;
-            _interactionTargetCompanionId = null;
-            _interactionTargetHandle = -1;
-            _interactionMenuText.Caption = string.Empty;
-            return;
-        }
-
-        if (targetPed.Handle != _interactionTargetHandle)
-        {
-            _interactionTargetHandle = targetPed.Handle;
-            _selectedInteractionOption = 0;
-        }
-
-        _interactionMenuVisible = true;
-        _interactionTargetPed = targetPed;
-        _interactionTargetCompanionId = companionId;
-        _interactionMenuText.Caption = BuildInteractionMenuCaption();
-        _interactionMenuText.Position = new System.Drawing.PointF(
-            RDR2.UI.Screen.ScaledWidth * 0.68f,
-            360f);
-
-        _interactionMenuText.ScaledDraw();
-    }
-
-    private string BuildInteractionMenuCaption()
-    {
-        if (_interactionTargetPed == null)
-        {
-            return string.Empty;
-        }
-
-        if (string.IsNullOrEmpty(_interactionTargetCompanionId))
-        {
-            string targetType =
-                _interactionTargetPed.IsHuman ? "PERSON" : "ANIMAL";
-
-            string action =
-                _interactionTargetPed.IsHuman
-                    ? "Recruit"
-                    : "Recruit Animal";
-
-            return targetType + "\n" +
-                   (_selectedInteractionOption == 0 ? "> " : " ") +
-                   action + "\n\n" +
-                   "G/Enter: Choose";
-        }
-
-        WorldEntityData entity =
-            _entityRegistry.GetEntity(_interactionTargetCompanionId);
-
-        string followOption =
-            entity != null && entity.IsFollowingPlayer
-                ? "Stay"
-                : "Follow";
-
-        return "GANG MEMBER\n" +
-               (_selectedInteractionOption == 0 ? "> " : " ") +
-               followOption + "\n" +
-               (_selectedInteractionOption == 1 ? "> " : " ") +
-               "Dismiss\n\n" +
-               "G/Enter: Choose";
-    }
-
-    private int GetInteractionOptionCount()
-    {
-        return string.IsNullOrEmpty(_interactionTargetCompanionId) ? 1 : 2;
-    }
-
-    private string GetRuntimeCompanionId(Ped ped)
-    {
-        if (ped == null || !ped.Exists())
-        {
-            return null;
-        }
-
-        foreach (KeyValuePair<string, Ped> pair in _runtimeCompanionPeds)
-        {
-            if (pair.Value != null &&
-                pair.Value.Exists() &&
-                pair.Value.Handle == ped.Handle)
-            {
-                return pair.Key;
-            }
-        }
-
-        return null;
-    }
-
-    private Ped GetInteractionTargetPed()
+    private void UpdateRecruitmentPrompt()
     {
         Ped targetPed = GetInteractionLockonTargetPed();
 
-        if (IsInteractionMenuTarget(targetPed))
+        if (!IsRecruitmentCandidate(targetPed))
         {
-            return targetPed;
+            ClearRecruitmentPrompt();
+            return;
         }
 
-        targetPed = Game.Player.GetFreeAimEntity() as Ped;
-
-        return IsInteractionMenuTarget(targetPed) ? targetPed : null;
-    }
-
-    private unsafe Ped GetInteractionLockonTargetPed()
-    {
-        int entityHandle = 0;
-
-        bool hasTarget =
-            RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(
-                Game.Player.Handle,
-                &entityHandle,
-                false,
-                false);
-
-        if (!hasTarget || entityHandle == 0)
+        if (_recruitmentPrompt == null ||
+            _recruitmentPromptTargetHandle != targetPed.Handle)
         {
-            return null;
+            ClearRecruitmentPrompt();
+            CreateRecruitmentPrompt(targetPed);
         }
 
-        return Entity.FromHandle(entityHandle) as Ped;
-    }
-
-    private bool IsInteractionMenuTarget(Ped ped)
-    {
-        return GetRuntimeCompanionId(ped) != null ||
-               IsRecruitmentCandidate(ped);
-    }
-
-    private void ExecuteInteractionMenuOption()
-    {
-        Ped currentTarget = GetInteractionTargetPed();
-
-        if (!_interactionMenuVisible ||
-            _interactionTargetPed == null ||
-            currentTarget == null ||
-            !currentTarget.Exists() ||
-            currentTarget.Handle != _interactionTargetHandle)
+        if (_recruitmentPrompt == null)
         {
             return;
         }
 
-        if (string.IsNullOrEmpty(_interactionTargetCompanionId))
+        TryAttachRecruitmentPromptToTarget(targetPed);
+
+        if (!_recruitmentPrompt.HasCompleted)
         {
-            if (_selectedInteractionOption == 0)
+            return;
+        }
+
+        int acceptedTargetHandle = _recruitmentPromptTargetHandle;
+
+        ClearRecruitmentPrompt();
+
+        Ped currentTarget = GetInteractionLockonTargetPed();
+
+        if (currentTarget != null &&
+            currentTarget.Exists() &&
+            currentTarget.Handle == acceptedTargetHandle &&
+            IsRecruitmentCandidate(currentTarget))
+        {
+            RecruitPed(currentTarget);
+        }
+    }
+
+    private void CreateRecruitmentPrompt(Ped targetPed)
+    {
+        if (targetPed == null || !targetPed.Exists())
+        {
+            return;
+        }
+
+        /*
+         * INPUT_INTERACT_OPTION1 is documented in ResearchNotes.md as
+         * 0x760A9C6F (the default G action). Casting the hash avoids
+         * relying on an unverified enum member spelling for this first test.
+         */
+        RDR2.eInputType recruitmentInput =
+            unchecked((RDR2.eInputType)0x760A9C6F);
+
+        _recruitmentPrompt = RDR2.UI.Prompt.CreatePrompt(
+            recruitmentInput,
+            RDR2.UI.eUseContextMode.Press,
+            "Recruit",
+            0,
+            0,
+            0,
+            0,
+            default(RDR2.UI.PromptTimingEvent));
+
+        if (_recruitmentPrompt == null)
+        {
+            return;
+        }
+
+        _recruitmentPrompt.Text = "Recruit";
+        _recruitmentPrompt.Enabled = true;
+        _recruitmentPrompt.Visible = true;
+
+        _recruitmentPromptTargetHandle = targetPed.Handle;
+        _recruitmentPromptGroup = -1;
+        _recruitmentPromptNativeHandle =
+            TryGetNativePromptHandle(_recruitmentPrompt);
+        _recruitmentPromptAttached = false;
+        _promptHandleFailureReported = false;
+    }
+
+    private void TryAttachRecruitmentPromptToTarget(Ped targetPed)
+    {
+        if (_recruitmentPrompt == null ||
+            targetPed == null ||
+            !targetPed.Exists() ||
+            targetPed.Handle != _recruitmentPromptTargetHandle)
+        {
+            return;
+        }
+
+        if (_recruitmentPromptNativeHandle < 0)
+        {
+            _recruitmentPromptNativeHandle =
+                TryGetNativePromptHandle(_recruitmentPrompt);
+        }
+
+        if (_recruitmentPromptGroup < 0)
+        {
+            /*
+             * Test candidate for the v2.2.0 native wrapper name/signature.
+             * The entity-associated group is used; no ambient group is
+             * substituted.
+             */
+            _recruitmentPromptGroup =
+                RDR2.Native.UI._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
+                    targetPed.Handle);
+        }
+
+        if (_recruitmentPromptNativeHandle < 0 ||
+            _recruitmentPromptGroup < 0)
+        {
+            _recruitmentPrompt.Enabled = false;
+            _recruitmentPrompt.Visible = false;
+
+            if (!_promptHandleFailureReported)
             {
-                RecruitPed(currentTarget);
+                _promptHandleFailureReported = true;
+                RDR2.UI.Screen.PrintSubtitle(
+                    "Recruit prompt could not be attached to the target.");
             }
 
             return;
         }
 
-        if (_selectedInteractionOption == 0)
+        if (_recruitmentPromptAttached)
         {
-            ToggleCompanionFollowState(
-                _interactionTargetCompanionId,
-                currentTarget);
+            return;
         }
-        else if (_selectedInteractionOption == 1)
+
+        /*
+         * Test candidate for the v2.2.0 native wrapper name/signature.
+         * Tab index 0 is the documented test value.
+         */
+        RDR2.Native.UI._UI_PROMPT_SET_GROUP(
+            _recruitmentPromptNativeHandle,
+            _recruitmentPromptGroup,
+            0);
+
+        _recruitmentPromptAttached = true;
+        _recruitmentPrompt.Enabled = true;
+        _recruitmentPrompt.Visible = true;
+    }
+
+    private static int TryGetNativePromptHandle(RDR2.UI.Prompt prompt)
+    {
+        if (prompt == null)
         {
-            DismissCompanion(
-                _interactionTargetCompanionId,
-                currentTarget);
+            return -1;
         }
+
+        const BindingFlags flags =
+            BindingFlags.Instance |
+            BindingFlags.Public |
+            BindingFlags.NonPublic;
+
+        string[] likelyNames =
+        {
+            "Handle",
+            "PromptHandle",
+            "NativeHandle",
+            "_handle",
+            "m_handle",
+            "_promptHandle",
+            "m_promptHandle"
+        };
+
+        Type promptType = prompt.GetType();
+
+        foreach (string name in likelyNames)
+        {
+            PropertyInfo property = promptType.GetProperty(name, flags);
+
+            if (property != null &&
+                property.GetIndexParameters().Length == 0)
+            {
+                try
+                {
+                    int value = Convert.ToInt32(
+                        property.GetValue(prompt, null));
+
+                    if (value >= 0)
+                    {
+                        return value;
+                    }
+                }
+                catch
+                {
+                    // Continue trying other likely handle members.
+                }
+            }
+
+            FieldInfo field = promptType.GetField(name, flags);
+
+            if (field != null)
+            {
+                try
+                {
+                    int value = Convert.ToInt32(field.GetValue(prompt));
+
+                    if (value >= 0)
+                    {
+                        return value;
+                    }
+                }
+                catch
+                {
+                    // Continue trying other likely handle members.
+                }
+            }
+        }
+
+        /*
+         * Fallback for the prototype: inspect integer members if the API
+         * exposes the native prompt handle under an undocumented name.
+         */
+        foreach (FieldInfo field in promptType.GetFields(flags))
+        {
+            if (field.FieldType != typeof(int) &&
+                field.FieldType != typeof(uint))
+            {
+                continue;
+            }
+
+            try
+            {
+                int value = Convert.ToInt32(field.GetValue(prompt));
+
+                if (value >= 0)
+                {
+                    return value;
+                }
+            }
+            catch
+            {
+                // Ignore unrelated or inaccessible fields.
+            }
+        }
+
+        foreach (PropertyInfo property in promptType.GetProperties(flags))
+        {
+            if (property.GetIndexParameters().Length != 0 ||
+                (property.PropertyType != typeof(int) &&
+                 property.PropertyType != typeof(uint)))
+            {
+                continue;
+            }
+
+            try
+            {
+                int value = Convert.ToInt32(
+                    property.GetValue(prompt, null));
+
+                if (value >= 0)
+                {
+                    return value;
+                }
+            }
+            catch
+            {
+                // Ignore unrelated or inaccessible properties.
+            }
+        }
+
+        return -1;
+    }
+
+    private void ClearRecruitmentPrompt()
+    {
+        if (_recruitmentPrompt != null)
+        {
+            _recruitmentPrompt.Enabled = false;
+            _recruitmentPrompt.Visible = false;
+
+            if (_recruitmentPromptAttached &&
+                _recruitmentPromptNativeHandle >= 0 &&
+                _recruitmentPromptGroup >= 0)
+            {
+                /*
+                 * Test candidate for the v2.2.0 native wrapper name and
+                 * parameter order. Remove the action prompt from its
+                 * previous target group before discarding its state.
+                 */
+                RDR2.Native.UI.PROMPT_REMOVE_GROUP(
+                    _recruitmentPromptNativeHandle,
+                    _recruitmentPromptGroup);
+            }
+        }
+
+        _recruitmentPrompt = null;
+        _recruitmentPromptTargetHandle = -1;
+        _recruitmentPromptGroup = -1;
+        _recruitmentPromptNativeHandle = -1;
+        _recruitmentPromptAttached = false;
+        _promptHandleFailureReported = false;
+    }
+
+    private Ped GetInteractionLockonTargetPed()
+    {
+        return Game.Player.GetInteractionLockonTargetEntity() as Ped;
     }
 
     private void ToggleCompanionFollowState(
@@ -518,6 +607,11 @@ public class Main : Script
 
     private bool IsRuntimeCompanion(Ped ped)
     {
+        if (ped == null)
+        {
+            return false;
+        }
+
         foreach (Ped companionPed in _runtimeCompanionPeds.Values)
         {
             if (companionPed != null &&
@@ -634,7 +728,7 @@ public class Main : Script
 
     private void OnTick(object sender, EventArgs e)
     {
-        UpdateInteractionMenu();
+        UpdateRecruitmentPrompt();
 
         _tickCounter++;
 

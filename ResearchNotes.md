@@ -58,7 +58,7 @@ Use the game's right-mouse lock-on interaction while unarmed to focus an eligibl
 - **Open:** Test registration cadence and cleanup. Do not repeatedly register a target or leave stale registrations behind.
 
 ### UI prompt and group findings
-- **Documented in local reference:** The installed prompt API reference documents `Prompt.CreatePrompt(...)` and prompt completion states. Use the API prompt instead of polling physical keyboard `KeyDown` for G.
+- (Developer comment: This is incorrect. Prompt is internal.)**Documented in local reference:** The installed prompt API reference documents `Prompt.CreatePrompt(...)` and prompt completion states. Use the API prompt instead of polling physical keyboard `KeyDown` for G.
 - **Implementation direction:** Create the G action prompt through the prompt API, obtain the group for the lock-on target, and associate the action prompt with that group. When the prompt reports completion, call the existing recruitment method once.
 - **Documented in external research:** The native group operations are described as `PromptGetGroupIdForTargetEntity(entity)`, `PromptSetGroup(prompt, group, tabIndex)`, and `PromptRemoveGroup(prompt, group)`. The test tab index is `0`.
 - **Open:** Confirm the exact v2.2.0 C# wrapper/class method spellings and parameter types before relying on them.
