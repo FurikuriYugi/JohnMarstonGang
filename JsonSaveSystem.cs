@@ -14,7 +14,7 @@ public static class JsonSaveSystem
     private static readonly string SaveFilePath =
         Path.Combine(SaveFolder, "save.json");
 
-    private const int CurrentSaveVersion = 5;
+    private const int CurrentSaveVersion = 6;
 
     public static SaveRoot Load()
     {
@@ -26,20 +26,17 @@ public static class JsonSaveSystem
             }
 
             string json = File.ReadAllText(SaveFilePath);
-
             if (string.IsNullOrWhiteSpace(json))
             {
                 return new SaveRoot();
             }
 
             JObject root = JObject.Parse(json);
-
             int saveVersion = root["SaveVersion"] != null
                 ? root["SaveVersion"].Value<int>()
                 : 1;
 
             SaveRoot data = root.ToObject<SaveRoot>();
-
             if (data == null)
             {
                 return new SaveRoot();
@@ -85,7 +82,6 @@ public static class JsonSaveSystem
     public static SaveRoot LoadToGangManager(GangManager manager)
     {
         SaveRoot data = Load();
-
         if (manager != null)
         {
             manager.ImportSaveData(data);
@@ -183,11 +179,10 @@ public static class JsonSaveSystem
         }
 
         for (int i = 0;
-             i < data.GangManagement.Hideouts.Count;
-             i++)
+            i < data.GangManagement.Hideouts.Count;
+            i++)
         {
             Hideout hideout = data.GangManagement.Hideouts[i];
-
             if (hideout == null)
             {
                 continue;
@@ -212,8 +207,8 @@ public static class JsonSaveSystem
         }
 
         for (int i = 0;
-             i < data.GangManagement.PendingRewards.Count;
-             i++)
+            i < data.GangManagement.PendingRewards.Count;
+            i++)
         {
             PendingJobReward reward =
                 data.GangManagement.PendingRewards[i];
@@ -229,6 +224,18 @@ public static class JsonSaveSystem
                     new Dictionary<string, decimal>();
             }
 
+            if (reward.MemberCashShares == null)
+            {
+                reward.MemberCashShares =
+                    new Dictionary<string, decimal>();
+            }
+
+            if (reward.MemberGoldShares == null)
+            {
+                reward.MemberGoldShares =
+                    new Dictionary<string, decimal>();
+            }
+
             if (reward.ParticipantIds == null)
             {
                 reward.ParticipantIds = new List<string>();
@@ -236,8 +243,8 @@ public static class JsonSaveSystem
         }
 
         for (int i = 0;
-             i < data.GangManagement.Milestones.Count;
-             i++)
+            i < data.GangManagement.Milestones.Count;
+            i++)
         {
             GangMilestone milestone =
                 data.GangManagement.Milestones[i];
@@ -346,7 +353,6 @@ public static class JsonSaveSystem
         for (int i = 0; i < data.World.ActiveJobs.Count; i++)
         {
             JobData job = data.World.ActiveJobs[i];
-
             if (job == null)
             {
                 continue;
@@ -369,7 +375,6 @@ public static class JsonSaveSystem
         for (int i = 0; i < data.WorldEntities.Count; i++)
         {
             WorldEntityData entity = data.WorldEntities[i];
-
             if (entity == null)
             {
                 continue;
@@ -389,7 +394,6 @@ public static class JsonSaveSystem
         for (int i = 0; i < data.World.Entities.Count; i++)
         {
             EntityStateData entity = data.World.Entities[i];
-
             if (entity == null)
             {
                 continue;
@@ -407,7 +411,6 @@ public static class JsonSaveSystem
         for (int i = 0; i < data.World.Companions.Count; i++)
         {
             CompanionData companion = data.World.Companions[i];
-
             if (companion == null)
             {
                 continue;
@@ -433,8 +436,8 @@ public static class JsonSaveSystem
     private static void NormalizeCompanionAIStates(SaveRoot data)
     {
         for (int i = 0;
-             i < data.World.CompanionAIStates.Count;
-             i++)
+            i < data.World.CompanionAIStates.Count;
+            i++)
         {
             CompanionAIStateData state =
                 data.World.CompanionAIStates[i];
@@ -462,7 +465,6 @@ public static class JsonSaveSystem
         for (int i = 0; i < data.World.Wagons.Count; i++)
         {
             WagonData wagon = data.World.Wagons[i];
-
             if (wagon == null)
             {
                 continue;
@@ -488,8 +490,8 @@ public static class JsonSaveSystem
     private static void NormalizeWeaponPlatforms(SaveRoot data)
     {
         for (int i = 0;
-             i < data.World.WeaponPlatforms.Count;
-             i++)
+            i < data.World.WeaponPlatforms.Count;
+            i++)
         {
             WeaponPlatformData platform =
                 data.World.WeaponPlatforms[i];
@@ -505,8 +507,8 @@ public static class JsonSaveSystem
     private static void NormalizeTacticalOrders(SaveRoot data)
     {
         for (int i = 0;
-             i < data.World.TacticalOrders.Count;
-             i++)
+            i < data.World.TacticalOrders.Count;
+            i++)
         {
             TacticalOrderData order =
                 data.World.TacticalOrders[i];
@@ -533,7 +535,6 @@ public static class JsonSaveSystem
         for (int i = 0; i < data.World.Commands.Count; i++)
         {
             CommandData command = data.World.Commands[i];
-
             if (command != null && command.TargetIds == null)
             {
                 command.TargetIds = new List<string>();
@@ -546,7 +547,6 @@ public static class JsonSaveSystem
         for (int i = 0; i < data.BankAccounts.Count; i++)
         {
             BankAccountData account = data.BankAccounts[i];
-
             if (account == null)
             {
                 continue;
@@ -604,7 +604,6 @@ public static class JsonSaveSystem
         for (int i = 0; i < data.World.TrainLoot.Count; i++)
         {
             TrainLootData loot = data.World.TrainLoot[i];
-
             if (loot != null && loot.Papers == null)
             {
                 loot.Papers = new List<string>();
@@ -615,8 +614,8 @@ public static class JsonSaveSystem
     private static void NormalizeStageCoachLoot(SaveRoot data)
     {
         for (int i = 0;
-             i < data.World.StageCoachLoot.Count;
-             i++)
+            i < data.World.StageCoachLoot.Count;
+            i++)
         {
             StageCoachLootData loot =
                 data.World.StageCoachLoot[i];
