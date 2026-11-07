@@ -1,3 +1,6 @@
+
+## `ResearchNotes.md`
+
 # Research Notes
 
 ## Purpose
@@ -9,7 +12,7 @@ Update this file when a native signature is checked, an in-game test is performe
 ## Status labels
 
 - **Verified in repository:** Confirmed in current project files.
-- **Documented in local reference:** Listed in a project note or installed API documentation, but not necessarily confirmed in game.
+- **Documented in local reference:** Listed in a project note, Object Browser, or installed API documentation, but not necessarily confirmed in game.
 - **Documented in external research:** Reported by external native research; not yet confirmed against this project's installed wrapper or in game.
 - **Hypothesis:** Plausible usage or interpretation; do not depend on it in production code.
 - **Tested in game:** Confirmed in game; record the environment and steps.
@@ -33,178 +36,40 @@ Use the game's right-mouse lock-on interaction while unarmed to focus an eligibl
 - **Verified in repository:** **G** is the current test recruitment key. The existing recruitment action should be reused rather than duplicated when the native UI prompt is added.
 - **Verified in repository:** F9 toggles companion follow; it is not the recruit action.
 - **Verified in repository:** The current custom interaction UI is temporary. Do not treat its current presentation as the intended native prompt.
-- **Verified in repository:** The native right-mouse interaction-lock-on recruitment prompt is not yet implemented.
-- **Verified in repository:** `Test.cs` is being used as a separate test harness for native target and prompt-state checks. Its current test uses `PLAYER.GET_PLAYER_TARGET_ENTITY`; this is distinct from the target-selection path currently described above.
+- **Verified in repository:** The native right-mouse interaction-lock-on recruitment prompt is not yet implemented in the production path.
+- **Verified in repository:** `Test.cs` is a separate harness for native target and prompt-state checks. Its target getter must not be confused with the target-selection path in `Main.cs`.
+- **Verified in repository:** `Main.cs` currently references `RDR2.UI.Prompt.CreatePrompt(...)`. The project bootstrap says `RDR2.UI.Prompt` is internal, so this is a source/API accessibility conflict, not proof that the prompt API is usable in the current build.
 - **Correction:** An earlier version of this note described F7 as the current interaction/recruitment control. That is stale for the current G-key recruitment test and has been corrected.
 
 ### ScriptHook API findings
 
 - **Documented in ScriptHook release notes:** v2.1.0.0 added `Player.GetInteractionLockonTargetEntity()`, `Player.GetFreeAimEntity()`, and `Player.IsFreeFocusing`.
-- **Implementation direction:** Use `Game.Player.GetInteractionLockonTargetEntity()` to read the player's actual focused lock-on target for the recruitment-prompt test. Do not use free aim as a fallback for this recruitment-prompt test.
-- **Documented in ScriptHook release notes:** From v2.1.1.0 onward, `Function.Call()` is not a valid script-level native invocation. Use functions exposed by `RDR2.Native`.
+- **Verified in game:** In the earlier target-getter test, `PLAYER.GET_PLAYER_TARGET_ENTITY` returned a positive handle corresponding to the NPC selected by right-clicking.
+- **Not verified in game:** `Game.Player.GetInteractionLockonTargetEntity()` was used in a later prompt attempt, but that attempt did not establish that this accessor returned the targeted NPC.
+- **Correction for API-version notes:** v2.1.1.0 release notes say `RDR2.Native.Function` was made internal. The project bootstrap and v2.2.0 Visual Studio Object Browser report `RDR2.Native.Function` is public for the selected v2.2.0 API. Do not apply the v2.1.1.0 restriction to the v2.2.0 test project without checking the installed assembly.
 - **Documented in ScriptHook release notes:** Use the ASI and API DLL files from the same release archive because internal structure may change.
 - **Documented in ScriptHook release notes:** v2.1.0.1 noted that prompt text did not work in that release. The v2.2.0 release notes do not state whether this issue was resolved.
-- **Open:** Confirm the API version referenced by the project and whether the prompt-text limitation affects that installed version.
-- **Tested in game:** In the current `Test.cs` test, `PLAYER.GET_PLAYER_TARGET_ENTITY(_playerIndex, &targetHandle)` returns a positive target handle corresponding to the NPC selected by right-clicking. This verifies the target getter for the tested setup; it does not verify `Game.Player.GetInteractionLockonTargetEntity()`.
+- **Open:** Confirm the API/runtime DLL pairing used in game and whether prompt-text rendering works in that pairing.
+- **Open:** Confirm the exact v2.2.0 generated wrapper signature for `PLAYER.GET_PLAYER_TARGET_ENTITY` against the installed Object Browser/XML. The test uses the native with an `out` target handle.
 
 ### Native-research findings
 
-- **Documented in external research:** `REGISTER_INTERACTION_LOCKON_PROMPT` is identified by hash `0x870708A6E147A9AD`.
-- **Documented in local reference:** The project records its wrapper signature as:
-  `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(int, string, float, float, int, float, float, int, bool, int)`.
-- **Documented in external research:** Its arguments are reported as entity, approach/focus prompt text, prompt radius, focus distance, flags, two unknown numeric values, prompt handle, whether the approach prompt is shown, and a final unknown value.
-- **Documented in external research:** The fourth integer argument is an interaction-lock-on flag value. Reported meanings include `1` (changes prompt priority among nearby peds), `8` and `1024` (suppress the focus prompt while allowing focus), `64` (disable camera lock while allowing look-around), `256` (show prompts without looking directly at the target in third person), and `512` (hide the prompt icon border). Other values remain unknown for this prototype.
-- **Documented in external research:** The unknown numeric values are commonly reported as `0.0`, the prompt handle as `0`, and the final value as `-1`. Treat these as test values, not confirmed meanings.
-- **Documented in external research:** The boolean argument controls whether the approach prompt appears. This is distinct from accepting the G recruitment action.
-- **Documented in external research:** Peds can be focused by default; explicit ILO registration may not be necessary for the basic NPC lock-on test.
-- **Documented in external research:** `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY` has hash `0xB796970BD125FCE8`. It returns the prompt group associated with the target entity.
-- **Documented in external research:** `_UI_PROMPT_SET_GROUP` has hash `0x2F11D3A254169EA4`. It associates a prompt with a group; its third argument selects the prompt's tab. The reported test call uses tab index `0`.
-- **Documented in external research:** `PROMPT_REMOVE_GROUP` removes a prompt from a group. Use it when switching away from the previous target or cleaning up the prompt.
-- **Documented in external research:** The reported ILO unregister native hash is `0xE98D55C5983F2509`.
-- **Open:** Confirm the generated `RDR2.Native` wrapper names and exact C# signatures for group lookup, setting, removal, and ILO unregistration against the project's v2.2.0 API.
-- **Open:** Test whether explicit ILO registration is needed for the desired ped approach/focus behavior.
-- **Open:** Test registration cadence and cleanup. Do not repeatedly register a target or leave stale registrations behind.
+#### `REGISTER_INTERACTION_LOCKON_PROMPT`
 
-### UI prompt and group findings
+- **Documented in external research:** Native hash `0x870708A6E147A9AD`.
+- **Documented in local reference:** Visual Studio Object Browser signature:
 
-- **Correction / Open:** An earlier note claimed that the installed prompt API reference documents `Prompt.CreatePrompt(...)`. A code-review comment in the repository disputes that claim (“Prompt is internal”). Do not rely on `Prompt.CreatePrompt(...)` until the public API surface and exact v2.2.0 wrapper are confirmed.
-- **Tested in game:** In the current `Test.cs` test, the target's prompt-enabled query reports `False` after the test calls `_MODIFY_PLAYER_UI_PROMPT_FOR_PED` to enable the tested prompt type.
-- **Tested in game:** In the same test, the player-level prompt-disabled query reports `False`.
-- **Interpretation:** The test has not shown that `_MODIFY_PLAYER_UI_PROMPT_FOR_PED` enables this prompt for the target. The player-level query also does not report that the prompt type is globally disabled. These results do not establish that a separate recruitment action prompt has been created or displayed.
-- **Documented in external research:** The native group operations are described as `PromptGetGroupIdForTargetEntity(entity)`, `PromptSetGroup(prompt, group, tabIndex)`, and `PromptRemoveGroup(prompt, group)`. The test tab index is `0`.
-- **Open:** Confirm the exact v2.2.0 C# wrapper/class method spellings and parameter types before relying on them.
-- **Open:** Confirm whether an entity-associated prompt group requires any additional per-frame activation in this API. Do not substitute an active or ambient group unless testing shows it is required.
-- **Important separation:** `REGISTER_INTERACTION_LOCKON_PROMPT` registers the target's approach/focus interaction. It is not the G recruitment action prompt. Do not treat its prompt-handle argument as the recruitment prompt.
-- **Cleanup direction:** Remove the action prompt from the old target's group and disable or delete it when the target changes, becomes invalid, is no longer eligible, or leaves the relevant interaction state.
-
-### Input-control findings
-
-- **Documented in external research:** `INPUT_INTERACT_LOCKON` has hash `0xF8982F00` and default bindings Mouse Right on QWERTY keyboard and LT on Xbox.
-- **Documented in external research:** `INPUT_INTERACT_OPTION1` has hash `0x760A9C6F` and default bindings G on QWERTY keyboard and D-pad Up on Xbox.
-- **Documented in external research:** `INPUT_INTERACT_LOCKON_ANIMAL` has hash `0x5415BE48` and default bindings G on QWERTY keyboard and X on Xbox.
-- **Implementation direction:** For a generic NPC recruitment action, test `INPUT_INTERACT_OPTION1` as the prompt control. Verify the actual label/glyph and avoid conflating a game control with a physical keyboard `KeyDown` event.
-- **Open:** Confirm the prompt's displayed binding and behavior after player key remapping.
-
-### Details still requiring in-game verification
-
-- Whether right-mouse lock-on and the approach prompt appear as intended while the player is unarmed.
-- Whether `Game.Player.GetInteractionLockonTargetEntity()` returns the intended NPC while the player focuses them.
-- Whether explicit ILO registration is needed for NPCs in this test.
-- Whether the G action prompt appears only for eligible NPCs and displays its text correctly.
-- Whether the prompt displays the intended G binding and correct glyph.
-- How prompt acceptance is detected in the installed wrapper.
-- Confirm the action runs once per acceptance, not repeatedly while a control is held.
-- How prompt-group removal and ILO cleanup behave when the target changes, dies, leaves range, flees, enters combat, or becomes invalid.
-- Whether the prompt behaves correctly with mouse/keyboard and controller.
-- Whether repeated registration or multiple nearby targets cause priority or cleanup problems.
-
-### Verification plan
-
-1. Confirm the ScriptHookRDR2DotNet-V2 API version referenced by the project and use matching runtime/API files.
-2. Check the installed API XML and wrapper for the ILO registration, unregister, prompt-group, UI-prompt, prompt-control, and prompt-completion functions.
-3. Keep `Test.cs` as an isolated prototype. Test target acquisition, prompt-state modification, a separate UI prompt, action completion, and cleanup as distinct steps.
-4. Test while unarmed: focus the NPC with right mouse and confirm the intended approach/focus behavior.
-5. Confirm the lock-on target accessor returns the focused NPC, not the free-aim entity.
-6. Confirm the action prompt is attached to the focused target and displays the intended G test binding.
-7. Accept the prompt and confirm recruitment runs once.
-8. Change targets, leave range, invalidate the target, and enter combat; confirm the prompt is hidden/removed and cannot act on a stale target.
-9. Repeat the test and verify prompt registration does not accumulate or create duplicates.
-10. Test controller behavior if it is in scope.
-11. Record each observed result in the test record below. Do not mark behavior **Tested in game** until it has actually been tested.
-
-### Current decision
-
-**In progress:** The earlier `GET_PLAYER_TARGET_ENTITY` test confirmed a positive target handle for the NPC selected by right-clicking. A subsequent attempt to use a separate native UI prompt produced no visible result when right-clicking an NPC and pressing **G**. No recruitment occurred. This failed prompt attempt does not establish which setup stage failed, and it does not confirm that the separate prompt was registered or attached successfully.
-
-Continue with an isolated prompt test. Keep recruitment disconnected. Add observable checkpoints for native prompt registration, prompt text, G control assignment, target prompt-group lookup, group attachment, visibility/enabled state, and acceptance. Record the outcome of each checkpoint before changing the implementation. Keep F9 as the follow toggle.
-
-### Follow-up research topics
-
-These remain open research items, not confirmed capabilities:
-
-- Native interaction prompt registration, input acceptance, and cleanup.
-- Conversation, dialogue, subtitle, and menu presentation supported by this ScriptHook version.
-- Whether any base-game scene or cutscene assets can be safely reused.
-- Companion task and movement APIs for realistic travel to and return from camp.
-- Body, horse, container, weapon pickup, and plant collection interactions.
-- Persistent identity for lootable world entities and duplicate-loot prevention.
-- Inventory transfer and item ownership limitations imposed by the game.
-- Reliable marker or notification presentation for job discussions and pending payouts.
-- Camp gathering and safe-scene detection.
-- Faction and distant-NPC simulation constraints.
-
-For each topic, record the exact file, native, API version, or in-game test that supports a claim. Leave unsupported items marked **Open** or **Hypothesis**.
-
-### Test record template
-
-Copy this block for each experiment:
-
-- **Date:**
-- **Game version/build:**
-- **ScriptHookRDR2DotNet-V2 version:**
-- **API DLL/XML version or path:**
-- **Repository commit/branch:**
-- **Target and game state:**
-- **Steps:**
-- **Expected result:**
-- **Observed result:**
-- **Mouse/keyboard or controller:**
-- **Failure, cleanup, and repeat behavior:**
-- **Conclusion:** Verified in repository / Documented in local reference / Documented in external research / Hypothesis / Tested in game / Open
-- **Follow-up:**
-
-### Test record: target getter and prompt-state check
-
-- **Date:** 2026-11-06
-- **Game version/build:** Not recorded.
-- **ScriptHookRDR2DotNet-V2 version:** 2.2.0 per the project bootstrap; installed runtime/API pairing not recorded.
-- **API DLL/XML version or path:** Not recorded.
-- **Repository commit/branch:** `main`; commit not recorded.
-- **Target and game state:** NPC selected by right-click lock-on; exact game state and distance not recorded.
-- **Steps:** Run `Test.cs`, right-click an NPC, then press **G**.
-- **Expected result:** The test reports the current target handle and the queried prompt states.
-- **Observed result:** The output reports `Target [handle]; prompt enabled False; player prompt disabled False.` The target handle was positive and corresponded to the NPC. The exact handle was not recorded. The test builds/runs sufficiently to execute these queries; no build log was saved.
-- **Mouse/keyboard or controller:** Mouse and keyboard; right-click and G.
-- **Failure, cleanup, and repeat behavior:** Not recorded.
-- **Conclusion:** **Tested in game:** `GET_PLAYER_TARGET_ENTITY` returns the targeted NPC in this test. The target prompt-enabled query remained `False` after the test attempted to modify it; the player-level prompt-disabled query was `False`. A separate recruitment action prompt has not been tested.
-- **Follow-up:** Keep this test as the baseline. Investigate why the target prompt state remains false, then test a separate action-prompt creation/attachment path only after confirming the installed API surface.
-
-### Test record: separate native recruitment prompt
-
-- **Date:** 2026-11-06
-- **Game version/build:** Not recorded.
-- **ScriptHookRDR2DotNet-V2 version:** 2.2.0 per the project bootstrap; installed runtime/API pairing not recorded.
-- **API DLL/XML version or path:** Not recorded.
-- **Repository commit/branch:** `main`; commit not recorded.
-- **Target and game state:** NPC targeted with right mouse; exact NPC, distance, and game state not recorded.
-- **Steps:** Right-click an NPC and press **G** while testing the separate native UI-prompt path.
-- **Expected result:** A recruitment test prompt appears on the targeted NPC and responds to G. No recruitment should occur in this isolated test.
-- **Observed result:** Nothing happened. No visible prompt or recruitment was observed. Whether the prompt was created, attached to a group, or accepted was not established by the reported result.
-- **Mouse/keyboard or controller:** Mouse and keyboard.
-- **Failure, cleanup, and repeat behavior:** Not recorded.
-- **Conclusion:** **Tested in game:** The tested attempt did not display a usable prompt. This does not identify which prompt setup stage failed. Do not treat it as evidence that the group lookup, text, control assignment, or prompt-completion check works.
-- **Follow-up:** Add distinct debug output for prompt registration, text setup, target-group lookup, group attachment, enabled/visible state, and prompt acceptance. Record which messages appear in game. Keep recruitment disconnected until the prompt itself is confirmed.
-
-### Test record: diagnostic prompt attempt using lock-on accessor
-
-- **Date:** 2026-11-07
-- **Game version/build:** Not recorded.
-- **ScriptHookRDR2DotNet-V2 version:** 2.2.0 per the project bootstrap; installed runtime/API pairing not recorded.
-- **API DLL/XML version or path:** Not recorded.
-- **Repository commit/branch:** `main`; commit not recorded.
-- **Target and game state:** NPC targeted with right mouse; exact NPC, distance, and game state not recorded.
-- **Steps:** Run the diagnostic `Test.cs`, right-click an NPC, and press **G**.
-- **Expected result:** A separate G action prompt appears. No recruitment should occur.
-- **Observed result:** The right-click interaction menu showed nothing new; pressing G did nothing. Which diagnostic subtitles appeared, if any, was not recorded.
-- **Mouse/keyboard or controller:** Mouse and keyboard.
-- **Failure, cleanup, and repeat behavior:** Not recorded.
-- **Conclusion:** **Tested in game:** No visible new prompt or G action was observed. This run used `Game.Player.GetInteractionLockonTargetEntity()`, not the previously tested `GET_PLAYER_TARGET_ENTITY` path, so it does not reliably test prompt setup against the confirmed target getter.
-- **Follow-up:** Restore the confirmed `GET_PLAYER_TARGET_ENTITY` target lookup. First verify its target handle in the current test, then continue the prompt test using that handle. Record the diagnostic subtitle sequence.
-
-### Change log
-
-- **2026-11-06:** Added the lock-on target accessor and documented default right-mouse/G control mappings. Recorded the separate roles of ILO registration and the UI action prompt, plus the unresolved prompt-text limitation.
-- **2026-11-06:** Added prompt-group lookup, association, tab-index, and removal findings. Clarified that these group natives manage the separate G action prompt, while ILO registration handles approach/focus. Exact project wrapper signatures and all in-game behavior remain unverified.
-- **2026-11-06:** Recorded the first in-game `Test.cs` result: `GET_PLAYER_TARGET_ENTITY` returns the targeted NPC; the target prompt-enabled check remains `False` after modification, and the player-level prompt-disabled check is `False`. Marked the getter result as tested, while separate recruitment-prompt creation remains open.
-- **2026-11-06:** Recorded the separate native UI-prompt attempt: right-clicking an NPC and pressing G produced no visible prompt or recruitment. The failure does not isolate the failing setup stage; next test should report each prompt setup checkpoint separately.
-- **2026-11-07:** The diagnostic prompt test showed no new right-click menu item and G had no effect. Correction: that test used `Game.Player.GetInteractionLockonTargetEntity()` instead of the previously confirmed `GET_PLAYER_TARGET_ENTITY` lookup. Treat this run as inconclusive about prompt setup; restore the confirmed getter before the next prompt test.
+  ```csharp
+  RDR2.Native.MISC.REGISTER\_INTERACTION\_LOCKON\_PROMPT(
+      int entity,
+      string text,
+      float radius,
+      float p3,
+      int flag,
+      float p5,
+      float p6,
+      int prompt,
+      bool p8,
+      int p9
+  );
+  ```
