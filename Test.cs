@@ -19,7 +19,6 @@ public class Test : Script
     private string _registrationStatus = "waiting for an NPC target";
     private DateTime _nextReportUtc = DateTime.MinValue;
     private bool _errorReported;
-
     private bool _hasLoggedFreeFocusing;
     private bool _lastFreeFocusing;
     private bool _hasLoggedInteractionHandle;
@@ -27,7 +26,6 @@ public class Test : Script
     private bool _hasLoggedPlayerTargetState;
     private bool _lastPlayerTargetFound;
     private int _lastPlayerTargetHandle = -1;
-
     private PlayerTargetEntityNative _getPlayerTargetEntity;
     private string _playerTargetWrapperStatus =
         "PLAYER.GET_PLAYER_TARGET_ENTITY wrapper not resolved";
@@ -39,7 +37,6 @@ public class Test : Script
     public Test()
     {
         ClearLog();
-
         Log("=== Test.cs Initialized ===");
         Log("Log file: " + _logPath);
         Log(
@@ -170,7 +167,6 @@ public class Test : Script
         {
             _registrationStatus =
                 "REGISTER_INTERACTION_LOCKON_PROMPT wrapper not found";
-
             Log("ERROR: ILO wrapper method not found");
             return;
         }
@@ -421,9 +417,16 @@ public class Test : Script
             return false;
         }
 
-        return _getPlayerTargetEntity(
+        // An out parameter cannot be addressed directly here.
+        // Pass a local variable to the native wrapper, then copy it back.
+        int localTargetHandle = 0;
+
+        bool found = _getPlayerTargetEntity(
             Game.Player.Handle,
-            &targetHandle);
+            &localTargetHandle);
+
+        targetHandle = localTargetHandle;
+        return found;
     }
 
     private void ProcessTestKey()
@@ -440,6 +443,7 @@ public class Test : Script
             GetExistingHandle(_candidate);
 
         int playerTargetHandle;
+
         bool playerTargetFound =
             TryGetPlayerTargetEntity(out playerTargetHandle);
 
@@ -591,6 +595,7 @@ public class Test : Script
         }
 
         int playerTargetHandle;
+
         bool playerTargetFound =
             TryGetPlayerTargetEntity(out playerTargetHandle);
 
