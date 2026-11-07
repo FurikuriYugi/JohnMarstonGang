@@ -6,3 +6,8 @@
 packages/
 *.user
 *.suo
+.git/
+.github/
+Properties/
+.ps1
+.config
