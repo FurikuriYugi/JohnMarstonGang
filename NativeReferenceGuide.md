@@ -44,7 +44,12 @@ RDR2.Native.MISC.REGISTER\_INTERACTION\_LOCKON\_PROMPT(
 `GET_ENTITY_PLAYER_IS_FREE_AIMING_AT` is exposed as:
 
 ```csharp
-public unsafe static bool GET\_ENTITY\_PLAYER\_IS\_FREE\_AIMING\_AT(
+public unsafe static bool GET_ENTITY_PLAYER_IS_FREE_AIMING_AT(
     int player,
     int* entity)
 ```
+### In-game result — 2026-11-07
+
+With candidate handle `151810`, `REGISTER_INTERACTION_LOCKON_PROMPT` returned without an exception. While the user held right-mouse focus, `Player.IsFreeFocusing` was `True`, but `Player.GetInteractionLockonTargetEntity()` returned no entity. Focus returned to `False` after release. This confirms the focus-state accessor responds to right-mouse focus, but does not confirm ILO prompt visibility or target acquisition through the interaction-target helper.
+
+The next diagnostic should compare the separate `PLAYER.GET_PLAYER_TARGET_ENTITY` result while focus is active. Its exact v2.2.0 generated-wrapper signature remains unverified; inspect the installed API reference before adding a call.

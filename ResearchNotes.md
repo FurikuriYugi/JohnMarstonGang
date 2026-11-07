@@ -11,6 +11,12 @@ Update this file when a native signature is checked, an in-game test is performe
 - **Tested in game:** Confirmed in game; record the environment and steps.
 - **Open:** Needs further investigation.
 ## Focus: native interaction-lock-on and recruitment prompt
+- **Tested in game, result incomplete — 2026-11-07:** The user-provided `Test_Log.txt` captured candidate NPC handle `198658` from free aim. The `REGISTER_INTERACTION_LOCKON_PROMPT` wrapper invocation returned without an exception, but this does not establish that the game displayed the prompt or accepted right-mouse focus.
+- **Tested in game, result incomplete — 2026-11-07:** On G-key checks where the candidate was still valid and the wrapper-call flag was true, `GetInteractionLockonTargetEntity()` returned no target. The log did not record `IsFreeFocusing`, so it cannot establish whether right-mouse focus was active at those moments.
+- **Verified from test log — 2026-11-07:** The previous harness cleared the candidate when neither free aim nor an interaction target was present, then recaptured and re-registered the same NPC. The next test retains a valid candidate until it becomes invalid or another NPC is selected, and logs changes to focus and interaction-target state.
+- **Verified from test log — 2026-11-07:** The prior log path was `...\scripts\scripts\Test_Log.txt`. The revised harness writes to `AppDomain.CurrentDomain.BaseDirectory\Test_Log.txt`, which is the scripts folder in the tested setup.
+- **Open:** Re-run the test and check whether `IsFreeFocusing` becomes true and whether the interaction-target handle changes to the registered candidate. An ILO wrapper call returning without exception is not proof of visible prompt behavior.
+
 ### Goal
 Use the game's right-mouse lock-on interaction while unarmed to focus an eligible NPC, then show a recruitment action prompt using **G** as the test key. The native interaction-lock-on (ILO) prompt and the recruitment action prompt are separate:
 - ILO registration makes an entity available for interaction lock-on and controls its approach/focus prompt.
@@ -59,10 +65,8 @@ RDR2.Native.MISC.REGISTER\_INTERACTION\_LOCKON\_PROMPT(
 
 ### Interaction lock-on test — 2026-11-07
 
-- In-game test of `GET_ENTITY_PLAYER_IS_FREE_AIMING_AT`:
-  - Not aiming/right-clicking: native returns false; no handle.
-  - Right-click focus on an NPC: `IsFreeFocusing` becomes true, but the free-aim native returns false and the interaction-target helper returned no entity.
-  - Aiming a gun at an NPC: free-aim native returns true with entity handle `233218`; `Player.GetFreeAimEntity()` returned the same handle.
-- The free-aim native's pointer output is an entity handle, not an entity-type value.
-- Next test registers an interaction lock-on prompt for one firearm-aimed NPC, then checks whether right-click focus returns that same NPC through `GetInteractionLockonTargetEntity()`. G only reports a test acceptance; no recruitment occurs.
-- Test has not yet been run in-game.
+- **Tested in game:** Aiming a firearm selected candidate NPC handle `151810`.
+- **Tested in game:** `REGISTER_INTERACTION_LOCKON_PROMPT` was invoked for that candidate and returned without an exception. This confirms only that the wrapper call completed; it does not confirm visible prompt registration.
+- **Tested in game:** `Game.Player.IsFreeFocusing` changed to `True` while the user held right-mouse focus and returned to `False` after release. Right-mouse focus was active during the G-key test.
+- **Tested in game:** During the G-key test, the candidate remained `151810` and `GetInteractionLockonTargetEntity()` returned no target. G was blocked; no recruitment occurred.
+- **Open:** The run does not establish whether the ILO prompt was visible. Test the separate `PLAYER.GET_PLAYER_TARGET_ENTITY` path during right-mouse focus. Confirm its exact v2.2.0 wrapper signature in the installed API reference before implementing it; do not assume an `out` parameter.

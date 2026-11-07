@@ -538,7 +538,10 @@ Before marking any feature implemented or tested, confirm:
 
 ### Recruitment lock-on test status — 2026-11-07
 
-- Free-aim targeting is confirmed for weapon aiming only; it does not provide the right-click focus target.
-- The next in-game test registers an ILO prompt on one NPC, then checks right-click focus and the interaction-target helper.
-- G is a diagnostic test key only. No recruitment or persistent state change is performed.
-- Status: test code prepared; awaiting build and in-game results.
+- The test captured NPC handle `151810`; the ILO wrapper call returned without an exception.
+- Right-mouse focus was confirmed by `IsFreeFocusing=True` during the G-key test and `False` after release.
+- `GetInteractionLockonTargetEntity()` returned no target while focus was active, so G remained blocked. No recruitment occurred.
+- Prompt visibility and successful ILO target acquisition remain unverified.
+- Next: inspect the installed v2.2.0 API reference for the exact `PLAYER.GET_PLAYER_TARGET_ENTITY` wrapper signature, then use that getter as a separate diagnostic during right-mouse focus.
+- **Status:** Focus-state behavior tested; ILO prompt/target behavior unresolved.
+ised test prepared; awaiting build and in-game results. The native prompt and focus behavior are not verified.
