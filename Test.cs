@@ -5,20 +5,11 @@ using RDR2;
 
 public class Test : Script
 {
-    // Display-only diagnostic control action.
-    // INPUT_CONTEXT_X is commonly mapped to R; it is not the desired G binding.
-    private const int DiagnosticInputHash = unchecked((int)0xE3BF959B);
+    // INPUT_INTERACT_OPTION1 in the InteractionLockOn context.
+    // The control reference maps this action to G by default.
+    private const int RecruitInputActionHash = unchecked((int)0x760A9C6F);
 
-    // Test-only ILO registration values.
-    // Some parameter meanings are documented externally, not verified in-game.
-    private const float IloRadius = 2.0f;
-    private const float IloFocusDistance = 2.0f;
-    private const int IloFlags = 0;
-    private const float IloParameter5 = 0.0f;
-    private const float IloParameter6 = 0.0f;
-    private const int IloPromptHandle = 0;
-    private const bool ShowApproachPrompt = false;
-    private const int IloParameter9 = -1;
+    private const int PromptTextLiteralString = 10;
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -28,15 +19,24 @@ public class Test : Script
     private MethodInfo _doesEntityExist;
     private MethodInfo _isPedHuman;
     private MethodInfo _getTargetPromptGroup;
-    private MethodInfo _registerInteractionLockonPrompt;
-    private MethodInfo _unregisterInteractionLockonPrompt;
 
-    private object _prompt;
+    private MethodInfo _promptRegisterBegin;
+    private MethodInfo _promptSetControlAction;
+    private MethodInfo _promptSetText;
+    private MethodInfo _promptSetStandardMode;
+    private MethodInfo _promptSetEnabled;
+    private MethodInfo _promptSetVisible;
+    private MethodInfo _promptSetGroup;
+    private MethodInfo _promptRegisterEnd;
+    private MethodInfo _promptHasStandardModeCompleted;
+    private MethodInfo _promptDelete;
+    private MethodInfo _varString;
+
+    private int _targetHandle;
+    private int _lastLoggedTarget = -1;
     private int _promptHandle = -1;
     private int _promptGroup = -1;
-    private int _targetHandle;
-    private int _iloTargetHandle;
-    private int _lastLoggedTarget = -1;
+
     private bool _completedForTarget;
     private bool _setupFailedForTarget;
     private bool _errorLogged;
@@ -49,35 +49,36 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Prompt input-action display test initialized ===");
-        Log("TEST ONLY: show a Recruit prompt for the focused human NPC.");
+        Log("=== Native lock-on G Recruit prompt test initialized ===");
         Log(
-            "DIAGNOSTIC INPUT: INPUT_CONTEXT_X (0xE3BF959B; " +
-            "commonly mapped to keyboard R; not the intended G binding).");
+            "TEST ONLY: create a temporary G Recruit action prompt " +
+            "for the focused human NPC.");
         Log(
-            "HYPOTHESIS: using a recognized prompt input action will show " +
-            "whether the custom prompt creation and target-group path renders.");
+            "INPUT ACTION: INPUT_INTERACT_OPTION1 " +
+            "(0x760A9C6F; InteractionLockOn context; default G).");
         Log(
-            "ILO registration values and target-group assignment remain " +
-            "unchanged from the previous test.");
-        Log("No ambient-group or active-group activation is performed.");
+            "PROMPT CREATION: native register-begin/set-control/" +
+            "set-text/register-end sequence.");
+        Log(
+            "PROMPT GROUP: assign the native prompt to the focused " +
+            "entity's target prompt group.");
+        Log(
+            "ILO registration is deliberately omitted; this test " +
+            "uses the already-focused human target.");
+        Log(
+            "No ambient-group or active-group activation is performed.");
         Log("No recruitment or gang-data changes are performed.");
         Log(
-            "ILO test values: radius=2.0; focusDistance=2.0; flags=0; " +
-            "p5=0.0; p6=0.0; prompt=0; p8=false; p9=-1.");
+            "Unarmed test conditions: stand close to a human NPC, " +
+            "right-mouse focus them, and check for G Recruit.");
         Log(
-            "These native parameter meanings are not all verified against " +
-            "the installed API.");
-        Log(
-            "This run logs the Boolean return values from ILO registration " +
-            "and cleanup. A true return does not prove prompt rendering.");
-        Log(
-            "Holster your weapon, stand close to a human NPC, and focus them.");
+            "Native wrapper signatures and in-game rendering are " +
+            "logged separately; successful calls do not prove display.");
 
         ResolveMethods();
 
         RDR2.UI.Screen.PrintSubtitle(
-            "Focus a human NPC to test the Recruit prompt.");
+            "Unarmed: focus a human NPC to test G Recruit.");
 
         Tick += OnTick;
     }
@@ -97,6 +98,8 @@ public class Test : Script
                 RDR2.UI.Screen.PrintSubtitle(
                     "Prompt test error. Check Test_Log.txt.");
             }
+
+            ClearPrompt();
         }
     }
 
@@ -135,26 +138,34 @@ public class Test : Script
             return;
         }
 
-        if (_prompt == null)
+        if (_promptHandle <= 0)
         {
             CreateTargetPrompt(_targetHandle);
         }
 
-        if (_prompt == null)
+        if (_promptHandle <= 0)
         {
             return;
         }
 
-        if (GetBooleanMember(_prompt, "HasCompleted"))
+        object completedResult = InvokeNative(
+            _promptHasStandardModeCompleted,
+            _promptHandle);
+
+        bool completed =
+            completedResult != null &&
+            Convert.ToBoolean(completedResult);
+
+        if (completed)
         {
             _completedForTarget = true;
 
             Log(
-                "Diagnostic prompt completed; test only, " +
-                "no recruitment performed.");
+                "TEST PROMPT COMPLETED: G action detected by native " +
+                "standard-mode completion; no recruitment performed.");
 
             RDR2.UI.Screen.PrintSubtitle(
-                "Diagnostic prompt completed; no recruitment performed.");
+                "G Recruit test completed; no recruitment performed.");
 
             ClearPrompt();
         }
@@ -187,10 +198,13 @@ public class Test : Script
             return false;
         }
 
-        bool exists = Convert.ToBoolean(
-            _doesEntityExist.Invoke(
-                null,
-                new object[] { foundHandle }));
+        object existsResult = InvokeNative(
+            _doesEntityExist,
+            foundHandle);
+
+        bool exists =
+            existsResult != null &&
+            Convert.ToBoolean(existsResult);
 
         if (!exists ||
             foundHandle == Game.Player.Character.Handle)
@@ -198,10 +212,13 @@ public class Test : Script
             return false;
         }
 
-        bool isHuman = Convert.ToBoolean(
-            _isPedHuman.Invoke(
-                null,
-                new object[] { foundHandle }));
+        object humanResult = InvokeNative(
+            _isPedHuman,
+            foundHandle);
+
+        bool isHuman =
+            humanResult != null &&
+            Convert.ToBoolean(humanResult);
 
         if (!isHuman)
         {
@@ -216,61 +233,101 @@ public class Test : Script
     {
         try
         {
-            RegisterInteractionLockonPrompt(targetHandle);
-
             if (_getTargetPromptGroup == null)
             {
                 throw new InvalidOperationException(
-                    "Target prompt-group wrapper was not found.");
+                    "Target prompt-group native was not resolved.");
             }
 
-            _promptGroup = Convert.ToInt32(
-                _getTargetPromptGroup.Invoke(
-                    null,
-                    new object[] { targetHandle }));
+            object groupResult = InvokeNative(
+                _getTargetPromptGroup,
+                targetHandle);
 
-            if (_promptGroup < 0)
+            _promptGroup = Convert.ToInt32(groupResult);
+
+            if (_promptGroup <= 0)
             {
                 throw new InvalidOperationException(
-                    "Target returned an invalid prompt group.");
+                    "Target returned an invalid prompt group: " +
+                    _promptGroup);
             }
 
-            _prompt = CreatePromptObject();
-            _promptHandle = GetPromptHandle(_prompt);
+            object beginResult = InvokeNative(
+                _promptRegisterBegin);
 
-            if (_promptHandle < 0)
+            _promptHandle = Convert.ToInt32(beginResult);
+
+            if (_promptHandle <= 0)
             {
                 throw new InvalidOperationException(
-                    "Could not read the prompt handle.");
+                    "UI_PROMPT_REGISTER_BEGIN returned an invalid " +
+                    "prompt handle.");
             }
 
-            SetMember(_prompt, "Text", "Recruit");
+            Log(
+                "PROMPT REGISTER BEGIN: handle=" +
+                _promptHandle);
 
-            RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
+            InvokeNative(
+                _promptSetControlAction,
+                _promptHandle,
+                RecruitInputActionHash);
+
+            object textResult = InvokeNative(
+                _varString,
+                PromptTextLiteralString,
+                "LITERAL_STRING",
+                "Recruit");
+
+            if (textResult == null)
+            {
+                throw new InvalidOperationException(
+                    "VAR_STRING returned null.");
+            }
+
+            InvokeNative(
+                _promptSetText,
+                _promptHandle,
+                textResult);
+
+            InvokeNative(
+                _promptSetStandardMode,
+                _promptHandle,
+                true);
+
+            InvokeNative(
+                _promptSetEnabled,
+                _promptHandle,
+                true);
+
+            InvokeNative(
+                _promptSetVisible,
+                _promptHandle,
+                true);
+
+            InvokeNative(
+                _promptSetGroup,
                 _promptHandle,
                 _promptGroup,
                 0);
 
-            SetMember(_prompt, "Enabled", true);
-            SetMember(_prompt, "Visible", true);
+            InvokeNative(
+                _promptRegisterEnd,
+                _promptHandle);
 
             Log(
-                "PROMPT CREATED: target=" + targetHandle +
+                "PROMPT REGISTERED: target=" + targetHandle +
                 "; handle=" + _promptHandle +
                 "; targetGroup=" + _promptGroup);
-
             Log(
-                "PROMPT INPUT ACTION: INPUT_CONTEXT_X (0xE3BF959B); " +
-                "the displayed keyboard mapping may vary by settings/context.");
-
+                "PROMPT CONTROL: INPUT_INTERACT_OPTION1 " +
+                "(0x760A9C6F; default G in InteractionLockOn).");
             Log(
-                "GROUP MODE: action prompt assigned to target group; " +
-                "no ambient-group or active-group activation native called.");
-
+                "PROMPT TEXT: VAR_STRING(10, LITERAL_STRING, Recruit).");
             Log(
-                "IN-GAME CHECK: confirm whether the Recruit prompt is visible. " +
-                "Prompt properties and native return values alone do not " +
-                "prove rendering.");
+                "IN-GAME CHECK: confirm whether G Recruit is visible " +
+                "in the focused NPC's lock-on menu. Native return " +
+                "values alone do not prove rendering.");
         }
         catch (Exception exception)
         {
@@ -282,134 +339,6 @@ public class Test : Script
 
             ClearPrompt();
         }
-    }
-
-    private void RegisterInteractionLockonPrompt(int targetHandle)
-    {
-        if (_registerInteractionLockonPrompt == null)
-        {
-            throw new InvalidOperationException(
-                "REGISTER_INTERACTION_LOCKON_PROMPT wrapper was not found.");
-        }
-
-        if (_unregisterInteractionLockonPrompt == null)
-        {
-            throw new InvalidOperationException(
-                "UNREGISTER_INTERACTION_LOCKON_PROMPT wrapper was not found; " +
-                "refusing to register an ILO that this test cannot clean up.");
-        }
-
-        object[] arguments =
-        {
-            targetHandle,
-            "Recruit",
-            IloRadius,
-            IloFocusDistance,
-            IloFlags,
-            IloParameter5,
-            IloParameter6,
-            IloPromptHandle,
-            ShowApproachPrompt,
-            IloParameter9
-        };
-
-        Log(
-            "ILO REGISTER CALL: " +
-            DescribeMethod(_registerInteractionLockonPrompt));
-
-        object result = _registerInteractionLockonPrompt.Invoke(
-            null,
-            arguments);
-
-        bool returnedTrue =
-            result != null && Convert.ToBoolean(result);
-
-        // Keep the handle so cleanup is attempted even if registration
-        // reports false; the test should not leave an uncertain registration
-        // behind.
-        _iloTargetHandle = targetHandle;
-
-        Log(
-            "ILO REGISTER RESULT: target=" + targetHandle +
-            "; returned=" + returnedTrue +
-            "; raw=" + (result == null ? "null" : result.ToString()));
-    }
-
-    private object CreatePromptObject()
-    {
-        Type promptType =
-            typeof(Game).Assembly.GetType("RDR2.UI.Prompt", false);
-
-        if (promptType == null)
-        {
-            throw new InvalidOperationException(
-                "RDR2.UI.Prompt type was not found.");
-        }
-
-        MethodInfo createMethod = null;
-
-        MethodInfo[] methods = promptType.GetMethods(
-            BindingFlags.Public |
-            BindingFlags.NonPublic |
-            BindingFlags.Static);
-
-        foreach (MethodInfo method in methods)
-        {
-            ParameterInfo[] parameters = method.GetParameters();
-
-            if (method.Name == "CreatePrompt" &&
-                parameters.Length == 8 &&
-                parameters[2].ParameterType == typeof(string))
-            {
-                createMethod = method;
-                break;
-            }
-        }
-
-        if (createMethod == null)
-        {
-            throw new InvalidOperationException(
-                "Eight-parameter Prompt.CreatePrompt was not found.");
-        }
-
-        ParameterInfo[] createParameters =
-            createMethod.GetParameters();
-
-        object[] arguments = new object[8];
-
-        arguments[0] = ConvertArgument(
-            DiagnosticInputHash,
-            createParameters[0].ParameterType);
-
-        arguments[1] = Enum.Parse(
-            createParameters[1].ParameterType,
-            "Press",
-            true);
-
-        arguments[2] = "Recruit";
-
-        for (int i = 3; i <= 6; i++)
-        {
-            arguments[i] = ConvertArgument(
-                0,
-                createParameters[i].ParameterType);
-        }
-
-        Type timingType = createParameters[7].ParameterType;
-
-        arguments[7] = timingType.IsValueType
-            ? Activator.CreateInstance(timingType)
-            : null;
-
-        object prompt = createMethod.Invoke(null, arguments);
-
-        if (prompt == null)
-        {
-            throw new InvalidOperationException(
-                "Prompt.CreatePrompt returned null.");
-        }
-
-        return prompt;
     }
 
     private void ResolveMethods()
@@ -445,27 +374,124 @@ public class Test : Script
                 "_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY",
                 1);
 
-        _registerInteractionLockonPrompt =
+        _promptRegisterBegin =
             FindNativeMethod(
-                "REGISTER_INTERACTION_LOCKON_PROMPT",
-                10);
+                "_UI_PROMPT_REGISTER_BEGIN",
+                0);
 
-        _unregisterInteractionLockonPrompt =
+        _promptSetControlAction =
             FindNativeMethod(
-                "UNREGISTER_INTERACTION_LOCKON_PROMPT",
+                "_UI_PROMPT_SET_CONTROL_ACTION",
+                2);
+
+        _promptSetText =
+            FindNativeMethod(
+                "_UI_PROMPT_SET_TEXT",
+                2);
+
+        _promptSetStandardMode =
+            FindNativeMethod(
+                "_UI_PROMPT_SET_STANDARD_MODE",
+                2);
+
+        _promptSetEnabled =
+            FindNativeMethod(
+                "_UI_PROMPT_SET_ENABLED",
+                2);
+
+        _promptSetVisible =
+            FindNativeMethod(
+                "_UI_PROMPT_SET_VISIBLE",
+                2);
+
+        _promptSetGroup =
+            FindNativeMethod(
+                "_UI_PROMPT_SET_GROUP",
+                3);
+
+        _promptRegisterEnd =
+            FindNativeMethod(
+                "_UI_PROMPT_REGISTER_END",
                 1);
 
-        LogResolvedMethod(
-            "REGISTER ILO",
-            _registerInteractionLockonPrompt);
+        _promptHasStandardModeCompleted =
+            FindNativeMethod(
+                "_UI_PROMPT_HAS_STANDARD_MODE_COMPLETED",
+                1);
+
+        _promptDelete =
+            FindNativeMethod(
+                "_UI_PROMPT_DELETE",
+                1);
+
+        _varString =
+            FindNativeMethod(
+                "VAR_STRING",
+                3);
 
         LogResolvedMethod(
-            "UNREGISTER ILO",
-            _unregisterInteractionLockonPrompt);
-
+            "DOES ENTITY EXIST",
+            _doesEntityExist);
+        LogResolvedMethod(
+            "IS PED HUMAN",
+            _isPedHuman);
         LogResolvedMethod(
             "TARGET PROMPT GROUP",
             _getTargetPromptGroup);
+        LogResolvedMethod(
+            "PROMPT REGISTER BEGIN",
+            _promptRegisterBegin);
+        LogResolvedMethod(
+            "PROMPT SET CONTROL ACTION",
+            _promptSetControlAction);
+        LogResolvedMethod(
+            "PROMPT SET TEXT",
+            _promptSetText);
+        LogResolvedMethod(
+            "PROMPT SET STANDARD MODE",
+            _promptSetStandardMode);
+        LogResolvedMethod(
+            "PROMPT SET ENABLED",
+            _promptSetEnabled);
+        LogResolvedMethod(
+            "PROMPT SET VISIBLE",
+            _promptSetVisible);
+        LogResolvedMethod(
+            "PROMPT SET GROUP",
+            _promptSetGroup);
+        LogResolvedMethod(
+            "PROMPT REGISTER END",
+            _promptRegisterEnd);
+        LogResolvedMethod(
+            "PROMPT HAS STANDARD MODE COMPLETED",
+            _promptHasStandardModeCompleted);
+        LogResolvedMethod(
+            "PROMPT DELETE",
+            _promptDelete);
+        LogResolvedMethod(
+            "VAR STRING",
+            _varString);
+
+        if (_doesEntityExist == null ||
+            _isPedHuman == null ||
+            _getTargetPromptGroup == null ||
+            _promptRegisterBegin == null ||
+            _promptSetControlAction == null ||
+            _promptSetText == null ||
+            _promptSetStandardMode == null ||
+            _promptSetEnabled == null ||
+            _promptSetVisible == null ||
+            _promptSetGroup == null ||
+            _promptRegisterEnd == null ||
+            _promptHasStandardModeCompleted == null ||
+            _promptDelete == null ||
+            _varString == null)
+        {
+            Log(
+                "ERROR: One or more required native wrappers are " +
+                "missing. The test will log setup failure rather " +
+                "than switch to another prompt implementation.");
+        }
     }
 
     private void LogResolvedMethod(
@@ -493,6 +519,9 @@ public class Test : Script
             types = exception.Types;
         }
 
+        string normalizedName =
+            methodName.TrimStart('_');
+
         foreach (Type type in types)
         {
             if (type == null ||
@@ -511,7 +540,13 @@ public class Test : Script
 
             foreach (MethodInfo method in methods)
             {
-                if (method.Name == methodName &&
+                string candidateName =
+                    method.Name.TrimStart('_');
+
+                if (string.Equals(
+                        candidateName,
+                        normalizedName,
+                        StringComparison.OrdinalIgnoreCase) &&
                     method.GetParameters().Length == parameterCount)
                 {
                     return method;
@@ -522,115 +557,39 @@ public class Test : Script
         return null;
     }
 
-    private static int GetPromptHandle(object prompt)
+    private static object InvokeNative(
+        MethodInfo method,
+        params object[] arguments)
     {
-        string[] names =
+        if (method == null)
         {
-            "Handle",
-            "PromptHandle",
-            "NativeHandle",
-            "Id"
-        };
-
-        foreach (string name in names)
-        {
-            object value = GetMember(prompt, name);
-
-            if (value != null)
-            {
-                try
-                {
-                    return Convert.ToInt32(value);
-                }
-                catch
-                {
-                    // Try the next candidate member.
-                }
-            }
+            throw new InvalidOperationException(
+                "Attempted to invoke an unresolved native wrapper.");
         }
 
-        return -1;
-    }
+        ParameterInfo[] parameters = method.GetParameters();
 
-    private static object GetMember(
-        object instance,
-        string name)
-    {
-        Type type = instance.GetType();
-
-        PropertyInfo property = type.GetProperty(
-            name,
-            BindingFlags.Public |
-            BindingFlags.NonPublic |
-            BindingFlags.Instance);
-
-        if (property != null && property.CanRead)
+        if (parameters.Length != arguments.Length)
         {
-            return property.GetValue(instance, null);
+            throw new InvalidOperationException(
+                "Native argument count mismatch for " +
+                DescribeMethod(method) +
+                "; supplied=" + arguments.Length);
         }
 
-        FieldInfo field = type.GetField(
-            name,
-            BindingFlags.Public |
-            BindingFlags.NonPublic |
-            BindingFlags.Instance);
+        object[] convertedArguments =
+            new object[arguments.Length];
 
-        return field == null
-            ? null
-            : field.GetValue(instance);
-    }
-
-    private static void SetMember(
-        object instance,
-        string name,
-        object value)
-    {
-        Type type = instance.GetType();
-
-        PropertyInfo property = type.GetProperty(
-            name,
-            BindingFlags.Public |
-            BindingFlags.NonPublic |
-            BindingFlags.Instance);
-
-        if (property != null && property.CanWrite)
+        for (int i = 0; i < arguments.Length; i++)
         {
-            property.SetValue(
-                instance,
-                ConvertArgument(value, property.PropertyType),
-                null);
-
-            return;
+            convertedArguments[i] = ConvertArgument(
+                arguments[i],
+                parameters[i].ParameterType);
         }
 
-        FieldInfo field = type.GetField(
-            name,
-            BindingFlags.Public |
-            BindingFlags.NonPublic |
-            BindingFlags.Instance);
-
-        if (field != null)
-        {
-            field.SetValue(
-                instance,
-                ConvertArgument(value, field.FieldType));
-
-            return;
-        }
-
-        throw new InvalidOperationException(
-            "Prompt member '" + name +
-            "' was not found or writable.");
-    }
-
-    private static bool GetBooleanMember(
-        object instance,
-        string name)
-    {
-        object value = GetMember(instance, name);
-
-        return value != null &&
-               Convert.ToBoolean(value);
+        return method.Invoke(
+            null,
+            convertedArguments);
     }
 
     private static object ConvertArgument(
@@ -654,91 +613,115 @@ public class Test : Script
             return Enum.ToObject(targetType, value);
         }
 
+        if (targetType == typeof(IntPtr))
+        {
+            long numericValue = Convert.ToInt64(value);
+            return new IntPtr(numericValue);
+        }
+
+        if (targetType == typeof(UIntPtr))
+        {
+            ulong numericValue = Convert.ToUInt64(value);
+            return new UIntPtr(numericValue);
+        }
+
+        if (targetType == typeof(uint))
+        {
+            return unchecked((uint)Convert.ToUInt64(value));
+        }
+
+        if (targetType == typeof(ulong))
+        {
+            return Convert.ToUInt64(value);
+        }
+
+        if (targetType == typeof(int))
+        {
+            return unchecked((int)Convert.ToInt64(value));
+        }
+
+        if (targetType == typeof(long))
+        {
+            return Convert.ToInt64(value);
+        }
+
         return Convert.ChangeType(value, targetType);
     }
 
     private void ClearPrompt()
     {
-        if (_prompt is IDisposable)
-        {
-            try
-            {
-                ((IDisposable)_prompt).Dispose();
-            }
-            catch
-            {
-                // Cleanup must not break the test loop.
-            }
-        }
+        int oldPromptHandle = _promptHandle;
 
-        _prompt = null;
         _promptHandle = -1;
         _promptGroup = -1;
 
-        if (_iloTargetHandle > 0)
+        if (oldPromptHandle <= 0 ||
+            _promptDelete == null)
         {
-            try
-            {
-                if (_unregisterInteractionLockonPrompt != null)
-                {
-                    object result =
-                        _unregisterInteractionLockonPrompt.Invoke(
-                            null,
-                            new object[] { _iloTargetHandle });
+            return;
+        }
 
-                    bool returnedTrue =
-                        result != null && Convert.ToBoolean(result);
+        try
+        {
+            InvokeNative(
+                _promptDelete,
+                oldPromptHandle);
 
-                    Log(
-                        "ILO UNREGISTER RESULT: target=" +
-                        _iloTargetHandle +
-                        "; returned=" + returnedTrue +
-                        "; raw=" +
-                        (result == null ? "null" : result.ToString()));
-                }
-            }
-            catch (Exception exception)
-            {
-                Log(
-                    "ILO UNREGISTER FAILED: " +
-                    GetExceptionMessage(exception));
-            }
-
-            _iloTargetHandle = 0;
+            Log(
+                "PROMPT DELETE: handle=" +
+                oldPromptHandle);
+        }
+        catch (Exception exception)
+        {
+            Log(
+                "PROMPT DELETE FAILED: " +
+                GetExceptionMessage(exception));
         }
     }
 
     private static string DescribeMethod(MethodInfo method)
     {
-        ParameterInfo[] parameters = method.GetParameters();
-        string[] types = new string[parameters.Length];
+        ParameterInfo[] parameters =
+            method.GetParameters();
+
+        string[] types =
+            new string[parameters.Length];
 
         for (int i = 0; i < parameters.Length; i++)
         {
-            types[i] = parameters[i].ParameterType.FullName;
+            types[i] =
+                parameters[i].ParameterType.FullName;
         }
 
-        return method.DeclaringType.FullName + "." +
-               method.Name + "(" + string.Join(", ", types) + ") -> " +
-               method.ReturnType.FullName;
+        return method.DeclaringType.FullName +
+            "." +
+            method.Name +
+            "(" +
+            string.Join(", ", types) +
+            ") -> " +
+            method.ReturnType.FullName;
     }
 
-    private static string GetExceptionMessage(Exception exception)
+    private static string GetExceptionMessage(
+        Exception exception)
     {
         TargetInvocationException invocationException =
             exception as TargetInvocationException;
 
         return invocationException != null &&
-               invocationException.InnerException != null
-            ? invocationException.InnerException.Message
-            : exception.Message;
+            invocationException.InnerException != null
+                ? invocationException.InnerException.Message
+                : exception.Message;
     }
 
     private void Log(string message)
     {
         string line =
-            "[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] " +
-            message + Environment.NewLine;
+            "[" +
+            DateTime.Now.ToString("HH:mm:ss.fff") +
+            "] " +
+            message +
+            Environment.NewLine;
 
         File.AppendAllText(_logPath, line);
     }
