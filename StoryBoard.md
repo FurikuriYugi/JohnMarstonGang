@@ -32,6 +32,19 @@ Add new ideas here before or while building them so their prerequisites, consequ
 
 Add a note when code exists but has not been tested in game, for example: **Implemented; runtime behavior unverified.**
 
+## Testing scope and guardrails
+
+The active test is only to display and complete a temporary **G Recruit** action in the focused human NPC's prompt group.
+
+- Keep `Test.cs` small and limited to the active test question.
+- Do not implement recruitment, alter gang data, or expand into unrelated systems in this test.
+- Record target detection, wrapper resolution, and setup errors only when they inform this test.
+- Treat prompt properties and native invocation as diagnostic evidence, not proof of visible rendering.
+- Change one prompt-display hypothesis per test run.
+- Do not add fallback interaction systems until the current experiment is reported and reviewed.
+- Update `ResearchNotes.md` with test conditions, observed result, and what the result does—and does not—prove.
+- Keep API signatures in `NativeReferenceGuide.md` marked as unverified until confirmed against the installed v2.2.0 API/native reference.
+
 ## Design pillars
 
 1. **The gang is a persistent group.** Members have identity, skills, preferences, relationships, memories, equipment, needs, and goals.
@@ -262,8 +275,7 @@ These observations are not a claim of in-game functionality:
 
 ### Milestone 1: Native interaction research and prototype
 
-- **Status:** In progress. `PLAYER.GET_PLAYER_TARGET_ENTITY` matched the captured NPC during right-mouse focus. In the 2026-11-07 test, the ILO native returned `True` and the action prompt reported `Visible=True`, but the user confirmed that **“G Recruit” did not appear in game**. Prompt rendering and unarmed interaction remain unverified. Verify the local v2.2.0 ambient-group wrapper signature, test per-frame group activation, and keep the test non-recruiting.
- **Status:** In progress. The `PLAYER.GET_PLAYER_TARGET_ENTITY` getter matched the captured NPC handle during right-mouse focus in two test cycles. Visible prompt behavior and unarmed interaction remain unverified; see the decision log.
+- **Status:** In progress. `PLAYER.GET_PLAYER_TARGET_ENTITY` found the focused NPC in the tested setup. On 2026-11-07, the ILO registration returned `True` and the attached action prompt reported `Visible=True`, but the user confirmed that **G Recruit did not appear in game**. Per-frame ambient-group activation was invoked but did not make the action visibly render. The next test is limited to trying explicit active prompt-group activation. No recruitment or gang-data changes are part of this test. See `ResearchNotes.md` for evidence and `NativeReferenceGuide.md` for API status.
 
 ### Milestone 2: One conversation and recruitment flow
 
@@ -344,3 +356,4 @@ Before marking any feature implemented or tested, confirm:
 - **2026-11-07:** The ILO wrapper call returned without an exception for both captured NPCs. `GetInteractionLockonTargetEntity()` remained `none` in the G snapshots. G was diagnostic only; no recruitment occurred. Prompt visibility and unarmed behavior remain unverified.
 - **Next recruitment lock-on test:** Capture a candidate with the current test harness, holster the weapon without changing the selected NPC, activate right-mouse focus, and observe whether the prompt is visibly displayed while unarmed. Record whether G reports a matching player target as separate evidence; do not treat a successful target match or a non-throwing ILO call as proof of prompt visibility.
 - **2026-11-07:** The user confirmed the G Recruit option did not appear. The harness logged successful target matching, ILO registration, target-group attachment, and `Visible=True`, but those states do not prove that the prompt rendered. G was not pressed; no recruitment or gang-data change occurred. The next test is per-frame target prompt-group activation after verifying the installed wrapper signature.
+- **2026-11-07:** Scope locked to adding one temporary action option to the focused NPC's interaction prompt. The ambient-group activation trial did not display G Recruit. The next test replaces that activation hypothesis with explicit active prompt-group activation. The test remains non-recruiting; no companion, recruitment, or gang-data behavior is in scope.
