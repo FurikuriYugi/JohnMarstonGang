@@ -1,5 +1,99 @@
-﻿<!-- Main lines 751-1000 of 1041 -->
+﻿<!-- Main lines 751-1000 of 1135 -->
 ```csharp
+        if (_tickCounter % 30 != 0)
+        {
+            return;
+        }
+
+        UpdateEntityAI();
+        SaveAll();
+    }
+
+    private List<Ped> GetNearbyCombatPeds()
+    {
+        List<Ped> nearbyEnemies = new List<Ped>();
+        Ped playerPed = Game.Player.Character;
+
+        if (playerPed == null || !playerPed.Exists())
+        {
+            return nearbyEnemies;
+        }
+
+        Ped[] worldPeds = World.GetAllPeds();
+
+        if (worldPeds == null)
+        {
+            return nearbyEnemies;
+        }
+
+        foreach (Ped ped in worldPeds)
+        {
+            if (ped == null ||
+                !ped.Exists() ||
+                ped.Handle == playerPed.Handle ||
+                ped.IsDeadOrDying ||
+                !ped.IsInCombat ||
+                IsRuntimeCompanion(ped))
+            {
+                continue;
+            }
+
+            if (ped.Position.DistanceTo(playerPed.Position) > 50f)
+            {
+                continue;
+            }
+
+            nearbyEnemies.Add(ped);
+        }
+
+        return nearbyEnemies;
+    }
+
+    private void LoadAll()
+    {
+        _saveRoot = JsonSaveSystem.Load();
+
+        if (_saveRoot == null)
+        {
+            _saveRoot = new SaveRoot();
+        }
+
+        _gangManagementSystem.LoadFromSaveRoot(_saveRoot);
+        _jobSystem.LoadFromSaveRoot(_saveRoot);
+
+        if (_saveRoot.World != null &&
+            _saveRoot.World.Companions != null)
+        {
+            _companionSystem.LoadState(
+                JsonConvert.SerializeObject(_saveRoot.World.Companions));
+        }
+
+        if (_saveRoot.BankAccounts != null)
+        {
+            _bankSystem.LoadState(
+                JsonConvert.SerializeObject(_saveRoot.BankAccounts));
+        }
+
+        if (_saveRoot.World != null &&
+            _saveRoot.World.Wagons != null)
+        {
+            _wagonSystem.LoadState(
+                JsonConvert.SerializeObject(_saveRoot.World.Wagons));
+        }
+
+        if (_saveRoot.World != null &&
+            _saveRoot.World.WeaponPlatforms != null)
+        {
+            _weaponSystem.LoadState(
+                JsonConvert.SerializeObject(
+                    _saveRoot.World.WeaponPlatforms));
+        }
+
+        if (_saveRoot.World != null &&
+            _saveRoot.World.Locks != null)
+        {
+            _lockSystem.LoadState(
+                JsonConvert.SerializeObject(_saveRoot.World.Locks));
         }
 
         if (_saveRoot.World != null &&
@@ -156,98 +250,4 @@
         _saveRoot.World.Destructibles =
             _dynamiteSystem.GetDestructibles();
 
-        _saveRoot.World.TacticalOrders =
-            _tacticalSquadAiSystem.GetOrders();
-
-        _saveRoot.World.Commands =
-            _commandSystem.GetCommands();
-
-        _saveRoot.WorldEntities =
-            _entityRegistry.GetEntities();
-
-        List<CompanionAIStateData> savedAIStates =
-            new List<CompanionAIStateData>();
-
-        foreach (WorldEntityData entity
-                 in _entityRegistry.GetByFaction("PlayerGang"))
-        {
-            if (entity == null ||
-                string.IsNullOrWhiteSpace(entity.EntityId))
-            {
-                continue;
-            }
-
-            CompanionAIState state =
-                _coreAISystem.GetAIState(entity.EntityId);
-
-            if (state == null)
-            {
-                continue;
-            }
-
-            savedAIStates.Add(new CompanionAIStateData
-            {
-                CompanionId = entity.EntityId,
-                Personality = state.Personality,
-                Morale = state.Morale,
-                Fatigue = state.Fatigue,
-                Hunger = state.Hunger,
-                Thirst = state.Thirst,
-                PrefersStealth = state.PrefersStealth,
-                CurrentGoal = state.CurrentGoal,
-                LastActivityTimestamp = state.LastActivityTimestamp,
-                ExperiencePoints = state.ExperiencePoints,
-                SkillProgression =
-                    state.SkillProgression ??
-                    new Dictionary<string, int>(),
-                CompletedJobs =
-                    state.CompletedJobs ??
-                    new List<string>(),
-                TotalEarnings = state.TotalEarnings,
-                BanksVisited = state.BanksVisited,
-                DepositsWithdrawn = state.DepositsWithdrawn
-            });
-        }
-
-        _saveRoot.World.CompanionAIStates = savedAIStates;
-    }
-
-    private void UpdateEntityAI()
-    {
-        _commandSystem.ProcessActiveCommands(
-            _tacticalDecisionSystem);
-
-        foreach (WorldEntityData entity in _entityRegistry.GetEntities())
-        {
-            if (entity == null || !entity.IsAlive)
-            {
-                continue;
-            }
-
-            if (string.IsNullOrWhiteSpace(entity.CombatStyle))
-            {
-                entity.CombatStyle =
-                    _tacticalDecisionSystem.ResolveCombatStyle(
-                        "Normal",
-                        false,
-                        false,
-                        false,
-                        false);
-            }
-
-            if (entity.IsFollowingPlayer &&
-                string.IsNullOrWhiteSpace(entity.CurrentTask))
-            {
-                entity.CurrentTask = "FollowPlayer";
-            }
-
-            if (entity.IsRecruitable && entity.Loyalty < 0)
-            {
-                entity.Loyalty = 0;
-            }
-
-            if (entity.SupportSkill < 0)
-            {
-                entity.SupportSkill = 0;
-            }
 ```

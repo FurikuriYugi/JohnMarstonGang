@@ -1,5 +1,94 @@
-﻿<!-- Main lines 501-750 of 1041 -->
+﻿<!-- Main lines 501-750 of 1135 -->
 ```csharp
+        if (ped == null ||
+            !ped.Exists() ||
+            ped.IsPlayer ||
+            (!ped.IsHuman && !ped.IsAnimal) ||
+            ped.IsDeadOrDying ||
+            ped.IsInVehicle ||
+            ped.IsInCombat ||
+            ped.IsFleeing ||
+            IsRuntimeCompanion(ped))
+        {
+            return false;
+        }
+
+        Ped playerPed = Game.Player.Character;
+
+        return playerPed != null &&
+               playerPed.Exists() &&
+               ped.Position.DistanceTo(playerPed.Position) <= 5f;
+    }
+
+    private void RecruitPed(Ped targetPed)
+    {
+        if (!IsRecruitmentCandidate(targetPed))
+        {
+            RDR2.UI.Screen.PrintSubtitle(
+                "That person cannot be recruited right now.");
+            return;
+        }
+
+        Ped playerPed = Game.Player.Character;
+
+        if (playerPed == null || !playerPed.Exists())
+        {
+            RDR2.UI.Screen.PrintSubtitle("Unable to find the player.");
+            return;
+        }
+
+        string companionId = Guid.NewGuid().ToString("N");
+        string name =
+            targetPed.IsHuman ? "Gang Member" : "Animal Companion";
+        string role =
+            targetPed.IsHuman ? "Companion" : "Animal Companion";
+        string combatStyle =
+            targetPed.IsHuman ? "Ranged Medium" : "Animal Support";
+
+        CompanionData companion = new CompanionData
+        {
+            CompanionId = companionId,
+            Name = name,
+            Species = targetPed.IsHuman ? "Human" : "Animal",
+            IsHuman = targetPed.IsHuman,
+            Role = role,
+            Personality = "Undetermined",
+            Loyalty = 50,
+            CurrentCombatStyle = combatStyle,
+            CurrentTask = "FollowPlayer",
+            IsRecruitable = false,
+            IsFollowingPlayer = true
+        };
+
+        WorldEntityData entity = new WorldEntityData
+        {
+            EntityId = companionId,
+            EntityType = targetPed.IsHuman ? "Human" : "Animal",
+            DisplayName = name,
+            FactionId = "PlayerGang",
+            IsAlive = true,
+            IsRecruitable = false,
+            IsFollowingPlayer = true,
+            CurrentTask = companion.CurrentTask,
+            CombatStyle = companion.CurrentCombatStyle,
+            Loyalty = companion.Loyalty
+        };
+
+        GangMember gangMember = new GangMember
+        {
+            MemberId = companionId,
+            Name = name,
+            Role = role,
+            CombatStyle = combatStyle,
+            CurrentTask = "FollowPlayer",
+            Loyalty = companion.Loyalty,
+            IsFollowingPlayer = true
+        };
+
+        _companionSystem.RegisterCompanion(companion);
+        _entityRegistry.RegisterEntity(entity);
+        _gangManagementSystem.RegisterMember(gangMember);
+        _runtimeCompanionPeds[companionId] = targetPed;
 
         targetPed.AlwaysKeepTask = true;
         targetPed.Task.FollowToOffsetOfEntity(
@@ -20,6 +109,11 @@
 
     private bool IsRuntimeCompanion(Ped ped)
     {
+        if (ped == null)
+        {
+            return false;
+        }
+
         foreach (Ped companionPed in _runtimeCompanionPeds.Values)
         {
             if (companionPed != null &&
@@ -136,7 +230,7 @@
 
     private void OnTick(object sender, EventArgs e)
     {
-        UpdateInteractionMenu();
+        UpdateRecruitmentPrompt();
 
         _tickCounter++;
 
@@ -156,98 +250,4 @@
                 _cachedNearbyEnemies);
         }
 
-        if (_tickCounter % 30 != 0)
-        {
-            return;
-        }
-
-        UpdateEntityAI();
-        SaveAll();
-    }
-
-    private List<Ped> GetNearbyCombatPeds()
-    {
-        List<Ped> nearbyEnemies = new List<Ped>();
-        Ped playerPed = Game.Player.Character;
-
-        if (playerPed == null || !playerPed.Exists())
-        {
-            return nearbyEnemies;
-        }
-
-        Ped[] worldPeds = World.GetAllPeds();
-
-        if (worldPeds == null)
-        {
-            return nearbyEnemies;
-        }
-
-        foreach (Ped ped in worldPeds)
-        {
-            if (ped == null ||
-                !ped.Exists() ||
-                ped.Handle == playerPed.Handle ||
-                ped.IsDeadOrDying ||
-                !ped.IsInCombat ||
-                IsRuntimeCompanion(ped))
-            {
-                continue;
-            }
-
-            if (ped.Position.DistanceTo(playerPed.Position) > 50f)
-            {
-                continue;
-            }
-
-            nearbyEnemies.Add(ped);
-        }
-
-        return nearbyEnemies;
-    }
-
-    private void LoadAll()
-    {
-        _saveRoot = JsonSaveSystem.Load();
-
-        if (_saveRoot == null)
-        {
-            _saveRoot = new SaveRoot();
-        }
-
-        _gangManagementSystem.LoadFromSaveRoot(_saveRoot);
-        _jobSystem.LoadFromSaveRoot(_saveRoot);
-
-        if (_saveRoot.World != null &&
-            _saveRoot.World.Companions != null)
-        {
-            _companionSystem.LoadState(
-                JsonConvert.SerializeObject(_saveRoot.World.Companions));
-        }
-
-        if (_saveRoot.BankAccounts != null)
-        {
-            _bankSystem.LoadState(
-                JsonConvert.SerializeObject(_saveRoot.BankAccounts));
-        }
-
-        if (_saveRoot.World != null &&
-            _saveRoot.World.Wagons != null)
-        {
-            _wagonSystem.LoadState(
-                JsonConvert.SerializeObject(_saveRoot.World.Wagons));
-        }
-
-        if (_saveRoot.World != null &&
-            _saveRoot.World.WeaponPlatforms != null)
-        {
-            _weaponSystem.LoadState(
-                JsonConvert.SerializeObject(
-                    _saveRoot.World.WeaponPlatforms));
-        }
-
-        if (_saveRoot.World != null &&
-            _saveRoot.World.Locks != null)
-        {
-            _lockSystem.LoadState(
-                JsonConvert.SerializeObject(_saveRoot.World.Locks));
 ```

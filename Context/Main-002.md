@@ -1,61 +1,150 @@
-﻿<!-- Main lines 251-500 of 1041 -->
+﻿<!-- Main lines 251-500 of 1135 -->
 ```csharp
-        bool hasTarget =
-            RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(
-                Game.Player.Handle,
-                &entityHandle,
-                false,
-                false);
 
-        if (!hasTarget || entityHandle == 0)
+        string[] likelyNames =
         {
-            return null;
-        }
+            "Handle",
+            "PromptHandle",
+            "NativeHandle",
+            "_handle",
+            "m_handle",
+            "_promptHandle",
+            "m_promptHandle"
+        };
 
-        return Entity.FromHandle(entityHandle) as Ped;
-    }
+        Type promptType = prompt.GetType();
 
-    private bool IsInteractionMenuTarget(Ped ped)
-    {
-        return GetRuntimeCompanionId(ped) != null ||
-               IsRecruitmentCandidate(ped);
-    }
-
-    private void ExecuteInteractionMenuOption()
-    {
-        Ped currentTarget = GetInteractionTargetPed();
-
-        if (!_interactionMenuVisible ||
-            _interactionTargetPed == null ||
-            currentTarget == null ||
-            !currentTarget.Exists() ||
-            currentTarget.Handle != _interactionTargetHandle)
+        foreach (string name in likelyNames)
         {
-            return;
-        }
+            PropertyInfo property = promptType.GetProperty(name, flags);
 
-        if (string.IsNullOrEmpty(_interactionTargetCompanionId))
-        {
-            if (_selectedInteractionOption == 0)
+            if (property != null &&
+                property.GetIndexParameters().Length == 0)
             {
-                RecruitPed(currentTarget);
+                try
+                {
+                    int value = Convert.ToInt32(
+                        property.GetValue(prompt, null));
+
+                    if (value >= 0)
+                    {
+                        return value;
+                    }
+                }
+                catch
+                {
+                    // Continue trying other likely handle members.
+                }
             }
 
-            return;
+            FieldInfo field = promptType.GetField(name, flags);
+
+            if (field != null)
+            {
+                try
+                {
+                    int value = Convert.ToInt32(field.GetValue(prompt));
+
+                    if (value >= 0)
+                    {
+                        return value;
+                    }
+                }
+                catch
+                {
+                    // Continue trying other likely handle members.
+                }
+            }
         }
 
-        if (_selectedInteractionOption == 0)
+        /*
+         * Fallback for the prototype: inspect integer members if the API
+         * exposes the native prompt handle under an undocumented name.
+         */
+        foreach (FieldInfo field in promptType.GetFields(flags))
         {
-            ToggleCompanionFollowState(
-                _interactionTargetCompanionId,
-                currentTarget);
+            if (field.FieldType != typeof(int) &&
+                field.FieldType != typeof(uint))
+            {
+                continue;
+            }
+
+            try
+            {
+                int value = Convert.ToInt32(field.GetValue(prompt));
+
+                if (value >= 0)
+                {
+                    return value;
+                }
+            }
+            catch
+            {
+                // Ignore unrelated or inaccessible fields.
+            }
         }
-        else if (_selectedInteractionOption == 1)
+
+        foreach (PropertyInfo property in promptType.GetProperties(flags))
         {
-            DismissCompanion(
-                _interactionTargetCompanionId,
-                currentTarget);
+            if (property.GetIndexParameters().Length != 0 ||
+                (property.PropertyType != typeof(int) &&
+                 property.PropertyType != typeof(uint)))
+            {
+                continue;
+            }
+
+            try
+            {
+                int value = Convert.ToInt32(
+                    property.GetValue(prompt, null));
+
+                if (value >= 0)
+                {
+                    return value;
+                }
+            }
+            catch
+            {
+                // Ignore unrelated or inaccessible properties.
+            }
         }
+
+        return -1;
+    }
+
+    private void ClearRecruitmentPrompt()
+    {
+        if (_recruitmentPrompt != null)
+        {
+            _recruitmentPrompt.Enabled = false;
+            _recruitmentPrompt.Visible = false;
+
+            if (_recruitmentPromptAttached &&
+                _recruitmentPromptNativeHandle >= 0 &&
+                _recruitmentPromptGroup >= 0)
+            {
+                /*
+                 * Test candidate for the v2.2.0 native wrapper name and
+                 * parameter order. Remove the action prompt from its
+                 * previous target group before discarding its state.
+                 */
+                RDR2.Native.UI.PROMPT_REMOVE_GROUP(
+                    _recruitmentPromptNativeHandle,
+                    _recruitmentPromptGroup);
+            }
+        }
+
+        _recruitmentPrompt = null;
+        _recruitmentPromptTargetHandle = -1;
+        _recruitmentPromptGroup = -1;
+        _recruitmentPromptNativeHandle = -1;
+        _recruitmentPromptAttached = false;
+        _promptHandleFailureReported = false;
+    }
+
+    private Ped GetInteractionLockonTargetPed()
+    {
+        return Game.Player.GetInteractionLockonTargetEntity() as Ped;
     }
 
     private void ToggleCompanionFollowState(
@@ -161,93 +250,4 @@
 
     private bool IsRecruitmentCandidate(Ped ped)
     {
-        if (ped == null ||
-            !ped.Exists() ||
-            ped.IsPlayer ||
-            (!ped.IsHuman && !ped.IsAnimal) ||
-            ped.IsDeadOrDying ||
-            ped.IsInVehicle ||
-            ped.IsInCombat ||
-            ped.IsFleeing ||
-            IsRuntimeCompanion(ped))
-        {
-            return false;
-        }
-
-        Ped playerPed = Game.Player.Character;
-
-        return playerPed != null &&
-               playerPed.Exists() &&
-               ped.Position.DistanceTo(playerPed.Position) <= 5f;
-    }
-
-    private void RecruitPed(Ped targetPed)
-    {
-        if (!IsRecruitmentCandidate(targetPed))
-        {
-            RDR2.UI.Screen.PrintSubtitle(
-                "That person cannot be recruited right now.");
-            return;
-        }
-
-        Ped playerPed = Game.Player.Character;
-
-        if (playerPed == null || !playerPed.Exists())
-        {
-            RDR2.UI.Screen.PrintSubtitle("Unable to find the player.");
-            return;
-        }
-
-        string companionId = Guid.NewGuid().ToString("N");
-        string name =
-            targetPed.IsHuman ? "Gang Member" : "Animal Companion";
-        string role =
-            targetPed.IsHuman ? "Companion" : "Animal Companion";
-        string combatStyle =
-            targetPed.IsHuman ? "Ranged Medium" : "Animal Support";
-
-        CompanionData companion = new CompanionData
-        {
-            CompanionId = companionId,
-            Name = name,
-            Species = targetPed.IsHuman ? "Human" : "Animal",
-            IsHuman = targetPed.IsHuman,
-            Role = role,
-            Personality = "Undetermined",
-            Loyalty = 50,
-            CurrentCombatStyle = combatStyle,
-            CurrentTask = "FollowPlayer",
-            IsRecruitable = false,
-            IsFollowingPlayer = true
-        };
-
-        WorldEntityData entity = new WorldEntityData
-        {
-            EntityId = companionId,
-            EntityType = targetPed.IsHuman ? "Human" : "Animal",
-            DisplayName = name,
-            FactionId = "PlayerGang",
-            IsAlive = true,
-            IsRecruitable = false,
-            IsFollowingPlayer = true,
-            CurrentTask = companion.CurrentTask,
-            CombatStyle = companion.CurrentCombatStyle,
-            Loyalty = companion.Loyalty
-        };
-
-        GangMember gangMember = new GangMember
-        {
-            MemberId = companionId,
-            Name = name,
-            Role = role,
-            CombatStyle = combatStyle,
-            CurrentTask = "FollowPlayer",
-            Loyalty = companion.Loyalty,
-            IsFollowingPlayer = true
-        };
-
-        _companionSystem.RegisterCompanion(companion);
-        _entityRegistry.RegisterEntity(entity);
-        _gangManagementSystem.RegisterMember(gangMember);
-        _runtimeCompanionPeds[companionId] = targetPed;
 ```
