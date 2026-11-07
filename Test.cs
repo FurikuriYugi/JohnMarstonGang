@@ -6,7 +6,6 @@ using RDR2;
 public class Test : Script
 {
     private const int RecruitInputHash = unchecked((int)0x760A9C6F);
-    private const float PromptRadius = 3.0f;
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -16,15 +15,12 @@ public class Test : Script
     private MethodInfo _doesEntityExist;
     private MethodInfo _isPedHuman;
     private MethodInfo _getTargetPromptGroup;
-    private MethodInfo _setActiveGroupThisFrame;
-    private MethodInfo _varString;
 
     private object _prompt;
     private int _promptHandle = -1;
     private int _promptGroup = -1;
     private int _targetHandle;
     private int _lastLoggedTarget = -1;
-
     private bool _completedForTarget;
     private bool _setupFailedForTarget;
     private bool _errorLogged;
@@ -39,6 +35,8 @@ public class Test : Script
 
         Log("=== Focused interaction-option test initialized ===");
         Log("TEST ONLY: show a G Recruit option for the focused human NPC.");
+        Log("HYPOTHESIS: target-group assignment alone displays the prompt.");
+        Log("No ambient-group or active-group activation is performed.");
         Log("No recruitment or gang-data changes are performed.");
         Log("Holster your weapon, stand close to a human NPC, and focus them.");
 
@@ -62,6 +60,7 @@ public class Test : Script
             {
                 _errorLogged = true;
                 Log("ERROR: " + GetExceptionMessage(exception));
+
                 RDR2.UI.Screen.PrintSubtitle(
                     "Prompt test error. Check Test_Log.txt.");
             }
@@ -72,16 +71,14 @@ public class Test : Script
     {
         int focusedTarget = 0;
 
-        if (Game.Player.IsFreeFocusing &&
-            TryGetFocusedHuman(out focusedTarget))
+        if (Game.Player.IsFreeFocusing)
         {
-            // focusedTarget is set by TryGetFocusedHuman.
+            TryGetFocusedHuman(out focusedTarget);
         }
 
         if (focusedTarget != _targetHandle)
         {
             ClearPrompt();
-
             _targetHandle = focusedTarget;
             _completedForTarget = false;
             _setupFailedForTarget = false;
@@ -114,14 +111,14 @@ public class Test : Script
             return;
         }
 
-        ActivatePromptGroup();
-
         if (GetBooleanMember(_prompt, "HasCompleted"))
         {
             _completedForTarget = true;
             Log("G prompt completed; test only, no recruitment performed.");
+
             RDR2.UI.Screen.PrintSubtitle(
                 "G prompt completed; no recruitment performed.");
+
             ClearPrompt();
         }
     }
@@ -143,7 +140,6 @@ public class Test : Script
                 Game.Player.Handle,
                 &foundHandle);
 
-
             if (!found ||
                 foundHandle <= 0 ||
                 _doesEntityExist == null ||
@@ -152,8 +148,11 @@ public class Test : Script
                 return false;
             }
         }
+
         bool exists = Convert.ToBoolean(
-            _doesEntityExist.Invoke(null, new object[] { foundHandle }));
+            _doesEntityExist.Invoke(
+                null,
+                new object[] { foundHandle }));
 
         if (!exists ||
             foundHandle == Game.Player.Character.Handle)
@@ -162,7 +161,9 @@ public class Test : Script
         }
 
         bool isHuman = Convert.ToBoolean(
-            _isPedHuman.Invoke(null, new object[] { foundHandle }));
+            _isPedHuman.Invoke(
+                null,
+                new object[] { foundHandle }));
 
         if (!isHuman)
         {
@@ -181,12 +182,6 @@ public class Test : Script
             {
                 throw new InvalidOperationException(
                     "Target prompt-group wrapper was not found.");
-            }
-
-            if (_setActiveGroupThisFrame == null)
-            {
-                throw new InvalidOperationException(
-                    "Active prompt-group wrapper was not found.");
             }
 
             _promptGroup = Convert.ToInt32(
@@ -225,8 +220,8 @@ public class Test : Script
                 "; targetGroup=" + _promptGroup);
 
             Log(
-                "ACTIVE-GROUP WRAPPER: " +
-                DescribeMethod(_setActiveGroupThisFrame));
+                "GROUP MODE: prompt assigned to target group; " +
+                "no group-activation native called.");
 
             Log(
                 "IN-GAME CHECK: confirm whether G Recruit is visible. " +
@@ -238,34 +233,6 @@ public class Test : Script
             Log("PROMPT SETUP FAILED: " + GetExceptionMessage(exception));
             ClearPrompt();
         }
-    }
-
-    private void ActivatePromptGroup()
-    {
-        ParameterInfo[] parameters =
-            _setActiveGroupThisFrame.GetParameters();
-
-        if (parameters.Length != 6 ||
-            parameters[1].ParameterType != typeof(string))
-        {
-            throw new InvalidOperationException(
-                "Active-group wrapper did not match the expected " +
-                "six-parameter shape.");
-        }
-
-        object[] arguments =
-        {
-            _promptGroup,
-            CreateVarString("Recruit"),
-            1,
-            0,
-            0,
-            0
-        };
-
-        ConvertArguments(arguments, parameters);
-
-        _setActiveGroupThisFrame.Invoke(null, arguments);
     }
 
     private object CreatePromptObject()
@@ -309,6 +276,7 @@ public class Test : Script
             createMethod.GetParameters();
 
         object[] arguments = new object[8];
+
         arguments[0] = ConvertArgument(
             RecruitInputHash,
             createParameters[0].ParameterType);
@@ -328,6 +296,7 @@ public class Test : Script
         }
 
         Type timingType = createParameters[7].ParameterType;
+
         arguments[7] = timingType.IsValueType
             ? Activator.CreateInstance(timingType)
             : null;
@@ -341,43 +310,6 @@ public class Test : Script
         }
 
         return prompt;
-    }
-
-    private string CreateVarString(string text)
-    {
-        if (_varString == null)
-        {
-            throw new InvalidOperationException(
-                "VAR_STRING wrapper was not found.");
-        }
-
-        ParameterInfo[] parameters = _varString.GetParameters();
-
-        if (parameters.Length != 2 ||
-            !parameters[1].ParameterType.IsArray)
-        {
-            throw new InvalidOperationException(
-                "VAR_STRING wrapper signature was unexpected.");
-        }
-
-        Type inputType =
-            parameters[1].ParameterType.GetElementType();
-
-        Array inputArguments = Array.CreateInstance(inputType, 2);
-        inputArguments.SetValue(
-            ConvertInputArgument("LITERAL_STRING", inputType),
-            0);
-        inputArguments.SetValue(
-            ConvertInputArgument(text, inputType),
-            1);
-
-        object[] arguments =
-        {
-            ConvertArgument(10, parameters[0].ParameterType),
-            inputArguments
-        };
-
-        return (string)_varString.Invoke(null, arguments);
     }
 
     private void ResolveMethods()
@@ -401,27 +333,14 @@ public class Test : Script
 
         _doesEntityExist =
             FindNativeMethod("DOES_ENTITY_EXIST", 1);
+
         _isPedHuman =
             FindNativeMethod("IS_PED_HUMAN", 1);
+
         _getTargetPromptGroup =
             FindNativeMethod(
                 "_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY",
                 1);
-
-        _setActiveGroupThisFrame =
-            FindNativeMethod(
-                "UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME",
-                6);
-
-        if (_setActiveGroupThisFrame == null)
-        {
-            _setActiveGroupThisFrame =
-                FindNativeMethod(
-                    "_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME",
-                    6);
-        }
-
-        _varString = FindNativeMethod("VAR_STRING", 2);
     }
 
     private static MethodInfo FindNativeMethod(
@@ -498,7 +417,9 @@ public class Test : Script
         return -1;
     }
 
-    private static object GetMember(object instance, string name)
+    private static object GetMember(
+        object instance,
+        string name)
     {
         Type type = instance.GetType();
 
@@ -519,7 +440,9 @@ public class Test : Script
             BindingFlags.NonPublic |
             BindingFlags.Instance);
 
-        return field == null ? null : field.GetValue(instance);
+        return field == null
+            ? null
+            : field.GetValue(instance);
     }
 
     private static void SetMember(
@@ -541,6 +464,7 @@ public class Test : Script
                 instance,
                 ConvertArgument(value, property.PropertyType),
                 null);
+
             return;
         }
 
@@ -555,6 +479,7 @@ public class Test : Script
             field.SetValue(
                 instance,
                 ConvertArgument(value, field.FieldType));
+
             return;
         }
 
@@ -567,55 +492,9 @@ public class Test : Script
         string name)
     {
         object value = GetMember(instance, name);
-        return value != null && Convert.ToBoolean(value);
-    }
 
-    private static object ConvertInputArgument(
-        object value,
-        Type inputType)
-    {
-        if (inputType.IsInstanceOfType(value))
-        {
-            return value;
-        }
-
-        MethodInfo[] methods = inputType.GetMethods(
-            BindingFlags.Public |
-            BindingFlags.NonPublic |
-            BindingFlags.Static);
-
-        foreach (MethodInfo method in methods)
-        {
-            if ((method.Name != "op_Implicit" &&
-                 method.Name != "op_Explicit") ||
-                method.ReturnType != inputType)
-            {
-                continue;
-            }
-
-            ParameterInfo[] parameters = method.GetParameters();
-
-            if (parameters.Length == 1 &&
-                parameters[0].ParameterType.IsInstanceOfType(value))
-            {
-                return method.Invoke(null, new object[] { value });
-            }
-        }
-
-        throw new InvalidOperationException(
-            "Could not convert VAR_STRING argument.");
-    }
-
-    private static void ConvertArguments(
-        object[] arguments,
-        ParameterInfo[] parameters)
-    {
-        for (int i = 0; i < arguments.Length; i++)
-        {
-            arguments[i] = ConvertArgument(
-                arguments[i],
-                parameters[i].ParameterType);
-        }
+        return value != null &&
+            Convert.ToBoolean(value);
     }
 
     private static object ConvertArgument(
@@ -682,9 +561,9 @@ public class Test : Script
             exception as TargetInvocationException;
 
         return invocationException != null &&
-               invocationException.InnerException != null
-            ? invocationException.InnerException.Message
-            : exception.Message;
+            invocationException.InnerException != null
+                ? invocationException.InnerException.Message
+                : exception.Message;
     }
 
     private void Log(string message)
