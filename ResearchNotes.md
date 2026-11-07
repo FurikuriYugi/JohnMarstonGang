@@ -69,6 +69,20 @@ The user tested while unarmed and right-mouse focusing human NPCs.
 
 **Conclusion:** The focused-target and prompt setup path ran without a reported setup error, but the action did not visibly render in the tested setup. The ILO display hypothesis is unresolved because the test did not record the native return values. Even a `true` return value would not prove the prompt rendered.
 
+### In-game findings — latest ILO return-value run
+
+- The user focused human targets `200962` and `200450`.
+- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true` for both targets.
+- `UNREGISTER_INTERACTION_LOCKON_PROMPT` returned `true` for both targets.
+- For target `200962`, the test created prompt handle `250370` and assigned it to target group `268566618`.
+- For target `200450`, the test created prompt handle `273410` and assigned it to target group `268566616`.
+- The user still did not see **G Recruit**; other menu options continued to work.
+- No recruitment or gang-data changes were performed.
+
+**Conclusion:** ILO registration and cleanup reported success, but the target-group action prompt still did not render visibly. This rules out a `false` return from those wrapper calls as the explanation for this run; it does not prove the native or prompt rendered correctly.
+
+**Next diagnostic hypothesis:** `0x760A9C6F` is documented as a G keyboard-key hash, while prompt examples configure a prompt with an input-action hash such as `INPUT_CONTEXT_X`. The current prompt control may therefore be the wrong kind of identifier. Test a known prompt input action as a display-only sanity check before testing a custom G binding. This remains a hypothesis until confirmed with the installed API and in-game test.
+
 ### External prompt research
 
 External RDR2 prompt research describes these as separate operations:

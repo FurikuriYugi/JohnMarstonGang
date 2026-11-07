@@ -275,14 +275,10 @@ These observations are not a claim of in-game functionality:
 
 ### Milestone 1: Native interaction research and prototype
 
-- Test a temporary **G Recruit** action in the focused human NPC's target prompt group.
-- The target-group-only trial found focused NPCs and created/assigned prompts but did not display **G Recruit**.
-- The ILO-registration trial also did not display **G Recruit**. Its registration and cleanup Boolean return values were not logged, so successful native calls remain unconfirmed.
-- The next run keeps the ILO arguments and prompt setup unchanged and adds logging for both Boolean return values. This is an instrumentation correction; it does not add another prompt-display mechanism.
-- Do not call ambient-group or active-group activation natives in this trial.
-- No recruitment or gang-data changes are in scope.
-- See `ResearchNotes.md` for evidence and `NativeReferenceGuide.md` for API status.
-- **Status:** In progress; repeat the ILO-registration test with return-value logging.
+- Latest ILO-registration test: registration and cleanup returned `true` for both focused targets, but the user still did not see **G Recruit**. Other menu options worked; no recruitment or gang-data changes occurred.
+- Conclusion: successful ILO wrapper return values and target-group assignment are not sufficient to display this action in the tested setup.
+- Next test: use a known input-action hash for a display-only prompt sanity check, changing no other prompt or ILO behavior. If it renders, investigate how to bind G separately; if it does not, continue investigating prompt creation/rendering.
+- **Status:** ILO return values verified; action prompt still not visible; control-value/display test pending.
 
 ### Milestone 2: One conversation and recruitment flow
 

@@ -32,3 +32,9 @@ public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
     int* entity
 );
 ```
+
+## Prompt control value — unresolved
+
+The test currently supplies `0x760A9C6F` as the prompt control. External control references list this as the G keyboard-key hash, while external prompt examples configure prompts with named input-action hashes such as `INPUT_CONTEXT_X` (`0xE3BF959B`). Do not assume a keyboard-key hash can be used as a prompt input action in the installed v2.2.0 API.
+
+A diagnostic prompt using `INPUT_CONTEXT_X` may help establish whether the prompt creation and rendering path works. Its documented default keyboard mapping is R, not G; this is only a display test and does not satisfy the intended G-key behavior. Confirm actual signatures and behavior against the installed API and in-game testing.
