@@ -8,7 +8,8 @@ public class Test : Script
 {
     private const int ReportIntervalMilliseconds = 750;
     private readonly string _logPath = Path.Combine(
-        Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+        AppDomain.CurrentDomain.BaseDirectory,
+        "scripts",
         "Test_Log.txt");
 
     private Entity _candidate;
@@ -23,6 +24,8 @@ public class Test : Script
     {
         ClearLog();
         Log("=== Test.cs Initialized ===");
+        Log("Log file: " + _logPath);
+
         Tick += OnTick;
         KeyDown += OnKeyDown;
     }
@@ -435,10 +438,7 @@ public class Test : Script
 
             File.AppendAllText(_logPath, logEntry + Environment.NewLine);
         }
-        catch
-        {
-            // Silent fail if logging fails
-        }
+        catch { }
     }
 
     private void ClearLog()
@@ -450,9 +450,6 @@ public class Test : Script
                 File.Delete(_logPath);
             }
         }
-        catch
-        {
-            // Silent fail
-        }
+        catch { }
     }
 }
