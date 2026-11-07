@@ -37,10 +37,12 @@ public class NativeLockOnPromptTest : Script
     private int _trackedTargetHandle;
     private int _promptHandle = -1;
     private int _promptGroupHandle = -1;
+
     private bool _iloRegistrationAttempted;
     private bool _reportedNoTarget;
     private bool _reportedPromptAccepted;
     private bool _reportedGroupActivationFailure;
+
     private DateTime _nextStatusReminderUtc = DateTime.MinValue;
 
     public NativeLockOnPromptTest()
@@ -66,7 +68,8 @@ public class NativeLockOnPromptTest : Script
     private void UpdateTest()
     {
         int currentTargetHandle;
-        bool hasTarget = TryGetPlayerTargetEntity(out currentTargetHandle);
+        bool hasTarget =
+            TryGetFreeAimEntity(out currentTargetHandle);
 
         if (!hasTarget || currentTargetHandle <= 0)
         {
@@ -74,8 +77,9 @@ public class NativeLockOnPromptTest : Script
             {
                 DetachFromTrackedTarget();
                 _trackedTargetHandle = 0;
+
                 RDR2.UI.Screen.PrintSubtitle(
-                    "Confirmed target getter returned no target; prompt detached.");
+                    "GetFreeAimEntity returned no target; prompt detached.");
             }
             else
             {
@@ -97,7 +101,7 @@ public class NativeLockOnPromptTest : Script
 
             RDR2.UI.Screen.PrintSubtitle(
                 string.Format(
-                    "GET_PLAYER_TARGET_ENTITY returned target {0}.",
+                    "GetFreeAimEntity returned target {0}.",
                     _trackedTargetHandle));
 
             RegisterInteractionLockonPromptForTarget();
@@ -114,12 +118,13 @@ public class NativeLockOnPromptTest : Script
         ActivateActionPromptGroupThisFrame();
 
         if (CallNative<bool>(
-                PromptIsJustPressedHash,
-                _promptHandle))
+            PromptIsJustPressedHash,
+            _promptHandle))
         {
             if (!_reportedPromptAccepted)
             {
                 _reportedPromptAccepted = true;
+
                 RDR2.UI.Screen.PrintSubtitle(
                     "Prompt native reported G just pressed; no recruitment action is connected.");
             }
@@ -137,16 +142,20 @@ public class NativeLockOnPromptTest : Script
         }
     }
 
-    private static bool TryGetPlayerTargetEntity(out int targetHandle)
+    private static bool TryGetFreeAimEntity(out int targetHandle)
     {
         targetHandle = 0;
 
-        bool hasTarget =
-            RDR2.Native.PLAYER.GET_PLAYER_TARGET_ENTITY(
-                Game.Player.Handle,
-                out targetHandle);
+        Ped targetPed =
+            Game.Player.GetFreeAimEntity() as Ped;
 
-        return hasTarget && targetHandle > 0;
+        if (targetPed == null || !targetPed.Exists())
+        {
+            return false;
+        }
+
+        targetHandle = targetPed.Handle;
+        return targetHandle > 0;
     }
 
     private void RegisterInteractionLockonPromptForTarget()
@@ -248,8 +257,7 @@ public class NativeLockOnPromptTest : Script
             "Calling UI_PROMPT_REGISTER_BEGIN.");
 
         int promptHandle =
-            CallNative<int>(
-                PromptRegisterBeginHash);
+            CallNative<int>(PromptRegisterBeginHash);
 
         if (promptHandle <= 0)
         {
@@ -280,6 +288,7 @@ public class NativeLockOnPromptTest : Script
 
             RDR2.UI.Screen.PrintSubtitle(
                 "Action-prompt text setup failed: VAR_STRING returned zero.");
+
             return false;
         }
 
@@ -338,6 +347,7 @@ public class NativeLockOnPromptTest : Script
             if (!_reportedGroupActivationFailure)
             {
                 _reportedGroupActivationFailure = true;
+
                 RDR2.UI.Screen.PrintSubtitle(
                     "Group activation skipped: VAR_STRING returned zero for group text.");
             }
@@ -365,7 +375,7 @@ public class NativeLockOnPromptTest : Script
         _reportedNoTarget = true;
 
         RDR2.UI.Screen.PrintSubtitle(
-            "GET_PLAYER_TARGET_ENTITY returned no target. Right-click an NPC to target them.");
+            "GetFreeAimEntity returned no target. Aim directly at an NPC and hold right-click.");
     }
 
     private void DetachFromTrackedTarget()
@@ -410,7 +420,7 @@ public class NativeLockOnPromptTest : Script
             nativeHash,
             arguments);
     }
-    
+
     private static T CallNative<T>(
         ulong nativeHash,
         params RDR2.Native.InputArgument[] arguments)
