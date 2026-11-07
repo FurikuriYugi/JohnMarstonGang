@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Record what has been checked about the repository, ScriptHookRDR2DotNet-V2, RDR2 natives, and in-game behavior. Distinguish verified facts from hypotheses and test plans so uncertain API details do not become assumed contracts. Keep the larger gameplay design in `StoryBoard.md`.
+Record what has been checked about the repository, ScriptHookRDR2DotNet-V2, RDR2 natives, and in-game behavior. Distinguish verified facts from hypotheses and test plans so uncertain API details do not become assumed contracts.
 
 ## Status labels
 
@@ -13,17 +13,17 @@ Record what has been checked about the repository, ScriptHookRDR2DotNet-V2, RDR2
 - **Tested in game:** Confirmed in game; record the environment and steps.
 - **Open:** Needs further investigation.
 
-## Current focus: Add one action option to NPC interaction prompt
+## Current focus: add one action option to NPC interaction prompt
 
 ### Goal
 
-While the player is unarmed and right-mouse focusing a human NPC, display a **G Recruit** action in that NPC's interaction prompt group. This is a presentation test only. It must not recruit the NPC or change gang data.
+While unarmed and right-mouse focusing a human NPC, display a **G Recruit** action in that NPC's interaction prompt group. This is a presentation test only. It must not recruit the NPC or change gang data.
 
 ### Scope guard
 
 The current test is only about displaying and completing the temporary action prompt. Do not add recruitment logic, companion behavior, general UI diagnostics, other interaction options, or unrelated game systems to `Test.cs`.
 
-The test may log only what is useful to this question:
+Log only information relevant to:
 
 - Whether a focused human target was found.
 - The target prompt group and action prompt handle.
@@ -34,7 +34,7 @@ The test may log only what is useful to this question:
 
 - The mod's entry class derives from `RDR2.Script` and subscribes to the Script `Tick` event. Do not implement `public override void Tick()`.
 - The production target-selection path in `Main.cs` uses `PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY` and falls back to `Game.Player.GetFreeAimEntity()`.
-- The separate test harness uses `PLAYER.GET_PLAYER_TARGET_ENTITY`; do not confuse it with `Main.cs` target selection.
+- The isolated test harness uses `PLAYER.GET_PLAYER_TARGET_ENTITY`; do not confuse it with `Main.cs` target selection.
 - F9 remains the separate companion-follow toggle.
 - The native right-mouse interaction-lock-on recruitment prompt is not implemented in the production path.
 - `Main.cs` references `RDR2.UI.Prompt.CreatePrompt(...)`. The project bootstrap reports `RDR2.UI.Prompt` is internal, so that API accessibility issue must be resolved before relying on it in production.
@@ -48,9 +48,9 @@ The test may log only what is useful to this question:
 - The v2.2.0 wrapper resolved `REGISTER_INTERACTION_LOCKON_PROMPT` with ten parameters: `int, string, float, float, int, float, float, int, bool, int`.
 - The v2.2.0 wrapper resolved `_UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME` as `UInt64(int, float, int, int, uint, string, int)`.
 - The v2.2.0 wrapper resolved `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` as `UInt64(uint, string, int, int, int, int)`.
-- The v2.2.0 wrapper exposes `MISC.VAR_STRING` as `string(int, InputArgument[])`. This signature was reported in the latest Object Browser/runtime log.
-- The above wrapper signatures do not establish parameter meanings or in-game behavior.
-- Runtime reflection reported `REGISTER_INTERACTION_LOCKON_PROMPT` and `UNREGISTER_INTERACTION_LOCKON_PROMPT` as returning `System.Boolean`. Earlier ILO tests did not always capture those return values.
+- The v2.2.0 wrapper exposes `MISC.VAR_STRING` as `string(int, InputArgument[])`.
+- Runtime reflection reported `REGISTER_INTERACTION_LOCKON_PROMPT` and `UNREGISTER_INTERACTION_LOCKON_PROMPT` as returning `System.Boolean`.
+- These wrapper signatures do not establish parameter meanings or in-game behavior.
 
 ### In-game findings — 2026-11-07
 
@@ -67,8 +67,6 @@ The user tested while unarmed and right-mouse focusing human NPCs.
 - That test did not log the Boolean returns from ILO registration and unregistration, so whether those calls returned `true` is unknown.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** The earlier focused-target and prompt setup paths ran without a reported setup error, but the action did not visibly render in those tested setups. Those results do not establish the cause.
-
 ### In-game findings — diagnostic `INPUT_CONTEXT_X` run — 2026-11-07
 
 The user tested while unarmed and right-mouse focusing human NPCs.
@@ -81,23 +79,35 @@ The user tested while unarmed and right-mouse focusing human NPCs.
 - The user did not see the Recruit prompt. The existing R “Greet” option disappeared while this diagnostic action was used; other menu options remained usable.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** The focused-target path, ILO calls, prompt-object creation, and target-group assignment ran without a logged setup error. The prompt was still not visibly rendered. The `true` return values do not prove rendering. The disappearance of R “Greet” is evidence that using `INPUT_CONTEXT_X` interferes with that existing interaction in this test setup.
+**Conclusion:** Focus detection, ILO calls, prompt creation, and target-group assignment ran without a logged setup error, but the custom prompt was not visibly rendered. The `true` native returns do not prove display. Using `INPUT_CONTEXT_X` interfered with the existing R “Greet” option in that test setup.
+
+### In-game findings — failed reflective `VAR_STRING` attempt — 2026-11-07
+
+- The test found focused human target `198914`.
+- The log resolved `MISC.VAR_STRING` as `RDR2.Native.MISC.VAR_STRING(System.Int32, RDR2.Native.InputArgument[]) -> System.String`.
+- The test's reflective resolver reported that it could not find a compatible `VAR_STRING` wrapper.
+- Prompt setup stopped with `PROMPT SETUP FAILED: No compatible VAR_STRING wrapper was resolved.`
+- This happened before prompt registration began. No action prompt was created or assigned to the target group.
+- No recruitment or gang-data changes were performed.
+
+**Conclusion:** This was not a prompt-visibility result. The reflection check rejected the observed wrapper signature. The next test bypassed that resolver and called the typed wrapper with an explicit `InputArgument[]`.
 
 ### In-game findings — latest G prompt setup attempt — 2026-11-07
 
 The user tested while unarmed and right-mouse focusing a human NPC.
 
-- The test found focused human target `198914`.
-- The log resolved `MISC.VAR_STRING` as `RDR2.Native.MISC.VAR_STRING(System.Int32, RDR2.Native.InputArgument[]) -> System.String`.
-- The test's reflective resolver reported that it could not find a compatible `VAR_STRING` wrapper.
-- `CreateTargetPrompt` then stopped with `PROMPT SETUP FAILED: No compatible VAR_STRING wrapper was resolved.`
-- The failure occurred before prompt registration began. No action prompt was created or assigned to the target group during this attempt.
-- The user did not see **G Recruit**.
+- The test found focused human target `201218`.
+- Prompt handle `267010` was registered and assigned to target group `268566621`.
+- The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
+- The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
+- The user did not see **G Recruit** in the focused NPC's lock-on menu.
+- The test did not register an ILO and did not activate ambient or active prompt groups.
+- The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** This attempt does not test whether the G action prompt renders. It establishes that the reflective resolver rejected the observed `VAR_STRING` signature. The next test bypasses that resolver and calls the typed wrapper with an explicit `InputArgument[]`; compilation and in-game prompt display remain unverified.
+**Conclusion:** This is a valid visibility failure for the typed G prompt setup: target detection, prompt registration, and target-group assignment succeeded, but the user did not see the action. The missing completion wrapper does not explain the missing display.
 
-## External prompt research
+### External prompt research
 
 External RDR2 prompt research describes these as separate operations:
 
@@ -105,59 +115,31 @@ External RDR2 prompt research describes these as separate operations:
 2. Get the prompt group for the target entity and assign the custom prompt to that group.
 3. Register an interaction-lock-on prompt on an entity when needed for its focus/approach interaction.
 
-The research reports that peds can be focused by default, and that custom action prompts should be added to the entity's prompt group to show while focused. It does not establish that ambient- or active-group activation is required. It describes the `prompt` parameter of `REGISTER_INTERACTION_LOCKON_PROMPT` as not working with a custom prompt in that research setup. Parameter meanings are partly unknown.
-
-Reference: https://gist.github.com/umaruru/1cdbfc302dda20d8c5601f0ce8f0e03c
+The research reports that peds can be focused by default and that custom action prompts should be added to the entity's prompt group to show while focused. It does not establish that ambient- or active-group activation is required for a focused entity's target group. It describes the `prompt` parameter of `REGISTER_INTERACTION_LOCKON_PROMPT` as not working with a custom prompt in that research setup. Some ILO parameter meanings remain unknown.
 
 Treat these as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or game setup.
 
-## Current test hypothesis and next run
+### Current test hypothesis and next run
 
-The latest test failed before prompt registration because the reflective `VAR_STRING` compatibility check rejected the wrapper signature. Do not treat that run as a prompt-visibility result.
+The latest G test successfully created and assigned a prompt but did not display it. Earlier testing did not isolate ILO registration while keeping the G action setup unchanged.
 
 For the next run:
 
 - Keep the test's `INPUT_INTERACT_OPTION1` control (`0x760A9C6F`) and its reported default G mapping.
-- Keep the focused-human target selection, target prompt group, and native prompt creation sequence.
-- Use the typed `MISC.VAR_STRING(int, InputArgument[])` wrapper with an explicit `InputArgument[]` for `"LITERAL_STRING"` and `"Recruit"`.
-- Do not add ILO registration, ambient-group activation, active-group activation, another prompt implementation, or recruitment behavior.
-- Record whether prompt setup reaches `PROMPT REGISTERED`, whether **G Recruit** is visible, and whether the optional standard-mode completion check reports completion.
-- If setup fails again, record the exact failure. If setup succeeds but the prompt is not visible, that becomes a valid visibility result for this specific setup.
+- Keep focused-human target selection, the target prompt group, prompt text, and prompt setup sequence.
+- Add ILO registration for the focused human target before creating the custom action prompt.
+- Log the Boolean result of ILO registration and unregistration.
+- Use the ILO's non-approach-prompt setting so this experiment does not intentionally add a separate focus/approach label.
+- Do not add ambient-group or active-group activation, another prompt control, or recruitment behavior.
+- Record whether ILO registration returns `true`, whether setup reaches `PROMPT REGISTERED`, whether **G Recruit** is visible, and whether the optional standard-mode completion check reports completion.
 
-The standard-mode completion wrapper was not found in the latest reflection log. If it remains unavailable, visibility can still be tested; the prompt will remain active until focus changes, and completion detection will be skipped.
+This is a test of whether adding ILO registration changes the display result; a successful ILO return still does not prove that the action rendered.
 
-## Open questions
+### Open questions
 
-- Does ILO registration affect display of a custom action prompt for an already-focusable ped?
+- Does ILO registration affect display of a custom action prompt for an already-focusable ped when the G action and target-group assignment are held constant?
 - Does `Prompt.CreatePrompt` in the installed v2.2.0 API produce a prompt accepted by `_UI_PROMPT_SET_GROUP`?
 - Does the action prompt text render consistently with the installed API/runtime DLL pairing?
 - Can the same interaction be implemented through a supported public prompt API rather than reflection?
 - Which `REGISTER_INTERACTION_LOCKON_PROMPT` parameters are required for an NPC already focusable by the base game?
 - Does the typed `VAR_STRING` call compile and produce text accepted by `_UI_PROMPT_SET_TEXT` in the installed v2.2.0 wrapper?
-
-## ScriptHook API findings
-
-- ScriptHookRDR2DotNet-V2 v2.1.0.0 release notes list `Player.GetInteractionLockonTargetEntity()`, `Player.GetFreeAimEntity()`, and `Player.IsFreeFocusing`.
-- Earlier runs found that `Game.Player.GetInteractionLockonTargetEntity()` could return no target after right-clicking an NPC. This does not disprove the separate `PLAYER.GET_PLAYER_TARGET_ENTITY` result.
-- The project bootstrap and v2.2.0 Visual Studio Object Browser report `RDR2.Native.Function` is public for the selected v2.2.0 API. Do not apply the v2.1.1.0 release note that made it internal to this v2.2.0 setup without checking the installed assembly.
-- Use the ASI and API DLL files from the same ScriptHookRDR2DotNet-V2 release archive.
-- v2.1.0.1 release notes mention a prompt-text issue. The v2.2.0 release notes do not establish whether it was resolved.
-
-## Native research findings: `REGISTER_INTERACTION_LOCKON_PROMPT`
-
-The Visual Studio Object Browser reports this v2.2.0 wrapper signature:
-
-```csharp
-RDR2.Native.MISC.REGISTER\_INTERACTION\_LOCKON\_PROMPT(
-    int entity,
-    string text,
-    float radius,
-    float p3,
-    int flag,
-    float p5,
-    float p6,
-    int prompt,
-    bool p8,
-    int p9
-);
-```
