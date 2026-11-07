@@ -6,26 +6,23 @@ using RDR2;
 public class Test : Script
 {
     private const int ReportIntervalMilliseconds = 750;
-
     private Entity _candidate;
-    private bool _registrationAttempted;
     private bool _iloRegistered;
     private string _registrationStatus = "waiting for an NPC target";
-    private bool _wasGDown;
     private DateTime _nextReportUtc = DateTime.MinValue;
     private bool _errorReported;
 
     public Test()
     {
         Tick += OnTick;
+        KeyDown += OnKeyDown;
     }
 
     private void OnTick(object sender, EventArgs e)
     {
         try
         {
-            CaptureAndRegisterCandidate();
-            ProcessTestKey();
+            RefreshCandidate();
             ReportStatusWhenDue();
         }
         catch (Exception exception)
@@ -41,33 +38,74 @@ public class Test : Script
         }
     }
 
-    private void CaptureAndRegisterCandidate()
+    private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (_candidate != null || _registrationAttempted)
+        if (e.KeyCode != Keys.G)
         {
             return;
         }
 
+        e.Handled = true;
+        ProcessTestKey();
+    }
+
+    private void RefreshCandidate()
+    {
+        // Reset candidate if it no longer exists
+        if (_candidate != null && !_candidate.Exists())
+        {
+            _candidate = null;
+            _iloRegistered = false;
+            _registrationStatus = "candidate lost";
+            return;
+        }
+
+        // Try to capture from free aim first (aiming with gun)
         Entity aimedEntity = Game.Player.GetFreeAimEntity();
-
-        if (aimedEntity == null ||
-            !aimedEntity.Exists() ||
-            !aimedEntity.IsPed)
+        if (aimedEntity != null &&
+            aimedEntity.Exists() &&
+            aimedEntity.IsPed)
         {
+            if (_candidate == null || _candidate.Handle != aimedEntity.Handle)
+            {
+                _candidate = aimedEntity;
+                _iloRegistered = false;
+                _registrationStatus = "capturing...";
+                RegisterInteractionLockonPrompt(_candidate);
+            }
             return;
         }
 
-        _candidate = aimedEntity;
-        _registrationAttempted = true;
+        // If no free-aim entity, try to capture from interaction lock-on target
+        Entity interactionTarget =
+            Game.Player.GetInteractionLockonTargetEntity();
+        if (interactionTarget != null &&
+            interactionTarget.Exists() &&
+            interactionTarget.IsPed)
+        {
+            if (_candidate == null || _candidate.Handle != interactionTarget.Handle)
+            {
+                _candidate = interactionTarget;
+                _iloRegistered = false;
+                _registrationStatus = "capturing...";
+                RegisterInteractionLockonPrompt(_candidate);
+            }
+            return;
+        }
 
-        RegisterInteractionLockonPrompt(_candidate);
+        // No valid target found
+        if (_candidate != null)
+        {
+            _candidate = null;
+            _iloRegistered = false;
+            _registrationStatus = "no target";
+        }
     }
 
     private void RegisterInteractionLockonPrompt(Entity entity)
     {
         MethodInfo method =
             FindNativeMethod("REGISTER_INTERACTION_LOCKON_PROMPT");
-
         if (method == null)
         {
             _registrationStatus =
@@ -76,7 +114,6 @@ public class Test : Script
         }
 
         ParameterInfo[] parameters = method.GetParameters();
-
         if (parameters.Length != 10)
         {
             _registrationStatus =
@@ -89,9 +126,7 @@ public class Test : Script
         {
             object[] arguments =
                 BuildLockonArguments(entity, parameters);
-
             method.Invoke(null, arguments);
-
             _iloRegistered = true;
             _registrationStatus = "ILO registered";
         }
@@ -107,7 +142,6 @@ public class Test : Script
     {
         Assembly assembly = typeof(Game).Assembly;
         Type[] types;
-
         try
         {
             types = assembly.GetExportedTypes();
@@ -134,7 +168,6 @@ public class Test : Script
             }
 
             MethodInfo[] methods;
-
             try
             {
                 methods = type.GetMethods(
@@ -180,11 +213,9 @@ public class Test : Script
         };
 
         object[] arguments = new object[parameters.Length];
-
         for (int i = 0; i < parameters.Length; i++)
         {
             Type parameterType = parameters[i].ParameterType;
-
             if (i == 0 && parameterType.IsInstanceOfType(entity))
             {
                 arguments[i] = entity;
@@ -220,34 +251,22 @@ public class Test : Script
 
     private void ProcessTestKey()
     {
-        bool gDown = Game.IsKeyPressed(Keys.G);
-        bool gPressedThisTick = gDown && !_wasGDown;
-        _wasGDown = gDown;
-
-        if (!gPressedThisTick)
+        if (_candidate == null || !_candidate.Exists())
         {
+            RDR2.UI.Screen.PrintSubtitle(
+                "G test blocked: no valid NPC candidate.");
             return;
         }
 
-        if (!_iloRegistered ||
-            _candidate == null ||
-            !_candidate.Exists())
+        if (!_iloRegistered)
         {
             RDR2.UI.Screen.PrintSubtitle(
-                "G test blocked: no registered NPC candidate.");
-            return;
-        }
-
-        if (!Game.Player.IsFreeFocusing)
-        {
-            RDR2.UI.Screen.PrintSubtitle(
-                "G test blocked: right-click focus is not active.");
+                "G test blocked: ILO not registered for candidate.");
             return;
         }
 
         Entity interactionTarget =
             Game.Player.GetInteractionLockonTargetEntity();
-
         int interactionHandle =
             GetExistingHandle(interactionTarget);
 
@@ -279,17 +298,15 @@ public class Test : Script
                 ReportIntervalMilliseconds);
 
         bool isFreeFocusing = Game.Player.IsFreeFocusing;
-
         Entity interactionTarget =
             Game.Player.GetInteractionLockonTargetEntity();
-
         int interactionHandle =
             GetExistingHandle(interactionTarget);
 
         if (_candidate == null)
         {
             RDR2.UI.Screen.PrintSubtitle(
-                "Aim a gun at one NPC to arm the ILO test.");
+                "Aim a gun at one NPC or right-click lock-on to arm the ILO test.");
             return;
         }
 
