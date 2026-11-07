@@ -5,7 +5,9 @@ using RDR2;
 
 public class Test : Script
 {
-    private const int RecruitInputHash = unchecked((int)0x760A9C6F);
+    // Display-only diagnostic control action.
+    // INPUT_CONTEXT_X is commonly mapped to R; it is not the desired G binding.
+    private const int DiagnosticInputHash = unchecked((int)0xE3BF959B);
 
     // Test-only ILO registration values.
     // Some parameter meanings are documented externally, not verified in-game.
@@ -47,13 +49,17 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== ILO-registration interaction-option test initialized ===");
-        Log("TEST ONLY: show a G Recruit option for the focused human NPC.");
+        Log("=== Prompt input-action display test initialized ===");
+        Log("TEST ONLY: show a Recruit prompt for the focused human NPC.");
         Log(
-            "HYPOTHESIS: registering the focused NPC with " +
-            "REGISTER_INTERACTION_LOCKON_PROMPT affects display of the " +
-            "same target-group action prompt.");
-        Log("The action prompt remains assigned to the target prompt group.");
+            "DIAGNOSTIC INPUT: INPUT_CONTEXT_X (0xE3BF959B; " +
+            "commonly mapped to keyboard R; not the intended G binding).");
+        Log(
+            "HYPOTHESIS: using a recognized prompt input action will show " +
+            "whether the custom prompt creation and target-group path renders.");
+        Log(
+            "ILO registration values and target-group assignment remain " +
+            "unchanged from the previous test.");
         Log("No ambient-group or active-group activation is performed.");
         Log("No recruitment or gang-data changes are performed.");
         Log(
@@ -71,7 +77,7 @@ public class Test : Script
         ResolveMethods();
 
         RDR2.UI.Screen.PrintSubtitle(
-            "Focus a human NPC to test the G Recruit option.");
+            "Focus a human NPC to test the Recruit prompt.");
 
         Tick += OnTick;
     }
@@ -144,11 +150,11 @@ public class Test : Script
             _completedForTarget = true;
 
             Log(
-                "G prompt completed; test only, " +
+                "Diagnostic prompt completed; test only, " +
                 "no recruitment performed.");
 
             RDR2.UI.Screen.PrintSubtitle(
-                "G prompt completed; no recruitment performed.");
+                "Diagnostic prompt completed; no recruitment performed.");
 
             ClearPrompt();
         }
@@ -254,11 +260,15 @@ public class Test : Script
                 "; targetGroup=" + _promptGroup);
 
             Log(
+                "PROMPT INPUT ACTION: INPUT_CONTEXT_X (0xE3BF959B); " +
+                "the displayed keyboard mapping may vary by settings/context.");
+
+            Log(
                 "GROUP MODE: action prompt assigned to target group; " +
                 "no ambient-group or active-group activation native called.");
 
             Log(
-                "IN-GAME CHECK: confirm whether G Recruit is visible. " +
+                "IN-GAME CHECK: confirm whether the Recruit prompt is visible. " +
                 "Prompt properties and native return values alone do not " +
                 "prove rendering.");
         }
@@ -368,7 +378,7 @@ public class Test : Script
         object[] arguments = new object[8];
 
         arguments[0] = ConvertArgument(
-            RecruitInputHash,
+            DiagnosticInputHash,
             createParameters[0].ParameterType);
 
         arguments[1] = Enum.Parse(
