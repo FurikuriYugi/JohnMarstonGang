@@ -6,11 +6,12 @@ using RDR2;
 
 public class Test : Script
 {
-    private const int ReportIntervalMilliseconds = 750;
+    private const int ReportIntervalMilliseconds = 500;
 
+    // AppDomain.CurrentDomain.BaseDirectory is already the scripts folder
+    // in the tested setup.
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
-        "scripts",
         "Test_Log.txt");
 
     private Entity _candidate;
@@ -21,11 +22,18 @@ public class Test : Script
     private DateTime _nextReportUtc = DateTime.MinValue;
     private bool _errorReported;
 
+    private bool _hasLoggedFreeFocusing;
+    private bool _lastFreeFocusing;
+    private bool _hasLoggedInteractionHandle;
+    private int _lastInteractionHandle;
+
     public Test()
     {
         ClearLog();
         Log("=== Test.cs Initialized ===");
         Log("Log file: " + _logPath);
+        Log("Test: aim at an NPC to register it, then right-click focus and press G.");
+        Log("G is diagnostic only; this test does not recruit.");
 
         Tick += OnTick;
         KeyDown += OnKeyDown;
@@ -44,12 +52,12 @@ public class Test : Script
             {
                 _errorReported = true;
 
-                string errorMsg = string.Format(
+                string errorMessage = string.Format(
                     "Lock-on test error: {0}",
                     exception.Message);
 
-                RDR2.UI.Screen.PrintSubtitle(errorMsg);
-                Log("ERROR: " + errorMsg);
+                RDR2.UI.Screen.PrintSubtitle(errorMessage);
+                Log("ERROR: " + errorMessage);
                 Log("StackTrace: " + exception.StackTrace);
             }
         }
@@ -62,8 +70,8 @@ public class Test : Script
             return;
         }
 
-        Log("G key pressed");
         e.Handled = true;
+        Log("G key pressed");
         ProcessTestKey();
     }
 
@@ -71,40 +79,30 @@ public class Test : Script
     {
         if (_candidate != null && !_candidate.Exists())
         {
+            int lostHandle = _candidate.Handle;
+
             Log(string.Format(
                 "CANDIDATE LOST: handle was {0}",
-                _candidate.Handle));
+                lostHandle));
 
             _candidate = null;
             _iloRegistered = false;
             _registrationStatus = "candidate lost";
-            return;
         }
 
-        // Capture a candidate by aiming a firearm at an NPC.
+        // Capture or switch the test candidate while aiming a firearm.
         Entity aimedEntity = Game.Player.GetFreeAimEntity();
 
         if (aimedEntity != null &&
             aimedEntity.Exists() &&
             aimedEntity.IsPed)
         {
-            if (_candidate == null ||
-                _candidate.Handle != aimedEntity.Handle)
-            {
-                Log(string.Format(
-                    "CAPTURED FROM FREE AIM: new handle {0}",
-                    aimedEntity.Handle));
-
-                _candidate = aimedEntity;
-                _iloRegistered = false;
-                _registrationStatus = "capturing...";
-                RegisterInteractionLockonPrompt(_candidate);
-            }
-
+            SetCandidate(aimedEntity, "FREE AIM");
             return;
         }
 
-        // If free aim has no target, try the interaction-lock-on target.
+        // If the game reports an interaction-lock-on target, use it as
+        // the candidate only when it differs from the current candidate.
         Entity interactionTarget =
             Game.Player.GetInteractionLockonTargetEntity();
 
@@ -112,33 +110,44 @@ public class Test : Script
             interactionTarget.Exists() &&
             interactionTarget.IsPed)
         {
-            if (_candidate == null ||
-                _candidate.Handle != interactionTarget.Handle)
-            {
-                Log(string.Format(
-                    "CAPTURED FROM LOCK-ON: new handle {0}",
-                    interactionTarget.Handle));
+            SetCandidate(interactionTarget, "LOCK-ON");
+        }
 
-                _candidate = interactionTarget;
-                _iloRegistered = false;
-                _registrationStatus = "capturing...";
-                RegisterInteractionLockonPrompt(_candidate);
-            }
+        // Deliberately do not clear the candidate just because aim or
+        // lock-on is temporarily absent. That was causing the previous
+        // test to discard the candidate immediately after releasing aim.
+    }
 
+    private void SetCandidate(Entity entity, string captureSource)
+    {
+        if (_candidate != null &&
+            _candidate.Exists() &&
+            _candidate.Handle == entity.Handle)
+        {
             return;
         }
 
-        if (_candidate != null)
-        {
-            Log("NO TARGET FOUND: clearing candidate");
-            _candidate = null;
-            _iloRegistered = false;
-            _registrationStatus = "no target";
-        }
+        _candidate = entity;
+        _iloRegistered = false;
+        _registrationStatus = "capturing...";
+
+        Log(string.Format(
+            "CAPTURED FROM {0}: new handle {1}",
+            captureSource,
+            entity.Handle));
+
+        RegisterInteractionLockonPrompt(_candidate);
     }
 
     private void RegisterInteractionLockonPrompt(Entity entity)
     {
+        if (entity == null || !entity.Exists())
+        {
+            _registrationStatus = "candidate invalid before registration";
+            Log("ERROR: registration skipped; candidate is invalid");
+            return;
+        }
+
         Log(string.Format(
             "REGISTERING ILO: handle {0}",
             entity.Handle));
@@ -177,18 +186,21 @@ public class Test : Script
 
             method.Invoke(null, arguments);
 
+            // This means the wrapper call returned without throwing.
+            // It does not by itself confirm an in-game prompt appeared.
             _iloRegistered = true;
-            _registrationStatus = "ILO registered";
-            Log("SUCCESS: ILO registered");
+            _registrationStatus = "ILO wrapper call returned";
+            Log("ILO CALL RETURNED WITHOUT EXCEPTION");
         }
         catch (Exception exception)
         {
+            _iloRegistered = false;
             _registrationStatus =
-                "ILO registration failed: " +
+                "ILO registration call failed: " +
                 GetExceptionMessage(exception);
 
             Log(
-                "ERROR: ILO registration failed: " +
+                "ERROR: ILO registration call failed: " +
                 GetExceptionMessage(exception));
         }
     }
@@ -260,12 +272,12 @@ public class Test : Script
             entity.Handle, // entity
             "Recruit test", // text
             3.0f, // radius
-            5.0f, // focus distance
-            0, // flags
+            5.0f, // p3
+            0, // flag
             0.0f, // p5
             0.0f, // p6
-            0, // prompt handle
-            true, // show the prompt when approaching
+            0, // prompt
+            true, // p8
             -1 // p9
         };
 
@@ -312,48 +324,46 @@ public class Test : Script
     {
         Log("--- G KEY PROCESSING ---");
 
-        if (_candidate == null || !_candidate.Exists())
+        bool isFreeFocusing = Game.Player.IsFreeFocusing;
+        Entity interactionTarget =
+            Game.Player.GetInteractionLockonTargetEntity();
+        int interactionHandle = GetExistingHandle(interactionTarget);
+        int candidateHandle = GetExistingHandle(_candidate);
+
+        Log(string.Format(
+            "G SNAPSHOT: candidate={0}; ILO-call-returned={1}; " +
+            "free-focusing={2}; interaction-target={3}",
+            FormatHandle(candidateHandle),
+            _iloRegistered,
+            isFreeFocusing,
+            FormatHandle(interactionHandle)));
+
+        if (candidateHandle == 0)
         {
             const string message =
-                "G test blocked: no valid NPC candidate.";
+                "G test blocked: no valid NPC candidate. Aim at an NPC first.";
 
             RDR2.UI.Screen.PrintSubtitle(message);
             Log("BLOCKED: " + message);
             return;
         }
-
-        Log(string.Format(
-            "Candidate check PASS: handle {0} exists",
-            _candidate.Handle));
 
         if (!_iloRegistered)
         {
             const string message =
-                "G test blocked: ILO not registered for candidate.";
+                "G test blocked: ILO wrapper call did not complete successfully.";
 
             RDR2.UI.Screen.PrintSubtitle(message);
             Log("BLOCKED: " + message);
             return;
         }
 
-        Log("ILO registered check PASS");
-
-        Entity interactionTarget =
-            Game.Player.GetInteractionLockonTargetEntity();
-
-        int interactionHandle =
-            GetExistingHandle(interactionTarget);
-
-        Log(string.Format(
-            "Interaction check: candidate={0}, interaction target={1}",
-            _candidate.Handle,
-            FormatHandle(interactionHandle)));
-
-        if (interactionHandle != _candidate.Handle)
+        if (interactionHandle != candidateHandle)
         {
             string message = string.Format(
-                "G test blocked: candidate={0}; interaction target={1}.",
-                _candidate.Handle,
+                "G test blocked: candidate={0}; focus={1}; target={2}.",
+                candidateHandle,
+                isFreeFocusing,
                 FormatHandle(interactionHandle));
 
             RDR2.UI.Screen.PrintSubtitle(message);
@@ -361,11 +371,9 @@ public class Test : Script
             return;
         }
 
-        Log("Interaction target match check PASS");
-
         string successMessage = string.Format(
             "G TEST ACCEPTED for NPC handle {0}. No recruitment performed.",
-            _candidate.Handle);
+            candidateHandle);
 
         RDR2.UI.Screen.PrintSubtitle(successMessage);
         Log("SUCCESS: " + successMessage);
@@ -382,25 +390,22 @@ public class Test : Script
             DateTime.UtcNow.AddMilliseconds(
                 ReportIntervalMilliseconds);
 
-        int currentCandidateHandle =
-            _candidate != null && _candidate.Exists()
-                ? _candidate.Handle
-                : -1;
+        int candidateHandle = GetExistingHandle(_candidate);
 
-        if (currentCandidateHandle != _lastCandidateHandle)
+        if (candidateHandle != _lastCandidateHandle)
         {
             Log(string.Format(
                 "STATE: candidate handle changed {0} -> {1}",
                 FormatHandle(_lastCandidateHandle),
-                FormatHandle(currentCandidateHandle)));
+                FormatHandle(candidateHandle)));
 
-            _lastCandidateHandle = currentCandidateHandle;
+            _lastCandidateHandle = candidateHandle;
         }
 
         if (_iloRegistered != _lastIloRegistered)
         {
             Log(string.Format(
-                "STATE: ILO registered changed {0} -> {1}",
+                "STATE: ILO-call-returned changed {0} -> {1}",
                 _lastIloRegistered,
                 _iloRegistered));
 
@@ -409,28 +414,46 @@ public class Test : Script
 
         bool isFreeFocusing = Game.Player.IsFreeFocusing;
 
+        if (!_hasLoggedFreeFocusing ||
+            isFreeFocusing != _lastFreeFocusing)
+        {
+            Log(string.Format(
+                "STATE: IsFreeFocusing={0}",
+                isFreeFocusing));
+
+            _lastFreeFocusing = isFreeFocusing;
+            _hasLoggedFreeFocusing = true;
+        }
+
         Entity interactionTarget =
             Game.Player.GetInteractionLockonTargetEntity();
+        int interactionHandle = GetExistingHandle(interactionTarget);
 
-        int interactionHandle =
-            GetExistingHandle(interactionTarget);
+        if (!_hasLoggedInteractionHandle ||
+            interactionHandle != _lastInteractionHandle)
+        {
+            Log(string.Format(
+                "STATE: interaction target={0}",
+                FormatHandle(interactionHandle)));
 
-        if (_candidate == null)
+            _lastInteractionHandle = interactionHandle;
+            _hasLoggedInteractionHandle = true;
+        }
+
+        if (candidateHandle == 0)
         {
             RDR2.UI.Screen.PrintSubtitle(
-                "Aim a gun at one NPC or right-click lock-on to arm the ILO test.");
+                "Aim a firearm at one NPC to select the test candidate.");
 
             return;
         }
 
         RDR2.UI.Screen.PrintSubtitle(
             string.Format(
-                "ILO={0} ped={1}; focus={2}; lock={3}; press G to test.",
+                "ILO call={0}; candidate={1}; focus={2}; target={3}; press G.",
                 _registrationStatus,
-                _candidate.Exists()
-                    ? _candidate.Handle.ToString()
-                    : "gone",
-                isFreeFocusing ? "1" : "0",
+                candidateHandle,
+                isFreeFocusing,
                 FormatHandle(interactionHandle)));
     }
 
