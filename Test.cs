@@ -7,6 +7,7 @@ using RDR2;
 public class Test : Script
 {
     private const int ReportIntervalMilliseconds = 750;
+
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "scripts",
@@ -42,9 +43,11 @@ public class Test : Script
             if (!_errorReported)
             {
                 _errorReported = true;
+
                 string errorMsg = string.Format(
                     "Lock-on test error: {0}",
                     exception.Message);
+
                 RDR2.UI.Screen.PrintSubtitle(errorMsg);
                 Log("ERROR: " + errorMsg);
                 Log("StackTrace: " + exception.StackTrace);
@@ -66,58 +69,65 @@ public class Test : Script
 
     private void RefreshCandidate()
     {
-        // Reset candidate if it no longer exists
         if (_candidate != null && !_candidate.Exists())
         {
             Log(string.Format(
                 "CANDIDATE LOST: handle was {0}",
                 _candidate.Handle));
+
             _candidate = null;
             _iloRegistered = false;
             _registrationStatus = "candidate lost";
             return;
         }
 
-        // Try to capture from free aim first (aiming with gun)
+        // Capture a candidate by aiming a firearm at an NPC.
         Entity aimedEntity = Game.Player.GetFreeAimEntity();
+
         if (aimedEntity != null &&
             aimedEntity.Exists() &&
             aimedEntity.IsPed)
         {
-            if (_candidate == null || _candidate.Handle != aimedEntity.Handle)
+            if (_candidate == null ||
+                _candidate.Handle != aimedEntity.Handle)
             {
                 Log(string.Format(
                     "CAPTURED FROM FREE AIM: new handle {0}",
                     aimedEntity.Handle));
+
                 _candidate = aimedEntity;
                 _iloRegistered = false;
                 _registrationStatus = "capturing...";
                 RegisterInteractionLockonPrompt(_candidate);
             }
+
             return;
         }
 
-        // If no free-aim entity, try to capture from interaction lock-on target
+        // If free aim has no target, try the interaction-lock-on target.
         Entity interactionTarget =
             Game.Player.GetInteractionLockonTargetEntity();
+
         if (interactionTarget != null &&
             interactionTarget.Exists() &&
             interactionTarget.IsPed)
         {
-            if (_candidate == null || _candidate.Handle != interactionTarget.Handle)
+            if (_candidate == null ||
+                _candidate.Handle != interactionTarget.Handle)
             {
                 Log(string.Format(
                     "CAPTURED FROM LOCK-ON: new handle {0}",
                     interactionTarget.Handle));
+
                 _candidate = interactionTarget;
                 _iloRegistered = false;
                 _registrationStatus = "capturing...";
                 RegisterInteractionLockonPrompt(_candidate);
             }
+
             return;
         }
 
-        // No valid target found
         if (_candidate != null)
         {
             Log("NO TARGET FOUND: clearing candidate");
@@ -135,23 +145,28 @@ public class Test : Script
 
         MethodInfo method =
             FindNativeMethod("REGISTER_INTERACTION_LOCKON_PROMPT");
+
         if (method == null)
         {
             _registrationStatus =
                 "REGISTER_INTERACTION_LOCKON_PROMPT wrapper not found";
+
             Log("ERROR: ILO wrapper method not found");
             return;
         }
 
         ParameterInfo[] parameters = method.GetParameters();
+
         if (parameters.Length != 10)
         {
             _registrationStatus =
                 "ILO wrapper found with unexpected parameter count: " +
                 parameters.Length.ToString();
+
             Log(string.Format(
                 "ERROR: ILO wrapper has {0} parameters, expected 10",
                 parameters.Length));
+
             return;
         }
 
@@ -159,7 +174,9 @@ public class Test : Script
         {
             object[] arguments =
                 BuildLockonArguments(entity, parameters);
+
             method.Invoke(null, arguments);
+
             _iloRegistered = true;
             _registrationStatus = "ILO registered";
             Log("SUCCESS: ILO registered");
@@ -169,7 +186,10 @@ public class Test : Script
             _registrationStatus =
                 "ILO registration failed: " +
                 GetExceptionMessage(exception);
-            Log("ERROR: ILO registration failed: " + GetExceptionMessage(exception));
+
+            Log(
+                "ERROR: ILO registration failed: " +
+                GetExceptionMessage(exception));
         }
     }
 
@@ -177,6 +197,7 @@ public class Test : Script
     {
         Assembly assembly = typeof(Game).Assembly;
         Type[] types;
+
         try
         {
             types = assembly.GetExportedTypes();
@@ -203,6 +224,7 @@ public class Test : Script
             }
 
             MethodInfo[] methods;
+
             try
             {
                 methods = type.GetMethods(
@@ -248,9 +270,11 @@ public class Test : Script
         };
 
         object[] arguments = new object[parameters.Length];
+
         for (int i = 0; i < parameters.Length; i++)
         {
             Type parameterType = parameters[i].ParameterType;
+
             if (i == 0 && parameterType.IsInstanceOfType(entity))
             {
                 arguments[i] = entity;
@@ -290,9 +314,11 @@ public class Test : Script
 
         if (_candidate == null || !_candidate.Exists())
         {
-            string msg = "G test blocked: no valid NPC candidate.";
-            RDR2.UI.Screen.PrintSubtitle(msg);
-            Log("BLOCKED: " + msg);
+            const string message =
+                "G test blocked: no valid NPC candidate.";
+
+            RDR2.UI.Screen.PrintSubtitle(message);
+            Log("BLOCKED: " + message);
             return;
         }
 
@@ -302,9 +328,11 @@ public class Test : Script
 
         if (!_iloRegistered)
         {
-            string msg = "G test blocked: ILO not registered for candidate.";
-            RDR2.UI.Screen.PrintSubtitle(msg);
-            Log("BLOCKED: " + msg);
+            const string message =
+                "G test blocked: ILO not registered for candidate.";
+
+            RDR2.UI.Screen.PrintSubtitle(message);
+            Log("BLOCKED: " + message);
             return;
         }
 
@@ -312,6 +340,7 @@ public class Test : Script
 
         Entity interactionTarget =
             Game.Player.GetInteractionLockonTargetEntity();
+
         int interactionHandle =
             GetExistingHandle(interactionTarget);
 
@@ -322,22 +351,24 @@ public class Test : Script
 
         if (interactionHandle != _candidate.Handle)
         {
-            string msg = string.Format(
+            string message = string.Format(
                 "G test blocked: candidate={0}; interaction target={1}.",
                 _candidate.Handle,
                 FormatHandle(interactionHandle));
-            RDR2.UI.Screen.PrintSubtitle(msg);
-            Log("BLOCKED: " + msg);
+
+            RDR2.UI.Screen.PrintSubtitle(message);
+            Log("BLOCKED: " + message);
             return;
         }
 
         Log("Interaction target match check PASS");
 
-        string successMsg = string.Format(
+        string successMessage = string.Format(
             "G TEST ACCEPTED for NPC handle {0}. No recruitment performed.",
             _candidate.Handle);
-        RDR2.UI.Screen.PrintSubtitle(successMsg);
-        Log("SUCCESS: " + successMsg);
+
+        RDR2.UI.Screen.PrintSubtitle(successMessage);
+        Log("SUCCESS: " + successMessage);
     }
 
     private void ReportStatusWhenDue()
@@ -351,10 +382,10 @@ public class Test : Script
             DateTime.UtcNow.AddMilliseconds(
                 ReportIntervalMilliseconds);
 
-        // Log state changes
-        int currentCandidateHandle = _candidate != null && _candidate.Exists()
-            ? _candidate.Handle
-            : -1;
+        int currentCandidateHandle =
+            _candidate != null && _candidate.Exists()
+                ? _candidate.Handle
+                : -1;
 
         if (currentCandidateHandle != _lastCandidateHandle)
         {
@@ -362,6 +393,7 @@ public class Test : Script
                 "STATE: candidate handle changed {0} -> {1}",
                 FormatHandle(_lastCandidateHandle),
                 FormatHandle(currentCandidateHandle)));
+
             _lastCandidateHandle = currentCandidateHandle;
         }
 
@@ -371,12 +403,15 @@ public class Test : Script
                 "STATE: ILO registered changed {0} -> {1}",
                 _lastIloRegistered,
                 _iloRegistered));
+
             _lastIloRegistered = _iloRegistered;
         }
 
         bool isFreeFocusing = Game.Player.IsFreeFocusing;
+
         Entity interactionTarget =
             Game.Player.GetInteractionLockonTargetEntity();
+
         int interactionHandle =
             GetExistingHandle(interactionTarget);
 
@@ -384,6 +419,7 @@ public class Test : Script
         {
             RDR2.UI.Screen.PrintSubtitle(
                 "Aim a gun at one NPC or right-click lock-on to arm the ILO test.");
+
             return;
         }
 
@@ -430,26 +466,50 @@ public class Test : Script
     {
         try
         {
-            string timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
+            string directory = Path.GetDirectoryName(_logPath);
+
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            string timestamp =
+                DateTime.Now.ToString("HH:mm:ss.fff");
+
             string logEntry = string.Format(
                 "[{0}] {1}",
                 timestamp,
                 message);
 
-            File.AppendAllText(_logPath, logEntry + Environment.NewLine);
+            File.AppendAllText(
+                _logPath,
+                logEntry + Environment.NewLine);
         }
-        catch { }
+        catch
+        {
+            // Logging must not interrupt the in-game test.
+        }
     }
 
     private void ClearLog()
     {
         try
         {
+            string directory = Path.GetDirectoryName(_logPath);
+
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             if (File.Exists(_logPath))
             {
                 File.Delete(_logPath);
             }
         }
-        catch { }
+        catch
+        {
+            // The test can still run if the log cannot be cleared.
+        }
     }
 }
