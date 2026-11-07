@@ -262,11 +262,8 @@ These observations are not a claim of in-game functionality:
 
 ### Milestone 1: Native interaction research and prototype
 
-- Check the installed API XML and wrapper signature for the candidate lock-on interaction prompt.
-- Verify target selection, prompt display, button acceptance, cleanup, and behavior when a target becomes invalid.
-- Test one simple contextual action before adding branching dialogue.
-- Keep F7/F9 as debug controls only during the transition.
-- **Status:** In progress. The `PLAYER.GET_PLAYER_TARGET_ENTITY` getter matched the captured NPC handle during right-mouse focus in two test cycles. Visible prompt behavior and unarmed interaction remain unverified; see the decision log.
+- **Status:** In progress. `PLAYER.GET_PLAYER_TARGET_ENTITY` matched the captured NPC during right-mouse focus. In the 2026-11-07 test, the ILO native returned `True` and the action prompt reported `Visible=True`, but the user confirmed that **“G Recruit” did not appear in game**. Prompt rendering and unarmed interaction remain unverified. Verify the local v2.2.0 ambient-group wrapper signature, test per-frame group activation, and keep the test non-recruiting.
+ **Status:** In progress. The `PLAYER.GET_PLAYER_TARGET_ENTITY` getter matched the captured NPC handle during right-mouse focus in two test cycles. Visible prompt behavior and unarmed interaction remain unverified; see the decision log.
 
 ### Milestone 2: One conversation and recruitment flow
 
@@ -346,3 +343,4 @@ Before marking any feature implemented or tested, confirm:
 - **2026-11-07:** `PLAYER.GET_PLAYER_TARGET_ENTITY` resolved at runtime as `bool(int, int*)`. In two test cycles, while `IsFreeFocusing=True`, it returned the same handle as the NPC captured from free aim (`178178` and `197890`). After focus ended, the native reported no target. This verifies the target-getter path for the tested setup; it does not establish that the ILO prompt was visible.
 - **2026-11-07:** The ILO wrapper call returned without an exception for both captured NPCs. `GetInteractionLockonTargetEntity()` remained `none` in the G snapshots. G was diagnostic only; no recruitment occurred. Prompt visibility and unarmed behavior remain unverified.
 - **Next recruitment lock-on test:** Capture a candidate with the current test harness, holster the weapon without changing the selected NPC, activate right-mouse focus, and observe whether the prompt is visibly displayed while unarmed. Record whether G reports a matching player target as separate evidence; do not treat a successful target match or a non-throwing ILO call as proof of prompt visibility.
+- **2026-11-07:** The user confirmed the G Recruit option did not appear. The harness logged successful target matching, ILO registration, target-group attachment, and `Visible=True`, but those states do not prove that the prompt rendered. G was not pressed; no recruitment or gang-data change occurred. The next test is per-frame target prompt-group activation after verifying the installed wrapper signature.
