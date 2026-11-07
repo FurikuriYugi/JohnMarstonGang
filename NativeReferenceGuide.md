@@ -24,7 +24,7 @@ ScriptHookRDR2DotNet-V2 v2.1.0.0 release notes list:
 
 The production target-selection path in `Main.cs` uses `PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY` and falls back to `Game.Player.GetFreeAimEntity()`.
 
-In the isolated test, runtime reflection resolved `PLAYER.GET_PLAYER_TARGET_ENTITY` as:
+In the isolated test, the v2.2.0 wrapper was resolved as:
 
 ```csharp
 public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
@@ -32,14 +32,3 @@ public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
     int* entity
 );
 ```
-
-### Prompt control value — unresolved
-
-The test has used two different kinds of values:
-
-- `0x760A9C6F`: documented externally as the G keyboard-key hash. It has not been confirmed as a valid prompt input action in the installed v2.2.0 API.
-- `INPUT_CONTEXT_X` (`0xE3BF959B`): documented externally as a prompt input action, commonly mapped to R. In the diagnostic in-game run, the prompt did not appear and the existing R “Greet” option disappeared.
-
-A diagnostic test using `INPUT_CONTEXT_B` (`0x3B24C470`), commonly mapped to F, is next. Change only the prompt input action from X to B; retain the same prompt creation, target-group assignment, ILO arguments, and conditions. This remains an external-reference hypothesis until checked in the installed API and in game.
-
-A prompt action’s default keyboard mapping is not a guarantee that the action is conflict-free in a particular interaction context. Do not consider the intended G binding verified until a G prompt is visibly displayed and can be completed in game.

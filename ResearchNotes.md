@@ -43,13 +43,14 @@ The test may log only what is useful to this question:
 
 ### Verified runtime/API observations
 
-- The installed v2.2.0 wrapper resolved `PLAYER.GET_PLAYER_TARGET_ENTITY` as `bool(int, int*)`. Passing it using `out` previously failed with CS1615; the isolated test uses an unsafe pointer delegate.
+- The installed v2.2.0 wrapper resolved `PLAYER.GET_PLAYER_TARGET_ENTITY` as `bool(int, int*)`. Passing it using `out` previously failed with CS1615; the isolated test uses an unsafe pointer call.
 - While `IsFreeFocusing=True`, the player-target native returned the focused NPC handle in earlier test cycles. After focus ended, it returned no target.
 - The v2.2.0 wrapper resolved `REGISTER_INTERACTION_LOCKON_PROMPT` with ten parameters: `int, string, float, float, int, float, float, int, bool, int`.
 - The v2.2.0 wrapper resolved `_UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME` as `UInt64(int, float, int, int, uint, string, int)`.
 - The v2.2.0 wrapper resolved `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` as `UInt64(uint, string, int, int, int, int)`.
-- These wrapper signatures are not proof that parameter meanings or in-game behavior are correct.
-- Runtime reflection reported `REGISTER_INTERACTION_LOCKON_PROMPT` and `UNREGISTER_INTERACTION_LOCKON_PROMPT` as returning `System.Boolean`. The previous ILO test did not capture either return value.
+- The v2.2.0 wrapper exposes `MISC.VAR_STRING` as `string(int, InputArgument[])`. This signature was reported in the latest Object Browser/runtime log.
+- The above wrapper signatures do not establish parameter meanings or in-game behavior.
+- Runtime reflection reported `REGISTER_INTERACTION_LOCKON_PROMPT` and `UNREGISTER_INTERACTION_LOCKON_PROMPT` as returning `System.Boolean`. Earlier ILO tests did not always capture those return values.
 
 ### In-game findings — 2026-11-07
 
@@ -60,14 +61,13 @@ The user tested while unarmed and right-mouse focusing human NPCs.
 - Earlier prompt properties reported `Enabled=True`, `Visible=True`, and `HasCompleted=False`; those properties do not prove that the prompt rendered.
 - Ambient-group activation did not make **G Recruit** visible.
 - Explicit active-group activation also did not make **G Recruit** visible.
-- The latest ILO-registration test found focused human targets `202754` and `202498`.
-- The log reported created prompt handles `252162`, `300802`, and `314114`, assigned to target groups `268566617` and `268566616`.
-- The test made no ambient-group or active-group activation call.
-- The user did not see **G Recruit** in the menu; other menu options continued to work.
-- The test logged ILO registration and unregistration calls, but did not log their Boolean return values. Whether either call returned `true` is therefore unknown.
+- An earlier ILO-registration test found focused human targets `202754` and `202498`.
+- That log reported created prompt handles `252162`, `300802`, and `314114`, assigned to target groups `268566617` and `268566616`.
+- The user did not see **G Recruit** in that menu; other menu options continued to work.
+- That test did not log the Boolean returns from ILO registration and unregistration, so whether those calls returned `true` is unknown.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** The focused-target and prompt setup path ran without a reported setup error, but the action did not visibly render in the tested setup. The ILO display hypothesis is unresolved because the test did not record the native return values. Even a `true` return value would not prove the prompt rendered.
+**Conclusion:** The earlier focused-target and prompt setup paths ran without a reported setup error, but the action did not visibly render in those tested setups. Those results do not establish the cause.
 
 ### In-game findings — diagnostic `INPUT_CONTEXT_X` run — 2026-11-07
 
@@ -83,24 +83,21 @@ The user tested while unarmed and right-mouse focusing human NPCs.
 
 **Conclusion:** The focused-target path, ILO calls, prompt-object creation, and target-group assignment ran without a logged setup error. The prompt was still not visibly rendered. The `true` return values do not prove rendering. The disappearance of R “Greet” is evidence that using `INPUT_CONTEXT_X` interferes with that existing interaction in this test setup.
 
-### Current test hypothesis and next run
+### In-game findings — latest G prompt setup attempt — 2026-11-07
 
-The prior suggestion to use a known input action as a prompt-display sanity check was tested with `INPUT_CONTEXT_X`. It did not display the prompt and interfered with R “Greet.” Do not repeat that action.
+The user tested while unarmed and right-mouse focusing a human NPC.
 
-For the next run, keep the tested X-action harness and all prompt/ILO behavior unchanged, and change only the prompt control to `INPUT_CONTEXT_B` (`0x3B24C470`, commonly mapped to F). This is a diagnostic display test, not the intended G binding.
+- The test found focused human target `198914`.
+- The log resolved `MISC.VAR_STRING` as `RDR2.Native.MISC.VAR_STRING(System.Int32, RDR2.Native.InputArgument[]) -> System.String`.
+- The test's reflective resolver reported that it could not find a compatible `VAR_STRING` wrapper.
+- `CreateTargetPrompt` then stopped with `PROMPT SETUP FAILED: No compatible VAR_STRING wrapper was resolved.`
+- The failure occurred before prompt registration began. No action prompt was created or assigned to the target group during this attempt.
+- The user did not see **G Recruit**.
+- No recruitment or gang-data changes were performed.
 
-Record:
+**Conclusion:** This attempt does not test whether the G action prompt renders. It establishes that the reflective resolver rejected the observed `VAR_STRING` signature. The next test bypasses that resolver and calls the typed wrapper with an explicit `InputArgument[]`; compilation and in-game prompt display remain unverified.
 
-1. Whether a focused human target was found.
-2. The target prompt group and prompt handle.
-3. ILO registration and cleanup Boolean returns.
-4. Whether the F Recruit prompt appeared.
-5. If visible, whether pressing F completed the test prompt.
-6. Whether the base-game F or other interaction options changed.
-
-Do not add recruitment behavior, ambient/active-group activation, or another prompt implementation in this run. If the prompt remains invisible, record the result and review the prompt-creation/rendering path before choosing another variable.
-
-### External prompt research
+## External prompt research
 
 External RDR2 prompt research describes these as separate operations:
 
@@ -114,43 +111,29 @@ Reference: https://gist.github.com/umaruru/1cdbfc302dda20d8c5601f0ce8f0e03c
 
 Treat these as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or game setup.
 
-### Current test hypothesis and next run
+## Current test hypothesis and next run
 
-The previous experiment tested whether registering the already-focused human NPC with `REGISTER_INTERACTION_LOCKON_PROMPT` affected display of the same custom action prompt.
+The latest test failed before prompt registration because the reflective `VAR_STRING` compatibility check rejected the wrapper signature. Do not treat that run as a prompt-visibility result.
 
-The in-game result was that **G Recruit** remained invisible. The previous harness did not log the registration or cleanup return values, so it is not known whether the wrappers reported success.
+For the next run:
 
-For the next run, keep the ILO arguments, action-prompt creation, text, input, target-group assignment, and test conditions unchanged. Capture and log the Boolean return value from registration and unregistration. This is an instrumentation correction, not a new prompt-display variable. Do not call ambient-group or active-group activation natives.
+- Keep the test's `INPUT_INTERACT_OPTION1` control (`0x760A9C6F`) and its reported default G mapping.
+- Keep the focused-human target selection, target prompt group, and native prompt creation sequence.
+- Use the typed `MISC.VAR_STRING(int, InputArgument[])` wrapper with an explicit `InputArgument[]` for `"LITERAL_STRING"` and `"Recruit"`.
+- Do not add ILO registration, ambient-group activation, active-group activation, another prompt implementation, or recruitment behavior.
+- Record whether prompt setup reaches `PROMPT REGISTERED`, whether **G Recruit** is visible, and whether the optional standard-mode completion check reports completion.
+- If setup fails again, record the exact failure. If setup succeeds but the prompt is not visible, that becomes a valid visibility result for this specific setup.
 
-Test-only ILO arguments currently used:
+The standard-mode completion wrapper was not found in the latest reflection log. If it remains unavailable, visibility can still be tested; the prompt will remain active until focus changes, and completion detection will be skipped.
 
-- `entity`: focused human target.
-- `text`: `"Recruit"`.
-- `radius`: `2.0f`.
-- `p3`: `2.0f` (described externally as a possible focus distance; meaning unverified).
-- `flag`: `0`.
-- `p5`, `p6`: `0.0f`.
-- `prompt`: `0` (external research reports the custom prompt use could not be made to work).
-- `p8`: `false` (external research describes this as suppressing the approach prompt while permitting focus).
-- `p9`: `-1`.
-
-These values are an experiment, not a verified native contract. The test unregisters the ILO when focus changes or the test prompt is cleared. Do not use this code in production.
-
-Record only:
-
-1. Whether a focused human target was found.
-2. The target prompt group and action prompt handle.
-3. The Boolean return value from ILO registration and cleanup.
-4. Whether **G Recruit** appeared on screen.
-5. If it appeared, whether pressing G produced the test-only completion log.
-
-### Open questions
+## Open questions
 
 - Does ILO registration affect display of a custom action prompt for an already-focusable ped?
 - Does `Prompt.CreatePrompt` in the installed v2.2.0 API produce a prompt accepted by `_UI_PROMPT_SET_GROUP`?
 - Does the action prompt text render consistently with the installed API/runtime DLL pairing?
 - Can the same interaction be implemented through a supported public prompt API rather than reflection?
 - Which `REGISTER_INTERACTION_LOCKON_PROMPT` parameters are required for an NPC already focusable by the base game?
+- Does the typed `VAR_STRING` call compile and produce text accepted by `_UI_PROMPT_SET_TEXT` in the installed v2.2.0 wrapper?
 
 ## ScriptHook API findings
 
