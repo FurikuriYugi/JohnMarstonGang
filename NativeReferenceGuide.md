@@ -33,8 +33,13 @@ public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
 );
 ```
 
-## Prompt control value — unresolved
+### Prompt control value — unresolved
 
-The test currently supplies `0x760A9C6F` as the prompt control. External control references list this as the G keyboard-key hash, while external prompt examples configure prompts with named input-action hashes such as `INPUT_CONTEXT_X` (`0xE3BF959B`). Do not assume a keyboard-key hash can be used as a prompt input action in the installed v2.2.0 API.
+The test has used two different kinds of values:
 
-A diagnostic prompt using `INPUT_CONTEXT_X` may help establish whether the prompt creation and rendering path works. Its documented default keyboard mapping is R, not G; this is only a display test and does not satisfy the intended G-key behavior. Confirm actual signatures and behavior against the installed API and in-game testing.
+- `0x760A9C6F`: documented externally as the G keyboard-key hash. It has not been confirmed as a valid prompt input action in the installed v2.2.0 API.
+- `INPUT_CONTEXT_X` (`0xE3BF959B`): documented externally as a prompt input action, commonly mapped to R. In the diagnostic in-game run, the prompt did not appear and the existing R “Greet” option disappeared.
+
+A diagnostic test using `INPUT_CONTEXT_B` (`0x3B24C470`), commonly mapped to F, is next. Change only the prompt input action from X to B; retain the same prompt creation, target-group assignment, ILO arguments, and conditions. This remains an external-reference hypothesis until checked in the installed API and in game.
+
+A prompt action’s default keyboard mapping is not a guarantee that the action is conflict-free in a particular interaction context. Do not consider the intended G binding verified until a G prompt is visibly displayed and can be completed in game.

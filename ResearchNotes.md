@@ -69,19 +69,36 @@ The user tested while unarmed and right-mouse focusing human NPCs.
 
 **Conclusion:** The focused-target and prompt setup path ran without a reported setup error, but the action did not visibly render in the tested setup. The ILO display hypothesis is unresolved because the test did not record the native return values. Even a `true` return value would not prove the prompt rendered.
 
-### In-game findings — latest ILO return-value run
+### In-game findings — diagnostic `INPUT_CONTEXT_X` run — 2026-11-07
 
-- The user focused human targets `200962` and `200450`.
-- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true` for both targets.
-- `UNREGISTER_INTERACTION_LOCKON_PROMPT` returned `true` for both targets.
-- For target `200962`, the test created prompt handle `250370` and assigned it to target group `268566618`.
-- For target `200450`, the test created prompt handle `273410` and assigned it to target group `268566616`.
-- The user still did not see **G Recruit**; other menu options continued to work.
+The user tested while unarmed and right-mouse focusing human NPCs.
+
+- The harness identified focused human targets `203010` and `201730`.
+- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true` for the focused targets.
+- `UNREGISTER_INTERACTION_LOCKON_PROMPT` returned `true` for the targets when the diagnostic prompt was cleared.
+- The harness created prompt handles `275970`, `302594`, `321282`, and `329730`, and assigned them to target groups `268566622` and `268566617`.
+- The diagnostic prompt used `INPUT_CONTEXT_X` (`0xE3BF959B`), commonly mapped to keyboard R.
+- The user did not see the Recruit prompt. The existing R “Greet” option disappeared while this diagnostic action was used; other menu options remained usable.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** ILO registration and cleanup reported success, but the target-group action prompt still did not render visibly. This rules out a `false` return from those wrapper calls as the explanation for this run; it does not prove the native or prompt rendered correctly.
+**Conclusion:** The focused-target path, ILO calls, prompt-object creation, and target-group assignment ran without a logged setup error. The prompt was still not visibly rendered. The `true` return values do not prove rendering. The disappearance of R “Greet” is evidence that using `INPUT_CONTEXT_X` interferes with that existing interaction in this test setup.
 
-**Next diagnostic hypothesis:** `0x760A9C6F` is documented as a G keyboard-key hash, while prompt examples configure a prompt with an input-action hash such as `INPUT_CONTEXT_X`. The current prompt control may therefore be the wrong kind of identifier. Test a known prompt input action as a display-only sanity check before testing a custom G binding. This remains a hypothesis until confirmed with the installed API and in-game test.
+### Current test hypothesis and next run
+
+The prior suggestion to use a known input action as a prompt-display sanity check was tested with `INPUT_CONTEXT_X`. It did not display the prompt and interfered with R “Greet.” Do not repeat that action.
+
+For the next run, keep the tested X-action harness and all prompt/ILO behavior unchanged, and change only the prompt control to `INPUT_CONTEXT_B` (`0x3B24C470`, commonly mapped to F). This is a diagnostic display test, not the intended G binding.
+
+Record:
+
+1. Whether a focused human target was found.
+2. The target prompt group and prompt handle.
+3. ILO registration and cleanup Boolean returns.
+4. Whether the F Recruit prompt appeared.
+5. If visible, whether pressing F completed the test prompt.
+6. Whether the base-game F or other interaction options changed.
+
+Do not add recruitment behavior, ambient/active-group activation, or another prompt implementation in this run. If the prompt remains invisible, record the result and review the prompt-creation/rendering path before choosing another variable.
 
 ### External prompt research
 

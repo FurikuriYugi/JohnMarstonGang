@@ -275,10 +275,12 @@ These observations are not a claim of in-game functionality:
 
 ### Milestone 1: Native interaction research and prototype
 
-- Latest ILO-registration test: registration and cleanup returned `true` for both focused targets, but the user still did not see **G Recruit**. Other menu options worked; no recruitment or gang-data changes occurred.
-- Conclusion: successful ILO wrapper return values and target-group assignment are not sufficient to display this action in the tested setup.
-- Next test: use a known input-action hash for a display-only prompt sanity check, changing no other prompt or ILO behavior. If it renders, investigate how to bind G separately; if it does not, continue investigating prompt creation/rendering.
-- **Status:** ILO return values verified; action prompt still not visible; control-value/display test pending.
+- Latest diagnostic ILO run used `INPUT_CONTEXT_X` (`0xE3BF959B`, commonly R) rather than G. Registration and cleanup returned `true`; prompt handles were created and assigned to target groups, but the user did not see Recruit.
+- The user reported that the existing R “Greet” option disappeared during the X-action test. Treat X as interfering with that interaction in this test setup; do not use it for the next diagnostic run.
+- Next test: change only the prompt action to `INPUT_CONTEXT_B` (`0x3B24C470`, commonly F), keeping the tested prompt creation, target-group assignment, ILO arguments, and conditions unchanged. Record prompt visibility, test-only completion, and any change to F interactions.
+- No recruitment or gang-data changes are in scope. The intended G action remains unverified.
+- **Status:** ILO returns verified for the diagnostic run; custom action prompt remains invisible; alternate-action display test pending.
+ **Status:** ILO return values verified; action prompt still not visible; control-value/display test pending.
 
 ### Milestone 2: One conversation and recruitment flow
 
@@ -363,4 +365,4 @@ Before marking any feature implemented or tested, confirm:
 - **2026-11-07:** The target-group-only trial found human targets `197634` and `197378`, created prompts `239874` and `270082`, and assigned them to groups `268566612` and `268566611`. The user did not see **G Recruit**; other menu options worked. No recruitment or gang-data changes occurred. This rejects target-group assignment alone as sufficient in that tested setup.
 - **2026-11-07:** The ILO-registration trial found focused human targets `202754` and `202498`, created prompt handles `252162`, `300802`, and `314114`, and assigned prompts to target groups `268566617` and `268566616`. The user did not see **G Recruit**; other menu options worked. The test did not log the Boolean results of ILO registration or cleanup, so those calls' success is unconfirmed. No recruitment or gang-data changes occurred.
 - **Next test:** Repeat the same ILO-registration prompt test with the same ILO arguments, action prompt, target-group assignment, and in-game conditions. Log the Boolean return from registration and cleanup. Do not activate ambient or active groups. Record whether **G Recruit** appears and whether G completes the test prompt; no recruitment or gang-data changes are in scope.
-- 
+- **2026-11-07:** The diagnostic `INPUT_CONTEXT_X` run found focused human targets `203010` and `201730`; ILO registration and cleanup returned `true`. Prompt objects were created and assigned to target groups, but the user did not see Recruit. The user reported that the R “Greet” option disappeared during the test. No recruitment or gang-data changes occurred. Next, change only the prompt action to `INPUT_CONTEXT_B` (`0x3B24C470`, commonly F) and test visibility and test-only completion. G remains unverified.
