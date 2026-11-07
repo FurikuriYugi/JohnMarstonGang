@@ -534,3 +534,11 @@ Before marking any feature implemented or tested, confirm:
   base game's right-mouse lock-on prompt if verified in the installed API
   and in game. The custom F7/F9 controls are transitional/debug controls,
   not the intended finished interaction design.
+
+
+### Recruitment lock-on test status — 2026-11-07
+
+- Free-aim targeting is confirmed for weapon aiming only; it does not provide the right-click focus target.
+- The next in-game test registers an ILO prompt on one NPC, then checks right-click focus and the interaction-target helper.
+- G is a diagnostic test key only. No recruitment or persistent state change is performed.
+- Status: test code prepared; awaiting build and in-game results.

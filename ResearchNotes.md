@@ -56,3 +56,13 @@ RDR2.Native.MISC.REGISTER\_INTERACTION\_LOCKON\_PROMPT(
     int p9
 );
 ```
+
+### Interaction lock-on test — 2026-11-07
+
+- In-game test of `GET_ENTITY_PLAYER_IS_FREE_AIMING_AT`:
+  - Not aiming/right-clicking: native returns false; no handle.
+  - Right-click focus on an NPC: `IsFreeFocusing` becomes true, but the free-aim native returns false and the interaction-target helper returned no entity.
+  - Aiming a gun at an NPC: free-aim native returns true with entity handle `233218`; `Player.GetFreeAimEntity()` returned the same handle.
+- The free-aim native's pointer output is an entity handle, not an entity-type value.
+- Next test registers an interaction lock-on prompt for one firearm-aimed NPC, then checks whether right-click focus returns that same NPC through `GetInteractionLockonTargetEntity()`. G only reports a test acceptance; no recruitment occurs.
+- Test has not yet been run in-game.

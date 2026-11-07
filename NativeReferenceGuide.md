@@ -39,3 +39,12 @@ RDR2.Native.MISC.REGISTER\_INTERACTION\_LOCKON\_PROMPT(
     int p9
 );
 ```
+### Free-aim and interaction lock-on findings — 2026-11-07
+
+`GET_ENTITY_PLAYER_IS_FREE_AIMING_AT` is exposed as:
+
+```csharp
+public unsafe static bool GET\_ENTITY\_PLAYER\_IS\_FREE\_AIMING\_AT(
+    int player,
+    int* entity)
+```

@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Reflection;
+using System.Windows.Forms;
 using RDR2;
 
-public class NativeLockOnPromptTest : Script
+public class Test : Script
 {
     private const int ReportIntervalMilliseconds = 750;
 
+    private Entity _candidate;
+    private bool _registrationAttempted;
+    private bool _iloRegistered;
+    private string _registrationStatus = "waiting for an NPC target";
+    private bool _wasGDown;
     private DateTime _nextReportUtc = DateTime.MinValue;
-    private bool _startupReported;
-    private bool _exceptionReported;
+    private bool _errorReported;
 
-    public NativeLockOnPromptTest()
+    public Test()
     {
         Tick += OnTick;
     }
@@ -19,30 +24,251 @@ public class NativeLockOnPromptTest : Script
     {
         try
         {
-            UpdateDiagnostic();
+            CaptureAndRegisterCandidate();
+            ProcessTestKey();
+            ReportStatusWhenDue();
         }
         catch (Exception exception)
         {
-            if (!_exceptionReported)
+            if (!_errorReported)
             {
-                _exceptionReported = true;
+                _errorReported = true;
                 RDR2.UI.Screen.PrintSubtitle(
                     string.Format(
-                        "Target test error: {0}",
+                        "Lock-on test error: {0}",
                         exception.Message));
             }
         }
     }
 
-    private void UpdateDiagnostic()
+    private void CaptureAndRegisterCandidate()
     {
-        if (!_startupReported)
+        if (_candidate != null || _registrationAttempted)
         {
-            _startupReported = true;
-            RDR2.UI.Screen.PrintSubtitle(
-                "Target test loaded. No prompt or recruitment action is active.");
+            return;
         }
 
+        Entity aimedEntity = Game.Player.GetFreeAimEntity();
+
+        if (aimedEntity == null ||
+            !aimedEntity.Exists() ||
+            !aimedEntity.IsPed)
+        {
+            return;
+        }
+
+        _candidate = aimedEntity;
+        _registrationAttempted = true;
+
+        RegisterInteractionLockonPrompt(_candidate);
+    }
+
+    private void RegisterInteractionLockonPrompt(Entity entity)
+    {
+        MethodInfo method =
+            FindNativeMethod("REGISTER_INTERACTION_LOCKON_PROMPT");
+
+        if (method == null)
+        {
+            _registrationStatus =
+                "REGISTER_INTERACTION_LOCKON_PROMPT wrapper not found";
+            return;
+        }
+
+        ParameterInfo[] parameters = method.GetParameters();
+
+        if (parameters.Length != 10)
+        {
+            _registrationStatus =
+                "ILO wrapper found with unexpected parameter count: " +
+                parameters.Length.ToString();
+            return;
+        }
+
+        try
+        {
+            object[] arguments =
+                BuildLockonArguments(entity, parameters);
+
+            method.Invoke(null, arguments);
+
+            _iloRegistered = true;
+            _registrationStatus = "ILO registered";
+        }
+        catch (Exception exception)
+        {
+            _registrationStatus =
+                "ILO registration failed: " +
+                GetExceptionMessage(exception);
+        }
+    }
+
+    private static MethodInfo FindNativeMethod(string methodName)
+    {
+        Assembly assembly = typeof(Game).Assembly;
+        Type[] types;
+
+        try
+        {
+            types = assembly.GetExportedTypes();
+        }
+        catch (ReflectionTypeLoadException exception)
+        {
+            types = exception.Types;
+        }
+
+        if (types == null)
+        {
+            return null;
+        }
+
+        foreach (Type type in types)
+        {
+            if (type == null ||
+                type.Namespace == null ||
+                !type.Namespace.StartsWith(
+                    "RDR2.Native",
+                    StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            MethodInfo[] methods;
+
+            try
+            {
+                methods = type.GetMethods(
+                    BindingFlags.Public |
+                    BindingFlags.Static);
+            }
+            catch
+            {
+                continue;
+            }
+
+            foreach (MethodInfo method in methods)
+            {
+                if (string.Equals(
+                    method.Name,
+                    methodName,
+                    StringComparison.Ordinal))
+                {
+                    return method;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static object[] BuildLockonArguments(
+        Entity entity,
+        ParameterInfo[] parameters)
+    {
+        object[] values =
+        {
+            entity.Handle, // entity
+            "Recruit test", // text
+            3.0f, // radius
+            5.0f, // focus distance
+            0, // flags
+            0.0f, // p5
+            0.0f, // p6
+            0, // prompt handle
+            true, // show the prompt when approaching
+            -1 // p9
+        };
+
+        object[] arguments = new object[parameters.Length];
+
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            Type parameterType = parameters[i].ParameterType;
+
+            if (i == 0 && parameterType.IsInstanceOfType(entity))
+            {
+                arguments[i] = entity;
+            }
+            else
+            {
+                arguments[i] =
+                    ConvertArgument(values[i], parameterType);
+            }
+        }
+
+        return arguments;
+    }
+
+    private static object ConvertArgument(
+        object value,
+        Type targetType)
+    {
+        if (targetType.IsInstanceOfType(value))
+        {
+            return value;
+        }
+
+        if (targetType.IsEnum)
+        {
+            return Enum.ToObject(
+                targetType,
+                Convert.ToInt32(value));
+        }
+
+        return Convert.ChangeType(value, targetType);
+    }
+
+    private void ProcessTestKey()
+    {
+        bool gDown = Game.IsKeyPressed(Keys.G);
+        bool gPressedThisTick = gDown && !_wasGDown;
+        _wasGDown = gDown;
+
+        if (!gPressedThisTick)
+        {
+            return;
+        }
+
+        if (!_iloRegistered ||
+            _candidate == null ||
+            !_candidate.Exists())
+        {
+            RDR2.UI.Screen.PrintSubtitle(
+                "G test blocked: no registered NPC candidate.");
+            return;
+        }
+
+        if (!Game.Player.IsFreeFocusing)
+        {
+            RDR2.UI.Screen.PrintSubtitle(
+                "G test blocked: right-click focus is not active.");
+            return;
+        }
+
+        Entity interactionTarget =
+            Game.Player.GetInteractionLockonTargetEntity();
+
+        int interactionHandle =
+            GetExistingHandle(interactionTarget);
+
+        if (interactionHandle != _candidate.Handle)
+        {
+            RDR2.UI.Screen.PrintSubtitle(
+                string.Format(
+                    "G test blocked: candidate={0}; interaction target={1}.",
+                    _candidate.Handle,
+                    FormatHandle(interactionHandle)));
+            return;
+        }
+
+        RDR2.UI.Screen.PrintSubtitle(
+            string.Format(
+                "G TEST ACCEPTED for NPC handle {0}. No recruitment performed.",
+                _candidate.Handle));
+    }
+
+    private void ReportStatusWhenDue()
+    {
         if (DateTime.UtcNow < _nextReportUtc)
         {
             return;
@@ -52,54 +278,33 @@ public class NativeLockOnPromptTest : Script
             DateTime.UtcNow.AddMilliseconds(
                 ReportIntervalMilliseconds);
 
-        ReportTargetStatus();
-    }
+        bool isFreeFocusing = Game.Player.IsFreeFocusing;
 
-    private void ReportTargetStatus()
-    {
-        int targetHandle = 0;
-        int playerIndex = RDR2.Native.PLAYER.PLAYER_ID();
-
-        bool nativeFound;
-        unsafe
-        {
-            nativeFound =
-                RDR2.Native.PLAYER.GET_ENTITY_PLAYER_IS_FREE_AIMING_AT(
-                    playerIndex,
-                    &targetHandle);
-        }
-
-
-        Entity helperFreeAimTarget =
-            Game.Player.GetFreeAimEntity();
-
-        Entity helperInteractionTarget =
+        Entity interactionTarget =
             Game.Player.GetInteractionLockonTargetEntity();
 
-        int nativeTargetHandle =
-            nativeFound
-                ? GetExistingEntityHandle(targetHandle)
-                : 0;
+        int interactionHandle =
+            GetExistingHandle(interactionTarget);
 
-        string nativeType =
-            nativeFound
-                ? targetHandle.ToString()
-                : "n/a";
+        if (_candidate == null)
+        {
+            RDR2.UI.Screen.PrintSubtitle(
+                "Aim a gun at one NPC to arm the ILO test.");
+            return;
+        }
 
         RDR2.UI.Screen.PrintSubtitle(
             string.Format(
-                "Native hit={0} ped={1} type={2} | Player focus={3} aim={4} lock={5}",
-                FormatBoolean(nativeFound),
-                FormatHandle(nativeTargetHandle),
-                nativeType,
-                GetFreeFocusingState(),
-                FormatHandle(
-                    GetExistingEntityHandle(helperFreeAimTarget)),
-                FormatHandle(
-                    GetExistingEntityHandle(helperInteractionTarget))));
+                "ILO={0} ped={1}; focus={2}; lock={3}; press G to test.",
+                _registrationStatus,
+                _candidate.Exists()
+                    ? _candidate.Handle.ToString()
+                    : "gone",
+                isFreeFocusing ? "1" : "0",
+                FormatHandle(interactionHandle)));
     }
 
-    private static int GetExistingEntityHandle(Entity entity)
+    private static int GetExistingHandle(Entity entity)
     {
         if (entity == null || !entity.Exists())
         {
@@ -116,63 +321,14 @@ public class NativeLockOnPromptTest : Script
             : "none";
     }
 
-    private static string FormatBoolean(bool value)
+    private static string GetExceptionMessage(Exception exception)
     {
-        return value
-            ? "1"
-            : "0";
-    }
-
-    private static string GetFreeFocusingState()
-    {
-        object player = Game.Player;
-
-        if (player == null)
+        if (exception is TargetInvocationException &&
+            exception.InnerException != null)
         {
-            return "unavailable";
+            return exception.InnerException.Message;
         }
 
-        const BindingFlags flags =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
-
-        Type playerType = player.GetType();
-
-        try
-        {
-            PropertyInfo property =
-                playerType.GetProperty(
-                    "IsFreeFocusing",
-                    flags);
-
-            if (property != null &&
-                property.PropertyType == typeof(bool))
-            {
-                return FormatBoolean(
-                    (bool)property.GetValue(player, null));
-            }
-
-            MethodInfo method =
-                playerType.GetMethod(
-                    "IsFreeFocusing",
-                    flags,
-                    null,
-                    Type.EmptyTypes,
-                    null);
-
-            if (method != null &&
-                method.ReturnType == typeof(bool))
-            {
-                return FormatBoolean(
-                    (bool)method.Invoke(player, null));
-            }
-        }
-        catch
-        {
-            return "read-error";
-        }
-
-        return "not-exposed";
+        return exception.Message;
     }
 }
