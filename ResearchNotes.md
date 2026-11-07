@@ -185,9 +185,26 @@ Copy this block for each experiment:
 - **Conclusion:** **Tested in game:** The tested attempt did not display a usable prompt. This does not identify which prompt setup stage failed. Do not treat it as evidence that the group lookup, text, control assignment, or prompt-completion check works.
 - **Follow-up:** Add distinct debug output for prompt registration, text setup, target-group lookup, group attachment, enabled/visible state, and prompt acceptance. Record which messages appear in game. Keep recruitment disconnected until the prompt itself is confirmed.
 
+### Test record: diagnostic prompt attempt using lock-on accessor
+
+- **Date:** 2026-11-07
+- **Game version/build:** Not recorded.
+- **ScriptHookRDR2DotNet-V2 version:** 2.2.0 per the project bootstrap; installed runtime/API pairing not recorded.
+- **API DLL/XML version or path:** Not recorded.
+- **Repository commit/branch:** `main`; commit not recorded.
+- **Target and game state:** NPC targeted with right mouse; exact NPC, distance, and game state not recorded.
+- **Steps:** Run the diagnostic `Test.cs`, right-click an NPC, and press **G**.
+- **Expected result:** A separate G action prompt appears. No recruitment should occur.
+- **Observed result:** The right-click interaction menu showed nothing new; pressing G did nothing. Which diagnostic subtitles appeared, if any, was not recorded.
+- **Mouse/keyboard or controller:** Mouse and keyboard.
+- **Failure, cleanup, and repeat behavior:** Not recorded.
+- **Conclusion:** **Tested in game:** No visible new prompt or G action was observed. This run used `Game.Player.GetInteractionLockonTargetEntity()`, not the previously tested `GET_PLAYER_TARGET_ENTITY` path, so it does not reliably test prompt setup against the confirmed target getter.
+- **Follow-up:** Restore the confirmed `GET_PLAYER_TARGET_ENTITY` target lookup. First verify its target handle in the current test, then continue the prompt test using that handle. Record the diagnostic subtitle sequence.
+
 ### Change log
 
 - **2026-11-06:** Added the lock-on target accessor and documented default right-mouse/G control mappings. Recorded the separate roles of ILO registration and the UI action prompt, plus the unresolved prompt-text limitation.
 - **2026-11-06:** Added prompt-group lookup, association, tab-index, and removal findings. Clarified that these group natives manage the separate G action prompt, while ILO registration handles approach/focus. Exact project wrapper signatures and all in-game behavior remain unverified.
 - **2026-11-06:** Recorded the first in-game `Test.cs` result: `GET_PLAYER_TARGET_ENTITY` returns the targeted NPC; the target prompt-enabled check remains `False` after modification, and the player-level prompt-disabled check is `False`. Marked the getter result as tested, while separate recruitment-prompt creation remains open.
 - **2026-11-06:** Recorded the separate native UI-prompt attempt: right-clicking an NPC and pressing G produced no visible prompt or recruitment. The failure does not isolate the failing setup stage; next test should report each prompt setup checkpoint separately.
+- **2026-11-07:** The diagnostic prompt test showed no new right-click menu item and G had no effect. Correction: that test used `Game.Player.GetInteractionLockonTargetEntity()` instead of the previously confirmed `GET_PLAYER_TARGET_ENTITY` lookup. Treat this run as inconclusive about prompt setup; restore the confirmed getter before the next prompt test.
