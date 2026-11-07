@@ -275,7 +275,13 @@ These observations are not a claim of in-game functionality:
 
 ### Milestone 1: Native interaction research and prototype
 
-- **Status:** In progress. `PLAYER.GET_PLAYER_TARGET_ENTITY` found focused NPCs in the tested setup. The ambient-group and explicit active-group prompt tests did not make **G Recruit** visible. The next test removes both activation calls and tests target-entity prompt-group assignment alone. No recruitment or gang-data changes are part of the test. See `ResearchNotes.md` for evidence and `NativeReferenceGuide.md` for API status.
+- Test a temporary **G Recruit** action in the focused human NPC's target prompt group.
+- The target-group-only trial found focused NPCs and created/assigned prompts but did not display **G Recruit**.
+- The next test adds ILO registration while keeping prompt creation, target-group assignment, text, input, and conditions otherwise unchanged.
+- Do not call ambient-group or active-group activation natives in this trial.
+- No recruitment or gang-data changes are in scope.
+- See `ResearchNotes.md` for evidence and `NativeReferenceGuide.md` for API status.
+- **Status:** In progress; ILO-registration trial pending in-game test.
 
 ### Milestone 2: One conversation and recruitment flow
 
@@ -353,8 +359,9 @@ Before marking any feature implemented or tested, confirm:
 - **2026-11-06:** Ordinary scavenged loot belongs in shared gang stores by default; it does not itself trigger job-share payout. Job proceeds retain the fixed 50/50 split and equal participant shares.
 - **2026-11-06:** The intended conversation/recruitment interaction is the base game's right-mouse lock-on prompt if verified in the installed API and in game. The custom F7/F9 controls are transitional/debug controls, not the intended finished interaction design.
 - **2026-11-07:** `PLAYER.GET_PLAYER_TARGET_ENTITY` resolved at runtime as `bool(int, int*)`. In two test cycles, while `IsFreeFocusing=True`, it returned the same handle as the NPC captured from free aim (`178178` and `197890`). After focus ended, the native reported no target. This verifies the target-getter path for the tested setup; it does not establish that the ILO prompt was visible.
-- **2026-11-07:** The ILO wrapper call returned without an exception for both captured NPCs. `GetInteractionLockonTargetEntity()` remained `none` in the G snapshots. G was diagnostic only; no recruitment occurred. Prompt visibility and unarmed behavior remain unverified.
-- **2026-11-07:** The user confirmed the G Recruit option did not appear. The harness logged successful target matching, ILO registration, target-group attachment, and `Visible=True`, but those states do not prove that the prompt rendered. G was not pressed; no recruitment or gang-data change occurred.
-- **2026-11-07:** The ambient-group activation trial did not display G Recruit.
-- **2026-11-07:** The explicit active-group activation trial also did not display G Recruit. This rejects that display hypothesis for the tested setup; it does not establish why the prompt failed to render.
-- **Next test:** Create the same test-only prompt, attach it to the focused NPC’s target prompt group, and do not call ambient- or active-group activation natives. Record whether the option appears and whether pressing G produces the test-only completion log. No recruitment or gang-data changes are in scope.
+- **2026-11-07:** An earlier ILO wrapper call returned without an exception for two captured NPCs. `GetInteractionLockonTargetEntity()` remained `none` in the G snapshots. G was diagnostic only; no recruitment occurred. Prompt visibility and unarmed behavior remain unverified.
+- **2026-11-07:** An earlier harness logged target matching, ILO registration, target-group attachment, and `Visible=True`, but those states do not prove that the prompt rendered. No recruitment or gang-data change occurred.
+- **2026-11-07:** Ambient-group activation did not display **G Recruit**.
+- **2026-11-07:** Explicit active-group activation did not display **G Recruit**. This did not establish why the prompt failed to render.
+- **2026-11-07:** The target-group-only trial found human targets `197634` and `197378`, created prompts `239874` and `270082`, and assigned them to groups `268566612` and `268566611`. The user did not see **G Recruit**; other menu options worked. No recruitment or gang-data changes occurred. This rejects target-group assignment alone as sufficient in that tested setup.
+- **Next test:** Register the focused human NPC with `REGISTER_INTERACTION_LOCKON_PROMPT`, then create and assign the same test-only G action prompt. Keep all other prompt-display variables unchanged; do not activate ambient or active groups. Record whether **G Recruit** appears, whether G completes the test prompt, and whether ILO cleanup succeeds. No recruitment or gang-data changes are in scope.

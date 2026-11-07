@@ -27,7 +27,7 @@ The test may log only what is useful to this question:
 
 - Whether a focused human target was found.
 - The target prompt group and action prompt handle.
-- The prompt-creation or group-assignment setup error.
+- ILO registration/unregistration and any setup error.
 - Whether the action appeared in game and whether the test G prompt completed.
 
 ### Findings from the repository
@@ -39,64 +39,80 @@ The test may log only what is useful to this question:
 - The native right-mouse interaction-lock-on recruitment prompt is not implemented in the production path.
 - `Main.cs` references `RDR2.UI.Prompt.CreatePrompt(...)`. The project bootstrap reports `RDR2.UI.Prompt` is internal, so that API accessibility issue must be resolved before relying on it in production.
 - G is the temporary prompt input in this test. The test input must never call the production recruitment path.
-- The current project file explicitly lists source files and previously omitted `Test.cs`; the updated project file adds it to the compile list for this test.
+- The current project file explicitly lists source files; the updated project file includes `Test.cs` for this isolated test.
 
 ### Verified runtime/API observations
 
 - The installed v2.2.0 wrapper resolved `PLAYER.GET_PLAYER_TARGET_ENTITY` as `bool(int, int*)`. Passing it using `out` previously failed with CS1615; the isolated test uses an unsafe pointer delegate.
-- In earlier test cycles, while `IsFreeFocusing=True`, the player-target native returned the focused NPC handle. After focus ended, it returned no target.
+- While `IsFreeFocusing=True`, the player-target native returned the focused NPC handle in earlier test cycles. After focus ended, it returned no target.
 - The v2.2.0 wrapper resolved `REGISTER_INTERACTION_LOCKON_PROMPT` with ten parameters: `int, string, float, float, int, float, float, int, bool, int`.
-- The wrapper for `_UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME` resolved during the prior test as: `UInt64(int, float, int, int, uint, string, int)`.
-- The user’s latest log resolved `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` as:
-  `UInt64(uint, string, int, int, int, int)`.
-- The active-group test did not make **G Recruit** visible. The previous `Test.cs` called the active-group wrapper in the tick loop; the log line printed when the prompt was created only identified the wrapper signature, not a rendering result.
-- These are wrapper signatures, not proof that parameter meanings or in-game behavior are correct.
+- The v2.2.0 wrapper resolved `_UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME` as `UInt64(int, float, int, int, uint, string, int)`.
+- The v2.2.0 wrapper resolved `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` as `UInt64(uint, string, int, int, int, int)`.
+- These wrapper signatures are not proof that parameter meanings or in-game behavior are correct.
 
 ### In-game findings — 2026-11-07
 
 The user tested while unarmed and right-mouse focusing human NPCs.
 
-- The player-target wrapper found focused NPC handles in two cycles.
-- The custom action prompt was assigned to each target's prompt group.
-- The prompt properties reported `Enabled=True`, `Visible=True`, and `HasCompleted=False`.
-- The ambient-group activation attempt did not make **G Recruit** visible.
-- The subsequent explicit active-group activation attempt also did not make **G Recruit** visible.
-- Other native interaction-menu options continued to work.
-- No recruitment occurred and no gang data changed.
+- Earlier target-detection tests found focused NPC handles.
+- Earlier prompt tests assigned custom action prompts to target prompt groups.
+- Earlier prompt properties reported `Enabled=True`, `Visible=True`, and `HasCompleted=False`; those properties do not prove that the prompt rendered.
+- Ambient-group activation did not make **G Recruit** visible.
+- Explicit active-group activation also did not make **G Recruit** visible.
+- The latest target-group-only test found focused human targets `197634` and `197378`.
+- It created prompts with handles `239874` and `270082` and assigned them to target groups `268566612` and `268566611`.
+- The latest test made no ambient-group or active-group activation call.
+- The user did not see **G Recruit** in the menu; other menu options continued to work.
+- No recruitment or gang-data changes were performed.
 
-**Conclusion:** Target detection, prompt creation, and prompt-group assignment proceeded without reported setup errors, but the action was not visually confirmed. Prompt properties and native invocation are not proof that the game rendered the action. Explicit active-group activation did not solve the display problem.
+**Conclusion:** Focused-target detection and the prompt-creation/group-assignment path ran without a reported setup error, but the action did not visibly render in the tested setup. This rejects the hypothesis that target-group assignment alone is sufficient in this test. It does not identify whether the failure is in prompt construction, the wrapper/runtime interaction, or another display requirement.
 
 ### External prompt research
 
-External RDR2 prompt research describes the following as separate operations:
+External RDR2 prompt research describes these as separate operations:
 
 1. Create and configure a native UI prompt with a control action and text.
 2. Get the prompt group for the target entity and assign the custom prompt to that group.
 3. Register an interaction-lock-on prompt on an entity when needed for its focus/approach interaction.
 
-The research reports that assigning a custom action prompt to the target entity's prompt group is the relevant route for showing it while the entity is focused. It does not establish that `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` is needed for that case. The research also says the `prompt` parameter of `REGISTER_INTERACTION_LOCKON_PROMPT` could not be made to work with a custom prompt; its parameter meanings are partly unknown.
+The research reports that peds can be focused by default, and that custom action prompts should be added to the entity's prompt group to show while focused. It does not establish that ambient- or active-group activation is required. It describes the `prompt` parameter of `REGISTER_INTERACTION_LOCKON_PROMPT` as not working with a custom prompt in that research setup. Parameter meanings are partly unknown.
 
 Reference: https://gist.github.com/umaruru/1cdbfc302dda20d8c5601f0ce8f0e03c
 
-Treat these as **documented in external research**, not as proof about the installed v2.2.0 wrapper or this game setup.
+Treat these as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or game setup.
 
 ### Current test hypothesis
 
-Try the target-group prompt without calling either ambient-group or active-group activation natives. Keep prompt creation, target-group assignment, text, input, and test conditions unchanged. This isolates whether the entity group itself displays the custom prompt while focused.
+Test whether registering the already-focused human NPC with `REGISTER_INTERACTION_LOCKON_PROMPT` affects display of the same custom action prompt.
 
-Do not add recruitment logic, call a fallback interaction system, or change multiple prompt-display variables in the same test.
+Keep the action prompt creation, text, input, target-group assignment, and test conditions unchanged. Do not call ambient-group or active-group activation natives. The only added experiment variable is ILO registration.
+
+Test-only arguments currently used:
+
+- `entity`: focused human target.
+- `text`: `"Recruit"`.
+- `radius`: `2.0f`.
+- `p3`: `2.0f` (described externally as a possible focus distance; meaning unverified).
+- `flag`: `0`.
+- `p5`, `p6`: `0.0f`.
+- `prompt`: `0` (external research reports the custom prompt use could not be made to work).
+- `p8`: `false` (external research describes this as suppressing the approach prompt while permitting focus).
+- `p9`: `-1`.
+
+These values are an experiment, not a verified native contract. The test unregisters the ILO when focus changes or the test prompt is cleared. Do not use this code in production.
 
 Record only:
 
 1. Whether a focused human target was found.
 2. The target prompt group and action prompt handle.
-3. Whether **G Recruit** appeared on screen.
-4. If it appeared, whether pressing G produced the test-only completion log.
+3. Whether ILO registration and cleanup calls resolved and ran.
+4. Whether **G Recruit** appeared on screen.
+5. If it appeared, whether pressing G produced the test-only completion log.
 
 ### Open questions
 
-- Does the entity-target prompt group display a custom prompt without explicit group activation in this installed game/API pairing?
-- Does `Prompt.CreatePrompt` in the installed v2.2.0 API produce a prompt that is accepted by `_UI_PROMPT_SET_GROUP`?
+- Does ILO registration affect display of a custom action prompt for an already-focusable ped?
+- Does `Prompt.CreatePrompt` in the installed v2.2.0 API produce a prompt accepted by `_UI_PROMPT_SET_GROUP`?
 - Does the action prompt text render consistently with the installed API/runtime DLL pairing?
 - Can the same interaction be implemented through a supported public prompt API rather than reflection?
 - Which `REGISTER_INTERACTION_LOCKON_PROMPT` parameters are required for an NPC already focusable by the base game?

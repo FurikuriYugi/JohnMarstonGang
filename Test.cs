@@ -7,6 +7,17 @@ public class Test : Script
 {
     private const int RecruitInputHash = unchecked((int)0x760A9C6F);
 
+    // Test-only ILO registration values.
+    // Some parameter meanings are documented externally, not verified in-game.
+    private const float IloRadius = 2.0f;
+    private const float IloFocusDistance = 2.0f;
+    private const int IloFlags = 0;
+    private const float IloParameter5 = 0.0f;
+    private const float IloParameter6 = 0.0f;
+    private const int IloPromptHandle = 0;
+    private const bool ShowApproachPrompt = false;
+    private const int IloParameter9 = -1;
+
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
@@ -15,11 +26,14 @@ public class Test : Script
     private MethodInfo _doesEntityExist;
     private MethodInfo _isPedHuman;
     private MethodInfo _getTargetPromptGroup;
+    private MethodInfo _registerInteractionLockonPrompt;
+    private MethodInfo _unregisterInteractionLockonPrompt;
 
     private object _prompt;
     private int _promptHandle = -1;
     private int _promptGroup = -1;
     private int _targetHandle;
+    private int _iloTargetHandle;
     private int _lastLoggedTarget = -1;
     private bool _completedForTarget;
     private bool _setupFailedForTarget;
@@ -33,12 +47,25 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Focused interaction-option test initialized ===");
+        Log("=== ILO-registration interaction-option test initialized ===");
         Log("TEST ONLY: show a G Recruit option for the focused human NPC.");
-        Log("HYPOTHESIS: target-group assignment alone displays the prompt.");
-        Log("No ambient-group or active-group activation is performed.");
+        Log(
+            "HYPOTHESIS: registering the focused NPC with " +
+            "REGISTER_INTERACTION_LOCKON_PROMPT affects display of the " +
+            "same target-group action prompt.");
+        Log(
+            "The action prompt remains assigned to the target prompt group.");
+        Log(
+            "No ambient-group or active-group activation is performed.");
         Log("No recruitment or gang-data changes are performed.");
-        Log("Holster your weapon, stand close to a human NPC, and focus them.");
+        Log(
+            "ILO test values: radius=2.0; focusDistance=2.0; flags=0; " +
+            "p5=0.0; p6=0.0; prompt=0; p8=false; p9=-1.");
+        Log(
+            "These native parameter meanings are not all verified against " +
+            "the installed API.");
+        Log(
+            "Holster your weapon, stand close to a human NPC, and focus them.");
 
         ResolveMethods();
 
@@ -60,7 +87,6 @@ public class Test : Script
             {
                 _errorLogged = true;
                 Log("ERROR: " + GetExceptionMessage(exception));
-
                 RDR2.UI.Screen.PrintSubtitle(
                     "Prompt test error. Check Test_Log.txt.");
             }
@@ -79,6 +105,7 @@ public class Test : Script
         if (focusedTarget != _targetHandle)
         {
             ClearPrompt();
+
             _targetHandle = focusedTarget;
             _completedForTarget = false;
             _setupFailedForTarget = false;
@@ -114,7 +141,10 @@ public class Test : Script
         if (GetBooleanMember(_prompt, "HasCompleted"))
         {
             _completedForTarget = true;
-            Log("G prompt completed; test only, no recruitment performed.");
+
+            Log(
+                "G prompt completed; test only, " +
+                "no recruitment performed.");
 
             RDR2.UI.Screen.PrintSubtitle(
                 "G prompt completed; no recruitment performed.");
@@ -133,20 +163,21 @@ public class Test : Script
         }
 
         int foundHandle = 0;
+        bool found;
 
         unsafe
         {
-            bool found = _getPlayerTargetEntity(
+            found = _getPlayerTargetEntity(
                 Game.Player.Handle,
                 &foundHandle);
+        }
 
-            if (!found ||
-                foundHandle <= 0 ||
-                _doesEntityExist == null ||
-                _isPedHuman == null)
-            {
-                return false;
-            }
+        if (!found ||
+            foundHandle <= 0 ||
+            _doesEntityExist == null ||
+            _isPedHuman == null)
+        {
+            return false;
         }
 
         bool exists = Convert.ToBoolean(
@@ -178,6 +209,8 @@ public class Test : Script
     {
         try
         {
+            RegisterInteractionLockonPrompt(targetHandle);
+
             if (_getTargetPromptGroup == null)
             {
                 throw new InvalidOperationException(
@@ -220,8 +253,12 @@ public class Test : Script
                 "; targetGroup=" + _promptGroup);
 
             Log(
-                "GROUP MODE: prompt assigned to target group; " +
-                "no group-activation native called.");
+                "ILO REGISTERED: target=" + targetHandle +
+                "; approachPrompt=false; promptArgument=0.");
+
+            Log(
+                "GROUP MODE: action prompt assigned to target group; " +
+                "no ambient-group or active-group activation native called.");
 
             Log(
                 "IN-GAME CHECK: confirm whether G Recruit is visible. " +
@@ -230,9 +267,50 @@ public class Test : Script
         catch (Exception exception)
         {
             _setupFailedForTarget = true;
-            Log("PROMPT SETUP FAILED: " + GetExceptionMessage(exception));
+
+            Log(
+                "PROMPT SETUP FAILED: " +
+                GetExceptionMessage(exception));
+
             ClearPrompt();
         }
+    }
+
+    private void RegisterInteractionLockonPrompt(int targetHandle)
+    {
+        if (_registerInteractionLockonPrompt == null)
+        {
+            throw new InvalidOperationException(
+                "REGISTER_INTERACTION_LOCKON_PROMPT wrapper was not found.");
+        }
+
+        if (_unregisterInteractionLockonPrompt == null)
+        {
+            throw new InvalidOperationException(
+                "UNREGISTER_INTERACTION_LOCKON_PROMPT wrapper was not found; " +
+                "refusing to register an ILO that this test cannot clean up.");
+        }
+
+        object[] arguments =
+        {
+            targetHandle,
+            "Recruit",
+            IloRadius,
+            IloFocusDistance,
+            IloFlags,
+            IloParameter5,
+            IloParameter6,
+            IloPromptHandle,
+            ShowApproachPrompt,
+            IloParameter9
+        };
+
+        _registerInteractionLockonPrompt.Invoke(null, arguments);
+        _iloTargetHandle = targetHandle;
+
+        Log(
+            "ILO REGISTER CALL: " +
+            DescribeMethod(_registerInteractionLockonPrompt));
     }
 
     private object CreatePromptObject()
@@ -324,11 +402,14 @@ public class Test : Script
                     typeof(PlayerTargetEntityNative),
                     targetMethod);
 
-            Log("PLAYER TARGET: " + DescribeMethod(targetMethod));
+            Log(
+                "PLAYER TARGET: " +
+                DescribeMethod(targetMethod));
         }
         else
         {
-            Log("ERROR: GET_PLAYER_TARGET_ENTITY wrapper not found.");
+            Log(
+                "ERROR: GET_PLAYER_TARGET_ENTITY wrapper not found.");
         }
 
         _doesEntityExist =
@@ -341,6 +422,38 @@ public class Test : Script
             FindNativeMethod(
                 "_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY",
                 1);
+
+        _registerInteractionLockonPrompt =
+            FindNativeMethod(
+                "REGISTER_INTERACTION_LOCKON_PROMPT",
+                10);
+
+        _unregisterInteractionLockonPrompt =
+            FindNativeMethod(
+                "UNREGISTER_INTERACTION_LOCKON_PROMPT",
+                1);
+
+        LogResolvedMethod(
+            "REGISTER ILO",
+            _registerInteractionLockonPrompt);
+
+        LogResolvedMethod(
+            "UNREGISTER ILO",
+            _unregisterInteractionLockonPrompt);
+
+        LogResolvedMethod(
+            "TARGET PROMPT GROUP",
+            _getTargetPromptGroup);
+    }
+
+    private void LogResolvedMethod(
+        string label,
+        MethodInfo method)
+    {
+        Log(
+            method == null
+                ? "ERROR: " + label + " wrapper not found."
+                : label + ": " + DescribeMethod(method));
     }
 
     private static MethodInfo FindNativeMethod(
@@ -484,7 +597,8 @@ public class Test : Script
         }
 
         throw new InvalidOperationException(
-            "Prompt member '" + name + "' was not found or writable.");
+            "Prompt member '" + name +
+            "' was not found or writable.");
     }
 
     private static bool GetBooleanMember(
@@ -538,6 +652,31 @@ public class Test : Script
         _prompt = null;
         _promptHandle = -1;
         _promptGroup = -1;
+
+        if (_iloTargetHandle > 0)
+        {
+            try
+            {
+                if (_unregisterInteractionLockonPrompt != null)
+                {
+                    _unregisterInteractionLockonPrompt.Invoke(
+                        null,
+                        new object[] { _iloTargetHandle });
+
+                    Log(
+                        "ILO UNREGISTERED: target=" +
+                        _iloTargetHandle);
+                }
+            }
+            catch (Exception exception)
+            {
+                Log(
+                    "ILO UNREGISTER FAILED: " +
+                    GetExceptionMessage(exception));
+            }
+
+            _iloTargetHandle = 0;
+        }
     }
 
     private static string DescribeMethod(MethodInfo method)
