@@ -114,9 +114,9 @@ Use the game's right-mouse lock-on interaction while unarmed to focus an eligibl
 
 ### Current decision
 
-**In progress:** The isolated `Test.cs` harness has confirmed in game that `PLAYER.GET_PLAYER_TARGET_ENTITY` returns the NPC target for the tested right-click-and-press-G setup. The same test reports the target prompt as not enabled (`False`) after `_MODIFY_PLAYER_UI_PROMPT_FOR_PED`, while the player-level prompt-disabled query is also `False`. This does not demonstrate a separate recruitment action prompt. Continue researching and testing one behavior at a time; keep the target-getter result, prompt-state result, and custom-action prompt as separate findings.
+**In progress:** The earlier `GET_PLAYER_TARGET_ENTITY` test confirmed a positive target handle for the NPC selected by right-clicking. A subsequent attempt to use a separate native UI prompt produced no visible result when right-clicking an NPC and pressing **G**. No recruitment occurred. This failed prompt attempt does not establish which setup stage failed, and it does not confirm that the separate prompt was registered or attached successfully.
 
-The planned direction remains to use the game lock-on target accessor for the focused NPC, attach a separate G action prompt to that target's prompt group, and dispatch the existing recruitment logic once on prompt completion. Keep F9 as the follow toggle. Do not use a free-aim fallback for this test. Do not remove or repurpose controls based only on native-research findings.
+Continue with an isolated prompt test. Keep recruitment disconnected. Add observable checkpoints for native prompt registration, prompt text, G control assignment, target prompt-group lookup, group attachment, visibility/enabled state, and acceptance. Record the outcome of each checkpoint before changing the implementation. Keep F9 as the follow toggle.
 
 ### Follow-up research topics
 
@@ -169,8 +169,25 @@ Copy this block for each experiment:
 - **Conclusion:** **Tested in game:** `GET_PLAYER_TARGET_ENTITY` returns the targeted NPC in this test. The target prompt-enabled query remained `False` after the test attempted to modify it; the player-level prompt-disabled query was `False`. A separate recruitment action prompt has not been tested.
 - **Follow-up:** Keep this test as the baseline. Investigate why the target prompt state remains false, then test a separate action-prompt creation/attachment path only after confirming the installed API surface.
 
+### Test record: separate native recruitment prompt
+
+- **Date:** 2026-11-06
+- **Game version/build:** Not recorded.
+- **ScriptHookRDR2DotNet-V2 version:** 2.2.0 per the project bootstrap; installed runtime/API pairing not recorded.
+- **API DLL/XML version or path:** Not recorded.
+- **Repository commit/branch:** `main`; commit not recorded.
+- **Target and game state:** NPC targeted with right mouse; exact NPC, distance, and game state not recorded.
+- **Steps:** Right-click an NPC and press **G** while testing the separate native UI-prompt path.
+- **Expected result:** A recruitment test prompt appears on the targeted NPC and responds to G. No recruitment should occur in this isolated test.
+- **Observed result:** Nothing happened. No visible prompt or recruitment was observed. Whether the prompt was created, attached to a group, or accepted was not established by the reported result.
+- **Mouse/keyboard or controller:** Mouse and keyboard.
+- **Failure, cleanup, and repeat behavior:** Not recorded.
+- **Conclusion:** **Tested in game:** The tested attempt did not display a usable prompt. This does not identify which prompt setup stage failed. Do not treat it as evidence that the group lookup, text, control assignment, or prompt-completion check works.
+- **Follow-up:** Add distinct debug output for prompt registration, text setup, target-group lookup, group attachment, enabled/visible state, and prompt acceptance. Record which messages appear in game. Keep recruitment disconnected until the prompt itself is confirmed.
+
 ### Change log
 
 - **2026-11-06:** Added the lock-on target accessor and documented default right-mouse/G control mappings. Recorded the separate roles of ILO registration and the UI action prompt, plus the unresolved prompt-text limitation.
 - **2026-11-06:** Added prompt-group lookup, association, tab-index, and removal findings. Clarified that these group natives manage the separate G action prompt, while ILO registration handles approach/focus. Exact project wrapper signatures and all in-game behavior remain unverified.
 - **2026-11-06:** Recorded the first in-game `Test.cs` result: `GET_PLAYER_TARGET_ENTITY` returns the targeted NPC; the target prompt-enabled check remains `False` after modification, and the player-level prompt-disabled check is `False`. Marked the getter result as tested, while separate recruitment-prompt creation remains open.
+- **2026-11-06:** Recorded the separate native UI-prompt attempt: right-clicking an NPC and pressing G produced no visible prompt or recruitment. The failure does not isolate the failing setup stage; next test should report each prompt setup checkpoint separately.

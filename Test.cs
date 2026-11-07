@@ -13,15 +13,25 @@ public class NativeLockOnPromptTest : Script
     private const ulong PromptSetGroupHash = 0x2F11D3A254169EA4UL;
     private const ulong PromptRemoveGroupHash = 0x4E52C800A28F7BE8UL;
     private const ulong PromptIsJustPressedHash = 0x2787CC611D3FACC5UL;
+    private const ulong PromptSetActiveGroupThisFrameHash = 0xC65A45D4453C2627UL;
     private const ulong VarStringHash = 0xFA925AC00EB830B9UL;
 
     private const int InputInteractOption1 = 0x760A9C6F;
+    private const int PromptTabCount = 1;
+    private const int DefaultPromptTab = 0;
     private const string PromptText = "Recruit (test only)";
+    private const string PromptGroupText = "Recruitment test";
 
     private int _trackedPedHandle;
     private int _promptGroupHandle = -1;
     private int _promptHandle = -1;
-    private int _lastGroupLookupFailureTargetHandle = -1;
+
+    private DateTime _nextGroupLookupAttemptUtc = DateTime.MinValue;
+    private DateTime _nextStatusReminderUtc = DateTime.MinValue;
+
+    private bool _reportedNoTarget;
+    private bool _reportedGroupLabelFailure;
+    private bool _reportedPromptPressed;
 
     public NativeLockOnPromptTest()
     {
@@ -37,8 +47,13 @@ public class NativeLockOnPromptTest : Script
             int previousTargetHandle = _trackedPedHandle;
 
             DetachPromptFromCurrentTarget();
+
             _trackedPedHandle = currentTargetHandle;
-            _lastGroupLookupFailureTargetHandle = -1;
+            _nextGroupLookupAttemptUtc = DateTime.MinValue;
+            _nextStatusReminderUtc = DateTime.MinValue;
+            _reportedNoTarget = false;
+            _reportedGroupLabelFailure = false;
+            _reportedPromptPressed = false;
 
             if (_trackedPedHandle <= 0)
             {
@@ -47,18 +62,30 @@ public class NativeLockOnPromptTest : Script
                     RDR2.UI.Screen.PrintSubtitle(
                         "Lock-on target lost; test prompt detached.");
                 }
+                else
+                {
+                    ReportNoTarget();
+                }
 
                 return;
             }
+
+            RDR2.UI.Screen.PrintSubtitle(
+                string.Format(
+                    "Lock-on target found: {0}. Starting prompt test.",
+                    _trackedPedHandle));
         }
 
         if (_trackedPedHandle <= 0)
         {
+            ReportNoTarget();
             return;
         }
 
-        if (_promptGroupHandle < 0)
+        if (_promptGroupHandle < 0 &&
+            DateTime.UtcNow >= _nextGroupLookupAttemptUtc)
         {
+            _nextGroupLookupAttemptUtc = DateTime.UtcNow.AddSeconds(2);
             TryAttachPromptToTrackedTarget();
         }
 
@@ -67,10 +94,29 @@ public class NativeLockOnPromptTest : Script
             return;
         }
 
-        if (CallNative<bool>(PromptIsJustPressedHash, _promptHandle))
+        ActivatePromptGroupThisFrame();
+
+        if (CallNative<bool>(
+                PromptIsJustPressedHash,
+                _promptHandle))
         {
+            if (!_reportedPromptPressed)
+            {
+                _reportedPromptPressed = true;
+                RDR2.UI.Screen.PrintSubtitle(
+                    "G prompt accepted; test only. No recruitment action is connected.");
+            }
+        }
+
+        if (DateTime.UtcNow >= _nextStatusReminderUtc)
+        {
+            _nextStatusReminderUtc = DateTime.UtcNow.AddSeconds(5);
+
             RDR2.UI.Screen.PrintSubtitle(
-                "G prompt pressed; test only. No recruitment action is connected.");
+                string.Format(
+                    "Prompt test active: target {0}, group {1}. Check for the G prompt.",
+                    _trackedPedHandle,
+                    _promptGroupHandle));
         }
     }
 
@@ -89,23 +135,29 @@ public class NativeLockOnPromptTest : Script
 
     private void TryAttachPromptToTrackedTarget()
     {
+        RDR2.UI.Screen.PrintSubtitle(
+            string.Format(
+                "Looking up prompt group for target {0}.",
+                _trackedPedHandle));
+
         int groupHandle = CallNative<int>(
             PromptGetGroupIdForTargetEntityHash,
             _trackedPedHandle);
 
         if (groupHandle < 0)
         {
-            if (_lastGroupLookupFailureTargetHandle != _trackedPedHandle)
-            {
-                _lastGroupLookupFailureTargetHandle = _trackedPedHandle;
-                RDR2.UI.Screen.PrintSubtitle(
-                    string.Format(
-                        "Could not get a prompt group for target {0}.",
-                        _trackedPedHandle));
-            }
-
+            RDR2.UI.Screen.PrintSubtitle(
+                string.Format(
+                    "Prompt-group lookup returned {0} for target {1}.",
+                    groupHandle,
+                    _trackedPedHandle));
             return;
         }
+
+        RDR2.UI.Screen.PrintSubtitle(
+            string.Format(
+                "Prompt-group lookup returned {0}.",
+                groupHandle));
 
         if (_promptHandle <= 0 && !CreateNativePrompt())
         {
@@ -132,21 +184,31 @@ public class NativeLockOnPromptTest : Script
 
         RDR2.UI.Screen.PrintSubtitle(
             string.Format(
-                "Target {0}; test prompt attached to group {1}. Press G.",
-                _trackedPedHandle,
+                "Prompt configured and attached to group {0}; activating group each frame.",
                 _promptGroupHandle));
     }
 
     private bool CreateNativePrompt()
     {
-        int promptHandle = CallNative<int>(PromptRegisterBeginHash);
+        RDR2.UI.Screen.PrintSubtitle(
+            "Prompt registration: calling REGISTER_BEGIN.");
+
+        int promptHandle = CallNative<int>(
+            PromptRegisterBeginHash);
 
         if (promptHandle <= 0)
         {
             RDR2.UI.Screen.PrintSubtitle(
-                "Native prompt registration did not return a valid handle.");
+                string.Format(
+                    "Prompt registration failed; handle was {0}.",
+                    promptHandle));
             return false;
         }
+
+        RDR2.UI.Screen.PrintSubtitle(
+            string.Format(
+                "Prompt registration returned handle {0}.",
+                promptHandle));
 
         ulong promptTextPointer = CallNative<ulong>(
             VarStringHash,
@@ -161,9 +223,12 @@ public class NativeLockOnPromptTest : Script
                 promptHandle);
 
             RDR2.UI.Screen.PrintSubtitle(
-                "VAR_STRING returned an empty prompt-text pointer.");
+                "Prompt text setup failed: VAR_STRING returned zero.");
             return false;
         }
+
+        RDR2.UI.Screen.PrintSubtitle(
+            "Prompt text pointer created; setting control and text.");
 
         CallNative(
             PromptSetControlActionHash,
@@ -174,6 +239,9 @@ public class NativeLockOnPromptTest : Script
             PromptSetTextHash,
             promptHandle,
             promptTextPointer);
+
+        RDR2.UI.Screen.PrintSubtitle(
+            "Prompt control and text calls made; calling REGISTER_END.");
 
         RDR2.Native.Function.Call(
             PromptRegisterEndHash,
@@ -190,7 +258,54 @@ public class NativeLockOnPromptTest : Script
             false);
 
         _promptHandle = promptHandle;
+
+        RDR2.UI.Screen.PrintSubtitle(
+            "Prompt registration completed; waiting to attach it to a target group.");
+
         return true;
+    }
+
+    private void ActivatePromptGroupThisFrame()
+    {
+        ulong groupTextPointer = CallNative<ulong>(
+            VarStringHash,
+            10,
+            "LITERAL_STRING",
+            PromptGroupText);
+
+        if (groupTextPointer == 0UL)
+        {
+            if (!_reportedGroupLabelFailure)
+            {
+                _reportedGroupLabelFailure = true;
+                RDR2.UI.Screen.PrintSubtitle(
+                    "Group activation skipped: VAR_STRING returned zero for group text.");
+            }
+
+            return;
+        }
+
+        CallNative(
+            PromptSetActiveGroupThisFrameHash,
+            _promptGroupHandle,
+            groupTextPointer,
+            PromptTabCount,
+            DefaultPromptTab,
+            0,
+            _promptHandle);
+    }
+
+    private void ReportNoTarget()
+    {
+        if (_reportedNoTarget)
+        {
+            return;
+        }
+
+        _reportedNoTarget = true;
+
+        RDR2.UI.Screen.PrintSubtitle(
+            "No lock-on target returned. Aim at an NPC and hold right mouse.");
     }
 
     private void DetachPromptFromCurrentTarget()
@@ -216,7 +331,6 @@ public class NativeLockOnPromptTest : Script
                 false);
         }
 
-        _trackedPedHandle = 0;
         _promptGroupHandle = -1;
     }
 
@@ -224,13 +338,17 @@ public class NativeLockOnPromptTest : Script
         ulong nativeHash,
         params RDR2.Native.InputArgument[] arguments)
     {
-        RDR2.Native.Function.Call(nativeHash, arguments);
+        RDR2.Native.Function.Call(
+            nativeHash,
+            arguments);
     }
 
     private static T CallNative<T>(
         ulong nativeHash,
         params RDR2.Native.InputArgument[] arguments)
     {
-        return RDR2.Native.Function.Call<T>(nativeHash, arguments);
+        return RDR2.Native.Function.Call<T>(
+            nativeHash,
+            arguments);
     }
 }

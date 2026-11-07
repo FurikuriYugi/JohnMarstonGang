@@ -22,18 +22,25 @@ ScriptHookRDR2DotNet-V2 release notes for v2.1.0.0 list:
 Use `Game.Player.GetInteractionLockonTargetEntity()` for the focused NPC in this test. Do not treat free aim as equivalent to the player's focused interaction target. Do not add a free-aim fallback to the recruitment prompt test.
 
 ## Interaction-lock-on prompt
-The installed XML reference recorded in this project documents this signature:
+The Visual Studio Object Browser documents this signature:
 ```csharp
-RDR2.Native.MISC.REGISTER\_INTERACTION\_LOCKON\_PROMPT(
-    int p0,
-    string p1,
-    float p2,
-    float p3,
-    int p4,
-    float p5,
-    float p6,
-    int p7,
-    bool p8,
-    int p9
+RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+	int entity,
+	string text,
+	float radius,
+	float p3,
+	int flag,
+	float p5,
+	float p6,
+	int prompt,
+	bool p8,
+	int p9
 );
 ```
+
+### Separate UI action-prompt test status
+
+- ScriptHookRDR2DotNet-V2 v2.2.0 release notes state that `RDR2.Native.Function` is public again, while `RDR2.UI.Prompt` remains internal. Use the native-call path for this prototype; do not rely on `Prompt.CreatePrompt(...)`.
+- The current test attempt—right-clicking an NPC and pressing G—showed no visible prompt and triggered no recruitment.
+- This is a failed end-to-end display attempt, not confirmation of any individual native call. Prompt registration, text conversion, control assignment, group lookup, group attachment, visibility, and acceptance remain unverified in game.
+- Keep the test action disconnected from recruitment. Instrument and report each stage separately before changing or integrating the prompt behavior.
