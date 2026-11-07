@@ -8,7 +8,19 @@ public class Test : Script
     // INPUT_INTERACT_OPTION1 in the InteractionLockOn context.
     // The test uses its reported default keyboard mapping: G.
     private const uint RecruitInputActionHash = 0x760A9C6F;
+
     private const int PromptTextLiteralString = 10;
+
+    // ILO setup parameters for this diagnostic test.
+    // The text is not meant to appear as an approach prompt because p8 is false.
+    private const float IloRadius = 2.0f;
+    private const float IloFocusDistance = 2.0f;
+    private const int IloFlags = 0;
+    private const float IloUnknownFloat5 = 0.0f;
+    private const float IloUnknownFloat6 = 0.0f;
+    private const int IloPromptHandle = 0;
+    private const bool IloShowApproachPrompt = false;
+    private const int IloUnknownInt9 = -1;
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -18,12 +30,12 @@ public class Test : Script
     private int _lastLoggedTarget = -1;
     private int _promptHandle = -1;
     private int _promptGroup = -1;
-
+    private int _iloRegisteredTarget = -1;
+    private bool _iloRegistrationAttemptedForTarget;
     private bool _completedForTarget;
     private bool _setupFailedForTarget;
     private bool _completionWarningLogged;
     private bool _errorLogged;
-
     private MethodInfo _promptHasStandardModeCompleted;
 
     public Test()
@@ -35,7 +47,8 @@ public class Test : Script
         Log("INPUT ACTION: INPUT_INTERACT_OPTION1 (0x760A9C6F; InteractionLockOn context; default G).");
         Log("PROMPT TEXT: direct VAR_STRING wrapper call using an explicit InputArgument array.");
         Log("PROMPT GROUP: assign the native prompt to the focused entity's target prompt group.");
-        Log("ILO registration is omitted; this test uses the already-focused human target.");
+        Log("ILO TEST: register an ILO for the already-focused human target; log its Boolean result.");
+        Log("ILO APPROACH PROMPT: disabled for this test; no separate approach text is intended.");
         Log("No ambient-group or active-group activation is performed.");
         Log("No recruitment or gang-data changes are performed.");
         Log("Unarmed test conditions: stand close to a human NPC, right-mouse focus them, and check for G Recruit.");
@@ -88,6 +101,7 @@ public class Test : Script
             _completedForTarget = false;
             _setupFailedForTarget = false;
             _completionWarningLogged = false;
+            _iloRegistrationAttemptedForTarget = false;
 
             if (_lastLoggedTarget != focusedTarget)
             {
@@ -154,6 +168,8 @@ public class Test : Script
     {
         try
         {
+            TryRegisterIlo(targetHandle);
+
             _promptGroup =
                 RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
                     targetHandle);
@@ -253,6 +269,55 @@ public class Test : Script
         }
     }
 
+    private void TryRegisterIlo(int targetHandle)
+    {
+        if (_iloRegistrationAttemptedForTarget)
+        {
+            return;
+        }
+
+        _iloRegistrationAttemptedForTarget = true;
+
+        try
+        {
+            Log(
+                "ILO REGISTER BEGIN: target=" +
+                targetHandle);
+
+            bool registered =
+                RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                    targetHandle,
+                    "Recruit",
+                    IloRadius,
+                    IloFocusDistance,
+                    IloFlags,
+                    IloUnknownFloat5,
+                    IloUnknownFloat6,
+                    IloPromptHandle,
+                    IloShowApproachPrompt,
+                    IloUnknownInt9);
+
+            Log(
+                "ILO REGISTER RESULT: target=" +
+                targetHandle +
+                "; returned=" +
+                registered);
+
+            if (registered)
+            {
+                _iloRegisteredTarget = targetHandle;
+            }
+        }
+        catch (Exception exception)
+        {
+            Log(
+                "ILO REGISTER FAILED: target=" +
+                targetHandle +
+                "; " +
+                GetExceptionMessage(exception));
+        }
+    }
+
     private void ResolveOptionalCompletionMethod()
     {
         try
@@ -268,9 +333,9 @@ public class Test : Script
                 MethodInfo method = methods[i];
 
                 if (!string.Equals(
-                        method.Name,
-                        "_UI_PROMPT_HAS_STANDARD_MODE_COMPLETED",
-                        StringComparison.OrdinalIgnoreCase))
+                    method.Name,
+                    "_UI_PROMPT_HAS_STANDARD_MODE_COMPLETED",
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -314,6 +379,7 @@ public class Test : Script
             if (!_completionWarningLogged)
             {
                 _completionWarningLogged = true;
+
                 Log(
                     "PROMPT COMPLETION CHECK SKIPPED: wrapper unavailable. " +
                     "Prompt remains active until focus changes; no " +
@@ -389,6 +455,33 @@ public class Test : Script
         }
 
         _promptGroup = -1;
+
+        if (_iloRegisteredTarget > 0)
+        {
+            int targetToUnregister = _iloRegisteredTarget;
+            _iloRegisteredTarget = -1;
+
+            try
+            {
+                bool unregistered =
+                    RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(
+                        targetToUnregister);
+
+                Log(
+                    "ILO UNREGISTER RESULT: target=" +
+                    targetToUnregister +
+                    "; returned=" +
+                    unregistered);
+            }
+            catch (Exception exception)
+            {
+                Log(
+                    "ILO UNREGISTER FAILED: target=" +
+                    targetToUnregister +
+                    "; " +
+                    GetExceptionMessage(exception));
+            }
+        }
     }
 
     private void Log(string message)
@@ -415,7 +508,7 @@ public class Test : Script
         }
 
         return current.GetType().FullName +
-               ": " +
-               current.Message;
+            ": " +
+            current.Message;
     }
 }
