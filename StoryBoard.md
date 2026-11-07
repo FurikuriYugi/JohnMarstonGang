@@ -277,11 +277,12 @@ These observations are not a claim of in-game functionality:
 
 - Test a temporary **G Recruit** action in the focused human NPC's target prompt group.
 - The target-group-only trial found focused NPCs and created/assigned prompts but did not display **G Recruit**.
-- The next test adds ILO registration while keeping prompt creation, target-group assignment, text, input, and conditions otherwise unchanged.
+- The ILO-registration trial also did not display **G Recruit**. Its registration and cleanup Boolean return values were not logged, so successful native calls remain unconfirmed.
+- The next run keeps the ILO arguments and prompt setup unchanged and adds logging for both Boolean return values. This is an instrumentation correction; it does not add another prompt-display mechanism.
 - Do not call ambient-group or active-group activation natives in this trial.
 - No recruitment or gang-data changes are in scope.
 - See `ResearchNotes.md` for evidence and `NativeReferenceGuide.md` for API status.
-- **Status:** In progress; ILO-registration trial pending in-game test.
+- **Status:** In progress; repeat the ILO-registration test with return-value logging.
 
 ### Milestone 2: One conversation and recruitment flow
 
@@ -364,4 +365,6 @@ Before marking any feature implemented or tested, confirm:
 - **2026-11-07:** Ambient-group activation did not display **G Recruit**.
 - **2026-11-07:** Explicit active-group activation did not display **G Recruit**. This did not establish why the prompt failed to render.
 - **2026-11-07:** The target-group-only trial found human targets `197634` and `197378`, created prompts `239874` and `270082`, and assigned them to groups `268566612` and `268566611`. The user did not see **G Recruit**; other menu options worked. No recruitment or gang-data changes occurred. This rejects target-group assignment alone as sufficient in that tested setup.
-- **Next test:** Register the focused human NPC with `REGISTER_INTERACTION_LOCKON_PROMPT`, then create and assign the same test-only G action prompt. Keep all other prompt-display variables unchanged; do not activate ambient or active groups. Record whether **G Recruit** appears, whether G completes the test prompt, and whether ILO cleanup succeeds. No recruitment or gang-data changes are in scope.
+- **2026-11-07:** The ILO-registration trial found focused human targets `202754` and `202498`, created prompt handles `252162`, `300802`, and `314114`, and assigned prompts to target groups `268566617` and `268566616`. The user did not see **G Recruit**; other menu options worked. The test did not log the Boolean results of ILO registration or cleanup, so those calls' success is unconfirmed. No recruitment or gang-data changes occurred.
+- **Next test:** Repeat the same ILO-registration prompt test with the same ILO arguments, action prompt, target-group assignment, and in-game conditions. Log the Boolean return from registration and cleanup. Do not activate ambient or active groups. Record whether **G Recruit** appears and whether G completes the test prompt; no recruitment or gang-data changes are in scope.
+- 

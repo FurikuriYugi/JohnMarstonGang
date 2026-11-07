@@ -53,10 +53,8 @@ public class Test : Script
             "HYPOTHESIS: registering the focused NPC with " +
             "REGISTER_INTERACTION_LOCKON_PROMPT affects display of the " +
             "same target-group action prompt.");
-        Log(
-            "The action prompt remains assigned to the target prompt group.");
-        Log(
-            "No ambient-group or active-group activation is performed.");
+        Log("The action prompt remains assigned to the target prompt group.");
+        Log("No ambient-group or active-group activation is performed.");
         Log("No recruitment or gang-data changes are performed.");
         Log(
             "ILO test values: radius=2.0; focusDistance=2.0; flags=0; " +
@@ -64,6 +62,9 @@ public class Test : Script
         Log(
             "These native parameter meanings are not all verified against " +
             "the installed API.");
+        Log(
+            "This run logs the Boolean return values from ILO registration " +
+            "and cleanup. A true return does not prove prompt rendering.");
         Log(
             "Holster your weapon, stand close to a human NPC, and focus them.");
 
@@ -253,16 +254,13 @@ public class Test : Script
                 "; targetGroup=" + _promptGroup);
 
             Log(
-                "ILO REGISTERED: target=" + targetHandle +
-                "; approachPrompt=false; promptArgument=0.");
-
-            Log(
                 "GROUP MODE: action prompt assigned to target group; " +
                 "no ambient-group or active-group activation native called.");
 
             Log(
                 "IN-GAME CHECK: confirm whether G Recruit is visible. " +
-                "Prompt properties alone do not prove rendering.");
+                "Prompt properties and native return values alone do not " +
+                "prove rendering.");
         }
         catch (Exception exception)
         {
@@ -305,12 +303,26 @@ public class Test : Script
             IloParameter9
         };
 
-        _registerInteractionLockonPrompt.Invoke(null, arguments);
-        _iloTargetHandle = targetHandle;
-
         Log(
             "ILO REGISTER CALL: " +
             DescribeMethod(_registerInteractionLockonPrompt));
+
+        object result = _registerInteractionLockonPrompt.Invoke(
+            null,
+            arguments);
+
+        bool returnedTrue =
+            result != null && Convert.ToBoolean(result);
+
+        // Keep the handle so cleanup is attempted even if registration
+        // reports false; the test should not leave an uncertain registration
+        // behind.
+        _iloTargetHandle = targetHandle;
+
+        Log(
+            "ILO REGISTER RESULT: target=" + targetHandle +
+            "; returned=" + returnedTrue +
+            "; raw=" + (result == null ? "null" : result.ToString()));
     }
 
     private object CreatePromptObject()
@@ -608,7 +620,7 @@ public class Test : Script
         object value = GetMember(instance, name);
 
         return value != null &&
-            Convert.ToBoolean(value);
+               Convert.ToBoolean(value);
     }
 
     private static object ConvertArgument(
@@ -659,13 +671,20 @@ public class Test : Script
             {
                 if (_unregisterInteractionLockonPrompt != null)
                 {
-                    _unregisterInteractionLockonPrompt.Invoke(
-                        null,
-                        new object[] { _iloTargetHandle });
+                    object result =
+                        _unregisterInteractionLockonPrompt.Invoke(
+                            null,
+                            new object[] { _iloTargetHandle });
+
+                    bool returnedTrue =
+                        result != null && Convert.ToBoolean(result);
 
                     Log(
-                        "ILO UNREGISTERED: target=" +
-                        _iloTargetHandle);
+                        "ILO UNREGISTER RESULT: target=" +
+                        _iloTargetHandle +
+                        "; returned=" + returnedTrue +
+                        "; raw=" +
+                        (result == null ? "null" : result.ToString()));
                 }
             }
             catch (Exception exception)
@@ -690,8 +709,8 @@ public class Test : Script
         }
 
         return method.DeclaringType.FullName + "." +
-            method.Name + "(" + string.Join(", ", types) + ") -> " +
-            method.ReturnType.FullName;
+               method.Name + "(" + string.Join(", ", types) + ") -> " +
+               method.ReturnType.FullName;
     }
 
     private static string GetExceptionMessage(Exception exception)
@@ -700,9 +719,9 @@ public class Test : Script
             exception as TargetInvocationException;
 
         return invocationException != null &&
-            invocationException.InnerException != null
-                ? invocationException.InnerException.Message
-                : exception.Message;
+               invocationException.InnerException != null
+            ? invocationException.InnerException.Message
+            : exception.Message;
     }
 
     private void Log(string message)

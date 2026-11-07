@@ -49,6 +49,7 @@ The test may log only what is useful to this question:
 - The v2.2.0 wrapper resolved `_UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME` as `UInt64(int, float, int, int, uint, string, int)`.
 - The v2.2.0 wrapper resolved `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` as `UInt64(uint, string, int, int, int, int)`.
 - These wrapper signatures are not proof that parameter meanings or in-game behavior are correct.
+- Runtime reflection reported `REGISTER_INTERACTION_LOCKON_PROMPT` and `UNREGISTER_INTERACTION_LOCKON_PROMPT` as returning `System.Boolean`. The previous ILO test did not capture either return value.
 
 ### In-game findings — 2026-11-07
 
@@ -59,13 +60,14 @@ The user tested while unarmed and right-mouse focusing human NPCs.
 - Earlier prompt properties reported `Enabled=True`, `Visible=True`, and `HasCompleted=False`; those properties do not prove that the prompt rendered.
 - Ambient-group activation did not make **G Recruit** visible.
 - Explicit active-group activation also did not make **G Recruit** visible.
-- The latest target-group-only test found focused human targets `197634` and `197378`.
-- It created prompts with handles `239874` and `270082` and assigned them to target groups `268566612` and `268566611`.
-- The latest test made no ambient-group or active-group activation call.
+- The latest ILO-registration test found focused human targets `202754` and `202498`.
+- The log reported created prompt handles `252162`, `300802`, and `314114`, assigned to target groups `268566617` and `268566616`.
+- The test made no ambient-group or active-group activation call.
 - The user did not see **G Recruit** in the menu; other menu options continued to work.
+- The test logged ILO registration and unregistration calls, but did not log their Boolean return values. Whether either call returned `true` is therefore unknown.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** Focused-target detection and the prompt-creation/group-assignment path ran without a reported setup error, but the action did not visibly render in the tested setup. This rejects the hypothesis that target-group assignment alone is sufficient in this test. It does not identify whether the failure is in prompt construction, the wrapper/runtime interaction, or another display requirement.
+**Conclusion:** The focused-target and prompt setup path ran without a reported setup error, but the action did not visibly render in the tested setup. The ILO display hypothesis is unresolved because the test did not record the native return values. Even a `true` return value would not prove the prompt rendered.
 
 ### External prompt research
 
@@ -81,13 +83,15 @@ Reference: https://gist.github.com/umaruru/1cdbfc302dda20d8c5601f0ce8f0e03c
 
 Treat these as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or game setup.
 
-### Current test hypothesis
+### Current test hypothesis and next run
 
-Test whether registering the already-focused human NPC with `REGISTER_INTERACTION_LOCKON_PROMPT` affects display of the same custom action prompt.
+The previous experiment tested whether registering the already-focused human NPC with `REGISTER_INTERACTION_LOCKON_PROMPT` affected display of the same custom action prompt.
 
-Keep the action prompt creation, text, input, target-group assignment, and test conditions unchanged. Do not call ambient-group or active-group activation natives. The only added experiment variable is ILO registration.
+The in-game result was that **G Recruit** remained invisible. The previous harness did not log the registration or cleanup return values, so it is not known whether the wrappers reported success.
 
-Test-only arguments currently used:
+For the next run, keep the ILO arguments, action-prompt creation, text, input, target-group assignment, and test conditions unchanged. Capture and log the Boolean return value from registration and unregistration. This is an instrumentation correction, not a new prompt-display variable. Do not call ambient-group or active-group activation natives.
+
+Test-only ILO arguments currently used:
 
 - `entity`: focused human target.
 - `text`: `"Recruit"`.
@@ -105,7 +109,7 @@ Record only:
 
 1. Whether a focused human target was found.
 2. The target prompt group and action prompt handle.
-3. Whether ILO registration and cleanup calls resolved and ran.
+3. The Boolean return value from ILO registration and cleanup.
 4. Whether **G Recruit** appeared on screen.
 5. If it appeared, whether pressing G produced the test-only completion log.
 
@@ -125,9 +129,7 @@ Record only:
 - Use the ASI and API DLL files from the same ScriptHookRDR2DotNet-V2 release archive.
 - v2.1.0.1 release notes mention a prompt-text issue. The v2.2.0 release notes do not establish whether it was resolved.
 
-## Native research findings
-
-### `REGISTER_INTERACTION_LOCKON_PROMPT`
+## Native research findings: `REGISTER_INTERACTION_LOCKON_PROMPT`
 
 The Visual Studio Object Browser reports this v2.2.0 wrapper signature:
 
