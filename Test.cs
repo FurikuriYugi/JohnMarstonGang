@@ -410,7 +410,7 @@ public class NativeLockOnPromptTest : Script
             nativeHash,
             arguments);
     }
-
+    //test
     private static T CallNative<T>(
         ulong nativeHash,
         params RDR2.Native.InputArgument[] arguments)
