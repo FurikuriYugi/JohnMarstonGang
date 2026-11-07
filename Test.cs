@@ -19,6 +19,7 @@ public class Test : Script
     private int _recruitPromptHandle = -1;
     private int _recruitPromptGroup = -1;
     private int _targetHandle;
+
     private bool _promptAttached;
     private bool _registrationAttemptedForTarget;
     private bool _selectionHandledForTarget;
@@ -28,6 +29,8 @@ public class Test : Script
     private bool _lastLoggedFocusState;
     private bool _hasLoggedFocusState;
 
+    private string _lastLoggedPromptState;
+
     private unsafe delegate bool PlayerTargetEntityNative(
         int playerHandle,
         int* entityHandle);
@@ -35,6 +38,7 @@ public class Test : Script
     public Test()
     {
         ClearLog();
+
         Log("=== Test.cs Initialized ===");
         Log("Log file: " + _logPath);
         Log(
@@ -43,6 +47,10 @@ public class Test : Script
         Log(
             "The Recruit action is a placeholder only. It must not " +
             "recruit the target or change gang data.");
+        Log(
+            "Prompt-state diagnostics report the Prompt object's " +
+            "Enabled, Visible, and HasCompleted properties. They do not " +
+            "prove that the game rendered the prompt.");
 
         ResolvePlayerTargetEntityWrapper();
         ResolveTargetValidationMethods();
@@ -79,6 +87,7 @@ public class Test : Script
     private void UpdateTargetAndPrompt()
     {
         bool isFreeFocusing = Game.Player.IsFreeFocusing;
+
         LogFocusStateWhenChanged(isFreeFocusing);
 
         int observedTargetHandle = 0;
@@ -121,12 +130,16 @@ public class Test : Script
             _selectionHandledForTarget ||
             _registrationAttemptedForTarget)
         {
+            LogPromptStateWhenChanged();
             CheckPromptSelection();
             return;
         }
 
         _registrationAttemptedForTarget = true;
+
         CreateAndAttachRecruitPrompt(_targetHandle);
+
+        LogPromptStateWhenChanged();
         CheckPromptSelection();
     }
 
@@ -186,10 +199,13 @@ public class Test : Script
                 "; target prompt group " +
                 _recruitPromptGroup);
 
+            LogPromptStateWhenChanged();
+
             Log(
                 "IN-GAME CHECK REQUIRED: confirm Recruit appears alongside " +
                 "Aim At, Rob, Greet, and Antagonize. A successful native " +
-                "call alone is not proof of menu integration.");
+                "call or Enabled/Visible property value alone is not proof " +
+                "of menu integration.");
         }
         catch (Exception exception)
         {
@@ -212,6 +228,7 @@ public class Test : Script
     private object CreatePromptObject()
     {
         Assembly assembly = typeof(Game).Assembly;
+
         Type promptType =
             assembly.GetType("RDR2.UI.Prompt", false);
 
@@ -222,6 +239,7 @@ public class Test : Script
         }
 
         MethodInfo createPromptMethod = null;
+
         MethodInfo[] methods = promptType.GetMethods(
             BindingFlags.Public |
             BindingFlags.NonPublic |
@@ -230,9 +248,9 @@ public class Test : Script
         foreach (MethodInfo method in methods)
         {
             if (!string.Equals(
-                    method.Name,
-                    "CreatePrompt",
-                    StringComparison.Ordinal))
+                method.Name,
+                "CreatePrompt",
+                StringComparison.Ordinal))
             {
                 continue;
             }
@@ -296,6 +314,7 @@ public class Test : Script
         }
 
         Type timingType = parameters[7].ParameterType;
+
         arguments[7] = timingType.IsValueType
             ? Activator.CreateInstance(timingType)
             : null;
@@ -332,8 +351,8 @@ public class Test : Script
         }
 
         if (!GetPromptBooleanProperty(
-                _recruitPrompt,
-                "HasCompleted"))
+            _recruitPrompt,
+            "HasCompleted"))
         {
             return;
         }
@@ -352,6 +371,113 @@ public class Test : Script
         RDR2.UI.Screen.PrintSubtitle(message);
 
         ClearRecruitPrompt();
+    }
+
+    private void LogPromptStateWhenChanged()
+    {
+        string state;
+
+        if (_recruitPrompt == null)
+        {
+            state = "PROMPT STATE: none";
+        }
+        else
+        {
+            state =
+                "PROMPT STATE: handle=" +
+                _recruitPromptHandle +
+                "; target=" +
+                _targetHandle +
+                "; group=" +
+                _recruitPromptGroup +
+                "; Enabled=" +
+                ReadPromptBooleanPropertyForLog(
+                    _recruitPrompt,
+                    "Enabled") +
+                "; Visible=" +
+                ReadPromptBooleanPropertyForLog(
+                    _recruitPrompt,
+                    "Visible") +
+                "; HasCompleted=" +
+                ReadPromptBooleanPropertyForLog(
+                    _recruitPrompt,
+                    "HasCompleted");
+        }
+
+        if (string.Equals(
+            state,
+            _lastLoggedPromptState,
+            StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _lastLoggedPromptState = state;
+        Log(state);
+    }
+
+    private static string ReadPromptBooleanPropertyForLog(
+        object prompt,
+        string propertyName)
+    {
+        bool value;
+
+        if (!TryGetPromptBooleanProperty(
+            prompt,
+            propertyName,
+            out value))
+        {
+            return "unavailable";
+        }
+
+        return value ? "true" : "false";
+    }
+
+    private static bool TryGetPromptBooleanProperty(
+        object prompt,
+        string propertyName,
+        out bool value)
+    {
+        value = false;
+
+        if (prompt == null)
+        {
+            return false;
+        }
+
+        const BindingFlags flags =
+            BindingFlags.Instance |
+            BindingFlags.Public |
+            BindingFlags.NonPublic;
+
+        try
+        {
+            PropertyInfo property = prompt.GetType().GetProperty(
+                propertyName,
+                flags);
+
+            if (property == null ||
+                property.GetIndexParameters().Length != 0 ||
+                property.GetGetMethod(true) == null)
+            {
+                return false;
+            }
+
+            object propertyValue =
+                property.GetValue(prompt, null);
+
+            if (propertyValue == null)
+            {
+                return false;
+            }
+
+            value = Convert.ToBoolean(propertyValue);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static void SetPromptProperty(
@@ -541,7 +667,8 @@ public class Test : Script
                 return false;
             }
 
-            int playerHandle = Game.Player.Character.Handle;
+            int playerHandle =
+                Game.Player.Character.Handle;
 
             if (entityHandle == playerHandle)
             {
@@ -672,9 +799,9 @@ public class Test : Script
             foreach (MethodInfo method in methods)
             {
                 if (!string.Equals(
-                        method.Name,
-                        methodName,
-                        StringComparison.Ordinal) ||
+                    method.Name,
+                    methodName,
+                    StringComparison.Ordinal) ||
                     method.ReturnType != returnType)
                 {
                     continue;
@@ -696,7 +823,9 @@ public class Test : Script
 
     private static string DescribeMethod(MethodInfo method)
     {
-        ParameterInfo[] parameters = method.GetParameters();
+        ParameterInfo[] parameters =
+            method.GetParameters();
+
         string[] parameterDescriptions =
             new string[parameters.Length];
 
@@ -873,7 +1002,7 @@ public class Test : Script
             {
                 try
                 {
-                    RDR2.Native.HUD._UI_PROMPT_REMOVE_GROUP(    
+                    RDR2.Native.HUD._UI_PROMPT_REMOVE_GROUP(
                         _recruitPromptHandle,
                         (ulong)_recruitPromptGroup);
                 }
