@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Reflection;
 using RDR2;
@@ -17,37 +16,29 @@ public class Test : Script
         "Test_Log.txt");
 
     private PlayerTargetEntityNative _getPlayerTargetEntity;
-
     private MethodInfo _doesEntityExistMethod;
     private MethodInfo _isPedHumanMethod;
-
     private MethodInfo _registerInteractionLockonPromptMethod;
     private MethodInfo _unregisterInteractionLockonPromptMethod;
-
     private MethodInfo _setAmbientGroupThisFrameMethod;
     private MethodInfo _varStringMethod;
-    private MethodInfo _getGroupActivePageMethod;
 
     private object _recruitPrompt;
     private int _recruitPromptHandle = -1;
     private int _recruitPromptGroup = -1;
     private int _targetHandle;
-
     private int _iloTargetHandle = -1;
-    private bool _iloRegistrationAttempted;
-    private bool _iloRegistrationActive;
 
+    private bool _iloRegistrationAttempted;
     private bool _registrationAttemptedForTarget;
     private bool _promptAttached;
     private bool _selectionHandledForTarget;
     private bool _errorReported;
+    private bool _hasLoggedFocusState;
+    private bool _lastLoggedFocusState;
 
     private int _lastLoggedTargetHandle = -1;
-    private bool _lastLoggedFocusState;
-    private bool _hasLoggedFocusState;
-
     private string _lastPromptState;
-    private int? _lastActiveGroupPage;
 
     private unsafe delegate bool PlayerTargetEntityNative(
         int playerHandle,
@@ -66,15 +57,14 @@ public class Test : Script
             "Observe the separate 'Recruit test' lock-on text and " +
             "'G Recruit' action prompt.");
         Log(
-            "Press G only if 'G Recruit' is visible. The G action is " +
-            "a test placeholder and must not recruit or change gang data.");
+            "Press G only if 'G Recruit' is visible. G is a test " +
+            "placeholder; it will not recruit or change gang data.");
         Log(
-            "NEXT TEST: Activate the target's ambient prompt group every " +
-            "tick while the focused target remains valid.");
+            "The ambient prompt group is invoked every tick while " +
+            "the focused target and attached action prompt are valid.");
         Log(
-            "Ambient prompt arguments are test probes. The unknown p2 " +
-            "value is logged; native success and prompt properties do " +
-            "not prove that either prompt rendered.");
+            "Native invocation, prompt properties, and visible " +
+            "rendering are logged as separate evidence.");
 
         ResolvePlayerTargetEntityWrapper();
         ResolveTargetValidationMethods();
@@ -99,12 +89,12 @@ public class Test : Script
             {
                 _errorReported = true;
 
-                string errorMessage =
+                string message =
                     "Recruit prompt test error: " +
                     GetExceptionMessage(exception);
 
-                RDR2.UI.Screen.PrintSubtitle(errorMessage);
-                Log("ERROR: " + errorMessage);
+                RDR2.UI.Screen.PrintSubtitle(message);
+                Log("ERROR: " + message);
                 Log("StackTrace: " + exception.StackTrace);
             }
         }
@@ -137,12 +127,9 @@ public class Test : Script
 
             _targetHandle = observedTargetHandle;
             _iloRegistrationAttempted = false;
-            _iloRegistrationActive = false;
-            _iloTargetHandle = -1;
             _registrationAttemptedForTarget = false;
             _selectionHandledForTarget = false;
             _lastPromptState = null;
-            _lastActiveGroupPage = null;
 
             if (_targetHandle > 0)
             {
@@ -184,7 +171,6 @@ public class Test : Script
         }
 
         LogPromptStateWhenChanged();
-        LogActiveGroupPageWhenChanged();
         CheckPromptSelection();
     }
 
@@ -198,8 +184,7 @@ public class Test : Script
         {
             Log(
                 "ERROR: REGISTER_INTERACTION_LOCKON_PROMPT wrapper " +
-                "was not found. The separate action-prompt test will " +
-                "still run.");
+                "was not found.");
             return;
         }
 
@@ -216,8 +201,6 @@ public class Test : Script
                     ".");
             }
 
-            // Test probes only. These native parameter meanings have not
-            // been established as production settings.
             object[] arguments =
             {
                 targetHandle,
@@ -244,17 +227,13 @@ public class Test : Script
             if (_registerInteractionLockonPromptMethod.ReturnType ==
                 typeof(bool))
             {
-                _iloRegistrationActive =
-                    result != null &&
-                    Convert.ToBoolean(result);
+                bool succeeded =
+                    result != null && Convert.ToBoolean(result);
 
-                Log(
-                    "ILO NATIVE RESULT: " +
-                    _iloRegistrationActive);
+                Log("ILO NATIVE RESULT: " + succeeded);
             }
             else
             {
-                _iloRegistrationActive = true;
                 Log(
                     "ILO NATIVE CALL RETURNED; wrapper has no bool result.");
             }
@@ -268,7 +247,6 @@ public class Test : Script
         }
         catch (Exception exception)
         {
-            _iloRegistrationActive = false;
             _iloTargetHandle = -1;
 
             Log(
@@ -346,7 +324,7 @@ public class Test : Script
                 _recruitPromptGroup);
 
             Log(
-                "AMBIENT GROUP TEST: activating the attached target " +
+                "AMBIENT GROUP TEST: will invoke the attached target " +
                 "group every tick; radius=" +
                 TestPromptRadius +
                 "; p2=" +
@@ -381,6 +359,7 @@ public class Test : Script
     private object CreatePromptObject()
     {
         Assembly assembly = typeof(Game).Assembly;
+
         Type promptType =
             assembly.GetType("RDR2.UI.Prompt", false);
 
@@ -439,38 +418,40 @@ public class Test : Script
     {
         object[] arguments = new object[parameters.Length];
 
-        arguments[0] = ConvertArgument(
-            RecruitInputHash,
-            parameters[0].ParameterType);
+        arguments[0] =
+            ConvertArgument(
+                RecruitInputHash,
+                parameters[0].ParameterType);
 
-        if (parameters[1].ParameterType.IsEnum)
-        {
-            arguments[1] = Enum.Parse(
-                parameters[1].ParameterType,
-                "Press",
-                true);
-        }
-        else
+        if (!parameters[1].ParameterType.IsEnum)
         {
             throw new InvalidOperationException(
                 "The second CreatePrompt parameter is not an enum; " +
                 "expected the Press use-context value.");
         }
 
+        arguments[1] =
+            Enum.Parse(
+                parameters[1].ParameterType,
+                "Press",
+                true);
+
         arguments[2] = "Recruit";
 
         for (int i = 3; i <= 6; i++)
         {
-            arguments[i] = ConvertArgument(
-                0,
-                parameters[i].ParameterType);
+            arguments[i] =
+                ConvertArgument(
+                    0,
+                    parameters[i].ParameterType);
         }
 
         Type timingType = parameters[7].ParameterType;
 
-        arguments[7] = timingType.IsValueType
-            ? Activator.CreateInstance(timingType)
-            : null;
+        arguments[7] =
+            timingType.IsValueType
+                ? Activator.CreateInstance(timingType)
+                : null;
 
         return arguments;
     }
@@ -479,17 +460,21 @@ public class Test : Script
         int targetHandle,
         int promptGroup)
     {
-        if (_setAmbientGroupThisFrameMethod == null ||
-            _varStringMethod == null)
+        if (_setAmbientGroupThisFrameMethod == null)
         {
+            return;
+        }
+
+        if (_varStringMethod == null)
+        {
+            LogOnce(
+                "AMBIENT ACTIVATION SKIPPED: VAR_STRING wrapper is " +
+                "unavailable.");
             return;
         }
 
         try
         {
-            object groupLabel =
-                CreateVarString("Recruit");
-
             ParameterInfo[] parameters =
                 _setAmbientGroupThisFrameMethod.GetParameters();
 
@@ -500,6 +485,8 @@ public class Test : Script
                     parameters.Length +
                     ".");
             }
+
+            string groupLabel = CreateVarString("Recruit");
 
             object[] arguments =
             {
@@ -518,36 +505,19 @@ public class Test : Script
                 null,
                 arguments);
 
-            if (_lastActiveGroupPage == null)
-            {
-                Log(
-                    "AMBIENT GROUP ACTIVATION INVOKED: method=" +
-                    DescribeMethod(
-                        _setAmbientGroupThisFrameMethod) +
-                    "; target=" +
-                    targetHandle +
-                    "; group=" +
-                    promptGroup +
-                    "; radius=" +
-                    TestPromptRadius +
-                    "; p2=" +
-                    AmbientPromptP2 +
-                    "; tabAmount=" +
-                    AmbientPromptTabAmount +
-                    "; flags=" +
-                    AmbientPromptFlags +
-                    ".");
-            }
+            LogFirstSuccessfulAmbientActivation(
+                targetHandle,
+                promptGroup);
         }
         catch (Exception exception)
         {
-            Log(
+            LogOnce(
                 "ERROR: Ambient prompt-group activation failed: " +
                 GetExceptionMessage(exception));
         }
     }
 
-    private object CreateVarString(string text)
+    private string CreateVarString(string text)
     {
         if (_varStringMethod == null)
         {
@@ -558,24 +528,98 @@ public class Test : Script
         ParameterInfo[] parameters =
             _varStringMethod.GetParameters();
 
-        if (parameters.Length != 3)
+        if (parameters.Length != 2 ||
+            !parameters[1].ParameterType.IsArray)
         {
             throw new InvalidOperationException(
-                "Expected three VAR_STRING parameters; found " +
-                parameters.Length +
+                "Expected VAR_STRING(int, InputArgument[]); found " +
+                DescribeMethod(_varStringMethod) +
                 ".");
         }
 
-        object[] arguments =
+        Type inputArgumentType =
+            parameters[1].ParameterType.GetElementType();
+
+        Array inputArguments =
+            Array.CreateInstance(inputArgumentType, 2);
+
+        inputArguments.SetValue(
+            ConvertToInputArgument(
+                "LITERAL_STRING",
+                inputArgumentType),
+            0);
+
+        inputArguments.SetValue(
+            ConvertToInputArgument(
+                text,
+                inputArgumentType),
+            1);
+
+        object[] invokeArguments =
         {
-            10,
-            "LITERAL_STRING",
-            text
+            ConvertArgument(10, parameters[0].ParameterType),
+            inputArguments
         };
 
-        ConvertArgumentsInPlace(arguments, parameters);
+        object result =
+            _varStringMethod.Invoke(
+                null,
+                invokeArguments);
 
-        return _varStringMethod.Invoke(null, arguments);
+        if (!(result is string))
+        {
+            throw new InvalidOperationException(
+                "VAR_STRING did not return a string.");
+        }
+
+        return (string)result;
+    }
+
+    private static object ConvertToInputArgument(
+        object value,
+        Type inputArgumentType)
+    {
+        if (inputArgumentType.IsInstanceOfType(value))
+        {
+            return value;
+        }
+
+        MethodInfo[] methods =
+            inputArgumentType.GetMethods(
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Static);
+
+        foreach (MethodInfo method in methods)
+        {
+            if (method.Name != "op_Implicit" &&
+                method.Name != "op_Explicit")
+            {
+                continue;
+            }
+
+            if (method.ReturnType != inputArgumentType)
+            {
+                continue;
+            }
+
+            ParameterInfo[] parameters = method.GetParameters();
+
+            if (parameters.Length == 1 &&
+                parameters[0].ParameterType.IsInstanceOfType(value))
+            {
+                return method.Invoke(
+                    null,
+                    new object[] { value });
+            }
+        }
+
+        throw new InvalidOperationException(
+            "Could not convert " +
+            value.GetType().FullName +
+            " to " +
+            inputArgumentType.FullName +
+            " using an InputArgument conversion operator.");
     }
 
     private void CheckPromptSelection()
@@ -596,12 +640,8 @@ public class Test : Script
 
         _selectionHandledForTarget = true;
 
-        const string message =
-            "G PROMPT COMPLETED — TEST ONLY";
-
         Log(
-            message +
-            "; target handle " +
+            "G PROMPT COMPLETED — TEST ONLY; target handle " +
             _targetHandle +
             "; no recruitment or gang-data changes made.");
 
@@ -618,17 +658,20 @@ public class Test : Script
             return;
         }
 
-        bool enabled = TryGetPromptBooleanProperty(
-            _recruitPrompt,
-            "Enabled");
+        bool enabled =
+            GetPromptBooleanProperty(
+                _recruitPrompt,
+                "Enabled");
 
-        bool visible = TryGetPromptBooleanProperty(
-            _recruitPrompt,
-            "Visible");
+        bool visible =
+            GetPromptBooleanProperty(
+                _recruitPrompt,
+                "Visible");
 
-        bool completed = TryGetPromptBooleanProperty(
-            _recruitPrompt,
-            "HasCompleted");
+        bool completed =
+            GetPromptBooleanProperty(
+                _recruitPrompt,
+                "HasCompleted");
 
         string state =
             "Enabled=" + enabled +
@@ -654,60 +697,12 @@ public class Test : Script
         }
     }
 
-    private void LogActiveGroupPageWhenChanged()
-    {
-        if (_getGroupActivePageMethod == null ||
-            _recruitPromptGroup < 0)
-        {
-            return;
-        }
-
-        try
-        {
-            object result =
-                _getGroupActivePageMethod.Invoke(
-                    null,
-                    new object[]
-                    {
-                        ConvertArgument(
-                            _recruitPromptGroup,
-                            _getGroupActivePageMethod
-                                .GetParameters()[0]
-                                .ParameterType)
-                    });
-
-            int activePage =
-                Convert.ToInt32(result);
-
-            if (!_lastActiveGroupPage.HasValue ||
-                _lastActiveGroupPage.Value != activePage)
-            {
-                Log(
-                    "ACTIVE GROUP PAGE: group=" +
-                    _recruitPromptGroup +
-                    "; page=" +
-                    activePage +
-                    (activePage < 0
-                        ? " (inactive)"
-                        : " (active)"));
-
-                _lastActiveGroupPage = activePage;
-            }
-        }
-        catch (Exception exception)
-        {
-            Log(
-                "ERROR: Could not read active prompt-group page: " +
-                GetExceptionMessage(exception));
-
-            _getGroupActivePageMethod = null;
-        }
-    }
-
     private void ResolvePlayerTargetEntityWrapper()
     {
         MethodInfo method =
-            FindNativeMethod("GET_PLAYER_TARGET_ENTITY");
+            FindNativeMethod(
+                "GET_PLAYER_TARGET_ENTITY",
+                2);
 
         if (method == null)
         {
@@ -722,7 +717,6 @@ public class Test : Script
 
         bool signatureMatches =
             method.ReturnType == typeof(bool) &&
-            parameters.Length == 2 &&
             parameters[0].ParameterType == typeof(int) &&
             parameters[1].ParameterType.IsPointer &&
             parameters[1].ParameterType.GetElementType() ==
@@ -731,8 +725,8 @@ public class Test : Script
         if (!signatureMatches)
         {
             Log(
-                "ERROR: PLAYER.GET_PLAYER_TARGET_ENTITY wrapper " +
-                "signature did not match bool(int, int*). Found: " +
+                "ERROR: PLAYER.GET_PLAYER_TARGET_ENTITY signature " +
+                "did not match bool(int, int*). Found: " +
                 DescribeMethod(method));
             return;
         }
@@ -740,7 +734,8 @@ public class Test : Script
         try
         {
             _getPlayerTargetEntity =
-                (PlayerTargetEntityNative)Delegate.CreateDelegate(
+                (PlayerTargetEntityNative)
+                Delegate.CreateDelegate(
                     typeof(PlayerTargetEntityNative),
                     method);
 
@@ -763,27 +758,22 @@ public class Test : Script
         _doesEntityExistMethod =
             FindNativeMethod(
                 "DOES_ENTITY_EXIST",
-                typeof(bool),
-                typeof(int));
+                1);
 
         _isPedHumanMethod =
             FindNativeMethod(
                 "IS_PED_HUMAN",
-                typeof(bool),
-                typeof(int));
+                1);
 
         if (_doesEntityExistMethod == null)
         {
             Log(
-                "ERROR: ENTITY.DOES_ENTITY_EXIST(bool, int) wrapper " +
-                "was not found.");
+                "ERROR: ENTITY.DOES_ENTITY_EXIST wrapper was not found.");
         }
 
         if (_isPedHumanMethod == null)
         {
-            Log(
-                "ERROR: PED.IS_PED_HUMAN(bool, int) wrapper " +
-                "was not found.");
+            Log("ERROR: PED.IS_PED_HUMAN wrapper was not found.");
         }
     }
 
@@ -791,120 +781,66 @@ public class Test : Script
     {
         _registerInteractionLockonPromptMethod =
             FindNativeMethod(
-                "REGISTER_INTERACTION_LOCKON_PROMPT");
+                "REGISTER_INTERACTION_LOCKON_PROMPT",
+                10);
 
         _unregisterInteractionLockonPromptMethod =
             FindNativeMethod(
-                "UNREGISTER_INTERACTION_LOCKON_PROMPT");
+                "UNREGISTER_INTERACTION_LOCKON_PROMPT",
+                1);
 
-        if (_registerInteractionLockonPromptMethod == null)
-        {
-            Log(
-                "ERROR: MISC.REGISTER_INTERACTION_LOCKON_PROMPT " +
-                "wrapper was not found.");
-        }
-        else
-        {
-            Log(
-                "ILO REGISTER WRAPPER RESOLVED: " +
-                DescribeMethod(
-                    _registerInteractionLockonPromptMethod));
-        }
+        LogResolvedOrMissing(
+            "ILO REGISTER WRAPPER",
+            _registerInteractionLockonPromptMethod);
 
-        if (_unregisterInteractionLockonPromptMethod == null)
-        {
-            Log(
-                "WARNING: MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT " +
-                "wrapper was not found.");
-        }
-        else
-        {
-            Log(
-                "ILO UNREGISTER WRAPPER RESOLVED: " +
-                DescribeMethod(
-                    _unregisterInteractionLockonPromptMethod));
-        }
+        LogResolvedOrMissing(
+            "ILO UNREGISTER WRAPPER",
+            _unregisterInteractionLockonPromptMethod);
     }
 
     private void ResolveAmbientPromptMethods()
     {
         _setAmbientGroupThisFrameMethod =
             FindNativeMethod(
-                "_UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME");
+                "_UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
+                7);
 
         if (_setAmbientGroupThisFrameMethod == null)
         {
             _setAmbientGroupThisFrameMethod =
                 FindNativeMethod(
-                    "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME");
+                    "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
+                    7);
         }
 
         _varStringMethod =
-            FindNativeMethod("VAR_STRING");
-
-        _getGroupActivePageMethod =
             FindNativeMethod(
-                "_UI_PROMPT_GET_GROUP_ACTIVE_PAGE",
-                typeof(int),
-                typeof(int));
+                "VAR_STRING",
+                2);
 
-        if (_setAmbientGroupThisFrameMethod == null)
-        {
-            Log(
-                "ERROR: HUD ambient prompt-group activation wrapper " +
-                "was not found.");
-        }
-        else
-        {
-            Log(
-                "AMBIENT GROUP WRAPPER RESOLVED: " +
-                DescribeMethod(
-                    _setAmbientGroupThisFrameMethod));
+        LogResolvedOrMissing(
+            "AMBIENT GROUP WRAPPER",
+            _setAmbientGroupThisFrameMethod);
 
-            if (_setAmbientGroupThisFrameMethod
-                    .GetParameters()
-                    .Length != 7)
+        LogResolvedOrMissing(
+            "VAR_STRING WRAPPER",
+            _varStringMethod);
+
+        if (_varStringMethod != null)
+        {
+            ParameterInfo[] parameters =
+                _varStringMethod.GetParameters();
+
+            if (parameters.Length != 2 ||
+                !parameters[1].ParameterType.IsArray)
             {
                 Log(
-                    "ERROR: Ambient-group wrapper does not have the " +
-                    "expected seven parameters. It will not be invoked.");
-                _setAmbientGroupThisFrameMethod = null;
-            }
-        }
+                    "ERROR: VAR_STRING wrapper does not match " +
+                    "int, InputArgument[]. Ambient activation will " +
+                    "not be attempted.");
 
-        if (_varStringMethod == null)
-        {
-            Log(
-                "ERROR: MISC.VAR_STRING wrapper was not found.");
-        }
-        else
-        {
-            Log(
-                "VAR_STRING WRAPPER RESOLVED: " +
-                DescribeMethod(_varStringMethod));
-
-            if (_varStringMethod.GetParameters().Length != 3)
-            {
-                Log(
-                    "ERROR: VAR_STRING wrapper does not have the " +
-                    "expected three parameters. It will not be invoked.");
                 _varStringMethod = null;
             }
-        }
-
-        if (_getGroupActivePageMethod == null)
-        {
-            Log(
-                "WARNING: HUD._UI_PROMPT_GET_GROUP_ACTIVE_PAGE " +
-                "wrapper was not found; active-page diagnostics are " +
-                "unavailable.");
-        }
-        else
-        {
-            Log(
-                "ACTIVE GROUP PAGE WRAPPER RESOLVED: " +
-                DescribeMethod(
-                    _getGroupActivePageMethod));
         }
     }
 
@@ -943,41 +879,25 @@ public class Test : Script
         {
             bool exists =
                 Convert.ToBoolean(
-                    _doesEntityExistMethod.Invoke(
-                        null,
-                        new object[]
-                        {
-                            ConvertArgument(
-                                entityHandle,
-                                _doesEntityExistMethod
-                                    .GetParameters()[0]
-                                    .ParameterType)
-                        }));
+                    InvokeNative(
+                        _doesEntityExistMethod,
+                        entityHandle));
 
             if (!exists)
             {
                 return false;
             }
 
-            int playerHandle =
-                Game.Player.Character.Handle;
-
-            if (entityHandle == playerHandle)
+            if (entityHandle ==
+                Game.Player.Character.Handle)
             {
                 return false;
             }
 
             return Convert.ToBoolean(
-                _isPedHumanMethod.Invoke(
-                    null,
-                    new object[]
-                    {
-                        ConvertArgument(
-                            entityHandle,
-                            _isPedHumanMethod
-                                .GetParameters()[0]
-                                .ParameterType)
-                    }));
+                InvokeNative(
+                    _isPedHumanMethod,
+                    entityHandle));
         }
         catch (Exception exception)
         {
@@ -991,24 +911,182 @@ public class Test : Script
         }
     }
 
+    private void ClearCurrentTargetPrompts()
+    {
+        ClearRecruitActionPrompt();
+        UnregisterInteractionLockonPrompt();
+
+        _iloRegistrationAttempted = false;
+        _registrationAttemptedForTarget = false;
+        _selectionHandledForTarget = false;
+        _lastPromptState = null;
+    }
+
+    private void ClearRecruitActionPrompt()
+    {
+        if (_recruitPrompt != null)
+        {
+            TryDisposePrompt(_recruitPrompt);
+        }
+
+        _recruitPrompt = null;
+        _recruitPromptHandle = -1;
+        _recruitPromptGroup = -1;
+        _promptAttached = false;
+    }
+
+    private void TryDisposePrompt(object prompt)
+    {
+        try
+        {
+            if (prompt is IDisposable)
+            {
+                ((IDisposable)prompt).Dispose();
+                return;
+            }
+
+            MethodInfo disposeMethod =
+                prompt.GetType().GetMethod(
+                    "Dispose",
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic |
+                    BindingFlags.Instance,
+                    null,
+                    Type.EmptyTypes,
+                    null);
+
+            if (disposeMethod != null)
+            {
+                disposeMethod.Invoke(prompt, null);
+            }
+        }
+        catch (Exception exception)
+        {
+            Log(
+                "WARNING: Prompt cleanup failed: " +
+                GetExceptionMessage(exception));
+        }
+    }
+
+    private void UnregisterInteractionLockonPrompt()
+    {
+        if (_iloTargetHandle <= 0 ||
+            _unregisterInteractionLockonPromptMethod == null)
+        {
+            _iloTargetHandle = -1;
+            return;
+        }
+
+        try
+        {
+            object result =
+                InvokeNative(
+                    _unregisterInteractionLockonPromptMethod,
+                    _iloTargetHandle);
+
+            Log(
+                "ILO PROMPT UNREGISTERED for target " +
+                _iloTargetHandle +
+                "; result=" +
+                (result == null ? "null" : result.ToString()));
+        }
+        catch (Exception exception)
+        {
+            Log(
+                "ERROR: ILO unregistration failed for target " +
+                _iloTargetHandle +
+                ": " +
+                GetExceptionMessage(exception));
+        }
+
+        _iloTargetHandle = -1;
+    }
+
+    private void LogFocusStateWhenChanged(bool isFreeFocusing)
+    {
+        if (!_hasLoggedFocusState ||
+            _lastLoggedFocusState != isFreeFocusing)
+        {
+            Log(
+                "STATE: IsFreeFocusing=" +
+                isFreeFocusing);
+
+            _lastLoggedFocusState = isFreeFocusing;
+            _hasLoggedFocusState = true;
+        }
+    }
+
+    private void LogTargetWhenChanged(int targetHandle)
+    {
+        if (_lastLoggedTargetHandle != targetHandle)
+        {
+            Log(
+                "STATE: eligible unarmed interaction-lock-on " +
+                "target=" +
+                (targetHandle > 0
+                    ? targetHandle.ToString()
+                    : "none"));
+
+            _lastLoggedTargetHandle = targetHandle;
+        }
+    }
+
+    private void LogFirstSuccessfulAmbientActivation(
+        int targetHandle,
+        int promptGroup)
+    {
+        if (_ambientActivationLogged)
+        {
+            return;
+        }
+
+        _ambientActivationLogged = true;
+
+        Log(
+            "AMBIENT GROUP ACTIVATION INVOKED: method=" +
+            DescribeMethod(_setAmbientGroupThisFrameMethod) +
+            "; target=" +
+            targetHandle +
+            "; group=" +
+            promptGroup +
+            "; radius=" +
+            TestPromptRadius +
+            "; p2=" +
+            AmbientPromptP2 +
+            "; tabAmount=" +
+            AmbientPromptTabAmount +
+            "; flags=" +
+            AmbientPromptFlags +
+            ".");
+    }
+
+    private bool _ambientActivationLogged;
+
+    private void LogOnce(string message)
+    {
+        if (_ambientActivationLogged)
+        {
+            return;
+        }
+
+        _ambientActivationLogged = true;
+        Log(message);
+    }
+
     private static MethodInfo FindNativeMethod(
-        string methodName)
+        string methodName,
+        int parameterCount)
     {
         Assembly assembly = typeof(Game).Assembly;
         Type[] types;
 
         try
         {
-            types = assembly.GetExportedTypes();
+            types = assembly.GetTypes();
         }
         catch (ReflectionTypeLoadException exception)
         {
             types = exception.Types;
-        }
-
-        if (types == null)
-        {
-            return null;
         }
 
         foreach (Type type in types)
@@ -1029,6 +1107,7 @@ public class Test : Script
                 methods =
                     type.GetMethods(
                         BindingFlags.Public |
+                        BindingFlags.NonPublic |
                         BindingFlags.Static);
             }
             catch
@@ -1039,9 +1118,11 @@ public class Test : Script
             foreach (MethodInfo method in methods)
             {
                 if (string.Equals(
-                    method.Name,
-                    methodName,
-                    StringComparison.Ordinal))
+                        method.Name,
+                        methodName,
+                        StringComparison.Ordinal) &&
+                    method.GetParameters().Length ==
+                        parameterCount)
                 {
                     return method;
                 }
@@ -1051,76 +1132,33 @@ public class Test : Script
         return null;
     }
 
-    private static MethodInfo FindNativeMethod(
-        string methodName,
-        Type returnType,
-        Type parameterType)
+    private static object InvokeNative(
+        MethodInfo method,
+        params object[] values)
     {
-        Assembly assembly = typeof(Game).Assembly;
-        Type[] types;
+        ParameterInfo[] parameters =
+            method.GetParameters();
 
-        try
+        if (parameters.Length != values.Length)
         {
-            types = assembly.GetExportedTypes();
-        }
-        catch (ReflectionTypeLoadException exception)
-        {
-            types = exception.Types;
-        }
-
-        if (types == null)
-        {
-            return null;
+            throw new InvalidOperationException(
+                "Native argument count mismatch for " +
+                DescribeMethod(method) +
+                ".");
         }
 
-        foreach (Type type in types)
+        object[] converted =
+            new object[values.Length];
+
+        for (int i = 0; i < values.Length; i++)
         {
-            if (type == null ||
-                type.Namespace == null ||
-                !type.Namespace.StartsWith(
-                    "RDR2.Native",
-                    StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            MethodInfo[] methods;
-
-            try
-            {
-                methods =
-                    type.GetMethods(
-                        BindingFlags.Public |
-                        BindingFlags.Static);
-            }
-            catch
-            {
-                continue;
-            }
-
-            foreach (MethodInfo method in methods)
-            {
-                if (!string.Equals(
-                    method.Name,
-                    methodName,
-                    StringComparison.Ordinal) ||
-                    method.ReturnType != returnType)
-                {
-                    continue;
-                }
-
-                ParameterInfo[] parameters =
-                    method.GetParameters();
-
-                if (parameters.Length == 1 &&
-                    parameters[0].ParameterType == parameterType)
-                {
-                    return method;
-                }
-            }
+            converted[i] =
+                ConvertArgument(
+                    values[i],
+                    parameters[i].ParameterType);
         }
 
-        return null;
+        return method.Invoke(null, converted);
     }
 
     private static void ConvertArgumentsInPlace(
@@ -1130,7 +1168,7 @@ public class Test : Script
         if (arguments.Length != parameters.Length)
         {
             throw new InvalidOperationException(
-                "Argument count does not match wrapper parameter count.");
+                "Argument count does not match method signature.");
         }
 
         for (int i = 0; i < arguments.Length; i++)
@@ -1148,18 +1186,9 @@ public class Test : Script
     {
         if (value == null)
         {
-            if (targetType.IsValueType &&
-                Nullable.GetUnderlyingType(targetType) == null)
-            {
-                return Activator.CreateInstance(targetType);
-            }
-
-            return null;
-        }
-
-        if (targetType.IsInstanceOfType(value))
-        {
-            return value;
+            return targetType.IsValueType
+                ? Activator.CreateInstance(targetType)
+                : null;
         }
 
         Type nullableType =
@@ -1170,138 +1199,52 @@ public class Test : Script
             targetType = nullableType;
         }
 
+        if (targetType.IsInstanceOfType(value))
+        {
+            return value;
+        }
+
         if (targetType.IsEnum)
         {
             return Enum.ToObject(
                 targetType,
-                Convert.ToInt32(
-                    value,
-                    CultureInfo.InvariantCulture));
-        }
-
-        if (targetType == typeof(IntPtr))
-        {
-            return new IntPtr(
-                Convert.ToInt64(
-                    value,
-                    CultureInfo.InvariantCulture));
-        }
-
-        if (targetType == typeof(UIntPtr))
-        {
-            return new UIntPtr(
-                Convert.ToUInt64(
-                    value,
-                    CultureInfo.InvariantCulture));
+                value);
         }
 
         return Convert.ChangeType(
             value,
-            targetType,
-            CultureInfo.InvariantCulture);
+            targetType);
     }
 
-    private static string DescribeMethod(MethodInfo method)
+    private static object GetPromptMember(
+        object prompt,
+        string memberName)
     {
-        ParameterInfo[] parameters =
-            method.GetParameters();
+        Type type = prompt.GetType();
 
-        string[] parameterDescriptions =
-            new string[parameters.Length];
+        PropertyInfo property =
+            type.GetProperty(
+                memberName,
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance);
 
-        for (int i = 0; i < parameters.Length; i++)
+        if (property != null &&
+            property.CanRead)
         {
-            parameterDescriptions[i] =
-                parameters[i].ParameterType.ToString();
+            return property.GetValue(prompt, null);
         }
 
-        return string.Format(
-            CultureInfo.InvariantCulture,
-            "{0}.{1}({2}) -> {3}",
-            method.DeclaringType == null
-                ? "unknown type"
-                : method.DeclaringType.FullName,
-            method.Name,
-            string.Join(", ", parameterDescriptions),
-            method.ReturnType);
-    }
+        FieldInfo field =
+            type.GetField(
+                memberName,
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance);
 
-    private static int TryGetNativePromptHandle(object prompt)
-    {
-        if (prompt == null)
-        {
-            return -1;
-        }
-
-        const BindingFlags flags =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
-
-        string[] likelyNames =
-        {
-            "Handle",
-            "PromptHandle",
-            "NativeHandle",
-            "_handle",
-            "m_handle",
-            "_promptHandle",
-            "m_promptHandle"
-        };
-
-        Type promptType = prompt.GetType();
-
-        foreach (string name in likelyNames)
-        {
-            PropertyInfo property =
-                promptType.GetProperty(name, flags);
-
-            if (property != null &&
-                property.GetIndexParameters().Length == 0)
-            {
-                try
-                {
-                    int value =
-                        Convert.ToInt32(
-                            property.GetValue(prompt, null),
-                            CultureInfo.InvariantCulture);
-
-                    if (value >= 0)
-                    {
-                        return value;
-                    }
-                }
-                catch
-                {
-                    // Try the corresponding field or next candidate.
-                }
-            }
-
-            FieldInfo field =
-                promptType.GetField(name, flags);
-
-            if (field != null)
-            {
-                try
-                {
-                    int value =
-                        Convert.ToInt32(
-                            field.GetValue(prompt),
-                            CultureInfo.InvariantCulture);
-
-                    if (value >= 0)
-                    {
-                        return value;
-                    }
-                }
-                catch
-                {
-                    // Try the next candidate.
-                }
-            }
-        }
-
-        return -1;
+        return field == null
+            ? null
+            : field.GetValue(prompt);
     }
 
     private static void SetPromptProperty(
@@ -1309,291 +1252,183 @@ public class Test : Script
         string propertyName,
         object value)
     {
-        if (prompt == null)
-        {
-            throw new ArgumentNullException("prompt");
-        }
-
-        const BindingFlags flags =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
+        Type type = prompt.GetType();
 
         PropertyInfo property =
-            prompt.GetType().GetProperty(
+            type.GetProperty(
                 propertyName,
-                flags);
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance);
 
-        if (property == null)
+        if (property != null &&
+            property.CanWrite)
         {
-            throw new InvalidOperationException(
-                "Prompt property not found: " +
-                propertyName);
+            property.SetValue(
+                prompt,
+                ConvertArgument(
+                    value,
+                    property.PropertyType),
+                null);
+            return;
         }
 
-        MethodInfo setter =
-            property.GetSetMethod(true);
+        FieldInfo field =
+            type.GetField(
+                propertyName,
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance);
 
-        if (setter == null)
+        if (field != null)
         {
-            throw new InvalidOperationException(
-                "Prompt property has no setter: " +
-                propertyName);
+            field.SetValue(
+                prompt,
+                ConvertArgument(
+                    value,
+                    field.FieldType));
+            return;
         }
 
-        object convertedValue =
-            ConvertArgument(
-                value,
-                property.PropertyType);
-
-        setter.Invoke(
-            prompt,
-            new object[]
-            {
-                convertedValue
-            });
+        throw new InvalidOperationException(
+            "Prompt member '" +
+            propertyName +
+            "' was not found or is not writable.");
     }
 
     private static bool GetPromptBooleanProperty(
         object prompt,
         string propertyName)
     {
-        if (prompt == null)
-        {
-            return false;
-        }
-
-        const BindingFlags flags =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
-
-        PropertyInfo property =
-            prompt.GetType().GetProperty(
-                propertyName,
-                flags);
-
-        if (property == null)
-        {
-            throw new InvalidOperationException(
-                "Prompt property not found: " +
-                propertyName);
-        }
-
         object value =
-            property.GetValue(
+            GetPromptMember(
                 prompt,
-                null);
+                propertyName);
 
         return value != null &&
             Convert.ToBoolean(value);
     }
 
-    private static bool TryGetPromptBooleanProperty(
-        object prompt,
-        string propertyName)
+    private static int TryGetNativePromptHandle(
+        object prompt)
     {
-        try
+        string[] memberNames =
         {
-            return GetPromptBooleanProperty(
-                prompt,
-                propertyName);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private void ClearCurrentTargetPrompts()
-    {
-        ClearRecruitActionPrompt();
-        UnregisterInteractionLockonPrompt();
-    }
-
-    private void ClearRecruitActionPrompt()
-    {
-        if (_recruitPrompt != null)
-        {
-            try
-            {
-                SetPromptProperty(
-                    _recruitPrompt,
-                    "Enabled",
-                    false);
-            }
-            catch
-            {
-                // Continue cleanup if the wrapper has no setter.
-            }
-
-            try
-            {
-                SetPromptProperty(
-                    _recruitPrompt,
-                    "Visible",
-                    false);
-            }
-            catch
-            {
-                // Continue cleanup if the wrapper has no setter.
-            }
-
-            TryDisposePrompt(_recruitPrompt);
-        }
-
-        if (_recruitPromptHandle >= 0)
-        {
-            Log(
-                "CUSTOM ACTION CLEARED: prompt handle " +
-                _recruitPromptHandle +
-                "; target " +
-                _targetHandle);
-        }
-
-        _recruitPrompt = null;
-        _recruitPromptHandle = -1;
-        _recruitPromptGroup = -1;
-        _promptAttached = false;
-        _lastPromptState = null;
-        _lastActiveGroupPage = null;
-    }
-
-    private static void TryDisposePrompt(object prompt)
-    {
-        if (prompt == null)
-        {
-            return;
-        }
-
-        const BindingFlags flags =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
-
-        string[] methodNames =
-        {
-            "Dispose",
-            "Delete"
+            "Handle",
+            "PromptHandle",
+            "NativeHandle",
+            "Id"
         };
 
-        foreach (string methodName in methodNames)
+        foreach (string memberName in memberNames)
         {
-            MethodInfo method =
-                prompt.GetType().GetMethod(
-                    methodName,
-                    flags,
-                    null,
-                    Type.EmptyTypes,
-                    null);
+            object value =
+                GetPromptMember(
+                    prompt,
+                    memberName);
 
-            if (method == null)
+            if (value != null)
+            {
+                try
+                {
+                    return Convert.ToInt32(value);
+                }
+                catch
+                {
+                    // Try the next candidate member.
+                }
+            }
+        }
+
+        Type type = prompt.GetType();
+
+        MethodInfo[] methods =
+            type.GetMethods(
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance);
+
+        foreach (MethodInfo method in methods)
+        {
+            if (method.GetParameters().Length != 0 ||
+                method.ReturnType != typeof(int))
             {
                 continue;
             }
 
-            try
+            if (method.Name.IndexOf(
+                    "Handle",
+                    StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                method.Invoke(
-                    prompt,
-                    null);
+                try
+                {
+                    return Convert.ToInt32(
+                        method.Invoke(prompt, null));
+                }
+                catch
+                {
+                    // Continue looking for another handle accessor.
+                }
             }
-            catch
-            {
-                // The next target change will still reset test state.
-            }
+        }
 
+        return -1;
+    }
+
+    private static string DescribeMethod(MethodInfo method)
+    {
+        if (method == null)
+        {
+            return "null";
+        }
+
+        ParameterInfo[] parameters =
+            method.GetParameters();
+
+        string[] parameterNames =
+            new string[parameters.Length];
+
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            parameterNames[i] =
+                parameters[i].ParameterType.FullName;
+        }
+
+        return method.DeclaringType.FullName +
+            "." +
+            method.Name +
+            "(" +
+            string.Join(", ", parameterNames) +
+            ") -> " +
+            method.ReturnType.FullName;
+    }
+
+    private static string GetExceptionMessage(
+        Exception exception)
+    {
+        if (exception is TargetInvocationException &&
+            exception.InnerException != null)
+        {
+            return exception.InnerException.Message;
+        }
+
+        return exception.Message;
+    }
+
+    private void LogResolvedOrMissing(
+        string label,
+        MethodInfo method)
+    {
+        if (method == null)
+        {
+            Log("WARNING: " + label + " was not found.");
             return;
         }
-    }
 
-    private void UnregisterInteractionLockonPrompt()
-    {
-        if (!_iloRegistrationActive ||
-            _iloTargetHandle <= 0 ||
-            _unregisterInteractionLockonPromptMethod == null)
-        {
-            _iloRegistrationActive = false;
-            _iloTargetHandle = -1;
-            return;
-        }
-
-        try
-        {
-            ParameterInfo[] parameters =
-                _unregisterInteractionLockonPromptMethod
-                    .GetParameters();
-
-            if (parameters.Length != 1)
-            {
-                throw new InvalidOperationException(
-                    "Expected one unregister parameter; found " +
-                    parameters.Length +
-                    ".");
-            }
-
-            object[] arguments =
-            {
-                ConvertArgument(
-                    _iloTargetHandle,
-                    parameters[0].ParameterType)
-            };
-
-            object result =
-                _unregisterInteractionLockonPromptMethod.Invoke(
-                    null,
-                    arguments);
-
-            Log(
-                "ILO PROMPT UNREGISTERED for target " +
-                _iloTargetHandle +
-                "; result=" +
-                (result == null
-                    ? "void"
-                    : Convert.ToString(
-                        result,
-                        CultureInfo.InvariantCulture)));
-        }
-        catch (Exception exception)
-        {
-            Log(
-                "ERROR: ILO prompt cleanup failed for target " +
-                _iloTargetHandle +
-                ": " +
-                GetExceptionMessage(exception));
-        }
-
-        _iloRegistrationActive = false;
-        _iloTargetHandle = -1;
-    }
-
-    private void LogFocusStateWhenChanged(bool isFreeFocusing)
-    {
-        if (!_hasLoggedFocusState ||
-            _lastLoggedFocusState != isFreeFocusing)
-        {
-            _hasLoggedFocusState = true;
-            _lastLoggedFocusState = isFreeFocusing;
-
-            Log(
-                "STATE: IsFreeFocusing=" +
-                isFreeFocusing);
-        }
-    }
-
-    private void LogTargetWhenChanged(int targetHandle)
-    {
-        if (_lastLoggedTargetHandle != targetHandle)
-        {
-            _lastLoggedTargetHandle = targetHandle;
-
-            Log(
-                "STATE: eligible unarmed interaction-lock-on target=" +
-                (targetHandle > 0
-                    ? targetHandle.ToString(
-                        CultureInfo.InvariantCulture)
-                    : "none"));
-        }
+        Log(
+            label +
+            " RESOLVED: " +
+            DescribeMethod(method));
     }
 
     private void ClearLog()
@@ -1606,8 +1441,7 @@ public class Test : Script
         }
         catch
         {
-            // Initialization logging will report the path; continue
-            // running even if the log file cannot be cleared.
+            // Logging errors should not prevent the test script loading.
         }
     }
 
@@ -1615,9 +1449,7 @@ public class Test : Script
     {
         string line =
             "[" +
-            DateTime.Now.ToString(
-                "HH:mm:ss.fff",
-                CultureInfo.InvariantCulture) +
+            DateTime.Now.ToString("HH:mm:ss.fff") +
             "] " +
             message;
 
@@ -1630,27 +1462,7 @@ public class Test : Script
         }
         catch
         {
-            // Keep the in-game test alive if file logging fails.
+            // Keep test behavior running if the log file is unavailable.
         }
-    }
-
-    private static string GetExceptionMessage(Exception exception)
-    {
-        if (exception == null)
-        {
-            return "Unknown error.";
-        }
-
-        Exception current = exception;
-
-        while (current is TargetInvocationException &&
-            current.InnerException != null)
-        {
-            current = current.InnerException;
-        }
-
-        return current.GetType().Name +
-            ": " +
-            current.Message;
     }
 }
