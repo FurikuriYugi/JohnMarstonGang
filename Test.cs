@@ -6,6 +6,9 @@ using RDR2;
 public class Test : Script
 {
     private const int RecruitInputHash = unchecked((int)0x760A9C6F);
+    private const float TestPromptRadius = 3.0f;
+    private const int InteractionLockonPromptHash =
+        unchecked((int)0x870708A6);
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -14,11 +17,17 @@ public class Test : Script
     private PlayerTargetEntityNative _getPlayerTargetEntity;
     private MethodInfo _doesEntityExistMethod;
     private MethodInfo _isPedHumanMethod;
+    private MethodInfo _registerInteractionLockonPromptMethod;
+    private MethodInfo _unregisterInteractionLockonPromptMethod;
 
     private object _recruitPrompt;
     private int _recruitPromptHandle = -1;
     private int _recruitPromptGroup = -1;
     private int _targetHandle;
+
+    private bool _iloRegistrationAttempted;
+    private bool _iloRegistrationActive;
+    private int _iloTargetHandle = -1;
 
     private bool _promptAttached;
     private bool _registrationAttemptedForTarget;
@@ -28,8 +37,7 @@ public class Test : Script
     private int _lastLoggedTargetHandle = -1;
     private bool _lastLoggedFocusState;
     private bool _hasLoggedFocusState;
-
-    private string _lastLoggedPromptState;
+    private string _lastPromptState;
 
     private unsafe delegate bool PlayerTargetEntityNative(
         int playerHandle,
@@ -42,21 +50,25 @@ public class Test : Script
         Log("=== Test.cs Initialized ===");
         Log("Log file: " + _logPath);
         Log(
-            "TEST: Holster your weapon, right-mouse focus a human NPC, " +
-            "and check whether Recruit appears in the existing menu.");
+            "TEST: Holster your weapon, stand close to a human NPC, " +
+            "and right-mouse focus them.");
         Log(
-            "The Recruit action is a placeholder only. It must not " +
-            "recruit the target or change gang data.");
+            "Observe the separate 'Recruit test' lock-on text and " +
+            "'G Recruit' action prompt.");
         Log(
-            "Prompt-state diagnostics report the Prompt object's " +
-            "Enabled, Visible, and HasCompleted properties. They do not " +
-            "prove that the game rendered the prompt.");
+            "Press G only if the Recruit action prompt is visible. " +
+            "This test must not recruit the target or change gang data.");
+        Log(
+            "The interaction-lock-on prompt arguments are test values. " +
+            "A successful native call does not prove that the game " +
+            "rendered either prompt.");
 
         ResolvePlayerTargetEntityWrapper();
         ResolveTargetValidationMethods();
+        ResolveInteractionLockonPromptMethods();
 
         RDR2.UI.Screen.PrintSubtitle(
-            "Holster weapon; right-click a human NPC to test Recruit.");
+            "Holster weapon; focus a human NPC to test Recruit.");
 
         Tick += OnTick;
     }
@@ -65,7 +77,7 @@ public class Test : Script
     {
         try
         {
-            UpdateTargetAndPrompt();
+            UpdateTargetAndPrompts();
         }
         catch (Exception exception)
         {
@@ -74,7 +86,7 @@ public class Test : Script
                 _errorReported = true;
 
                 string errorMessage =
-                    "Recruit menu test error: " +
+                    "Recruit prompt test error: " +
                     GetExceptionMessage(exception);
 
                 RDR2.UI.Screen.PrintSubtitle(errorMessage);
@@ -84,10 +96,9 @@ public class Test : Script
         }
     }
 
-    private void UpdateTargetAndPrompt()
+    private void UpdateTargetAndPrompts()
     {
         bool isFreeFocusing = Game.Player.IsFreeFocusing;
-
         LogFocusStateWhenChanged(isFreeFocusing);
 
         int observedTargetHandle = 0;
@@ -108,11 +119,12 @@ public class Test : Script
 
         if (observedTargetHandle != _targetHandle)
         {
-            ClearRecruitPrompt();
-
+            ClearCurrentTargetPrompts();
             _targetHandle = observedTargetHandle;
+            _iloRegistrationAttempted = false;
             _registrationAttemptedForTarget = false;
             _selectionHandledForTarget = false;
+            _lastPromptState = null;
 
             if (_targetHandle > 0)
             {
@@ -126,27 +138,129 @@ public class Test : Script
             }
         }
 
-        if (_targetHandle <= 0 ||
-            _selectionHandledForTarget ||
-            _registrationAttemptedForTarget)
+        if (_targetHandle <= 0)
         {
-            LogPromptStateWhenChanged();
-            CheckPromptSelection();
             return;
         }
 
-        _registrationAttemptedForTarget = true;
+        if (!_iloRegistrationAttempted)
+        {
+            _iloRegistrationAttempted = true;
+            RegisterInteractionLockonPrompt(_targetHandle);
+        }
 
-        CreateAndAttachRecruitPrompt(_targetHandle);
+        if (!_registrationAttemptedForTarget &&
+            !_selectionHandledForTarget)
+        {
+            _registrationAttemptedForTarget = true;
+            CreateAndAttachRecruitPrompt(_targetHandle);
+        }
 
         LogPromptStateWhenChanged();
         CheckPromptSelection();
     }
 
+    private void RegisterInteractionLockonPrompt(int targetHandle)
+    {
+        Log(
+            "REGISTERING TEST ILO PROMPT for target " +
+            targetHandle);
+
+        if (_registerInteractionLockonPromptMethod == null)
+        {
+            Log(
+                "ERROR: REGISTER_INTERACTION_LOCKON_PROMPT wrapper " +
+                "was not found. The separate action-prompt test will " +
+                "still run.");
+            return;
+        }
+
+        try
+        {
+            ParameterInfo[] parameters =
+                _registerInteractionLockonPromptMethod.GetParameters();
+
+            if (parameters.Length != 10)
+            {
+                throw new InvalidOperationException(
+                    "Expected 10 parameters; found " +
+                    parameters.Length + ".");
+            }
+
+            // These values are test probes, not production settings.
+            // The meanings of several native parameters are unknown.
+            object[] arguments = new object[]
+            {
+                targetHandle,
+                "Recruit test",
+                TestPromptRadius,
+                TestPromptRadius,
+                0,
+                0.0f,
+                0.0f,
+                0,
+                true,
+                -1
+            };
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                arguments[i] = ConvertArgument(
+                    arguments[i],
+                    parameters[i].ParameterType);
+            }
+
+            object result =
+                _registerInteractionLockonPromptMethod.Invoke(
+                    null,
+                    arguments);
+
+            _iloTargetHandle = targetHandle;
+
+            if (_registerInteractionLockonPromptMethod.ReturnType ==
+                typeof(bool))
+            {
+                _iloRegistrationActive =
+                    result != null &&
+                    Convert.ToBoolean(result);
+
+                Log(
+                    "ILO NATIVE RESULT: " +
+                    _iloRegistrationActive);
+            }
+            else
+            {
+                // A void wrapper provides no success result. Record only
+                // that the wrapper invocation returned without throwing.
+                _iloRegistrationActive = true;
+                Log(
+                    "ILO NATIVE CALL RETURNED; wrapper has no bool result.");
+            }
+
+            Log(
+                "ILO TEST ARGUMENTS: radius=" +
+                TestPromptRadius +
+                "; p3=" +
+                TestPromptRadius +
+                "; flag=0; p5=0; p6=0; prompt=0; p8=true; p9=-1");
+        }
+        catch (Exception exception)
+        {
+            _iloRegistrationActive = false;
+            _iloTargetHandle = -1;
+
+            Log(
+                "ERROR: ILO registration failed for target " +
+                targetHandle +
+                ": " +
+                GetExceptionMessage(exception));
+        }
+    }
+
     private void CreateAndAttachRecruitPrompt(int targetHandle)
     {
         Log(
-            "REGISTERING TEMPORARY RECRUIT ACTION for target " +
+            "REGISTERING TEMPORARY G RECRUIT ACTION for target " +
             targetHandle);
 
         try
@@ -179,7 +293,10 @@ public class Test : Script
                     "The target entity returned an invalid prompt group.");
             }
 
-            SetPromptProperty(_recruitPrompt, "Text", "Recruit");
+            SetPromptProperty(
+                _recruitPrompt,
+                "Text",
+                "Recruit");
 
             RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 _recruitPromptHandle,
@@ -188,8 +305,15 @@ public class Test : Script
 
             _promptAttached = true;
 
-            SetPromptProperty(_recruitPrompt, "Enabled", true);
-            SetPromptProperty(_recruitPrompt, "Visible", true);
+            SetPromptProperty(
+                _recruitPrompt,
+                "Enabled",
+                true);
+
+            SetPromptProperty(
+                _recruitPrompt,
+                "Visible",
+                true);
 
             Log(
                 "CUSTOM ACTION ATTACHED: prompt handle " +
@@ -199,36 +323,30 @@ public class Test : Script
                 "; target prompt group " +
                 _recruitPromptGroup);
 
-            LogPromptStateWhenChanged();
-
             Log(
-                "IN-GAME CHECK REQUIRED: confirm Recruit appears alongside " +
-                "Aim At, Rob, Greet, and Antagonize. A successful native " +
-                "call or Enabled/Visible property value alone is not proof " +
-                "of menu integration.");
+                "IN-GAME CHECK REQUIRED: separately confirm whether " +
+                "'Recruit test' and 'G Recruit' are visible. Prompt " +
+                "properties do not prove rendering.");
         }
         catch (Exception exception)
         {
-            string errorMessage =
-                GetExceptionMessage(exception);
-
             Log(
                 "ERROR: Recruit action setup failed for target " +
                 targetHandle +
                 ": " +
-                errorMessage);
+                GetExceptionMessage(exception));
 
             RDR2.UI.Screen.PrintSubtitle(
                 "Recruit test setup failed. Check Test_Log.txt.");
 
-            ClearRecruitPrompt();
+            ClearRecruitActionPrompt();
+            UnregisterInteractionLockonPrompt();
         }
     }
 
     private object CreatePromptObject()
     {
         Assembly assembly = typeof(Game).Assembly;
-
         Type promptType =
             assembly.GetType("RDR2.UI.Prompt", false);
 
@@ -359,7 +477,7 @@ public class Test : Script
 
         _selectionHandledForTarget = true;
 
-        string message =
+        const string message =
             "RECRUIT PLACEHOLDER SELECTED";
 
         Log(
@@ -370,113 +488,49 @@ public class Test : Script
 
         RDR2.UI.Screen.PrintSubtitle(message);
 
-        ClearRecruitPrompt();
+        ClearCurrentTargetPrompts();
     }
 
     private void LogPromptStateWhenChanged()
     {
-        string state;
-
         if (_recruitPrompt == null)
         {
-            state = "PROMPT STATE: none";
+            return;
         }
-        else
+
+        bool enabled = TryGetPromptBooleanProperty(
+            _recruitPrompt,
+            "Enabled");
+
+        bool visible = TryGetPromptBooleanProperty(
+            _recruitPrompt,
+            "Visible");
+
+        bool completed = TryGetPromptBooleanProperty(
+            _recruitPrompt,
+            "HasCompleted");
+
+        string state =
+            "Enabled=" + enabled +
+            "; Visible=" + visible +
+            "; HasCompleted=" + completed;
+
+        if (!string.Equals(
+            state,
+            _lastPromptState,
+            StringComparison.Ordinal))
         {
-            state =
+            Log(
                 "PROMPT STATE: handle=" +
                 _recruitPromptHandle +
                 "; target=" +
                 _targetHandle +
                 "; group=" +
                 _recruitPromptGroup +
-                "; Enabled=" +
-                ReadPromptBooleanPropertyForLog(
-                    _recruitPrompt,
-                    "Enabled") +
-                "; Visible=" +
-                ReadPromptBooleanPropertyForLog(
-                    _recruitPrompt,
-                    "Visible") +
-                "; HasCompleted=" +
-                ReadPromptBooleanPropertyForLog(
-                    _recruitPrompt,
-                    "HasCompleted");
-        }
+                "; " +
+                state);
 
-        if (string.Equals(
-            state,
-            _lastLoggedPromptState,
-            StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        _lastLoggedPromptState = state;
-        Log(state);
-    }
-
-    private static string ReadPromptBooleanPropertyForLog(
-        object prompt,
-        string propertyName)
-    {
-        bool value;
-
-        if (!TryGetPromptBooleanProperty(
-            prompt,
-            propertyName,
-            out value))
-        {
-            return "unavailable";
-        }
-
-        return value ? "true" : "false";
-    }
-
-    private static bool TryGetPromptBooleanProperty(
-        object prompt,
-        string propertyName,
-        out bool value)
-    {
-        value = false;
-
-        if (prompt == null)
-        {
-            return false;
-        }
-
-        const BindingFlags flags =
-            BindingFlags.Instance |
-            BindingFlags.Public |
-            BindingFlags.NonPublic;
-
-        try
-        {
-            PropertyInfo property = prompt.GetType().GetProperty(
-                propertyName,
-                flags);
-
-            if (property == null ||
-                property.GetIndexParameters().Length != 0 ||
-                property.GetGetMethod(true) == null)
-            {
-                return false;
-            }
-
-            object propertyValue =
-                property.GetValue(prompt, null);
-
-            if (propertyValue == null)
-            {
-                return false;
-            }
-
-            value = Convert.ToBoolean(propertyValue);
-            return true;
-        }
-        catch
-        {
-            return false;
+            _lastPromptState = state;
         }
     }
 
@@ -495,9 +549,8 @@ public class Test : Script
             BindingFlags.Public |
             BindingFlags.NonPublic;
 
-        PropertyInfo property = prompt.GetType().GetProperty(
-            propertyName,
-            flags);
+        PropertyInfo property =
+            prompt.GetType().GetProperty(propertyName, flags);
 
         if (property == null)
         {
@@ -530,9 +583,8 @@ public class Test : Script
             BindingFlags.Public |
             BindingFlags.NonPublic;
 
-        PropertyInfo property = prompt.GetType().GetProperty(
-            propertyName,
-            flags);
+        PropertyInfo property =
+            prompt.GetType().GetProperty(propertyName, flags);
 
         if (property == null)
         {
@@ -544,6 +596,22 @@ public class Test : Script
 
         return value != null &&
             Convert.ToBoolean(value);
+    }
+
+    private static bool TryGetPromptBooleanProperty(
+        object prompt,
+        string propertyName)
+    {
+        try
+        {
+            return GetPromptBooleanProperty(
+                prompt,
+                propertyName);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void ResolvePlayerTargetEntityWrapper()
@@ -566,13 +634,14 @@ public class Test : Script
             parameters.Length == 2 &&
             parameters[0].ParameterType == typeof(int) &&
             parameters[1].ParameterType.IsPointer &&
-            parameters[1].ParameterType.GetElementType() == typeof(int);
+            parameters[1].ParameterType.GetElementType() ==
+                typeof(int);
 
         if (!signatureMatches)
         {
             Log(
-                "ERROR: PLAYER.GET_PLAYER_TARGET_ENTITY wrapper signature " +
-                "did not match bool(int, int*). Found: " +
+                "ERROR: PLAYER.GET_PLAYER_TARGET_ENTITY wrapper " +
+                "signature did not match bool(int, int*). Found: " +
                 DescribeMethod(method));
             return;
         }
@@ -622,6 +691,46 @@ public class Test : Script
             Log(
                 "ERROR: PED.IS_PED_HUMAN(bool, int) wrapper " +
                 "was not found.");
+        }
+    }
+
+    private void ResolveInteractionLockonPromptMethods()
+    {
+        _registerInteractionLockonPromptMethod =
+            FindNativeMethod(
+                "REGISTER_INTERACTION_LOCKON_PROMPT");
+
+        _unregisterInteractionLockonPromptMethod =
+            FindNativeMethod(
+                "UNREGISTER_INTERACTION_LOCKON_PROMPT");
+
+        if (_registerInteractionLockonPromptMethod == null)
+        {
+            Log(
+                "ERROR: MISC.REGISTER_INTERACTION_LOCKON_PROMPT " +
+                "wrapper was not found.");
+        }
+        else
+        {
+            Log(
+                "ILO REGISTER WRAPPER RESOLVED: " +
+                DescribeMethod(
+                    _registerInteractionLockonPromptMethod));
+        }
+
+        if (_unregisterInteractionLockonPromptMethod == null)
+        {
+            Log(
+                "WARNING: MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT " +
+                "wrapper was not found. The test will log this if " +
+                "cleanup is needed.");
+        }
+        else
+        {
+            Log(
+                "ILO UNREGISTER WRAPPER RESOLVED: " +
+                DescribeMethod(
+                    _unregisterInteractionLockonPromptMethod));
         }
     }
 
@@ -692,7 +801,8 @@ public class Test : Script
         }
     }
 
-    private static MethodInfo FindNativeMethod(string methodName)
+    private static MethodInfo FindNativeMethod(
+        string methodName)
     {
         Assembly assembly = typeof(Game).Assembly;
         Type[] types;
@@ -940,7 +1050,8 @@ public class Test : Script
             }
         }
 
-        foreach (PropertyInfo property in promptType.GetProperties(flags))
+        foreach (PropertyInfo property in
+            promptType.GetProperties(flags))
         {
             if (property.GetIndexParameters().Length != 0 ||
                 (property.PropertyType != typeof(int) &&
@@ -968,7 +1079,13 @@ public class Test : Script
         return -1;
     }
 
-    private void ClearRecruitPrompt()
+    private void ClearCurrentTargetPrompts()
+    {
+        ClearRecruitActionPrompt();
+        UnregisterInteractionLockonPrompt();
+    }
+
+    private void ClearRecruitActionPrompt()
     {
         if (_recruitPrompt != null)
         {
@@ -1009,8 +1126,8 @@ public class Test : Script
                 catch (Exception exception)
                 {
                     Log(
-                        "WARNING: Could not remove the temporary Recruit " +
-                        "prompt from its target group: " +
+                        "WARNING: Could not remove the temporary " +
+                        "Recruit prompt from its target group: " +
                         GetExceptionMessage(exception));
                 }
             }
@@ -1020,6 +1137,66 @@ public class Test : Script
         _recruitPromptHandle = -1;
         _recruitPromptGroup = -1;
         _promptAttached = false;
+        _lastPromptState = null;
+    }
+
+    private void UnregisterInteractionLockonPrompt()
+    {
+        if (!_iloRegistrationActive ||
+            _iloTargetHandle <= 0)
+        {
+            _iloRegistrationActive = false;
+            _iloTargetHandle = -1;
+            return;
+        }
+
+        if (_unregisterInteractionLockonPromptMethod == null)
+        {
+            Log(
+                "WARNING: ILO prompt was registered for target " +
+                _iloTargetHandle +
+                " but the unregister wrapper is unavailable.");
+            _iloRegistrationActive = false;
+            _iloTargetHandle = -1;
+            return;
+        }
+
+        try
+        {
+            ParameterInfo[] parameters =
+                _unregisterInteractionLockonPromptMethod
+                    .GetParameters();
+
+            if (parameters.Length != 1)
+            {
+                throw new InvalidOperationException(
+                    "Expected one unregister parameter; found " +
+                    parameters.Length + ".");
+            }
+
+            object entityArgument = ConvertArgument(
+                _iloTargetHandle,
+                parameters[0].ParameterType);
+
+            _unregisterInteractionLockonPromptMethod.Invoke(
+                null,
+                new object[] { entityArgument });
+
+            Log(
+                "ILO PROMPT UNREGISTERED for target " +
+                _iloTargetHandle);
+        }
+        catch (Exception exception)
+        {
+            Log(
+                "WARNING: Could not unregister ILO prompt for target " +
+                _iloTargetHandle +
+                ": " +
+                GetExceptionMessage(exception));
+        }
+
+        _iloRegistrationActive = false;
+        _iloTargetHandle = -1;
     }
 
     private void LogFocusStateWhenChanged(bool isFreeFocusing)
@@ -1055,7 +1232,8 @@ public class Test : Script
             : "none";
     }
 
-    private static string GetExceptionMessage(Exception exception)
+    private static string GetExceptionMessage(
+        Exception exception)
     {
         if (exception is TargetInvocationException &&
             exception.InnerException != null)
