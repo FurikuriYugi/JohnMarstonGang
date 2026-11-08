@@ -1,5 +1,18 @@
-﻿<!-- Test lines 751-1000 of 1124 -->
+﻿<!-- Test lines 751-1000 of 1246 -->
 ```csharp
+        out object result)
+    {
+        MethodInfo method = FindCompatibleNativeMethod(
+            nativeName,
+            arguments);
+
+        if (method == null)
+        {
+            LogErrorOnce(
+                "native_missing_" + nativeName,
+                "NATIVE WRAPPER NOT FOUND: " + nativeName +
+                "; argumentCount=" + arguments.Length);
+            result = null;
             return false;
         }
 
@@ -16,49 +29,122 @@
         try
         {
             ParameterInfo[] parameters = method.GetParameters();
+            bool hasParamArray =
+                parameters.Length > 0 &&
+                Attribute.IsDefined(
+                    parameters[parameters.Length - 1],
+                    typeof(ParamArrayAttribute));
 
-            if (parameters.Length != arguments.Length)
+            object[] invokeArguments;
+
+            if (hasParamArray)
             {
-                LogNativeErrorOnce(
-                    method.Name,
-                    "NATIVE ARGUMENT COUNT MISMATCH: " +
-                    FormatMethodSignature(method));
-                return false;
-            }
+                int fixedParameterCount = parameters.Length - 1;
 
-            object[] convertedArguments =
-                new object[arguments.Length];
-
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                if (!TryConvertArgument(
-                    arguments[i],
-                    parameters[i].ParameterType,
-                    out convertedArguments[i]))
+                if (arguments.Length < fixedParameterCount)
                 {
-                    LogNativeErrorOnce(
-                        method.Name + "_parameter_" + i,
-                        "NATIVE ARGUMENT CONVERSION FAILED: " +
-                        method.Name +
-                        "; parameter=" + i +
-                        "; type=" +
-                        parameters[i].ParameterType.FullName);
+                    LogErrorOnce(
+                        "native_count_" + method.Name,
+                        "NATIVE ARGUMENT COUNT MISMATCH: " +
+                        FormatMethodSignature(method));
                     return false;
+                }
+
+                invokeArguments = new object[parameters.Length];
+
+                for (int i = 0; i < fixedParameterCount; i++)
+                {
+                    if (!TryConvertArgument(
+                        arguments[i],
+                        parameters[i].ParameterType,
+                        out invokeArguments[i]))
+                    {
+                        LogArgumentConversionFailure(method, i);
+                        return false;
+                    }
+                }
+
+                Type elementType =
+                    parameters[parameters.Length - 1]
+                        .ParameterType
+                        .GetElementType();
+
+                int extraArgumentCount =
+                    arguments.Length - fixedParameterCount;
+
+                Array extraArguments =
+                    Array.CreateInstance(elementType, extraArgumentCount);
+
+                for (int i = 0; i < extraArgumentCount; i++)
+                {
+                    if (!TryConvertArgument(
+                        arguments[fixedParameterCount + i],
+                        elementType,
+                        out object convertedArgument))
+                    {
+                        LogArgumentConversionFailure(
+                            method,
+                            fixedParameterCount + i);
+                        return false;
+                    }
+
+                    extraArguments.SetValue(convertedArgument, i);
+                }
+
+                invokeArguments[parameters.Length - 1] = extraArguments;
+            }
+            else
+            {
+                if (parameters.Length != arguments.Length)
+                {
+                    LogErrorOnce(
+                        "native_count_" + method.Name,
+                        "NATIVE ARGUMENT COUNT MISMATCH: " +
+                        FormatMethodSignature(method));
+                    return false;
+                }
+
+                invokeArguments = new object[arguments.Length];
+
+                for (int i = 0; i < arguments.Length; i++)
+                {
+                    if (!TryConvertArgument(
+                        arguments[i],
+                        parameters[i].ParameterType,
+                        out invokeArguments[i]))
+                    {
+                        LogArgumentConversionFailure(method, i);
+                        return false;
+                    }
                 }
             }
 
-            result = method.Invoke(null, convertedArguments);
+            result = method.Invoke(null, invokeArguments);
             return true;
         }
         catch (Exception exception)
         {
-            LogNativeErrorOnce(
-                method.Name,
+            LogErrorOnce(
+                "native_invoke_" + method.Name,
                 "NATIVE INVOKE ERROR: " +
                 FormatMethodSignature(method) +
                 "; " + GetInnermostMessage(exception));
             return false;
         }
+    }
+
+    private void LogArgumentConversionFailure(
+        MethodInfo method,
+        int parameterIndex)
+    {
+        ParameterInfo[] parameters = method.GetParameters();
+
+        LogErrorOnce(
+            "native_conversion_" + method.Name + "_" + parameterIndex,
+            "NATIVE ARGUMENT CONVERSION FAILED: " +
+            method.Name +
+            "; parameter=" + parameterIndex +
+            "; signature=" + FormatMethodSignature(method));
     }
 
     private MethodInfo FindCompatibleNativeMethod(
@@ -106,24 +192,40 @@
 
             foreach (MethodInfo method in methods)
             {
-                if (!string.Equals(
-                    NormalizeNativeName(method.Name),
-                    normalizedWanted,
-                    StringComparison.OrdinalIgnoreCase))
+                if (method.ContainsGenericParameters ||
+                    !string.Equals(
+                        NormalizeNativeName(method.Name),
+                        normalizedWanted,
+                        StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
                 ParameterInfo[] parameters = method.GetParameters();
+                bool hasParamArray =
+                    parameters.Length > 0 &&
+                    Attribute.IsDefined(
+                        parameters[parameters.Length - 1],
+                        typeof(ParamArrayAttribute));
 
-                if (parameters.Length != arguments.Length)
+                if (!hasParamArray &&
+                    parameters.Length != arguments.Length)
+                {
+                    continue;
+                }
+
+                if (hasParamArray &&
+                    arguments.Length < parameters.Length - 1)
                 {
                     continue;
                 }
 
                 bool compatible = true;
+                int fixedParameterCount = hasParamArray
+                    ? parameters.Length - 1
+                    : parameters.Length;
 
-                for (int i = 0; i < arguments.Length; i++)
+                for (int i = 0; i < fixedParameterCount; i++)
                 {
                     if (!CanConvertArgument(
                         arguments[i],
@@ -134,120 +236,18 @@
                     }
                 }
 
-                if (compatible)
+                if (!compatible)
                 {
-                    return method;
+                    continue;
                 }
-            }
-        }
 
-        return null;
-    }
+                if (hasParamArray)
+                {
+                    Type elementType =
+                        parameters[parameters.Length - 1]
+                            .ParameterType
+                            .GetElementType();
 
-    private static string NormalizeNativeName(string name)
-    {
-        return name.Replace("_", string.Empty);
-    }
-
-    private static bool CanConvertArgument(
-        object value,
-        Type targetType)
-    {
-        if (value == null)
-        {
-            return !targetType.IsValueType ||
-                Nullable.GetUnderlyingType(targetType) != null;
-        }
-
-        Type effectiveType =
-            Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-        if (effectiveType.IsAssignableFrom(value.GetType()))
-        {
-            return true;
-        }
-
-        if (effectiveType.IsEnum)
-        {
-            return IsNumericType(value.GetType());
-        }
-
-        if (IsNumericType(effectiveType) &&
-            IsNumericType(value.GetType()))
-        {
-            return true;
-        }
-
-        if (effectiveType == typeof(IntPtr) ||
-            effectiveType == typeof(UIntPtr))
-        {
-            return IsNumericType(value.GetType());
-        }
-
-        return effectiveType == typeof(string) &&
-            value is string;
-    }
-
-    private static bool TryConvertArgument(
-        object value,
-        Type targetType,
-        out object converted)
-    {
-        converted = null;
-
-        if (value == null)
-        {
-            return !targetType.IsValueType ||
-                Nullable.GetUnderlyingType(targetType) != null;
-        }
-
-        Type effectiveType =
-            Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-        try
-        {
-            if (effectiveType.IsAssignableFrom(value.GetType()))
-            {
-                converted = value;
-                return true;
-            }
-
-            if (effectiveType.IsEnum)
-            {
-                converted = Enum.ToObject(effectiveType, value);
-                return true;
-            }
-
-            if (effectiveType == typeof(IntPtr))
-            {
-                converted = new IntPtr(Convert.ToInt64(value));
-                return true;
-            }
-
-            if (effectiveType == typeof(UIntPtr))
-            {
-                converted = new UIntPtr(Convert.ToUInt64(value));
-                return true;
-            }
-
-            if (effectiveType == typeof(string) &&
-                value is string)
-            {
-                converted = value;
-                return true;
-            }
-
-            if (IsNumericType(effectiveType) &&
-                IsNumericType(value.GetType()))
-            {
-                converted = Convert.ChangeType(value, effectiveType);
-                return true;
-            }
-        }
-        catch
-        {
-            return false;
-        }
-
-        return false;
+                    for (int i = fixedParameterCount;
+                        i < arguments.Length;
 ```

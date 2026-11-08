@@ -1,9 +1,5 @@
-﻿<!-- Test lines 251-500 of 1124 -->
+﻿<!-- Test lines 251-500 of 1246 -->
 ```csharp
-        if (targetIsFocused != _targetWasFocused)
-        {
-            _targetWasFocused = targetIsFocused;
-
             if (targetIsFocused)
             {
                 Log("TRACKED TARGET FOCUS BEGIN: target=" +
@@ -116,28 +112,47 @@
             return;
         }
 
-        Log("PROMPT CONTROL ACTION SET: " +
-            "INPUT_INTERACT_OPTION1; hash=0x" +
+        Log("PROMPT CONTROL ACTION SET: INPUT_INTERACT_OPTION1; hash=0x" +
             InputInteractOption1.ToString("X8") +
             "; result=" + FormatResult(controlResult));
+
+        if (!TryInvokeNative(
+            "VAR_STRING",
+            new object[]
+            {
+                VarStringType,
+                VarStringFormat,
+                PromptText
+            },
+            out object textResult))
+        {
+            LogPromptErrorOnce(
+                "Could not create the literal prompt text with VAR_STRING.");
+            DeleteFocusedPrompt();
+            return;
+        }
+
+        Log("VAR_STRING RESULT: type=" +
+            (textResult == null ? "null" : textResult.GetType().FullName) +
+            "; value=" + FormatResult(textResult));
 
         if (!TryInvokeNative(
             "UI_PROMPT_SET_TEXT",
             new object[]
             {
                 _focusedPromptHandle,
-                FocusedPromptTextKey
+                textResult
             },
-            out object textResult))
+            out object setTextResult))
         {
             LogPromptErrorOnce(
-                "Could not set prompt text using the registered game string key.");
+                "Could not set the prompt text from the VAR_STRING result.");
             DeleteFocusedPrompt();
             return;
         }
 
-        Log("PROMPT TEXT SET: key=\"" + FocusedPromptTextKey +
-            "\"; result=" + FormatResult(textResult));
+        Log("PROMPT TEXT SET: literal=\"" + PromptText +
+            "\"; result=" + FormatResult(setTextResult));
 
         if (!TryInvokeNative(
             "UI_PROMPT_REGISTER_END",
@@ -165,7 +180,8 @@
 
         Log("FOCUSED PROMPT CREATED: prompt=" +
             _focusedPromptHandle +
-            "; initialEnabled=false; initialVisible=false");
+            "; text=\"" + PromptText +
+            "\"; initialEnabled=false; initialVisible=false");
     }
 
     private void AttachFocusedPrompt(int targetHandle)
@@ -234,20 +250,4 @@
             out object visibleResult);
 
         _lastProbeValues.Clear();
-        _currentProbeValues.Clear();
-        _lastInputHeartbeatUtc = DateTime.MinValue;
-
-        Log("FOCUSED PROMPT ENABLED: prompt=" +
-            _focusedPromptHandle +
-            "; enabledResult=" + FormatResult(enabledResult) +
-            "; visibleResult=" + FormatResult(visibleResult));
-
-        RDR2.UI.Screen.PrintSubtitle(
-            "G prompt attached. Tap G once for input diagnostics.");
-    }
-
-    private void DetachFocusedPrompt()
-    {
-        if (_focusedPromptHandle <= 0)
-        {
 ```

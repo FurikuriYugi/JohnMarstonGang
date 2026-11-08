@@ -1,33 +1,35 @@
 # Research Notes
 
-## Latest focused NPC prompt test
+## Focused NPC prompt test
 
-The user reports that focusing an NPC showed a `G View` option and pressing G appeared to trigger an animation. Treat the animation as an observation, not as an effect caused by the test: the test's prompt-pressed handler only logs a press and does not call an animation or recruitment action.
+The current `Test_Log.txt` is an 87-line focused prompt input-diagnostic run. It records that the test created a prompt using the `WARDROBE_INSPECT_PROMPT` key, attached it to a focused NPC's prompt group, and observed the prompt become active.
 
-The current `Test_Log.txt` is a 26-line focused prompt-group test log. It records that:
+During the focused interval, the log records:
 
-- The test could not find compatible `REGISTER_INTERACTION_LOCKON_PROMPT` or `UNREGISTER_INTERACTION_LOCKON_PROMPT` wrappers. ILO registration and cleanup were therefore unavailable in this run.
-- The test created a focused prompt using the registered text key `WARDROBE_INSPECT_PROMPT`.
-- The test obtained a prompt group for the tracked NPC, attached the prompt, and enabled it when the NPC became focused.
-- The test disabled and detached the prompt when focus ended.
-- The log contains no `FOCUSED PROMPT PRESSED` entry. It does not confirm a G press during this run.
+- `UI_PROMPT_IS_ACTIVE=True`.
+- `IS_CONTROL_ENABLED=True`.
+- A raw control press and just-pressed event for `INPUT_INTERACT_OPTION1` (hash `0x760A9C6F`).
+- `UI_PROMPT_IS_PRESSED=False` and `UI_PROMPT_IS_JUST_PRESSED=False` at the recorded heartbeat after that input.
+- Prompt-group detach when focus ended.
 
-This is evidence that the test reached the focused prompt-group setup and cleanup path. It does not, by itself, prove that the prompt was visible on screen, that G was pressed while it was active, or that a native lock-on prompt was registered.
+This verifies that the test observed the prompt active and detected the raw configured control. It does not establish that the prompt itself registered the press or caused the reported animation. The user separately reports seeing `G View` and an animation; retain those as user observations, not as confirmed log outcomes or mod effects.
 
-## Prompt text and control
+The current test does not register `REGISTER_INTERACTION_LOCKON_PROMPT` or implement recruitment. It creates a UI prompt and adds it to the focused NPC's prompt group.
 
-The test uses `WARDROBE_INSPECT_PROMPT` as a registered game-string key for the focused prompt. A reported `View` label is consistent with that baseline, but does not establish that arbitrary custom text such as `Recruit` can be displayed.
+## Text and glyph investigation
 
-The control configured by the test is `INPUT_INTERACT_OPTION1` (`0x760A9C6F`). External control data lists it as G for QWERTY PC and D-pad Up for Xbox; the user's in-game control mapping is the relevant confirmation for their setup.
+`WARDROBE_INSPECT_PROMPT` is being used as a game text-label key. The user reports that the displayed wording was `View`; the log shows the key was passed to `UI_PROMPT_SET_TEXT`, but cannot verify the rendered screen text. Treat the key as a candidate label, not as a glyph-plus-text package.
 
-Keep the interaction prompt and any recruitment action separate. The current test does not recruit an NPC and should remain that way until prompt visibility and input handling have been isolated.
+A prompt's control and prompt text are configured separately. The control is `INPUT_INTERACT_OPTION1` (`0x760A9C6F`); the new test uses `VAR_STRING(10, "LITERAL_STRING", "Recruit")` to create custom prompt text. The resulting string handle/value and setter call are logged for diagnosis.
+
+`PP_GREET` did not establish a working custom recruitment label in the previous investigation. `WARDROBE_INSPECT_PROMPT` has a user-reported `View` result, so it serves as the previous game-label baseline. The next test replaces that label with the literal text `Recruit`.
 
 ## Next test
 
-- Preserve the current `Test.cs` baseline.
-- Run the test with an NPC in focus and capture a fresh `Test_Log.txt`.
-- While the prompt is active, press G once and check whether the log records `FOCUSED PROMPT PRESSED`.
-- Record separately whether `G View` is visible and whether an animation occurs; neither observation alone proves the other.
-- The native ILO registration path remains unconfirmed because the current log reports that compatible register and unregister wrappers were not found.
-- Test custom `Recruit` text separately from prompt visibility and input handling.
-- Keep recruitment execution disabled until these results are isolated.
+- Build and run the replacement `Test.cs`.
+- Focus a nearby living human NPC.
+- Record whether `G Recruit` appears on screen.
+- Press G once while the prompt is visible.
+- Record whether the log shows `UI_PROMPT_IS_ACTIVE=True`, a raw `IS_CONTROL_JUST_PRESSED` event, and a prompt-level `UI_PROMPT_IS_JUST_PRESSED` event.
+- Record any animation separately. The test does not initiate recruitment or an animation.
+- Send the resulting `Test_Log.txt` and in-game observations before changing the test again.

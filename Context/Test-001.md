@@ -1,21 +1,24 @@
-﻿<!-- Test lines 1-250 of 1124 -->
+﻿<!-- Test lines 1-250 of 1246 -->
 ```csharp
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using RDR2;
 
 public class Test : Script
 {
     private const int ControlPadIndex = 0;
     private const uint InputInteractOption1 = 0x760A9C6Fu;
-    private const string FocusedPromptTextKey = "WARDROBE_INSPECT_PROMPT";
-
-    private const float TargetSelectionDistance = 8.0f;
-    private const float TargetRetentionDistance = 9.0f;
     private const int TargetScanIntervalMilliseconds = 500;
     private const int InputHeartbeatIntervalMilliseconds = 2000;
+    private const float TargetSelectionDistance = 8.0f;
+    private const float TargetRetentionDistance = 9.0f;
+
+    private const int VarStringType = 10;
+    private const string VarStringFormat = "LITERAL_STRING";
+    private const string PromptText = "Recruit";
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -30,10 +33,7 @@ public class Test : Script
     private readonly Dictionary<string, bool> _currentProbeValues =
         new Dictionary<string, bool>();
 
-    private readonly HashSet<string> _probeErrorsLogged =
-        new HashSet<string>();
-
-    private readonly HashSet<string> _nativeErrorsLogged =
+    private readonly HashSet<string> _loggedErrors =
         new HashSet<string>();
 
     private int _trackedTargetHandle;
@@ -53,35 +53,32 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Focused NPC prompt input-diagnostic test initialized ===");
-        Log("The registered prompt text remains \"" +
-            FocusedPromptTextKey + "\".");
-        Log("The prompt is assigned to the focused NPC target's prompt group.");
-        Log("This test logs prompt-state and raw-control input separately.");
-        Log("No recruitment action, gang change, or animation is executed.");
+        Log("=== Focused NPC custom Recruit prompt test initialized ===");
+        Log("Prompt text source: VAR_STRING(" +
+            VarStringType + ", \"" + VarStringFormat +
+            "\", \"" + PromptText + "\").");
         Log("Input control: INPUT_INTERACT_OPTION1; hash=0x" +
             InputInteractOption1.ToString("X8"));
+        Log("The prompt is attached to the focused NPC target's prompt group.");
+        Log("This test does not recruit, change gang membership, or trigger an animation.");
 
-        ResolveProbe("UI_PROMPT_IS_ACTIVE",
-            new object[] { 0 });
-        ResolveProbe("UI_PROMPT_IS_PRESSED",
-            new object[] { 0 });
-        ResolveProbe("UI_PROMPT_IS_JUST_PRESSED",
-            new object[] { 0 });
-        ResolveProbe("UI_PROMPT_HAS_STANDARD_MODE_COMPLETED",
-            new object[] { 0 });
-
-        ResolveProbe("IS_CONTROL_ENABLED",
+        ResolveProbe("UI_PROMPT_IS_ACTIVE", new object[] { 0 });
+        ResolveProbe("UI_PROMPT_IS_PRESSED", new object[] { 0 });
+        ResolveProbe("UI_PROMPT_IS_JUST_PRESSED", new object[] { 0 });
+        ResolveProbe(
+            "IS_CONTROL_ENABLED",
             new object[] { ControlPadIndex, InputInteractOption1 });
-        ResolveProbe("IS_CONTROL_PRESSED",
+        ResolveProbe(
+            "IS_CONTROL_PRESSED",
             new object[] { ControlPadIndex, InputInteractOption1 });
-        ResolveProbe("IS_CONTROL_JUST_PRESSED",
+        ResolveProbe(
+            "IS_CONTROL_JUST_PRESSED",
             new object[] { ControlPadIndex, InputInteractOption1 });
 
         CreateFocusedPrompt();
 
         RDR2.UI.Screen.PrintSubtitle(
-            "Focus a human NPC and tap G once. Check Test_Log.txt.");
+            "Focus a human NPC. Check for G Recruit, then tap G once.");
 
         Tick += OnTick;
         Aborted += OnAborted;
@@ -101,7 +98,7 @@ public class Test : Script
                 _generalErrorLogged = true;
                 Log("TEST ERROR: " + GetInnermostMessage(exception));
                 RDR2.UI.Screen.PrintSubtitle(
-                    "Prompt test error. Check Test_Log.txt.");
+                    "Recruit prompt test error. Check Test_Log.txt.");
             }
         }
     }
@@ -164,8 +161,8 @@ public class Test : Script
         float distance = selectedPed.Position.DistanceTo(
             Game.Player.Character.Position);
 
-        Log("HUMAN TARGET BEGIN: target=" + _trackedTargetHandle +
-            "; distance=" + distance);
+        Log("HUMAN TARGET BEGIN: target=" +
+            _trackedTargetHandle + "; distance=" + distance);
     }
 
     private Ped FindNearbyHumanTarget()
@@ -234,7 +231,6 @@ public class Test : Script
     {
         if (_trackedTargetHandle <= 0)
         {
-            DetachFocusedPrompt();
             return;
         }
 
@@ -249,5 +245,9 @@ public class Test : Script
         int focusedTargetHandle = GetCurrentHumanTargetHandle();
         bool targetIsFocused =
             focusedTargetHandle == _trackedTargetHandle;
+
+        if (targetIsFocused != _targetWasFocused)
+        {
+            _targetWasFocused = targetIsFocused;
 
 ```

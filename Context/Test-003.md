@@ -1,5 +1,21 @@
-﻿<!-- Test lines 501-750 of 1124 -->
+﻿<!-- Test lines 501-750 of 1246 -->
 ```csharp
+        _currentProbeValues.Clear();
+        _lastInputHeartbeatUtc = DateTime.MinValue;
+
+        Log("FOCUSED PROMPT ENABLED: prompt=" +
+            _focusedPromptHandle +
+            "; enabledResult=" + FormatResult(enabledResult) +
+            "; visibleResult=" + FormatResult(visibleResult));
+
+        RDR2.UI.Screen.PrintSubtitle(
+            "G Recruit prompt attached. Tap G once.");
+    }
+
+    private void DetachFocusedPrompt()
+    {
+        if (_focusedPromptHandle <= 0)
+        {
             _focusedPromptGroupId = 0;
             return;
         }
@@ -32,10 +48,13 @@
                 "; result=" + FormatResult(removeResult));
         }
 
-        Log("FOCUSED PROMPT DISABLED: prompt=" +
-            _focusedPromptHandle +
-            "; enabledResult=" + FormatResult(enabledResult) +
-            "; visibleResult=" + FormatResult(visibleResult));
+        if (_focusedPromptGroupId != 0)
+        {
+            Log("FOCUSED PROMPT DISABLED: prompt=" +
+                _focusedPromptHandle +
+                "; enabledResult=" + FormatResult(enabledResult) +
+                "; visibleResult=" + FormatResult(visibleResult));
+        }
 
         _focusedPromptGroupId = 0;
         _lastProbeValues.Clear();
@@ -58,11 +77,6 @@
             "UI_PROMPT_IS_JUST_PRESSED",
             new object[] { _focusedPromptHandle },
             true);
-
-        SampleProbe(
-            "UI_PROMPT_HAS_STANDARD_MODE_COMPLETED",
-            new object[] { _focusedPromptHandle },
-            false);
 
         SampleProbe(
             "IS_CONTROL_ENABLED",
@@ -93,8 +107,6 @@
                 GetProbeValue("UI_PROMPT_IS_PRESSED") +
                 "; promptJustPressed=" +
                 GetProbeValue("UI_PROMPT_IS_JUST_PRESSED") +
-                "; standardModeCompleted=" +
-                GetProbeValue("UI_PROMPT_HAS_STANDARD_MODE_COMPLETED") +
                 "; controlEnabled=" +
                 GetProbeValue("IS_CONTROL_ENABLED") +
                 "; controlPressed=" +
@@ -130,8 +142,8 @@
         }
         catch
         {
-            LogProbeErrorOnce(
-                nativeName,
+            LogErrorOnce(
+                "probe_" + nativeName,
                 "Probe returned an unexpected value: " +
                 FormatResult(result));
             return;
@@ -169,9 +181,9 @@
 
     private string GetProbeValue(string nativeName)
     {
-        bool value;
-
-        if (_currentProbeValues.TryGetValue(nativeName, out value))
+        if (_currentProbeValues.TryGetValue(
+            nativeName,
+            out bool value))
         {
             return value.ToString();
         }
@@ -183,6 +195,19 @@
         }
 
         return "not-sampled";
+    }
+
+    private void ClearTrackedTarget()
+    {
+        if (_trackedTargetHandle > 0)
+        {
+            Log("HUMAN TARGET END: target=" +
+                _trackedTargetHandle);
+        }
+
+        DetachFocusedPrompt();
+        _trackedTargetHandle = 0;
+        _targetWasFocused = false;
     }
 
     private void DeleteFocusedPrompt()
@@ -208,18 +233,6 @@
         _focusedPromptGroupId = 0;
     }
 
-    private void ClearTrackedTarget()
-    {
-        if (_trackedTargetHandle > 0)
-        {
-            Log("HUMAN TARGET END: target=" + _trackedTargetHandle);
-        }
-
-        DetachFocusedPrompt();
-        _trackedTargetHandle = 0;
-        _targetWasFocused = false;
-    }
-
     private void OnAborted(object sender, EventArgs e)
     {
         try
@@ -237,17 +250,4 @@
     private bool TryInvokeNative(
         string nativeName,
         object[] arguments,
-        out object result)
-    {
-        MethodInfo method = FindCompatibleNativeMethod(
-            nativeName,
-            arguments);
-
-        if (method == null)
-        {
-            LogNativeErrorOnce(
-                nativeName,
-                "NATIVE WRAPPER NOT FOUND: " + nativeName +
-                "; argumentCount=" + arguments.Length);
-            result = null;
 ```
