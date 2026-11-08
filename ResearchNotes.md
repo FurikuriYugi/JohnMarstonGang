@@ -1,49 +1,33 @@
 # Research Notes
 
-## Current test objective
+## Latest focused NPC prompt test
 
-Testing the focused NPC prompt path in Red Dead Redemption 2. The immediate goal is to determine which input-query path detects a press on the displayed G prompt. No recruitment behavior is enabled in the test.
+The user reports that focusing an NPC showed a `G View` option and pressing G appeared to trigger an animation. Treat the animation as an observation, not as an effect caused by the test: the test's prompt-pressed handler only logs a press and does not call an animation or recruitment action.
 
-## Confirmed in-game result
+The current `Test_Log.txt` is a 26-line focused prompt-group test log. It records that:
 
-The user reports that, while right-click focusing an NPC, a `G View` option appeared. Pressing G produced an animation.
+- The test could not find compatible `REGISTER_INTERACTION_LOCKON_PROMPT` or `UNREGISTER_INTERACTION_LOCKON_PROMPT` wrappers. ILO registration and cleanup were therefore unavailable in this run.
+- The test created a focused prompt using the registered text key `WARDROBE_INSPECT_PROMPT`.
+- The test obtained a prompt group for the tracked NPC, attached the prompt, and enabled it when the NPC became focused.
+- The test disabled and detached the prompt when focus ended.
+- The log contains no `FOCUSED PROMPT PRESSED` entry. It does not confirm a G press during this run.
 
-This is a user-reported visual/gameplay observation. The test code does not explicitly start an animation or recruit the NPC.
+This is evidence that the test reached the focused prompt-group setup and cleanup path. It does not, by itself, prove that the prompt was visible on screen, that G was pressed while it was active, or that a native lock-on prompt was registered.
 
-## Latest checked-in test log
+## Prompt text and control
 
-`Test_Log.txt` is the focused prompt-group baseline run, not an older unrelated test. It records:
+The test uses `WARDROBE_INSPECT_PROMPT` as a registered game-string key for the focused prompt. A reported `View` label is consistent with that baseline, but does not establish that arbitrary custom text such as `Recruit` can be displayed.
 
-- Prompt handle `217346` created.
-- Control action set to `INPUT_INTERACT_OPTION1`, hash `0x760A9C6F`.
-- Registered text key `WARDROBE_INSPECT_PROMPT` set.
-- Target `208642` selected at distance `1.560238` metres.
-- Target focus began at `21:39:57.457`.
-- Target prompt group `268566635` obtained and assigned to the test prompt.
-- Prompt enabled while focused and detached/disabled after focus ended.
-- The direct control availability query reported `enabled=True`.
-- Register and unregister wrappers for the interaction lock-on prompt were not found.
-- No `FOCUSED PROMPT PRESSED` event appears in this run.
+The control configured by the test is `INPUT_INTERACT_OPTION1` (`0x760A9C6F`). External control data lists it as G for QWERTY PC and D-pad Up for Xbox; the user's in-game control mapping is the relevant confirmation for their setup.
 
-The log confirms the prompt setup and target-group attachment. The user’s report confirms that `G View` was visible and that pressing G produced an animation. The missing pressed event means the test did not record the press through its existing `UI_PROMPT_IS_PRESSED` check; it does not invalidate the user’s observation.
-
-## Research findings
-
-- A common prompt lifecycle is register-begin, configure a control and text, register-end, then enable/disable and delete as needed.
-- Prompt libraries distinguish prompt-level states such as pressed, just-pressed, and standard-mode completion. They poll these states every frame while the prompt is enabled.
-- Raw control checks are a separate observation channel from prompt-state checks. The next test samples both channels to identify which one detects the G press.
-- Prompt groups have different activation patterns. Ordinary active groups may require per-frame activation, while entity-associated/ambient prompt groups are managed differently. Keep the currently visible target-group method unchanged during the input-diagnostic test.
-- The installed v2.2.0 API assembly is authoritative for native wrapper availability and signatures. The previous log did not print resolved signatures for the prompt-state probes.
-- The ScriptHookRDR2DotNet-V2 issue tracker records an unresolved custom-prompt-string issue. The registered `WARDROBE_INSPECT_PROMPT` baseline is therefore retained; custom `Recruit` text is not part of this test.
-- The current log could not resolve `REGISTER_INTERACTION_LOCKON_PROMPT` or `UNREGISTER_INTERACTION_LOCKON_PROMPT` wrappers. Do not treat the ILO approach prompt as working.
+Keep the interaction prompt and any recruitment action separate. The current test does not recruit an NPC and should remain that way until prompt visibility and input handling have been isolated.
 
 ## Next test
 
-Use the new `Test.cs` input-diagnostic version.
-
-1. Build and run with the registered `View` prompt unchanged.
-2. Focus one human NPC and tap G once while the prompt is visible.
-3. Check `Test_Log.txt` for `INPUT EVENT` and `INPUT STATE` entries from both the prompt and raw-control probes.
-4. Compare the heartbeat values to determine whether the prompt was active when the key was pressed.
-5. Report whether the animation occurred, separately from the diagnostic log.
-6. Do not enable recruitment or animation calls until the input path is understood.
+- Preserve the current `Test.cs` baseline.
+- Run the test with an NPC in focus and capture a fresh `Test_Log.txt`.
+- While the prompt is active, press G once and check whether the log records `FOCUSED PROMPT PRESSED`.
+- Record separately whether `G View` is visible and whether an animation occurs; neither observation alone proves the other.
+- The native ILO registration path remains unconfirmed because the current log reports that compatible register and unregister wrappers were not found.
+- Test custom `Recruit` text separately from prompt visibility and input handling.
+- Keep recruitment execution disabled until these results are isolated.
