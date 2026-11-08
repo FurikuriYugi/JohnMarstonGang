@@ -7,7 +7,6 @@ public class Test : Script
 {
     private const uint InputInteractOption1 = 0x760A9C6Fu;
     private const int PromptGroupTab = 0;
-
     private const string RecruitPromptText = "Recruit";
 
     private readonly string _logPath = Path.Combine(
@@ -30,18 +29,23 @@ public class Test : Script
 
     private string _lastInputError;
     private string _lastPromptError;
+    private string _lastScreenTextError;
+
+    private bool _hasLoggedScreenTextAttempt;
+    private bool _hasLoggedPromptActiveState;
+    private bool _lastPromptActiveState;
+
+    private int _lastAssignedTargetHandle = int.MinValue;
+    private int _lastAssignedGroupId = int.MinValue;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== VAR_STRING sequencing test: Recruit/G ===");
-        Log("Goal: test Recruit text using VAR_STRING directly in _UI_PROMPT_SET_TEXT.");
-        Log("Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY");
-        Log("Recruit text: MISC.VAR_STRING(10, LITERAL_STRING, Recruit)");
-        Log("G control: INPUT_INTERACT_OPTION1; hash=0x" +
-            InputInteractOption1.ToString("X8"));
-        Log("Prompt is assigned to the focused target's prompt group.");
+        Log("=== VAR_STRING display comparison test: Recruit/G ===");
+        Log("Goal: compare VAR_STRING in UI._DISPLAY_TEXT and _UI_PROMPT_SET_TEXT.");
+        Log("Screen diagnostic appears while a focused human target is present.");
+        Log("Recruit/G prompt remains assigned to the focused target's prompt group.");
         Log("No recruitment or gang membership changes are performed.");
 
         CreatePrompt();
@@ -66,8 +70,6 @@ public class Test : Script
             RDR2.Native.HUD._UI_PROMPT_SET_CONTROL_ACTION(
                 _promptHandle,
                 InputInteractOption1);
-
-            Log("VAR_STRING CALL: immediately before _UI_PROMPT_SET_TEXT");
 
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 _promptHandle,
@@ -125,16 +127,22 @@ public class Test : Script
             targetHandle > 0 &&
             targetIsHuman;
 
-        int targetGroupId = -1;
-        bool groupFound = false;
-        bool promptAssigned = false;
-
-        if (hasValidHumanTarget && _promptHandle > 0)
+        if (!hasValidHumanTarget)
         {
-            groupFound = TryGetTargetPromptGroup(
-                targetHandle,
-                out targetGroupId);
+            _hasLoggedScreenTextAttempt = false;
+            _hasLoggedGroupActivePage = false;
+            UpdatePrompt(false);
+            return;
         }
+
+        DrawVarStringScreenDiagnostic();
+
+        int targetGroupId;
+        bool groupFound = TryGetTargetPromptGroup(
+            targetHandle,
+            out targetGroupId);
+
+        bool promptAssigned = false;
 
         if (groupFound && targetGroupId >= 0)
         {
@@ -151,11 +159,47 @@ public class Test : Script
         }
 
         bool shouldShowPrompt =
-            hasValidHumanTarget &&
             groupFound &&
             promptAssigned;
 
         UpdatePrompt(shouldShowPrompt);
+    }
+
+    private void DrawVarStringScreenDiagnostic()
+    {
+        try
+        {
+            RDR2.Native.UI.SET_TEXT_SCALE(
+                0.35f,
+                0.35f);
+
+            RDR2.Native.UI.SET_TEXT_CENTRE(
+                true);
+
+            RDR2.Native.UI._DISPLAY_TEXT(
+                RDR2.Native.MISC.VAR_STRING(
+                    10,
+                    "LITERAL_STRING",
+                    RecruitPromptText),
+                0.5f,
+                0.08f);
+
+            if (!_hasLoggedScreenTextAttempt)
+            {
+                _hasLoggedScreenTextAttempt = true;
+                Log("VAR_STRING SCREEN DISPLAY CALLED: " +
+                    "direct result passed to UI._DISPLAY_TEXT");
+            }
+
+            _lastScreenTextError = null;
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                ref _lastScreenTextError,
+                "VAR_STRING SCREEN DISPLAY ERROR: " +
+                InnermostMessage(exception));
+        }
     }
 
     private void ReadFocusedTarget(
@@ -182,7 +226,8 @@ public class Test : Script
                             true);
             }
 
-            if (!nativeFoundTarget || focusedTargetHandle <= 0)
+            if (!nativeFoundTarget ||
+                focusedTargetHandle <= 0)
             {
                 _lastTargetError = null;
                 return;
@@ -305,9 +350,6 @@ public class Test : Script
         }
     }
 
-    private int _lastAssignedTargetHandle = int.MinValue;
-    private int _lastAssignedGroupId = int.MinValue;
-
     private void LogGroupActivePageIfChanged(int groupId)
     {
         try
@@ -393,9 +435,6 @@ public class Test : Script
                 InnermostMessage(exception));
         }
     }
-
-    private bool _hasLoggedPromptActiveState;
-    private bool _lastPromptActiveState;
 
     private void LogTargetStateIfChanged(
         bool nativeFoundTarget,

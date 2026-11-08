@@ -21,7 +21,7 @@ Add the G glyph and the string `Recruit` to the unarmed focus menu for a focused
 
 ### Status
 
-**In progress.** Focused-target detection, assignment to the focused target’s prompt group, and an active-page transition have been demonstrated. The user reports that `Recruit` did not appear. The user has also confirmed that a prompt configured with G and the known `CUTSCENE_SKIP` text displays **G Skip**. The current test now isolates the `VAR_STRING` call sequence for `Recruit`; it has not yet been run.
+**In progress.** Focused-target detection, target-group assignment, and a group active-page transition have been demonstrated. The user confirms that a known `CUTSCENE_SKIP` label can display as **G Skip**. The custom `Recruit` text made with `VAR_STRING` has not appeared in the prompt menu. The new test compares that same varstring through a separate screen text native.
 
 ### Established from prior user testing
 
@@ -30,9 +30,9 @@ The user has confirmed:
 - An approach label can be added.
 - The focused target can be detected.
 - Items can be added to the menu.
-- A prompt using G with the known `CUTSCENE_SKIP` text displays **G Skip**.
+- A prompt using G with the known `CUTSCENE_SKIP` label displays as **G Skip**.
 
-These are settled project findings. Do not repeat those tests absent a specific reason to do so.
+These are settled project findings. Do not repeat those tests absent a specific reason.
 
 ### Established by the focused-target test source and log
 
@@ -46,26 +46,32 @@ These are settled project findings. Do not repeat those tests absent a specific 
 - The test does not call `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME`.
 - An active prompt/group does not prove the prompt was visibly rendered or that its text or glyph was correct.
 
-### Latest comparison-test log
+### Latest direct-`VAR_STRING` prompt test
 
-`Test_Log.txt` dated `2026-11-08 12:45` records:
+`Test_Log.txt` dated `2026-11-08 13:16` records:
 
-- Both comparison prompts were created.
-- The target changed from none to a focused human NPC.
-- Both prompts were assigned to the focused target’s prompt group.
-- The group active-page query changed from `-1` to `0`.
-- Both prompts reported active while the target was focused and inactive after focus was lost.
-- The log records raw G and H input detections and corresponding prompt-pressed entries.
+- The `Recruit/G` prompt was created.
+- A focused human target was found.
+- The prompt was assigned to the target’s prompt group.
+- The active-page query changed from `-1` to `0`.
+- The prompt reported active while the target was focused and inactive after focus was lost.
+- The log contains no G input or prompt-pressed entry.
 
-These log entries establish input detection and reported prompt-active state. They do **not** establish what text or glyph was visible.
+**User observation:** The user reports that `Recruit` did not appear in the menu.
 
-### User observations
+**Conclusion:** Passing the `VAR_STRING` result directly to `_UI_PROMPT_SET_TEXT`, with no intervening native call, did not make `Recruit` visible. This does not establish whether `VAR_STRING` works in other text-display natives. The run does not establish whether G input activated the prompt.
 
-- The user reports that `Recruit` did not appear in the unarmed focus menu.
-- The user confirms that the known `CUTSCENE_SKIP` label with the G control appears as **G Skip**.
-- The user has not reported that the `Recruit` text appeared in the menu.
+### Current test: screen-display comparison
 
-Keep these as user observations; do not represent them as logged results from the latest comparison-test log.
+- **Question/goal:** Does the same `VAR_STRING(10, "LITERAL_STRING", "Recruit")` display through `UI._DISPLAY_TEXT` while a focused human target is present?
+- **Status:** Prepared; not yet run.
+- **Test conditions:** The test keeps the focused-target `Recruit/G` prompt and additionally calls `VAR_STRING` directly as the `UI._DISPLAY_TEXT` text argument each tick while a human target is focused. Text is drawn near the top center of the screen.
+- **Instrumented results:** None yet. The log will note the screen-native call attempt and any exception; it cannot verify visual rendering by itself.
+- **User observations:** Prior direct-`VAR_STRING` prompt text did not appear. The user confirms the known `CUTSCENE_SKIP` label displays as **G Skip**.
+- **Conclusion:** Pending the in-game comparison.
+- **Do not repeat:** Focused-target detection, group assignment, the active-page test, the G Skip test, or the direct `VAR_STRING`-to-prompt sequencing test.
+- **Next result to record:** Separately note whether the screen `Recruit` appears, whether the prompt-menu `Recruit` appears, whether the G glyph appears, and whether pressing G is logged.
+- **API references:** `RDR2.Native.MISC.VAR_STRING`, `RDR2.Native.UI._DISPLAY_TEXT`, `RDR2.Native.HUD._UI_PROMPT_SET_TEXT`; see `NativeReferenceGuide.md`.
 
 ### Prompt-group research retained with scope
 
@@ -75,21 +81,9 @@ Keep these as user observations; do not represent them as logged results from th
 - In the focused-target test, the entity’s group became active without a call to `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME`. This is an observed result for the tested ILO case; it does not replace or disprove the general active/ambient-group guidance.
 - Avoid repeating group-activation experiments unless a later result shows the ILO group is no longer active or the test conditions change.
 
-### Upstream research lead
+### Upstream API release-note lead
 
-An upstream ScriptHookRDR2DotNet-V2 report titled “Prompt Text doesn't work with custom strings” says custom text made with `VAR_STRING` does not work with `_UI_PROMPT_SET_TEXT` in the reported setup; it names database-registered strings such as `CUTSCENE_SKIP` as a working alternative. This is an upstream report, not verified behavior for this project’s installed API version.
-
-### Current test: direct `VAR_STRING` result
-
-- **Question/goal:** Does passing the `VAR_STRING` result directly to `_UI_PROMPT_SET_TEXT`, after setting the G control and with no intervening native call, make `Recruit` display?
-- **Status:** In progress; test source prepared, not yet run.
-- **Test conditions:** One `Recruit` prompt using G, assigned to the focused human target’s prompt group. The test sets the control action first and calls `VAR_STRING(10, "LITERAL_STRING", "Recruit")` directly as the `_UI_PROMPT_SET_TEXT` argument.
-- **Instrumented results:** None yet for this test.
-- **User observations:** Prior `Recruit` text was not visible. User confirms the known `CUTSCENE_SKIP` label displays as **G Skip** when assigned to G.
-- **Conclusion:** G display with a known label is already confirmed by the user. The remaining question is whether the custom text path or the method of passing its result is responsible for the missing `Recruit` text.
-- **Do not repeat:** Adding an approach label, focused-target detection, adding a prompt to the target’s group, the observed active-page transition, or the known G Skip test.
-- **Next test:** Run the current `Test.cs`. Report separately whether the `Recruit` text is visible, whether the G glyph is visible, whether G input is logged, whether the prompt reports active, and whether the prompt-pressed entry is logged.
-- **API references:** `RDR2.Native.MISC.VAR_STRING`, `RDR2.Native.HUD._UI_PROMPT_SET_TEXT`, focused-target prompt-group natives; see `NativeReferenceGuide.md`.
+ScriptHookRDR2DotNet-V2 release notes for 2.1.0.1 state that the prompt implementation was updated and that prompt text did not yet work. The 2.2.0 notes mention general internal updates but do not explicitly state that prompt text was fixed. Treat this as a reason to test the prompt setter separately from ordinary screen text, not as proof of current 2.2.0 behavior.
 
 ## Do not repeat without a specific reason
 
@@ -98,6 +92,7 @@ An upstream ScriptHookRDR2DotNet-V2 report titled “Prompt Text doesn't work wi
 - Adding a prompt to the focused target’s group.
 - The observed active-page transition in the logged ILO test.
 - The known G Skip display test.
+- The direct-`VAR_STRING`-to-prompt sequencing test.
 
 ## Template for future test entries
 
