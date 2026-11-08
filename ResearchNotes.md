@@ -2,18 +2,44 @@
 
 ## Current mode
 
-The project is in test mode. Do not edit `StoryBoard.md` during this phase. Keep test findings in this file and native/API findings in `NativeReferenceGuide.md`.
+The project is in test mode. Do not edit `StoryBoard.md` during this phase. Record test findings in this file and native/API findings in `NativeReferenceGuide.md`.
 
-## Recruitment prompt test
+## Current test objective
 
-The current test has one goal: add a G-controlled “Recruit” prompt to the focused human NPC’s existing interaction menu, alongside the game’s existing options such as Greet and Rob.
+Test only these steps:
 
-The test must not recruit the NPC or change gang membership. Pressing G is logged only.
+1. Get the focused interaction target.
+2. Determine whether it is a human NPC.
+3. Add a G-controlled “Recruit” prompt to that NPC’s existing prompt group.
+4. Log whether the prompt becomes active and whether it is pressed.
 
-## Relevant prompt path
+The test must not recruit the NPC or change gang membership.
 
-The focused target is obtained with:
+## Evidence collected
 
-```text
-RDR2.Native.PLAYER.GET\_PLAYER\_INTERACTION\_TARGET\_ENTITY
+### Test log
+
+The recorded `Test_Log.txt` shows:
+
+- The UI prompt was created with handle `207362`.
+- Each recorded focused-target lookup returned `nativeFoundTarget=False` and `focusedTarget=none`.
+- No target group was retrieved or assigned.
+- No target-specific prompt display was verified.
+
+These log entries establish that prompt creation ran, but they do not establish that target detection or adding the prompt to an NPC’s menu works.
+
+### In-game visual report
+
+The user reported that right-clicking an NPC caused the game to crash with a Script Hook RDR2 CORE exception, id 33. This is a reported observation. The available log does not establish which native or operation caused the crash.
+
+### API signature
+
+The user checked the Object Browser and provided this declaration:
+
+```csharp
+public unsafe static bool GET_PLAYER_INTERACTION_TARGET_ENTITY(
+    int player,
+    int* outEntity,
+    bool p2,
+    bool p3)
 ```
