@@ -1,18 +1,28 @@
-2026-11-08 12:05:14.086 === Focused-target Recruit prompt test ===
-2026-11-08 12:05:14.086 Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY
-2026-11-08 12:05:14.086 Prompt text: Recruit
-2026-11-08 12:05:14.086 Prompt text builder: RDR2.Native.MISC.VAR_STRING(10, LITERAL_STRING, PromptText)
-2026-11-08 12:05:14.086 Prompt control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-08 12:05:14.087 Group diagnostic: _UI_PROMPT_GET_GROUP_ACTIVE_PAGE
-2026-11-08 12:05:14.087 This test does not force an exclusive active prompt group.
-2026-11-08 12:05:14.087 No recruitment or gang membership changes are performed.
-2026-11-08 12:05:14.098 PROMPT CREATED: handle=216834
-2026-11-08 12:05:14.135 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 12:05:14.137 PROMPT ACTIVE: False
-2026-11-08 12:05:21.693 TARGET: nativeFound=True; handle=207874; human=True
-2026-11-08 12:05:21.695 PROMPT GROUP ASSIGNED: target=207874; group=268566631
-2026-11-08 12:05:21.695 PROMPT GROUP ACTIVE PAGE: group=268566631; page=-1; active=False
-2026-11-08 12:05:21.706 PROMPT GROUP ACTIVE PAGE: group=268566631; page=0; active=True
-2026-11-08 12:05:21.707 PROMPT ACTIVE: True
-2026-11-08 12:05:26.503 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 12:05:26.503 PROMPT ACTIVE: False
+2026-11-08 12:45:48.328 === Focused-target prompt text comparison test ===
+2026-11-08 12:45:48.329 Goal: compare custom Recruit/G text with a database-label/H prompt.
+2026-11-08 12:45:48.329 Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY
+2026-11-08 12:45:48.329 Recruit text source: MISC.VAR_STRING(10, LITERAL_STRING, Recruit)
+2026-11-08 12:45:48.329 Database-label test token: CUTSCENE_SKIP
+2026-11-08 12:45:48.329 G control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+2026-11-08 12:45:48.330 H control: INPUT_INTERACT_OPTION2; hash=0x84543902
+2026-11-08 12:45:48.330 Both test prompts are assigned to the focused target's prompt group.
+2026-11-08 12:45:48.330 No recruitment or gang membership changes are performed.
+2026-11-08 12:45:48.341 PROMPT CREATED: name=Recruit/G; handle=211202; textSource=VAR_STRING literal
+2026-11-08 12:45:48.341 PROMPT CREATED: name=Database-label/H; handle=211458; textSource=database token
+2026-11-08 12:45:48.379 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 12:45:48.381 PROMPT ACTIVE: name=Recruit/G; active=False
+2026-11-08 12:45:48.381 PROMPT ACTIVE: name=Database-label/H; active=False
+2026-11-08 12:45:58.372 TARGET: nativeFound=True; handle=206594; human=True
+2026-11-08 12:45:58.374 PROMPT GROUP ASSIGNED: name=Recruit/G; target=206594; group=268566629
+2026-11-08 12:45:58.374 PROMPT GROUP ASSIGNED: name=Database-label/H; target=206594; group=268566629
+2026-11-08 12:45:58.375 PROMPT GROUP ACTIVE PAGE: group=268566629; page=-1; active=False
+2026-11-08 12:45:58.387 PROMPT GROUP ACTIVE PAGE: group=268566629; page=0; active=True
+2026-11-08 12:45:58.387 PROMPT ACTIVE: name=Recruit/G; active=True
+2026-11-08 12:45:58.388 PROMPT ACTIVE: name=Database-label/H; active=True
+2026-11-08 12:46:02.369 RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED
+2026-11-08 12:46:02.531 PROMPT PRESSED: name=Recruit/G; no recruitment performed.
+2026-11-08 12:46:04.168 RAW H / INPUT_INTERACT_OPTION2 PRESS DETECTED
+2026-11-08 12:46:04.470 PROMPT PRESSED: name=Database-label/H; no recruitment performed.
+2026-11-08 12:46:05.810 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 12:46:05.810 PROMPT ACTIVE: name=Recruit/G; active=False
+2026-11-08 12:46:05.811 PROMPT ACTIVE: name=Database-label/H; active=False
