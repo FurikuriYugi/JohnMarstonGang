@@ -1,21 +1,7 @@
-2026-11-07 23:55:55.873 === Dedicated active-group Recruit prompt test initialized ===
-2026-11-07 23:55:55.873 Prompt text: "Recruit".
-2026-11-07 23:55:55.873 Prompt group name: "NPC".
-2026-11-07 23:55:55.873 Dedicated prompt group ID: 4869447
-2026-11-07 23:55:55.873 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-07 23:55:55.873 Active prompt group is activated every focused tick.
-2026-11-07 23:55:55.874 This test does not recruit, change gang membership, or trigger an animation.
-2026-11-07 23:55:55.882 PROMPT CREATED: prompt=213250; text="Recruit"
-2026-11-07 23:56:04.922 FOCUSED HUMAN TARGET BEGIN: target=204034
-2026-11-07 23:56:04.923 PROMPT ATTACHED TO DEDICATED GROUP: prompt=213250; target=204034; group=4869447
-2026-11-07 23:56:04.927 INPUT STATE: UI_PROMPT_IS_ACTIVE=False; target=204034; prompt=213250
-2026-11-07 23:56:04.927 INPUT STATE: UI_PROMPT_IS_PRESSED=False; target=204034; prompt=213250
-2026-11-07 23:56:04.927 INPUT STATE: IS_CONTROL_ENABLED=True; target=204034; prompt=213250
-2026-11-07 23:56:04.927 INPUT STATE: IS_CONTROL_PRESSED=False; target=204034; prompt=213250
-2026-11-07 23:56:04.927 INPUT HEARTBEAT: promptActive=False; promptPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:56:06.937 INPUT HEARTBEAT: promptActive=False; promptPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:56:07.468 INPUT STATE: IS_CONTROL_PRESSED=True; target=204034; prompt=213250
-2026-11-07 23:56:07.469 INPUT EVENT: IS_CONTROL_JUST_PRESSED=true; target=204034; prompt=213250
-2026-11-07 23:56:07.645 INPUT STATE: IS_CONTROL_PRESSED=False; target=204034; prompt=213250
-2026-11-07 23:56:08.721 FOCUSED TARGET END: target=204034
-2026-11-07 23:56:08.723 PROMPT DETACHED AND DISABLED: prompt=213250; group=4869447
+2026-11-08 00:08:55.956 === Registered-string prompt rendering diagnostic ===
+2026-11-08 00:08:55.956 Prompt text key: CUTSCENE_SKIP
+2026-11-08 00:08:55.956 Prompt group-name key: CUTSCENE_SKIP
+2026-11-08 00:08:55.956 Prompt group ID: 4869447
+2026-11-08 00:08:55.956 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+2026-11-08 00:08:55.957 G input only logs an event. It does not recruit.
+2026-11-08 00:08:55.966 PROMPT CREATED: handle=212482
