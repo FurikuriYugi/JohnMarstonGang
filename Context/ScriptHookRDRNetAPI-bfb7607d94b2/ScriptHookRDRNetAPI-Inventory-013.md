@@ -1,0 +1,709 @@
+<!-- ScriptHookRDRNetAPI-Inventory chunk 13 of 26; methods=702; sha256=bfb7607d94b2de7f8530289377f163caad81098afc1fb7ee86191810a6cc6bba -->
+## `RDR2.Native.TASK`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Void RDR2.Native.TASK.ADD_COVER_BLOCKING_AREA(System.Single playerX, System.Single playerY, System.Single playerZ, System.Single radiusX, System.Single radiusY, System.Single radiusZ, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Int32 RDR2.Native.TASK.ADD_COVER_POINT(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.TASK.ADD_FLEE_TARGET_PED(System.Int32 ped, System.Int32 targetPed, System.Single p2)`
+- `public static System.Void RDR2.Native.TASK.ADD_PATROL_ROUTE_LINK(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK.ADD_PATROL_ROUTE_NODE(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9)`
+- `public static System.Boolean RDR2.Native.TASK.ARE_COMPOSITE_LOOTABLE_ENTITY_DEF_ASSETS_LOADED(System.UInt32 asset)`
+- `public static System.Boolean RDR2.Native.TASK.ASSISTED_MOVEMENT_IS_ROUTE_LOADED(System.String route)`
+- `public static System.Void RDR2.Native.TASK.ASSISTED_MOVEMENT_REMOVE_ROUTE(System.String route)`
+- `public static System.Void RDR2.Native.TASK.ASSISTED_MOVEMENT_SET_ROUTE_PROPERTIES(System.String route, System.Int32 props)`
+- `public static System.Boolean RDR2.Native.TASK.CAN_START_ITEM_INTERACTION(System.Int32 ped, System.UInt32 itemHash, System.UInt32 interactionAnimHash, System.Int32 p3)`
+- `public static System.Void RDR2.Native.TASK.CLEAR_DRIVEBY_TASK_UNDERNEATH_DRIVING_TASK(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.CLEAR_PED_SECONDARY_TASK(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.CLEAR_PED_TASKS(System.Int32 ped, System.Boolean p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.TASK.CLEAR_PED_TASKS_IMMEDIATELY(System.Int32 ped, System.Boolean p1, System.Boolean resetCrouch)`
+- `public static System.Void RDR2.Native.TASK.CLEAR_SEQUENCE_TASK(System.Int32* taskSequenceId)`
+- `public static System.Void RDR2.Native.TASK.CLOSE_PATROL_ROUTE()`
+- `public static System.Void RDR2.Native.TASK.CLOSE_SEQUENCE_TASK(System.Int32 taskSequenceId)`
+- `public static System.Void RDR2.Native.TASK.CREATE_PATROL_ROUTE()`
+- `public static System.Int32 RDR2.Native.TASK.CREATE_SCENARIO_POINT_HASH(System.UInt32 scenarioHash, RDR2.Math.Vector3 vec, System.Single heading, System.UInt64 p5, System.UInt64 p6, System.Boolean p7)`
+- `public static System.Int32 RDR2.Native.TASK.CREATE_SCENARIO_POINT_HASH(System.UInt32 scenarioHash, System.Single x, System.Single y, System.Single z, System.Single heading, System.UInt64 p5, System.UInt64 p6, System.Boolean p7)`
+- `public static System.Int32 RDR2.Native.TASK.CREATE_SCENARIO_POINT_HASH_ATTACHED_TO_ENTITY(System.Int32 entity, System.UInt32 scenarioHash, RDR2.Math.Vector3 vec, System.Single heading, System.UInt64 p6, System.UInt64 p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.TASK.CREATE_SCENARIO_POINT_HASH_ATTACHED_TO_ENTITY(System.Int32 entity, System.UInt32 scenarioHash, System.Single x, System.Single y, System.Single z, System.Single heading, System.UInt64 p6, System.UInt64 p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.TASK.DELETE_PATROL_ROUTE(System.String patrolRoute)`
+- `public static System.Boolean RDR2.Native.TASK.DOES_SCENARIO_EXIST_IN_AREA(RDR2.Math.Vector3 vec, System.Single radius, System.Boolean p4, System.UInt64 p5, System.Boolean p6)`
+- `public static System.Boolean RDR2.Native.TASK.DOES_SCENARIO_EXIST_IN_AREA(System.Single x, System.Single y, System.Single z, System.Single radius, System.Boolean p4, System.UInt64 p5, System.Boolean p6)`
+- `public static System.Boolean RDR2.Native.TASK.DOES_SCENARIO_GROUP_EXIST(System.String scenarioGroup)`
+- `public static System.Boolean RDR2.Native.TASK.DOES_SCENARIO_OF_TYPE_EXIST_IN_AREA_HASH(RDR2.Math.Vector3 vec, System.UInt32 typeHash, System.Single radius, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.TASK.DOES_SCENARIO_OF_TYPE_EXIST_IN_AREA_HASH(System.Single x, System.Single y, System.Single z, System.UInt32 typeHash, System.Single radius, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.TASK.DOES_SCENARIO_POINT_EXIST(System.Int32 scenario)`
+- `public static System.Boolean RDR2.Native.TASK.DOES_SCRIPTED_COVER_POINT_EXIST_AT_COORDS(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.END_DUEL(System.Int32 ped, System.Boolean p1, System.Single p2)`
+- `public static System.Int32 RDR2.Native.TASK.FIND_SCENARIO_OF_TYPE_HASH(RDR2.Math.Vector3 vec, System.UInt32 scenarioType, System.Single distance, System.UInt64 p5, System.Boolean p6)`
+- `public static System.Int32 RDR2.Native.TASK.FIND_SCENARIO_OF_TYPE_HASH(System.Single xPos, System.Single yPos, System.Single zPos, System.UInt32 scenarioType, System.Single distance, System.UInt64 p5, System.Boolean p6)`
+- `public static System.Void RDR2.Native.TASK.FORCE_SCENARIO_GROUP_PRIORITY(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Int32 RDR2.Native.TASK.GET_ACTIVE_VEHICLE_MISSION_TYPE(System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.TASK.GET_IS_CARRIABLE_ENTITY(System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.TASK.GET_IS_PED_AIMING_IN_THE_AIR(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.GET_IS_TASK_ACTIVE(System.Int32 ped, System.Int32 taskIndex)`
+- `public static System.Boolean RDR2.Native.TASK.GET_IS_WAYPOINT_RECORDING_LOADED(System.String waypointRecording)`
+- `public static System.UInt32 RDR2.Native.TASK.GET_ITEM_INTERACTION_ITEM_ID(System.Int32 ped)`
+- `public static System.Single RDR2.Native.TASK.GET_ITEM_INTERACTION_PROMPT_PROGRESS(System.Int32 ped, System.UInt32 inputContext)`
+- `public static System.UInt32 RDR2.Native.TASK.GET_ITEM_INTERACTION_STATE(System.Int32 ped)`
+- `public static System.Single RDR2.Native.TASK.GET_PED_DESIRED_MOVE_BLEND_RATIO(System.Int32 ped)`
+- `public static System.Single RDR2.Native.TASK.GET_PED_WAYPOINT_DISTANCE(System.Int32 ped)`
+- `public static System.Single RDR2.Native.TASK.GET_PED_WAYPOINT_OVERRIDE_SPEED(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.TASK.GET_PED_WAYPOINT_PROGRESS(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.TASK.GET_PROP_FOR_SCENARIO_POINT(System.Int32 scenarioPoint, System.String name)`
+- `public static System.UInt64 RDR2.Native.TASK.GET_RANSACK_SCENARIO_POINT_PED_IS_USING(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.TASK.GET_SCENARIO_POINTS_IN_AREA(RDR2.Math.Vector3 vec, System.Single radius, System.UInt64* scenariosInRadius, System.Int32 size)`
+- `public static System.Int32 RDR2.Native.TASK.GET_SCENARIO_POINTS_IN_AREA(System.Single posX, System.Single posY, System.Single posZ, System.Single radius, System.UInt64* scenariosInRadius, System.Int32 size)`
+- `public static RDR2.Math.Vector3 RDR2.Native.TASK.GET_SCRIPTED_COVER_POINT_COORDS(System.Int32 coverpoint)`
+- `public static System.Int32 RDR2.Native.TASK.GET_SCRIPT_TASK_STATUS(System.Int32 ped, System.UInt32 taskHash, System.Boolean p2)`
+- `public static System.Int32 RDR2.Native.TASK.GET_SEQUENCE_PROGRESS(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.GET_TASK_MOVE_NETWORK_EVENT(System.Int32 ped, System.String eventName)`
+- `public static System.String RDR2.Native.TASK.GET_TASK_MOVE_NETWORK_STATE(System.Int32 ped)`
+- `public static System.UInt64 RDR2.Native.TASK.GET_VEHICLE_WAYPOINT_PLAYBACK_OVERRIDE_SPEED(System.UInt64 p0)`
+- `public static System.Int32 RDR2.Native.TASK.GET_VEHICLE_WAYPOINT_PROGRESS(System.Int32 vehicle)`
+- `public static System.Int32 RDR2.Native.TASK.GET_VEHICLE_WAYPOINT_TARGET_POINT(System.Int32 vehicle)`
+- `public static System.Single RDR2.Native.TASK.GET_WAYPOINT_DISTANCE_ALONG_ROUTE(System.String waypointRecording, System.Int32 p1)`
+- `public static System.Boolean RDR2.Native.TASK.IS_DRIVEBY_TASK_UNDERNEATH_DRIVING_TASK(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_EMOTE_TASK_RUNNING(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.TASK.IS_MOUNTED_WEAPON_TASK_UNDERNEATH_DRIVING_TASK(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_MOVE_BLEND_RATIO_RUNNING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_MOVE_BLEND_RATIO_SPRINTING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_MOVE_BLEND_RATIO_STILL(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_MOVE_BLEND_RATIO_WALKING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_ACTIVE_IN_SCENARIO(System.Int32 ped, System.Int32 scenario)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_BEING_ARRESTED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_CUFFED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_EXITING_SCENARIO(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_GETTING_UP(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_IN_HIT_REACT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_IN_WRITHE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_RUNNING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_RUNNING_INSPECTION_TASK(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_RUNNING_TASK_ITEM_INTERACTION(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_SCENARIO_REACT_LOOKING(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_SPRINTING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_STILL(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_PED_WALKING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_SCENARIO_GROUP_ENABLED(System.String scenarioGroup)`
+- `public static System.Boolean RDR2.Native.TASK.IS_SCENARIO_OCCUPIED(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.Boolean p4)`
+- `public static System.Boolean RDR2.Native.TASK.IS_SCENARIO_TYPE_ENABLED(System.String scenarioType)`
+- `public static System.Boolean RDR2.Native.TASK.IS_TASK_MOVE_NETWORK_ACTIVE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_TASK_MOVE_NETWORK_READY_FOR_TRANSITION(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.IS_TEAM_CARRIABLE_ENTITY(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.TASK.IS_WAYPOINT_PLAYBACK_GOING_ON_FOR_PED(System.Int32 ped, System.String waypointRecording)`
+- `public static System.Boolean RDR2.Native.TASK.IS_WAYPOINT_PLAYBACK_GOING_ON_FOR_VEHICLE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK.MAKE_OBJECT_NOT_CARRIABLE(System.Int32 _object)`
+- `public static System.Void RDR2.Native.TASK.OPEN_PATROL_ROUTE(System.String patrolRoute)`
+- `public static System.Void RDR2.Native.TASK.OPEN_SEQUENCE_TASK(System.Int32* taskSequenceId)`
+- `public static System.Boolean RDR2.Native.TASK.PED_HAS_USE_SCENARIO_TASK(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.PLAY_ANIM_ON_RUNNING_SCENARIO(System.Int32 ped, System.String animDict, System.String animName)`
+- `public static System.Void RDR2.Native.TASK.PLAY_ENTITY_SCRIPTED_ANIM(System.Int32 entity, System.UInt64* args)`
+- `public static System.Void RDR2.Native.TASK.REACT_LOOK_AT(System.Int32 ped, System.Int32 targetPed, System.Int32 lookIntensity, System.Int32 exitAnimation, System.Single duration, System.Int32 p5, System.Int32 targetPed2, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.TASK.REACT_LOOK_AT_END(System.Int32 ped, System.Int32 exitAnimation, System.Boolean p2)`
+- `public static System.Void RDR2.Native.TASK.REMOVE_ALL_COVER_BLOCKING_AREAS()`
+- `public static System.Void RDR2.Native.TASK.REMOVE_COVER_POINT(System.Int32 coverpoint)`
+- `public static System.Void RDR2.Native.TASK.REMOVE_WAYPOINT_RECORDING(System.String waypointRecording)`
+- `public static System.Void RDR2.Native.TASK.REQUEST_TASK_MOVE_NETWORK_STATE_TRANSITION(System.Int32 ped, System.String name)`
+- `public static System.Void RDR2.Native.TASK.REQUEST_WAYPOINT_RECORDING(System.String waypointRecording)`
+- `public static System.Void RDR2.Native.TASK.RESET_SCENARIO_GROUPS_ENABLED()`
+- `public static System.Void RDR2.Native.TASK.RESET_SCENARIO_TYPES_ENABLED()`
+- `public static System.Void RDR2.Native.TASK.SET_ANIM_FILTER(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.SET_ANIM_RATE(System.UInt64 p0, System.Single p1, System.UInt64 p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.TASK.SET_DRIVEBY_TASK_TARGET(System.Int32 shootingPed, System.Int32 targetPed, System.Int32 targetVehicle, RDR2.Math.Vector3 vec)`
+- `public static System.Void RDR2.Native.TASK.SET_DRIVEBY_TASK_TARGET(System.Int32 shootingPed, System.Int32 targetPed, System.Int32 targetVehicle, System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.TASK.SET_DRIVE_TASK_CRUISE_SPEED(System.Int32 driver, System.Single cruiseSpeed)`
+- `public static System.Void RDR2.Native.TASK.SET_DRIVE_TASK_MAX_CRUISE_SPEED(System.Int32 ped, System.Single maxCruiseSpeed)`
+- `public static System.Void RDR2.Native.TASK.SET_ENABLE_SPEED_RESTRAIN_FOR_WAYPOINT_RECORDING_LEADER(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.TASK.SET_ENHANCED_BREAK_FREE(System.Int32 ped, System.Boolean p1, System.String clipset)`
+- `public static System.Void RDR2.Native.TASK.SET_HIGH_FALL_TASK(System.Int32 ped, System.Int32 p1, System.Int32 p2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_DESIRED_MOVE_BLEND_RATIO(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_AVOID_FIRE(System.Int32 ped, System.Boolean avoidFire)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_CAN_DROP_FROM_HEIGHT(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_CAN_USE_CLIMBOVERS(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_CAN_USE_LADDERS(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_CLIMB_COST_MODIFIER(System.Int32 ped, System.Single modifier)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_DEEP_SNOW_COST_MODIFIER(System.Int32 ped, System.Single modifier)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_FOLIAGE_COST_MODIFIER(System.Int32 ped, System.Single modifier)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_MAY_ENTER_WATER(System.Int32 ped, System.Boolean mayEnterWater)`
+- `public static System.Void RDR2.Native.TASK.SET_PED_PATH_PREFER_TO_AVOID_WATER(System.Int32 ped, System.Boolean avoidWater, System.Single p2)`
+- `public static System.UInt64 RDR2.Native.TASK.SET_PED_WAYPOINT_ROUTE_OFFSET(System.Int32 ped, System.Single p1, System.Single p2, System.Single p3)`
+- `public static System.Void RDR2.Native.TASK.SET_SCENARIO_GROUP_ENABLED(System.String scenarioGroup, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.TASK.SET_SCENARIO_TYPE_ENABLED(System.String scenarioType, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.TASK.SET_SEQUENCE_TO_REPEAT(System.Int32 taskSequenceId, System.Boolean repeat)`
+- `public static System.Void RDR2.Native.TASK.SET_TASK_MOVE_NETWORK_SIGNAL_BOOL(System.Int32 ped, System.String signalName, System.Boolean value)`
+- `public static System.Void RDR2.Native.TASK.SET_TASK_MOVE_NETWORK_SIGNAL_FLOAT(System.Int32 ped, System.String signalName, System.Single value)`
+- `public static System.Void RDR2.Native.TASK.SET_TEAM_CARRIABLE_ENTITY(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.SET_UP_SPEED_RESTRAIN_INFORMATION_FOR_PLAYER_FOLLOWER(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.TASK.START_TASK_ITEM_INTERACTION(System.Int32 ped, System.UInt32 itemHash, System.UInt32 interactionAnimHash, System.Int32 p3, System.Int32 flag, System.Single p5)`
+- `public static System.Void RDR2.Native.TASK.STOP_ANIM_PLAYBACK(System.Int32 ped, System.Int32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.TASK.STOP_ANIM_TASK(System.Int32 ped, System.String animDictionary, System.String animationName, System.Single p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_ACHIEVE_HEADING(System.Int32 ped, System.Single heading, System.Int32 timeout)`
+- `public static System.Void RDR2.Native.TASK.TASK_AIM_AT_COORD(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_AIM_AT_ENTITY(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_AIM_GUN_AT_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 time, System.Boolean p5, System.Boolean p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_AIM_GUN_AT_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 time, System.Boolean p5, System.Boolean p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_AIM_GUN_AT_ENTITY(System.Int32 ped, System.Int32 targetEntity, System.Int32 duration, System.Boolean p3, System.Int32 p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_AMBIENT_ANIMAL_HUNT(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_AMBIENT_ANIMAL_STALK(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_ANIMAL_ALERTED(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_ANIMAL_FLEE(System.Int32 ped, System.Int32 targetPed, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_ANIMAL_INTERACTION(System.Int32 ped, System.Int32 targetPed, System.UInt32 interactionType, System.UInt32 interactionModel, System.Boolean skipIdleAnimationClip)`
+- `public static System.Void RDR2.Native.TASK.TASK_ANIMAL_UNALERTED(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_ANIMAL_WRITHE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_ARREST_PED(System.Int32 ped, System.Int32 target)`
+- `public static System.Void RDR2.Native.TASK.TASK_BARK(System.Int32 ped, System.Int32 barkAtTarget, System.UInt32 mood)`
+- `public static System.Void RDR2.Native.TASK.TASK_BOAT_MISSION(System.Int32 pedDriver, System.Int32 boat, System.UInt64 p2, System.UInt64 p3, RDR2.Math.Vector3 vec, System.UInt64 p7, System.Single maxSpeed, System.Int32 drivingStyle, System.Single p10, System.UInt64 p11)`
+- `public static System.Void RDR2.Native.TASK.TASK_BOAT_MISSION(System.Int32 pedDriver, System.Int32 boat, System.UInt64 p2, System.UInt64 p3, System.Single x, System.Single y, System.Single z, System.UInt64 p7, System.Single maxSpeed, System.Int32 drivingStyle, System.Single p10, System.UInt64 p11)`
+- `public static System.Void RDR2.Native.TASK.TASK_BREAK_VEHICLE_DOOR_LOCK(System.Int32 ped, System.Int32 vehicle)`
+- `public static System.Void RDR2.Native.TASK.TASK_CARRIABLE(System.Int32 entity, System.UInt32 carryConfig, System.Int32 carrier, System.Int32 carriableSlot, System.Int32 flags)`
+- `public static System.Void RDR2.Native.TASK.TASK_CLEAR_DEFENSIVE_AREA(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.TASK_CLEAR_LOOK_AT(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.TASK_CLIMB(System.Int32 ped, System.Boolean unused)`
+- `public static System.Void RDR2.Native.TASK.TASK_CLIMB_LADDER(System.Int32 ped, System.Single p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_ANIMAL_CHARGE_PED(System.Int32 ped, System.Int32 targetPed, System.Boolean p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_ANIMAL_WARN(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_HATED_TARGETS(System.Int32 ped, System.Single radius)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_HATED_TARGETS_AROUND_PED(System.Int32 ped, System.Single radius, System.Int32 flags, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_HATED_TARGETS_AROUND_PED_TIMED(System.Int32 ped, System.Single radius, System.Single p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_HATED_TARGETS_IN_AREA(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single radius, System.Int32 flags, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_HATED_TARGETS_IN_AREA(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single radius, System.Int32 flags, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_HATED_TARGETS_NO_LOS_TEST(System.Int32 ped, System.Single radius)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_PED(System.Int32 ped, System.Int32 targetPed, System.Int32 p2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMBAT_PED_TIMED(System.Int32 ped, System.Int32 targetPed, System.Int32 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_COMPANION_AMBIENT(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.TASK.TASK_CONFRONT(System.Int32 ped, System.Int32 targetPed, System.Int32 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_COWER(System.Int32 ped, System.Int32 duration, System.Int32 pedToCowerFrom, System.String p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_DISEMBARK_NEAREST_TRAIN_CARRIAGE(System.Int32 ped, System.Single p1, System.Int32 flags)`
+- `public static System.Void RDR2.Native.TASK.TASK_DISMOUNT_ANIMAL(System.Int32 rider, System.Int32 taskFlag, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.TASK.TASK_DRIVE_BY(System.Int32 driverPed, System.Int32 targetPed, System.Int32 targetVehicle, System.Single targetX, System.Single targetY, System.Single targetZ, System.Single distanceToShoot, System.Int32 pedAccuracy, System.Boolean p8, System.UInt32 firingPattern)`
+- `public static System.Void RDR2.Native.TASK.TASK_DUCK(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.TASK.TASK_DUEL(System.Int32 ped, System.UInt64 p1, System.Single p2, System.Int32 entity, System.Single p4, System.Int32 p5, System.Single vPosOpponentX, System.Single vPosOpponentY, System.Single vPosOpponentZ, System.Single fOpponentHead, System.Int32 p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_DUMP_CARRIABLE_FROM_PARENT(System.Int32 ped, System.Int32 ped2, System.Int32 entity)`
+- `public static System.Void RDR2.Native.TASK.TASK_EAT(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_ENTER_ANIM_SCENE(System.Int32 ped, System.Int32 animScene, System.String entityName, System.String playbackListName, System.Single enterSpeed, System.Boolean bAutoStart, System.Int32 flag, System.Int32 p7, System.Single p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_ENTER_VEHICLE(System.Int32 ped, System.Int32 vehicle, System.Int32 timeout, System.Int32 seat, System.Single speed, System.Int32 flag, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_EVASIVE_ANIM(System.Int32 ped1, System.Int32 ped2, System.Int32 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_EVERYONE_LEAVE_VEHICLE_IN_ORDER(System.Int32 vehicle, System.Boolean p1)`
+- `public static System.Void RDR2.Native.TASK.TASK_EXTEND_ROUTE(RDR2.Math.Vector3 vec)`
+- `public static System.Void RDR2.Native.TASK.TASK_EXTEND_ROUTE(System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLEE_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 fleeStyle, System.Int32 p5, System.Single p6, System.Int32 duration, System.Int32 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLEE_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 fleeStyle, System.Int32 p5, System.Single p6, System.Int32 duration, System.Int32 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLEE_COORD_VIA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLEE_PED(System.Int32 ped, System.Int32 fleeFromTarget, System.Int32 fleeStyle, System.Int32 flag, System.Single p4, System.Int32 p5, System.Int32 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLEE_PED_VIA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLUSH_ROUTE()`
+- `public static System.Void RDR2.Native.TASK.TASK_FLYING_CIRCLE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLY_AWAY(System.Int32 ped, System.Int32 fleeFromTarget)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLY_TO_COORD(System.Int32 ped, System.Single travelMbr, RDR2.Math.Vector3 vec, System.Boolean p5, System.Boolean p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_FLY_TO_COORD(System.Int32 ped, System.Single travelMbr, System.Single x, System.Single y, System.Single z, System.Boolean p5, System.Boolean p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_AND_CONVERSE_WITH_PED(System.Int32 ped, System.Int32 targetPed, System.UInt64 p2, System.UInt64 p3, System.Single p4, System.Single p5, System.Int32 p6, System.UInt64 p7, System.UInt64 p8, System.Single p9, System.Single p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_ENTITY_ALONG_WAYPOINT_RECORDING_AT_OFFSET(System.Int32 ped0, System.Int32 ped1, System.String waypointRecording, System.Single p3, System.Single p4, System.Int32 p5, System.Int32 p6, System.Int32 p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_ENTITY_WHILE_AIMING_AT_ENTITY(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_NAV_MESH_TO_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single speedMultiplier, System.Int32 timeout, System.Single stoppingRange, System.Int32 flags, System.Single heading)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_NAV_MESH_TO_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single speedMultiplier, System.Int32 timeout, System.Single stoppingRange, System.Int32 flags, System.Single heading)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_NAV_MESH_TO_COORD_ADVANCED(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single speedMultiplier, System.Int32 timeout, System.Single stoppingRange, System.Int32 flags, System.Single p8, System.Single p9, System.Single p10, System.Int32 entity, System.Single unk)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_NAV_MESH_TO_COORD_ADVANCED(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single speedMultiplier, System.Int32 timeout, System.Single stoppingRange, System.Int32 flags, System.Single p8, System.Single p9, System.Single p10, System.Int32 entity, System.Single unk)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_PAVEMENT_TO_COORD(System.Int32 ped, System.UInt64* args)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_POINT_ROUTE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_TO_OFFSET_OF_COORD(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_TO_OFFSET_OF_ENTITY(System.Int32 ped, System.Int32 entity, RDR2.Math.Vector3 offset, System.Single movementSpeed, System.Int32 timeout, System.Single stoppingRange, System.Boolean persistFollowing, System.Boolean p9, System.Boolean walkOnly, System.Boolean p11, System.Boolean p12, System.Boolean p13)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_TO_OFFSET_OF_ENTITY(System.Int32 ped, System.Int32 entity, System.Single offsetX, System.Single offsetY, System.Single offsetZ, System.Single movementSpeed, System.Int32 timeout, System.Single stoppingRange, System.Boolean persistFollowing, System.Boolean p9, System.Boolean walkOnly, System.Boolean p11, System.Boolean p12, System.Boolean p13)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_WAYPOINT_RECORDING(System.Int32 ped, System.String waypointRecording, System.Int32 p2, System.Int32 flag, System.Int32 p4, System.Boolean p5, System.UInt64 p6, System.Int32 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_WAYPOINT_RECORDING_ADVANCED(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK.TASK_FOLLOW_WAYPOINT_RECORDING_AT_OFFSET(System.Int32 ped, System.String waypointRecording, System.Single p2, System.Int32 p3, System.Int32 p4, System.Int32 p5, System.Boolean p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_FORCE_MOTION_STATE(System.Int32 ped, System.UInt32 motionStateHash, System.Boolean p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_GOTO_ENTITY_AIMING(System.Int32 ped, System.Int32 target, System.Single distanceToStopAt, System.Single StartAimingDist)`
+- `public static System.Void RDR2.Native.TASK.TASK_GOTO_ENTITY_OFFSET(System.Int32 ped, System.Int32 entity, System.UInt64 p2, RDR2.Math.Vector3 vec, System.Int32 duration)`
+- `public static System.Void RDR2.Native.TASK.TASK_GOTO_ENTITY_OFFSET(System.Int32 ped, System.Int32 entity, System.UInt64 p2, System.Single x, System.Single y, System.Single z, System.Int32 duration)`
+- `public static System.Void RDR2.Native.TASK.TASK_GOTO_ENTITY_OFFSET_XY(System.Int32 ped, System.Int32 entity, System.Int32 duration, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_GOTO_ENTITY_OFFSET_XYZ(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_GOTO_ENTITY_OFFSET_XYZ_AIMING(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9)`
+- `public static System.Void RDR2.Native.TASK.TASK_GOTO_ENTITY_OFFSET_XY_AIMING(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_STRAIGHT_TO_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single moveBlendSpeedY, System.Int32 p5, System.Single p6, System.Single p7, System.Int32 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_STRAIGHT_TO_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single moveBlendSpeedY, System.Int32 p5, System.Single p6, System.Single p7, System.Int32 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_STRAIGHT_TO_COORD_RELATIVE_TO_ENTITY(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_AND_AIM_AT_HATED_ENTITIES_NEAR_COORD(System.Int32 ped, System.Single goToLocationX, System.Single goToLocationY, System.Single goToLocationZ, System.Single focusLocationX, System.Single focusLocationY, System.Single focusLocationZ, System.Single speed, System.Boolean shootAtEnemies, System.Single distanceToStopAt, System.Single noRoadsDistance, System.Boolean unkTrue, System.Int32 unkFlag, System.Int32 aimingFlag, System.UInt32 firingPattern)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_AND_AIM_AT_HATED_ENTITIES_NEAR_COORD_USING_COMBAT_STYLE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_ANY_MEANS(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single speed, System.Int32 entity, System.Boolean p6, System.Int32 walkingStyle, System.Single p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_ANY_MEANS(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single speed, System.Int32 entity, System.Boolean p6, System.Int32 walkingStyle, System.Single p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_ANY_MEANS_EXTRA_PARAMS(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single speed, System.UInt64 p5, System.Boolean p6, System.Int32 walkingStyle, System.Single p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_ANY_MEANS_EXTRA_PARAMS(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single speed, System.UInt64 p5, System.Boolean p6, System.Int32 walkingStyle, System.Single p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_ANY_MEANS_EXTRA_PARAMS_WITH_CRUISE_SPEED(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_WHILE_AIMING_AT_COORD(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14, System.UInt64 p15)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_WHILE_AIMING_AT_COORD_USING_COMBAT_STYLE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14, System.UInt64 p15)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_WHILE_AIMING_AT_ENTITY(System.Int32 ped1, RDR2.Math.Vector3 vec, System.Int32 ped2, System.Single p5, System.UInt64 p6, System.Single p7, System.Single p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt32 firingPattern, System.Int32 p13, System.UInt64 p14)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_WHILE_AIMING_AT_ENTITY(System.Int32 ped1, System.Single x, System.Single y, System.Single z, System.Int32 ped2, System.Single p5, System.UInt64 p6, System.Single p7, System.Single p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt32 firingPattern, System.Int32 p13, System.UInt64 p14)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_COORD_WHILE_AIMING_AT_ENTITY_USING_COMBAT_STYLE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_ENTITY(System.Int32 ped, System.Int32 target, System.Int32 duration, System.Single distance, System.Single speed, System.Single p5, System.Int32 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_ENTITY_WHILE_AIMING_AT_ENTITY(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_ENTITY_WHILE_AIMING_AT_ENTITY_USING_COMBAT_STYLE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_GO_TO_WHISTLE(System.Int32 ped, System.Int32 p1, System.Int32 whistleType)`
+- `public static System.Boolean RDR2.Native.TASK.TASK_GRAPPLE(System.Int32 ped, System.Int32 targetPed, System.UInt32 grappleStyle, System.Int32 p3, System.Single p4, System.Int32 p5, System.Int32 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_GUARD(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_GUARD_ASSIGNED_DEFENSIVE_AREA(System.Int32 ped, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_GUARD_CURRENT_POSITION(System.Int32 ped, System.Single p1, System.Single p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_HANDS_UP(System.Int32 ped, System.Int32 duration, System.Int32 facingPed, System.Int32 p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_HITCH_ANIMAL(System.Int32 ped, System.Int32 scenarioPoint, System.Int32 flag)`
+- `public static System.Void RDR2.Native.TASK.TASK_HOGTIEABLE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.TASK_HOGTIE_TARGET_PED(System.Int32 ped, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.TASK.TASK_HORSE_ACTION(System.Int32 ped, System.Int32 action, System.Int32 targetPed, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_INVESTIGATE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_JUMP(System.Int32 ped, System.Boolean unused)`
+- `public static System.Void RDR2.Native.TASK.TASK_KNOCKED_OUT(System.Int32 ped, System.Single p1, System.Boolean permanently)`
+- `public static System.Void RDR2.Native.TASK.TASK_KNOCKED_OUT_AND_HOGTIED(System.Int32 ped, System.Single p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_LASSO_PED(System.Int32 ped, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.TASK.TASK_LEAD_AND_CONVERSE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_LEAD_HORSE(System.Int32 ped, System.Int32 horse)`
+- `public static System.Void RDR2.Native.TASK.TASK_LEAVE_ANY_VEHICLE(System.Int32 ped, System.Int32 p1, System.Int32 taskFlag)`
+- `public static System.Void RDR2.Native.TASK.TASK_LEAVE_VEHICLE(System.Int32 ped, System.Int32 vehicle, System.Int32 flags, System.Int32 unkPed)`
+- `public static System.Void RDR2.Native.TASK.TASK_LOOK_AT_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 duration, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_LOOK_AT_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 duration, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_LOOK_AT_ENTITY(System.Int32 ped, System.Int32 lookAtTarget, System.Int32 duration, System.Int32 p3, System.Int32 p4, System.Int32 p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_LOOT_ENTITY(System.Int32 ped, System.Int32 entity)`
+- `public static System.Void RDR2.Native.TASK.TASK_LOOT_NEAREST_ENTITY(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 p4, System.Single p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_LOOT_NEAREST_ENTITY(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 p4, System.Single p5)`
+- `public static System.Boolean RDR2.Native.TASK.TASK_MELEE(System.Int32 ped, System.Int32 targetPed, System.UInt32 p2, System.UInt64 p3, System.UInt64 p4, System.Single p5, System.UInt64 p6, System.Single p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOUNT_ANIMAL(System.Int32 ped, System.Int32 mount, System.Int32 timer, System.Int32 seatIndex, System.Single pedSpeed, System.Int32 mountStyle, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_BE_IN_FORMATION(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_FOLLOW_ROAD_USING_NAVMESH(System.Int32 ped, System.Single moveBlendRatio, RDR2.Math.Vector3 vec, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_FOLLOW_ROAD_USING_NAVMESH(System.Int32 ped, System.Single moveBlendRatio, System.Single x, System.Single y, System.Single z, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_IN_TRAFFIC(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_IN_TRAFFIC_AWAY_FROM_ENTITY(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_IN_TRAFFIC_TO_DESTINATION(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_NETWORK_ADVANCED_BY_NAME_WITH_INIT_PARAMS(System.Int32 ped, System.String moveNetworkDefName, System.UInt64* taskData, RDR2.Math.Vector3 vec, RDR2.Math.Vector3 rotation, System.Int32 p9, System.Single p10, System.Int32 p11, System.Int32 p12, System.Int32 flag, System.Int32 p14)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_NETWORK_ADVANCED_BY_NAME_WITH_INIT_PARAMS(System.Int32 ped, System.String moveNetworkDefName, System.UInt64* taskData, System.Single xPos, System.Single yPos, System.Single zPos, System.Single xRot, System.Single yRot, System.Single zRot, System.Int32 p9, System.Single p10, System.Int32 p11, System.Int32 p12, System.Int32 flag, System.Int32 p14)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_NETWORK_ADVANCED_BY_NAME_WITH_INIT_PARAMS_ATTACHED(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14, System.UInt64 p15, System.UInt64 p16, System.UInt64 p17)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_NETWORK_BY_NAME(System.Int32 ped, System.String task, System.Single multiplier, System.Boolean p3, System.String animDict, System.Int32 flags)`
+- `public static System.Void RDR2.Native.TASK.TASK_MOVE_NETWORK_BY_NAME_WITH_INIT_PARAMS(System.Int32 ped, System.String moveNetworkDefName, System.UInt64* taskData, System.Single p3, System.Boolean p4, System.String animDict, System.Int32 flags)`
+- `public static System.Void RDR2.Native.TASK.TASK_PATROL(System.Int32 ped, System.String patrolRoute, System.UInt64 p2, System.Boolean p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_PAUSE(System.Int32 ped, System.Int32 ms)`
+- `public static System.Void RDR2.Native.TASK.TASK_PED_SLIDE_TO_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single heading, System.Single p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_PED_SLIDE_TO_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single heading, System.Single p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_PERFORM_SEQUENCE(System.Int32 ped, System.Int32 taskSequenceId)`
+- `public static System.Void RDR2.Native.TASK.TASK_PERFORM_SEQUENCE_FROM_PROGRESS(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_PERSISTENT_CHARACTER(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.TASK_PICKUP_CARRIABLE_ENTITY(System.Int32 ped, System.Int32 entity)`
+- `public static System.Void RDR2.Native.TASK.TASK_PICK_UP_WEAPON(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLACE_CARRIED_ENTITY_AT_COORD(System.Int32 ped, System.Int32 entity, RDR2.Math.Vector3 vec, System.Single p5, System.Int32 flags)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLACE_CARRIED_ENTITY_AT_COORD(System.Int32 ped, System.Int32 entity, System.Single x, System.Single y, System.Single z, System.Single p5, System.Int32 flags)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLACE_CARRIED_ENTITY_ON_MOUNT(System.Int32 ped, System.Int32 entity, System.Int32 mount, System.Single p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLANT_BOMB(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single heading)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLANT_BOMB(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single heading)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLAY_ANIM(System.Int32 ped, System.String animDict, System.String animName, System.Single speed, System.Single speedMultiplier, System.Int32 duration, System.Int32 flags, System.Single playbackRate, System.Boolean p8, System.Int32 ikFlags, System.Boolean p10, System.String taskFilter, System.Boolean p12)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLAY_ANIM_ADVANCED(System.Int32 ped, System.String animDict, System.String animName, RDR2.Math.Vector3 vec, RDR2.Math.Vector3 rotation, System.Single speed, System.Single speedMultiplier, System.Int32 duration, System.Int32 flags, System.Single p13, System.Int32 p14, System.Int32 p15, System.Int32 p16)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLAY_ANIM_ADVANCED(System.Int32 ped, System.String animDict, System.String animName, System.Single posX, System.Single posY, System.Single posZ, System.Single rotX, System.Single rotY, System.Single rotZ, System.Single speed, System.Single speedMultiplier, System.Int32 duration, System.Int32 flags, System.Single p13, System.Int32 p14, System.Int32 p15, System.Int32 p16)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLAY_EMOTE_WITH_HASH(System.Int32 ped, System.Int32 emoteType, System.Int32 playbackMode, System.UInt32 emote, System.Boolean isSecondaryTask, System.Boolean canBreakOut, System.Boolean disableEarlyOutAnimTag, System.Boolean ignoreInvalidMainTask, System.Boolean destroyProps)`
+- `public static System.Void RDR2.Native.TASK.TASK_PLAY_UPPER_ANIM_FACING_ENTITY(System.Int32 ped, System.String animDict, System.String animName, System.Int32 entity, System.Int32 p4, System.Single p5, System.Single p6, System.Int32 p7, System.Single p8, System.Boolean p9, System.Boolean p10, System.Single p11, System.String p12, System.Int32 p13, System.Single p14)`
+- `public static System.Boolean RDR2.Native.TASK.TASK_POLICE(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.TASK.TASK_PUT_PED_DIRECTLY_INTO_COVER(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 timeout, System.Boolean p5, System.Single p6, System.UInt64 p7, System.UInt64 p8, System.Int32 coverpoint, System.Boolean p10, System.Boolean p11, System.UInt64 p12)`
+- `public static System.Void RDR2.Native.TASK.TASK_PUT_PED_DIRECTLY_INTO_COVER(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 timeout, System.Boolean p5, System.Single p6, System.UInt64 p7, System.UInt64 p8, System.Int32 coverpoint, System.Boolean p10, System.Boolean p11, System.UInt64 p12)`
+- `public static System.Void RDR2.Native.TASK.TASK_PUT_PED_DIRECTLY_INTO_GRAPPLE(System.Int32 ped, System.Int32 grappleTarget, System.UInt32 grappleStyle, System.Single p3, System.Single p4, System.Boolean p5, System.Int32 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_PUT_PED_DIRECTLY_INTO_MELEE(System.Int32 ped, System.Int32 meleeTarget, System.UInt32 meleeStyle, System.Single p3, System.Single animBlendRatio, System.Boolean p5, System.Int32 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_REACT(System.Int32 ped, System.Int32 reactingTo, RDR2.Math.Vector3 vec, System.String reactionName, System.Single p6, System.Single p7, System.Int32 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_REACT(System.Int32 ped, System.Int32 reactingTo, System.Single x, System.Single y, System.Single z, System.String reactionName, System.Single p6, System.Single p7, System.Int32 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_RELOAD_WEAPON(System.Int32 ped, System.Boolean unused)`
+- `public static System.Void RDR2.Native.TASK.TASK_REVIVE_TARGET(System.Int32 ped, System.Int32 reviver, System.UInt32 tool)`
+- `public static System.Void RDR2.Native.TASK.TASK_RIDE_TRAIN(System.Int32 ped, System.Int32 train, System.Int32 scenarioPoint, System.UInt32 scenarioHash)`
+- `public static System.Void RDR2.Native.TASK.TASK_ROB_PED(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_SCRIPTED_ANIMATION(System.Int32 ped, System.UInt64* args)`
+- `public static System.Void RDR2.Native.TASK.TASK_SEEK_CLEAR_LOS_TO_ENTITY(System.Int32 ped, System.Int32 entity, System.Single p2, System.Single p3, System.Single p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_SEEK_COVER_FROM_PED(System.Int32 ped, System.Int32 p1, System.Int32 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_SEEK_COVER_FROM_POS(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_SEEK_COVER_FROM_POS(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_SEEK_COVER_TO_COORDS(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_SEEK_COVER_TO_COVER_POINT(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.TASK.TASK_SET_CROUCH_MOVEMENT(System.Int32 ped, System.Boolean p1, System.UInt64 p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_SET_SPHERE_DEFENSIVE_AREA(System.Int32 ped, System.Single p1, System.Single p2, System.Single p3, System.Single p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_SET_STEALTH_MOVEMENT(System.Int32 ped, System.Boolean p1, System.UInt64 p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_SHOCKING_EVENT_REACT(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_SHOOT_AT_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 duration, System.UInt32 firingPattern, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_SHOOT_AT_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 duration, System.UInt32 firingPattern, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_SHOOT_AT_ENTITY(System.Int32 entity, System.Int32 targetEntity, System.Int32 duration, System.UInt32 firingPattern, System.Boolean affectCockedState)`
+- `public static System.Void RDR2.Native.TASK.TASK_SHOOT_WITH_WEAPON(System.Int32 ped, System.UInt64* args)`
+- `public static System.Void RDR2.Native.TASK.TASK_SHUFFLE_TO_NEXT_VEHICLE_SEAT(System.Int32 ped, System.Int32 vehicle)`
+- `public static System.Void RDR2.Native.TASK.TASK_SMART_FLEE_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single distance, System.Int32 time, System.Int32 fleeType, System.Single fleeSpeed)`
+- `public static System.Void RDR2.Native.TASK.TASK_SMART_FLEE_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single distance, System.Int32 time, System.Int32 fleeType, System.Single fleeSpeed)`
+- `public static System.Void RDR2.Native.TASK.TASK_SMART_FLEE_PED(System.Int32 ped, System.Int32 fleeFromTarget, System.Single fleeDistance, System.Int32 fleeTime, System.Int32 fleeType, System.Single fleeSpeed, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.TASK.TASK_STAND_GUARD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single heading, System.String scenarioName)`
+- `public static System.Void RDR2.Native.TASK.TASK_STAND_GUARD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single heading, System.String scenarioName)`
+- `public static System.Void RDR2.Native.TASK.TASK_STAND_STILL(System.Int32 ped, System.Int32 time)`
+- `public static System.Void RDR2.Native.TASK.TASK_START_SCENARIO_AT_POSITION(System.Int32 ped, System.UInt32 scenarioHash, RDR2.Math.Vector3 vec, System.Single heading, System.Int32 duration, System.Boolean sittingScenario, System.Boolean teleport, System.String p9, System.Single p10, System.Boolean p11)`
+- `public static System.Void RDR2.Native.TASK.TASK_START_SCENARIO_AT_POSITION(System.Int32 ped, System.UInt32 scenarioHash, System.Single x, System.Single y, System.Single z, System.Single heading, System.Int32 duration, System.Boolean sittingScenario, System.Boolean teleport, System.String p9, System.Single p10, System.Boolean p11)`
+- `public static System.Void RDR2.Native.TASK.TASK_START_SCENARIO_IN_PLACE_HASH(System.Int32 ped, System.UInt32 scenarioHash, System.Int32 duration, System.Boolean playEnterAnim, System.UInt32 conditionalHash, System.Single heading, System.Boolean p6)`
+- `public static System.Void RDR2.Native.TASK.TASK_STAY_IN_COVER(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.TASK_STOP_LEADING_HORSE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.TASK_SWAP_FISHING_BAIT(System.Int32 ped, System.String bait, System.Boolean withoutBuoy)`
+- `public static System.Void RDR2.Native.TASK.TASK_SWAP_WEAPON(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_THROW_PROJECTILE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_TURN_PED_TO_FACE_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 duration)`
+- `public static System.Void RDR2.Native.TASK.TASK_TURN_PED_TO_FACE_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 duration)`
+- `public static System.Void RDR2.Native.TASK.TASK_TURN_PED_TO_FACE_ENTITY(System.Int32 ped, System.Int32 targetEntity, System.Int32 duration, System.Single p3, System.Single p4, System.Single p5)`
+- `public static System.Void RDR2.Native.TASK.TASK_TURN_TO_FACE_CLOSEST_PED(System.Int32 ped, System.Single p1, System.Single p2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_NEAREST_SCENARIO_CHAIN_TO_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single distance, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_NEAREST_SCENARIO_CHAIN_TO_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single distance, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_NEAREST_SCENARIO_CHAIN_TO_COORD_WARP(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single distance, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_NEAREST_SCENARIO_CHAIN_TO_COORD_WARP(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single distance, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_NEAREST_SCENARIO_TO_COORD_WARP(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single distance, System.Int32 duration, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_NEAREST_SCENARIO_TO_COORD_WARP(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single distance, System.Int32 duration, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_NEAREST_TRAIN_SCENARIO_TO_COORD_WARP(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single distance)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_NEAREST_TRAIN_SCENARIO_TO_COORD_WARP(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single distance)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_RANDOM_SCENARIO_IN_GROUP(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_USE_SCENARIO_POINT(System.Int32 ped, System.Int32 scenario, System.String conditionalAnim, System.Int32 p3, System.Boolean p4, System.Boolean p5, System.UInt32 p6, System.Boolean p7, System.Single p8, System.Boolean p9)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_AIM_AT_COORD(System.Int32 ped, RDR2.Math.Vector3 vec)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_AIM_AT_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_AIM_AT_PED(System.Int32 ped, System.Int32 target)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_DRIVE_STRAIGHT_TO_POINT(System.Int32 driver, System.Int32 vehicle, RDR2.Math.Vector3 vec, System.Single p5, System.Single p6, System.Int32 flag)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_DRIVE_STRAIGHT_TO_POINT(System.Int32 driver, System.Int32 vehicle, System.Single x, System.Single y, System.Single z, System.Single p5, System.Single p6, System.Int32 flag)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_DRIVE_TO_COORD(System.Int32 ped, System.Int32 vehicle, RDR2.Math.Vector3 vec, System.Single speed, System.UInt64 p6, System.UInt32 vehicleModel, System.Int32 drivingMode, System.Single stopRange, System.Single p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_DRIVE_TO_COORD(System.Int32 ped, System.Int32 vehicle, System.Single x, System.Single y, System.Single z, System.Single speed, System.UInt64 p6, System.UInt32 vehicleModel, System.Int32 drivingMode, System.Single stopRange, System.Single p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_DRIVE_TO_DESTINATION(System.Int32 driver, System.Int32 vehicle, RDR2.Math.Vector3 vec, System.Single speed, System.Int32 drivingFlags, System.Int32 p7, System.Single stoppingRange1, System.Single stoppingRange2, System.Boolean p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_DRIVE_TO_DESTINATION(System.Int32 driver, System.Int32 vehicle, System.Single x, System.Single y, System.Single z, System.Single speed, System.Int32 drivingFlags, System.Int32 p7, System.Single stoppingRange1, System.Single stoppingRange2, System.Boolean p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_DRIVE_WANDER(System.Int32 ped, System.Int32 vehicle, System.Single speed, System.Int32 drivingStyle)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_ESCORT(System.Int32 ped, System.Int32 vehicle, System.Int32 targetVehicle, System.Int32 mode, System.Single speed, System.Int32 drivingStyle, System.Single minDistance, System.Int32 p7, System.Single noRoadsDistance)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_FOLLOW_WAYPOINT_RECORDING(System.Int32 ped, System.Int32 vehicle, System.String waypointRecording, System.Int32 drivingMode, System.UInt64 p4, System.Int32 eWaypoint, System.Int32 flag, System.Single p7, System.Boolean p8, System.Single stoppingDist, System.UInt64 p10)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_GOTO_NAVMESH(System.Int32 ped, System.Int32 vehicle, RDR2.Math.Vector3 vec, System.Single speed, System.Int32 behaviorFlag, System.Single stoppingRange)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_GOTO_NAVMESH(System.Int32 ped, System.Int32 vehicle, System.Single x, System.Single y, System.Single z, System.Single speed, System.Int32 behaviorFlag, System.Single stoppingRange)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_MISSION(System.Int32 driver, System.Int32 vehicle, System.Int32 vehicleTarget, System.Int32 missionType, System.Single p4, System.UInt64 p5, System.Single p6, System.Single p7, System.Boolean DriveAgainstTraffic)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_MISSION_PED_TARGET(System.Int32 ped, System.Int32 vehicle, System.Int32 pedTarget, System.Int32 mode, System.Single maxSpeed, System.Int32 drivingStyle, System.Single minDistance, System.Single p7, System.Boolean DriveAgainstTraffic)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_SHOOT_AT_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_SHOOT_AT_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_SHOOT_AT_PED(System.Int32 ped, System.Int32 target, System.Single p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_VEHICLE_TEMP_ACTION(System.Int32 driver, System.Int32 vehicle, System.Int32 action, System.Int32 time)`
+- `public static System.Void RDR2.Native.TASK.TASK_WALK_AWAY(System.Int32 ped, System.Int32 entity)`
+- `public static System.Void RDR2.Native.TASK.TASK_WANDER_AND_CONVERSE_WITH_PED(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.TASK_WANDER_IN_AREA(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single radius, System.Single p5, System.Single p6, System.Int32 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_WANDER_IN_AREA(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single radius, System.Single p5, System.Single p6, System.Int32 p7)`
+- `public static System.Void RDR2.Native.TASK.TASK_WANDER_IN_VOLUME(System.Int32 ped, System.Int32 volume, System.Single p2, System.Single p3, System.Int32 p4)`
+- `public static System.Void RDR2.Native.TASK.TASK_WANDER_STANDARD(System.Int32 ped, System.Single p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.TASK.TASK_WANDER_SWIM(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK.TASK_WARP_PED_INTO_VEHICLE(System.Int32 ped, System.Int32 vehicle, System.Int32 seat)`
+- `public static System.Void RDR2.Native.TASK.TASK_WEAPON(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.TASK_WHISTLE_ANIM(System.Int32 ped, System.UInt32 audPedWhistleType, System.UInt32 p2)`
+- `public static System.Void RDR2.Native.TASK.UNCUFF_PED(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.UNHOGTIE_PED(System.Int32 ped, System.Int32 flags, System.UInt32 getupSetHash, System.String p3, System.String p4, System.Single p5)`
+- `public static System.Void RDR2.Native.TASK.UPDATE_TASK_HANDS_UP_DURATION(System.Int32 ped, System.Int32 duration)`
+- `public static System.Void RDR2.Native.TASK.USE_WAYPOINT_RECORDING_AS_ASSISTED_MOVEMENT_ROUTE(System.String waypointRecording, System.Boolean p1, System.Single p2, System.Single p3, System.Boolean p4)`
+- `public static System.UInt64 RDR2.Native.TASK.VEHICLE_WAYPOINT_PLAYBACK_GET_IS_PAUSED(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK.VEHICLE_WAYPOINT_PLAYBACK_OVERRIDE_SPEED(System.Int32 vehicle, System.Single speed)`
+- `public static System.Void RDR2.Native.TASK.VEHICLE_WAYPOINT_PLAYBACK_PAUSE(System.Int32 vehicle)`
+- `public static System.Void RDR2.Native.TASK.VEHICLE_WAYPOINT_PLAYBACK_RESUME(System.Int32 vehicle)`
+- `public static System.Void RDR2.Native.TASK.VEHICLE_WAYPOINT_PLAYBACK_USE_DEFAULT_SPEED(System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.TASK.WAYPOINT_PLAYBACK_GET_IS_AIMING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.WAYPOINT_PLAYBACK_GET_IS_PAUSED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.WAYPOINT_PLAYBACK_GET_IS_SHOOTING(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_OVERRIDE_SPEED(System.Int32 ped, System.Single speed, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_PAUSE(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_RESUME(System.Int32 ped, System.Boolean p1, System.Int32 p2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_START_AIMING_AT_COORD(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_START_AIMING_AT_ENTITY(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_START_AIMING_AT_PED(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_START_SHOOTING_AT_COORD(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_START_SHOOTING_AT_ENTITY(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_START_SHOOTING_AT_PED(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_STOP_AIMING_OR_SHOOTING(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK.WAYPOINT_PLAYBACK_USE_DEFAULT_SPEED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK.WAYPOINT_RECORDING_GET_CLOSEST_WAYPOINT(System.String waypointRecording, RDR2.Math.Vector3 vec, System.Int32* point)`
+- `public static System.Boolean RDR2.Native.TASK.WAYPOINT_RECORDING_GET_CLOSEST_WAYPOINT(System.String waypointRecording, System.Single x, System.Single y, System.Single z, System.Int32* point)`
+- `public static System.Boolean RDR2.Native.TASK.WAYPOINT_RECORDING_GET_COORD(System.String waypointRecording, System.Int32 point, RDR2.Math.Vector3* coord)`
+- `public static System.Boolean RDR2.Native.TASK.WAYPOINT_RECORDING_GET_NUM_POINTS(System.String waypointRecording, System.Int32* points)`
+- `public static System.Single RDR2.Native.TASK.WAYPOINT_RECORDING_GET_SPEED_AT_POINT(System.String waypointRecording, System.Int32 point)`
+- `public static System.Void RDR2.Native.TASK._0x0000A8ACDC2E1B6A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x00FFE0F85253C572(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x01AF8A3729231A43(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x0365000D8BF86531(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x03D741CB4052E26C(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x06ECF3925BC2ABAE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x098036CAB8373D36(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x098CAA6DBE7D8D82(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x099D4A855D53B03B(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.TASK._0x0A98A362C5A19A43(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x0D322AEF8878B8FE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x0E184495B27BB57D()`
+- `public static System.Void RDR2.Native.TASK._0x0F4F6C4CE471259D(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x0FE797DD9F70DFA6(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.UInt64 RDR2.Native.TASK._0x10ADFDF07B7DFFBA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0x10C44F633E2D6D9E(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x11C7CE1AE38911B5(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x12990818C1D35886(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0x141BC64C8D7C5529(System.Int32 vehicle)`
+- `public static System.UInt64 RDR2.Native.TASK._0x152664AA3188B193(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK._0x1632EB9386CDBE64(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x19BC99C678FBA139(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0x1A7D63CB1B0BB223(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x1AC5A8AB50CFAA33(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x1ACBC313966C21F3(System.Int32 scenario)`
+- `public static System.Void RDR2.Native.TASK._0x1D125814EBC517EB(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0x1ECF56C040FD839C(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x1F298C7BD30D1240(System.Int32 ped)`
+- `public static System.UInt64 RDR2.Native.TASK._0x1F7A9A9C38C13A56(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x2064B33F6E6B92D4(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0x216343750545A486(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.TASK._0x22CD2C33ED4467A1(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x22CDBF317C40A122(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._0x23767D80C7EED7C6(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x2416EC2F31F75266(System.Int32 entity, System.Int32 targetEntity, System.Int32 duration, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.UInt64 RDR2.Native.TASK._0x244430C13BA5258E(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0x28EF780BDEA8A639(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.TASK._0x2948235DB2058E99(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x2A10538D0A005E81(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x2B8AF29A78024BD3(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x2C497BDEF897C6DF(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x2D657B10F211C572(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.TASK._0x2E1D6D87346BB7D2(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0x2EB977293923C723(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x30146C25686B7836(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x30B391915538EBE2(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x31BB338F64D5C861(System.Int32 ped, System.Boolean p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x351F74ED6177EBE7()`
+- `public static System.Void RDR2.Native.TASK._0x358A1A751B335A11(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x370F57C47F68EBCA(System.UInt64 p0)`
+- `public static System.Single RDR2.Native.TASK._0x3ACC128510142B9D(System.String waypointRecording, RDR2.Math.Vector3 vec)`
+- `public static System.Single RDR2.Native.TASK._0x3ACC128510142B9D(System.String waypointRecording, System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.TASK._0x3BBEECC5B8F35318(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x3F8387DB1B9F31B7(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x3FEB770D8ED9047A(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x3FFCD7BBA074CC80(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.TASK._0x41323F4E0C4AE94B(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK._0x4161648394262FDF(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0x41D1331AFAD5A091(System.Int32 ped, System.Int32 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0x42CFD8FD8CC8DC69(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x450080DDEDB91258(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x4A7D73989F52EB37(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x4BA972D0E5AD8122(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x4E806A395D43A458(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x4F57397388E1DFF8()`
+- `public static System.Boolean RDR2.Native.TASK._0x508F5053E3F6F0C4(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single p4)`
+- `public static System.Boolean RDR2.Native.TASK._0x508F5053E3F6F0C4(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single p4)`
+- `public static System.Void RDR2.Native.TASK._0x50AA09A0DA64E73C(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK._0x517D01BF27B682D1(System.Int32 ped, System.Int32 entity, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Int32 p6)`
+- `public static System.Void RDR2.Native.TASK._0x5217B7B6DB78E1F3(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Boolean RDR2.Native.TASK._0x583AE9AF9CEE0958(System.Int32 vehicle, RDR2.Math.Vector3 vec)`
+- `public static System.Boolean RDR2.Native.TASK._0x583AE9AF9CEE0958(System.Int32 vehicle, System.Single x, System.Single y, System.Single z)`
+- `public static System.UInt64 RDR2.Native.TASK._0x5952DFA38FA529FE()`
+- `public static System.UInt64 RDR2.Native.TASK._0x59872EA4CBD11C56(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.UInt64 RDR2.Native.TASK._0x59AE5CA4FFB4E378(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x59AEA4DC640814B9(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x5B68D0007D9C92EB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x5D9B0BAAF04CF65B(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.UInt64 RDR2.Native.TASK._0x5EA655F01D93667A(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x615DC4A82E90BB48(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.TASK._0x640A602946A8C972(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x643FD1556F621772(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0x651F0530083C0E5A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x65D281985F2BDFC2(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x673A8779D229BA5A(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Int32 RDR2.Native.TASK._0x678D3226CF70B9C8(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.TASK._0x6A1AF481407BF6E9(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x6AFD84AEAA3EA538(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x6AFDA2264925BD11(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x6BA606AB3A83BC4D(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x6C269F673C47031E(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x6C50B9DCCCA70023(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x6DAC799857EF3F11(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x722D6A49200174FE(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.TASK._0x748D5E0D2A1A4C61(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.TASK._0x74F0209674864CBD()`
+- `public static System.UInt64 RDR2.Native.TASK._0x756C7B4C43DF0422(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x764DB5A48390FBAD(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x76610D12A838EBDE(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x78D8C1D4EB80C588(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x79197F7D2BB5E73A(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK._0x7C015D8BCEC72CF4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x7CB99FADDE73CD1B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x7FB78B2199C10E92(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x801BD27403F3CBA0(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0x816A3ACD265E2297(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x827A58CED9D4D5B4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x82ED59F095056550(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x849791EBBDBA0362(System.UInt64 p0)`
+- `public static RDR2.Math.Vector3 RDR2.Native.TASK._0x865732725536EE39(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x8798CF6815B8FE0F(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x885D19AC2B6FBFF4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x88FD60D846D9CD63(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._0x8B1FDF63C3193EDA(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.TASK._0x8BB283A7888AD1AD(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0x8E1DDE26D270CC5E(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x8F8C84363810691A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x9050DF2C53801208(System.Int32 ped, System.Single p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x90703A8F75EE4ABD(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0x908BB14BCE85C80E(System.UInt64 p0)`
+- `public static RDR2.Math.Vector3 RDR2.Native.TASK._0x91CB5E431F579BA1(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x920684BE432875B1(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x9420FB11B8D77948(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x954451EA2D2120FB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x9585FF23C4B8EDE0(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x9667CCE29BFA0780(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x974DA3408DEC4E79(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x9ADDBB9242179D56(System.Int32 _object, System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._0x9B6A58FDB0024F12(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0x9C8F42A5D1859DC1(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0x9EBD34958AB6F824(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0x9FF5F9B24E870748(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xA052608A12559BBB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xA21AA2F0C2180125(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xA263ADBBC8056214(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xA42DC7919159CCCF(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xA6A76D666A281F2D(System.UInt64 p0, System.UInt32 item)`
+- `public static System.Void RDR2.Native.TASK._0xA7479FB665361EDB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0xA9E7672F8C6C6F74(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0xAC5045AB7F1A34FD(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xADC45010BC17AF0E(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xAF2EF28CE3084505(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0xB2D15D3551FE4FAE(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xB2F47A1AFDFCC595(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xB35370D5353995CB(System.Int32 ped, System.UInt32 item, System.Single p2)`
+- `public static System.Boolean RDR2.Native.TASK._0xB520DBDA7FCF573F(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._0xB79817DB31FF72B9(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xB8E213D02F37947D(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK._0xB8E3486D107F4194(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0xB8F52A3F84A7CC59(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xBAAB791AA72C2821(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xBC3F847AE2C3DC65(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xBD1C3C0F271C39D3(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0xBD70108D01875299(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.TASK._0xBEDBE39B5FD98FD6(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._0xBEEFBB608D2AA68A(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xC6170856E54557B2(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0xCE4E669400E5F8AA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.UInt64 RDR2.Native.TASK._0xD0ABC4EA3B5E21A0(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0xD508FA229F1C4900(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK._0xD999E379265A4501(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0xDE0C8B145EA466FF(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.UInt64 RDR2.Native.TASK._0xDF56A2B50C04DEA4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xDF94844D474F31E5(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._0xE01C8DC8EDD28D31(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xE01F55B2896F6B37(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xE05A5D39BE6E93AF(System.UInt64 p0)`
+- `public static RDR2.Math.Vector3 RDR2.Native.TASK._0xE116F6F2DA2D777E(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0xE1C105E6BBA48270()`
+- `public static System.Void RDR2.Native.TASK._0xE2CF104ADD49D4BF(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0xE55478C5EDF70AC2(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xE5831AA1E2FD147C(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0xE62754D09354F6CF(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xE69FDA40AAC3EFC0(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0xE6A151364C600B24(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0xE7BBC4E56B989449(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0xE9225354FB7437A7(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0xE9A6400D1A0E7A55(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xEAF87DA2BE78A15B(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.TASK._0xEB67D4E056C85A81(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xEBA2081E0A5F4D17(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xEC516FE805D2CB2D(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0xEFD875C2791EBEFD(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0xF3C3503276F4A034(System.Int32 entity, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xF40A109B4B79A848(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.TASK._0xF718931A82EEB898()`
+- `public static System.Void RDR2.Native.TASK._0xF948F4356F010F11(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.TASK._0xF97F462779B31786(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xFA30E2254461ADEB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xFC7F71CF49F70B6B(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0xFDECCA06E8B81346(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.TASK._0xFE5D28B9B7837CC1(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._0xFF745B0346E19E2C(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.TASK._0xFF8AFCA532B500D4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._0xFFB520A3E16F7B7B(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.TASK._ADD_COVER_BLOCKING_VOLUME(System.Int32 volume, System.Boolean p1, System.Boolean p2, System.Boolean p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.TASK._ADD_FLEE_TARGET_COORDS(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single p4)`
+- `public static System.Void RDR2.Native.TASK._ADD_FLEE_TARGET_COORDS(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single p4)`
+- `public static System.Boolean RDR2.Native.TASK._ASSOCIATE_PROP_WITH_SCENARIO(System.Int32 scenario, System.Int32 entity, System.String propName, System.Boolean p3)`
+- `public static System.Int32 RDR2.Native.TASK._CREATE_HERB_COMPOSITES(System.UInt32 asset, RDR2.Math.Vector3 vec, System.Single heading, System.Int32 groundSetting, System.UInt64* p6, System.Int32 p7)`
+- `public static System.Int32 RDR2.Native.TASK._CREATE_HERB_COMPOSITES(System.UInt32 asset, System.Single x, System.Single y, System.Single z, System.Single heading, System.Int32 groundSetting, System.UInt64* p6, System.Int32 p7)`
+- `public static System.Boolean RDR2.Native.TASK._CREATE_WAYPOINT_PATH(System.String pathName, System.UInt64* p1, System.Int32 nodes, System.Int32 p3)`
+- `public static System.Void RDR2.Native.TASK._CUFF_PED(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._DELETE_PATCH_OBJECTS_FROM_HERB_COMPOSITES(System.Int32 compositeId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.TASK._DELETE_SCENARIO_POINT(System.Int32 scenario)`
+- `public static System.Void RDR2.Native.TASK._DETACH_CARRIABLE_PED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK._DISASSOCIATE_PROP_FROM_SCENARIO(System.Int32 scenario, System.String propName)`
+- `public static System.Boolean RDR2.Native.TASK._DOES_SCENARIO_GROUP_EXIST_HASH(System.UInt32 scenarioGroup)`
+- `public static System.Boolean RDR2.Native.TASK._DOES_SCENARIO_POINT_HAVE_PROPS(System.Int32 scenario)`
+- `public static System.UInt32 RDR2.Native.TASK._FIND_MODEL_FOR_ITEM(System.UInt32 item)`
+- `public static System.Int32 RDR2.Native.TASK._GET_HERB_COMPOSITE_NUM_ENTITIES(System.Int32 compositeId, System.UInt64* outEntities)`
+- `public static System.Single RDR2.Native.TASK._GET_HOGTIE_ESCAPE_TIMER(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.TASK._GET_ITEM_INTERACTION_ENTITY_FROM_PED(System.Int32 ped, System.UInt32 item)`
+- `public static System.Int32 RDR2.Native.TASK._GET_LED_HORSE_FROM_PED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK._GET_PED_IS_IGNORING_DEAD_BODIES(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.TASK._GET_PED_USING_SCENARIO_POINT(System.Int32 scenario)`
+- `public static System.Boolean RDR2.Native.TASK._GET_SCENARIO_CONTAINER_OPENING_STATE(System.Int32 entity)`
+- `public static RDR2.Math.Vector3 RDR2.Native.TASK._GET_SCENARIO_POINT_COORDS(System.Int32 scenario, System.Boolean p1)`
+- `public static System.Int32 RDR2.Native.TASK._GET_SCENARIO_POINT_ENTITY(System.Int32 scenario)`
+- `public static System.Single RDR2.Native.TASK._GET_SCENARIO_POINT_HEADING(System.Int32 scenario, System.Boolean p1)`
+- `public static System.Int32 RDR2.Native.TASK._GET_SCENARIO_POINT_PED_IS_USING(System.Int32 ped, System.Boolean p1)`
+- `public static System.Single RDR2.Native.TASK._GET_SCENARIO_POINT_RADIUS(System.Int32 scenario)`
+- `public static System.UInt32 RDR2.Native.TASK._GET_SCENARIO_POINT_TYPE(System.Int32 scenario)`
+- `public static System.Int32 RDR2.Native.TASK._GET_SCENARIO_POINT_TYPE_PED_IS_USING(System.Int32 ped)`
+- `public static System.Single RDR2.Native.TASK._GET_SCRIPT_TASK_ACTION_TIME(System.Int32 ped, System.UInt32 task)`
+- `public static System.Boolean RDR2.Native.TASK._GET_TASK_FISHING(System.Int32 ped, System.UInt64* p1)`
+- `public static System.UInt32 RDR2.Native.TASK._GET_TASK_MOVE_NETWORK_ID(System.Int32 ped)`
+- `public static System.Single RDR2.Native.TASK._GET_TASK_MOVE_NETWORK_PHASE_FLOAT(System.Int32 ped, System.String phaseName)`
+- `public static System.Boolean RDR2.Native.TASK._IS_HAT_BEING_PICKED_UP(System.Int32 hatObject)`
+- `public static System.Boolean RDR2.Native.TASK._IS_HAT_BEING_PICKED_UP_2(System.Int32 hatObject)`
+- `public static System.Boolean RDR2.Native.TASK._IS_PED_ARRESTING_ANY_PED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK._IS_PED_DUELLING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK._IS_PED_LEADING_HORSE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK._IS_SCENARIO_GROUP_ENABLED_HASH(System.UInt32 scenarioGroup)`
+- `public static System.Boolean RDR2.Native.TASK._IS_SCENARIO_POINT_ACTIVE(System.Int32 scenario)`
+- `public static System.Boolean RDR2.Native.TASK._IS_SCENARIO_POINT_FLAG_SET(System.Int32 scenario, System.Int32 flag)`
+- `public static System.Void RDR2.Native.TASK._MAKE_OBJECT_CARRIABLE(System.Int32 _object)`
+- `public static System.Void RDR2.Native.TASK._PED_FISHINGROD_HOOK_ENTITY(System.Int32 ped, System.Int32 entity)`
+- `public static System.Void RDR2.Native.TASK._PED_FISHINGROD_HOOK_OBJECT(System.Int32 ped, System.Int32 _object)`
+- `public static System.Boolean RDR2.Native.TASK._PED_IS_IN_SCENARIO_BASE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.TASK._REQUEST_HERB_COMPOSITE_ASSET(System.UInt32 asset)`
+- `public static System.Void RDR2.Native.TASK._RESET_SCENARIO_FOR_ENTITY(System.Int32 scenario, System.Int32 entity)`
+- `public static System.Void RDR2.Native.TASK._RESET_SCENARIO_SCRIPT(System.Int32 scenario)`
+- `public static System.Void RDR2.Native.TASK._SET_FISHING_BAIT(System.Int32 ped, System.String bait, System.Boolean withoutBuoy, System.Boolean instantly)`
+- `public static System.Void RDR2.Native.TASK._SET_HOGTIE_ESCAPE_TIMER(System.Int32 ped, System.Single time)`
+- `public static System.Void RDR2.Native.TASK._SET_PED_CLEAR_AIMING_IN_THE_AIR(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.TASK._SET_PED_IGNORE_DEAD_BODIES(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.TASK._SET_PED_PATH_LADDER_COST_MODIFIER(System.Int32 ped, System.Single modifier)`
+- `public static System.Void RDR2.Native.TASK._SET_PED_PATH_MAY_ENTER_DEEP_WATER(System.Int32 ped, System.Boolean mayEnterDeepWater)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_CONTAINER_OPENING_STATE(System.Int32 entity, System.Boolean open)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_GROUP_ENABLED_HASH(System.UInt32 scenarioGroup, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_POINT_ACTIVE(System.Int32 scenario, System.Boolean active)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_POINT_COORDS(System.Int32 scenario, RDR2.Math.Vector3 vec, System.Boolean p4)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_POINT_COORDS(System.Int32 scenario, System.Single xPos, System.Single yPos, System.Single zPos, System.Boolean p4)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_POINT_FLAG(System.Int32 scenario, System.Int32 flag, System.Boolean value)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_POINT_HEADING(System.Int32 scenario, System.Single heading, System.Boolean p2)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_POINT_RADIUS(System.Int32 scenario, System.Single radius)`
+- `public static System.Void RDR2.Native.TASK._SET_SCENARIO_TYPE_ENABLED_HASH(System.UInt32 scenarioType, System.Boolean toggle)`
+- `public static System.Boolean RDR2.Native.TASK._SET_TASK_FISHING(System.Int32 ped, System.UInt64* p1)`
+- `public static System.Void RDR2.Native.TASK._SET_TASK_MOVE_NETWORK_SIGNAL_VECTOR(System.Int32 ped, System.String signalName, RDR2.Math.Vector3 vec)`
+- `public static System.Void RDR2.Native.TASK._SET_TASK_MOVE_NETWORK_SIGNAL_VECTOR(System.Int32 ped, System.String signalName, System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.TASK._TASK_ANIMAL_BLEED_OUT(System.Int32 ped, System.Int32 killer, System.Boolean p2, System.UInt32 weaponHash, System.Int32 p4, System.Int32 p5)`
+- `public static System.Void RDR2.Native.TASK._TASK_BOARD_VEHICLE(System.Int32 ped, System.Int32 vehicle, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK._TASK_BOARD_VEHICLE_2(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.Single p3, System.Int32 flags)`
+- `public static System.Void RDR2.Native.TASK._TASK_CLIMB_2(System.Int32 ped, System.Single heading)`
+- `public static System.Void RDR2.Native.TASK._TASK_COMBAT_PED_3(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK._TASK_CUT_FREE_HOGTIED_TARGET_PED(System.Int32 ped, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.TASK._TASK_CUT_FREE_HOGTIED_TARGET_PED_2(System.Int32 ped, System.Int32 targetPed, System.Single p2)`
+- `public static System.Void RDR2.Native.TASK._TASK_DISEMBARK_VEHICLE(System.UInt64 p0, System.Int32 vehicle, System.Int32 p2, System.UInt64 p3, System.Single p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.TASK._TASK_EMOTE_OUTRO(System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._TASK_EQUIP_HAT(System.Int32 hatObject, System.Int32 ped)`
+- `public static System.Void RDR2.Native.TASK._TASK_FLEE_FROM_COORD(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11)`
+- `public static System.Void RDR2.Native.TASK._TASK_FLEE_FROM_PED(System.Int32 ped, System.Int32 fleeFromTarget, RDR2.Math.Vector3 vec, System.Single distance, System.Int32 p6, System.Int32 p7, System.Single p8, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.TASK._TASK_FLEE_FROM_PED(System.Int32 ped, System.Int32 fleeFromTarget, System.Single x, System.Single y, System.Single z, System.Single distance, System.Int32 p6, System.Int32 p7, System.Single p8, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.TASK._TASK_GUARD_ASSIGNED_DEFENSIVE_AREA_2(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Boolean RDR2.Native.TASK._TASK_INTIMIDATED(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Boolean RDR2.Native.TASK._TASK_INTIMIDATED_2(System.Int32 victim, System.Int32 attacker, System.Int32 p2, System.Boolean p3, System.Boolean p4, System.Boolean everyFrame, System.Boolean p6, System.Boolean p7, System.Int32 flag)`
+- `public static System.Void RDR2.Native.TASK._TASK_ITEM_INTERACTION_2(System.Int32 ped, System.UInt32 propNameGxt, System.Int32 prop, System.UInt32 propId, System.UInt32 itemInteractionState, System.Int32 p5, System.UInt64 p6, System.Single p7)`
+- `public static System.Void RDR2.Native.TASK._TASK_ITEM_INTERACTION_3(System.Int32 ped, System.UInt32 item, System.UInt64* guid, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.Single p6)`
+- `public static System.Void RDR2.Native.TASK._TASK_JUMP_2(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 entity)`
+- `public static System.Void RDR2.Native.TASK._TASK_JUMP_2(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 entity)`
+- `public static System.Void RDR2.Native.TASK._TASK_PATROL_2(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.TASK._TASK_PERFORM_SEQUENCE_2(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._TASK_PLAY_EMOTE(System.Int32 ped, System.Int32 emoteType, System.Int32 playbackMode, System.UInt32 emote, System.Boolean isSecondaryTask, System.Boolean canBreakOut, System.Boolean disableEarlyOutAnimTag, System.Boolean ignoreInvalidMainTask, System.Boolean destroyProps)`
+- `public static System.Void RDR2.Native.TASK._TASK_PUT_PED_DIRECTLY_INTO_COVER_FROM_COORDS(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single fromX, System.Single fromY, System.Single fromZ, System.Int32 timeout, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14, System.UInt64 p15, System.UInt64 p16, System.UInt64 p17)`
+- `public static System.Void RDR2.Native.TASK._TASK_PUT_PED_DIRECTLY_INTO_COVER_FROM_COORDS(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single fromX, System.Single fromY, System.Single fromZ, System.Int32 timeout, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10, System.UInt64 p11, System.UInt64 p12, System.UInt64 p13, System.UInt64 p14, System.UInt64 p15, System.UInt64 p16, System.UInt64 p17)`
+- `public static System.Void RDR2.Native.TASK._TASK_START_SCENARIO_IN_PLACE_2(System.Int32 ped, System.UInt64 p1, System.String p2, System.Int32 p3, System.Boolean p4, System.Single p5, System.Boolean p6)`
+- `public static System.Void RDR2.Native.TASK._TASK_THROW_PROJECTILE_2(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.TASK._TASK_USE_NEAREST_SCENARIO_TO_COORD(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single distance, System.Int32 duration, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Void RDR2.Native.TASK._TASK_USE_NEAREST_SCENARIO_TO_COORD(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single distance, System.Int32 duration, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Void RDR2.Native.TASK._TASK_USE_SCENARIO_POINT_2(System.Int32 ped, System.Int32 ped2, System.UInt64 p2, System.String p3, System.Int32 p4, System.UInt32 p5, System.Single p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.TASK._TASK_VEHICLE_DRIVE_TO_COORD_2(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.TASK._TASK_VEHICLE_DRIVE_TO_DESTINATION_2(System.Int32 vehicle, RDR2.Math.Vector3 vec, System.Single speed, System.Int32 p5, System.Int32 p6, System.Single p7, System.Single p8)`
+- `public static System.Void RDR2.Native.TASK._TASK_VEHICLE_DRIVE_TO_DESTINATION_2(System.Int32 vehicle, System.Single x, System.Single y, System.Single z, System.Single speed, System.Int32 p5, System.Int32 p6, System.Single p7, System.Single p8)`
+- `public static System.Void RDR2.Native.TASK._TASK_VEHICLE_DRIVE_TO_POINT_2(System.Int32 vehicle, RDR2.Math.Vector3 vec, System.Single p4, System.Single p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK._TASK_VEHICLE_DRIVE_TO_POINT_2(System.Int32 vehicle, System.Single x, System.Single y, System.Single z, System.Single p4, System.Single p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.TASK._TASK_VEHICLE_FLEE_ON_CLEANUP(System.Int32 vehicle, System.Single p1, System.Single p2, System.Single p3, System.Single speed, System.UInt32 type)`
+- `public static System.Void RDR2.Native.TASK._TASK_VEHICLE_FOLLOW_WAYPOINT_RECORDING_2(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9)`
+

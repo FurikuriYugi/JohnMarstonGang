@@ -1,0 +1,699 @@
+<!-- ScriptHookRDRNetAPI-Inventory chunk 11 of 26; methods=656; sha256=bfb7607d94b2de7f8530289377f163caad81098afc1fb7ee86191810a6cc6bba -->
+## `RDR2.Native.PERSCHAR`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Int32 RDR2.Native.PERSCHAR._0x08FC896D2CB31FCC(System.UInt64 p0, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x0B3A99AB6713AA52(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0x112DDF56300BC6E5(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x2DF89CD2ED1D0BDE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x2E957AA81F2C61C9()`
+- `public static System.Void RDR2.Native.PERSCHAR._0x406808610220405B(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0x4AFC7288C77238B3(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x4F81EAD1DE8FA19B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x535A66AAD2BF68F9(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x59C7AD6FEA2AC449(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PERSCHAR._0x5EE6FCCC9C832CA2(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x63AA2B8EB087886A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x669C25840C6F7AE2(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x6759BEE6762E140B(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0x69786495C92A3044(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x70605812ABC9FF0F(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x8AE4EFA464DAE42D(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x8B44273A92CD406C(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x8BC555034A5A5E8C(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0x92690B0822493CE0()`
+- `public static RDR2.Math.Vector3 RDR2.Native.PERSCHAR._0x94995829ED15A598(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0x9C7F95946E304778(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xA2B18FF8D39F6D87(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xA4DCB3F0DD7488BD(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0xA8120EBEAF290C7A(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xA8C406C2A56EDC16(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xB173599D61FAEB31()`
+- `public static System.Void RDR2.Native.PERSCHAR._0xB65E7F733956CF25(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xBB68908CD11AEBDC(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0xCEB40B678E403759(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xD4B614179BCD0654(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xD95D777F828B2BBB(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0xDC9655D47DEC0353(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xE0E65E0D261F7507(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0xE4C51A8A3BD1664C(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0xEC254C2C9B0F08F1(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xEFC5C6670E0B99BA()`
+- `public static System.UInt64 RDR2.Native.PERSCHAR._0xF8DE7154F7D1458F(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSCHAR._0xFCC6DB8DBE709BC8(System.UInt64 p0)`
+- `public static System.Int32 RDR2.Native.PERSCHAR._CREATE_PERSISTENT_CHARACTER(System.UInt32 hash)`
+- `public static System.Void RDR2.Native.PERSCHAR._DELETE_PERSCHAR(System.Int32 persChar)`
+- `public static System.Void RDR2.Native.PERSCHAR._FORCE_DESPAWN_PERSCHAR(System.Int32 persChar)`
+- `public static System.Int32 RDR2.Native.PERSCHAR._FORCE_SPAWN_PERSCHAR(System.Int32 persChar, System.Boolean p1)`
+- `public static System.Int32 RDR2.Native.PERSCHAR._GET_PERSCHAR_INDEX_FROM_PED_INDEX(System.Int32 ped)`
+- `public static System.UInt32 RDR2.Native.PERSCHAR._GET_PERSCHAR_MODEL_NAME(System.UInt32 persCharHash)`
+- `public static System.Int32 RDR2.Native.PERSCHAR._GET_PERSCHAR_PED_INDEX(System.Int32 persChar)`
+- `public static System.Boolean RDR2.Native.PERSCHAR._IS_PERSISTENT_CHARACTER_DEAD(System.Int32 persChar)`
+- `public static System.Boolean RDR2.Native.PERSCHAR._IS_PERSISTENT_CHARACTER_VALID(System.Int32 persChar)`
+- `public static System.Void RDR2.Native.PERSCHAR._RETASK_PERSISTENT_CHARACTER(System.Int32 persChar)`
+- `public static System.Boolean RDR2.Native.PERSCHAR._REVIVE_PERSCHAR(System.Int32 persChar)`
+- `public static System.Void RDR2.Native.PERSCHAR._SET_PERSCHAR_SCHEDULE(System.UInt32 persCharHash, System.String schedule)`
+
+## `RDR2.Native.PERSISTENCE`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Void RDR2.Native.PERSISTENCE.PERSISTENCE_ADD_SCENARIO_LOOTED(System.Int32 scenario)`
+- `public static System.Void RDR2.Native.PERSISTENCE.PERSISTENCE_REMOVE_ALL_ENTITIES_IN_AREA(RDR2.Math.Vector3 vec, System.Single radius)`
+- `public static System.Void RDR2.Native.PERSISTENCE.PERSISTENCE_REMOVE_ALL_ENTITIES_IN_AREA(System.Single x, System.Single y, System.Single z, System.Single radius)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0x065887B694359799(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSISTENCE._0x1F56FB3FDB4EAF65(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0x291CC21D1FB6790E(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PERSISTENCE._0x2E545965DF98D476(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0x3CA5E58C9731A16B(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PERSISTENCE._0x5A79220F6D38D7C3(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0x66DAA3A9274E8E82()`
+- `public static System.Void RDR2.Native.PERSISTENCE._0x7A1BD123E5CDB6E5()`
+- `public static System.Void RDR2.Native.PERSISTENCE._0x8DE104BEC243A73B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0xB03140014ACA6C40(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PERSISTENCE._0xBA2C49EA6A8D24FF(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.UInt64 RDR2.Native.PERSISTENCE._0xCFDA2518F322D836(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0xDC0A1F0ECEC9F0C0(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0xE225CEF1901F6108(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0xF5622FA6ACFCA7DB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0xFC9806DA9A460093(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2)`
+- `public static System.Void RDR2.Native.PERSISTENCE._0xFC9806DA9A460093(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2)`
+- `public static System.Boolean RDR2.Native.PERSISTENCE._PERSISTENCE_IS_SCENARIO_MARKED_AS_LOOTED(System.Int32 scenario)`
+- `public static System.Boolean RDR2.Native.PERSISTENCE._PERSISTENCE_IS_SCENARIO_MARKED_AS_LOOTED_AT_COORDS(RDR2.Math.Vector3 vec)`
+- `public static System.Boolean RDR2.Native.PERSISTENCE._PERSISTENCE_IS_SCENARIO_MARKED_AS_LOOTED_AT_COORDS(System.Single x, System.Single y, System.Single z)`
+- `public static System.Boolean RDR2.Native.PERSISTENCE._PERSISTENCE_IS_SCENARIO_MARKED_AS_LOOTED_AT_COORDS_WITH_MODEL(RDR2.Math.Vector3 vec, System.UInt32 model)`
+- `public static System.Boolean RDR2.Native.PERSISTENCE._PERSISTENCE_IS_SCENARIO_MARKED_AS_LOOTED_AT_COORDS_WITH_MODEL(System.Single x, System.Single y, System.Single z, System.UInt32 model)`
+- `public static System.Void RDR2.Native.PERSISTENCE._PERSISTENCE_REFRESH_TOWN_VOLUME(System.Int32 volume)`
+
+## `RDR2.Native.PHYSICS`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Void RDR2.Native.PHYSICS.ACTIVATE_PHYSICS(System.Int32 entity)`
+- `public static System.Int32 RDR2.Native.PHYSICS.ADD_ROPE(RDR2.Math.Vector3 vec, RDR2.Math.Vector3 rotation, System.Single length, System.Int32 ropeType, System.Single maxLength, System.Single minLength, System.Single p10, System.Boolean p11, System.Boolean p12, System.Boolean rigid, System.Single p14, System.Boolean breakWhenShot, System.UInt64* unkPtr, System.Boolean p17)`
+- `public static System.Int32 RDR2.Native.PHYSICS.ADD_ROPE(System.Single x, System.Single y, System.Single z, System.Single rotX, System.Single rotY, System.Single rotZ, System.Single length, System.Int32 ropeType, System.Single maxLength, System.Single minLength, System.Single p10, System.Boolean p11, System.Boolean p12, System.Boolean rigid, System.Single p14, System.Boolean breakWhenShot, System.UInt64* unkPtr, System.Boolean p17)`
+- `public static System.Void RDR2.Native.PHYSICS.ATTACH_ENTITIES_TO_ROPE(System.Int32 ropeId, System.Int32 entity1, System.Int32 entity2, System.Single ent1X, System.Single ent1Y, System.Single ent1Z, System.Single ent2X, System.Single ent2Y, System.Single ent2Z, System.Single length, System.Int32 alwaysZero1, System.Int32 alwaysZero2, System.String boneName1, System.String boneName2, System.Boolean p14, System.Int32 boneId1, System.Int32 boneId2, System.Int32 alwaysZero3, System.Int32 alwaysZero4, System.Boolean p19, System.Boolean p20)`
+- `public static System.Void RDR2.Native.PHYSICS.BREAK_ENTITY_GLASS(System.Int32 entity, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Single p7, System.Single p8, System.UInt64 p9, System.Boolean p10)`
+- `public static System.Void RDR2.Native.PHYSICS.DELETE_CHILD_ROPE(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS.DELETE_ROPE(System.Int32* ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS.DETACH_ROPE_FROM_ENTITY(System.Int32 ropeId, System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.PHYSICS.DOES_ROPE_EXIST(System.Int32 ropeId)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PHYSICS.GET_ROPE_LAST_VERTEX_COORD(System.Int32 ropeId)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PHYSICS.GET_ROPE_VERTEX_COORD(System.Int32 ropeId, System.Int32 vertex)`
+- `public static System.Int32 RDR2.Native.PHYSICS.GET_ROPE_VERTEX_COUNT(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS.ROPE_DRAW_SHADOW_ENABLED(System.Int32* ropeId, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PHYSICS.ROPE_FORCE_LENGTH(System.Int32 ropeId, System.Single length)`
+- `public static System.Void RDR2.Native.PHYSICS.ROPE_SET_UPDATE_ORDER(System.Int32 ropeId, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS.SET_DAMPING(System.Int32 entity, System.Int32 vertex, System.Single value)`
+- `public static System.Void RDR2.Native.PHYSICS.SET_DISABLE_BREAKING(System.Int32 _object, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PHYSICS.SET_DISABLE_FRAG_DAMAGE(System.Int32 _object, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PHYSICS.START_ROPE_UNWINDING_FRONT(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS.START_ROPE_WINDING(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS.STOP_ROPE_UNWINDING_FRONT(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS.STOP_ROPE_WINDING(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS._0x0CB16D05E03FB525(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PHYSICS._0x1D97DA8ACB5D2582(System.Int32 ropeId, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x1FC92BDBA1106BD2(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x21D0890D88DFB0B0(System.Int32 ropeId, System.Boolean p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Single p7, System.Single p8, System.Single p9, System.Int32 p10)`
+- `public static System.Void RDR2.Native.PHYSICS._0x31160EC47E7C9549(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x32F4DBFDFCCCC735(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PHYSICS._0x3900491C0D61ED4B(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PHYSICS._0x3D69537039F8D824(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PHYSICS._0x423C6B1F3786D28B(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x461FCBDEB4D06717(System.Int32 ropeId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x483D4E917B0D35A9(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x522FA3F490E2F7AC(System.Int32 ropeId, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PHYSICS._0x5A989B7EE3672A56(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x5BD7457221CC5FF4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x5E981C764DF33117(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x69C810B72291D831(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.PHYSICS._0x6EA0E93CFFA472CC(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PHYSICS._0x751DF00EEFF122E3(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PHYSICS._0x76BAD9D538BCA1AA(System.Int32 ropeId, System.Single p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x7A54D82227A139DB(System.Int32* ropeId, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x814D453FCFDF119F(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PHYSICS._0x8D59079C37C21D78(System.Int32 ropeId, System.Single p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0x8EEDFD8921389928(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9)`
+- `public static System.Void RDR2.Native.PHYSICS._0x9C24846D0A4A2776(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PHYSICS._0xB40EA9E0D2E2F7F3(System.Int32 ropeId, System.Single p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0xB7469CB9AC3C0FD4(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.PHYSICS._0xBB3E9B073E66C3C9(System.Int32 ropeId, System.Boolean p1, System.Boolean p2, System.Boolean p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PHYSICS._0xBDDA142759307528(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PHYSICS._0xC64E7A62632AD2FE(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.PHYSICS._0xC89E7410A93AC19A(System.Int32 ropeId, System.Single p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0xD699E688B49C0FD2(System.Int32 ropeId, System.Single p1, System.Single p2, System.Single p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PHYSICS._0xDEDE679ED29DD4E7(System.Int32 ropeId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0xE54BF2CE6C7D23A9(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PHYSICS._0xEAF529446488EB18(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PHYSICS._0xF1EA2A881EB7F2CD(System.Int32 ropeId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0xF27F1A8DE4F50A1B(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.PHYSICS._0xF8CA39D5C0D1D9A1(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PHYSICS._0xFB9153A54AC713E8(System.Int32 ropeId, System.Boolean p1)`
+- `public static System.Int32 RDR2.Native.PHYSICS._ADD_ROPE_2(RDR2.Math.Vector3 vec, RDR2.Math.Vector3 rotation, System.Single length, System.Int32 ropeType, System.Boolean isNetworked, System.Int32 p9, System.Single p10)`
+- `public static System.Int32 RDR2.Native.PHYSICS._ADD_ROPE_2(System.Single x, System.Single y, System.Single z, System.Single rotX, System.Single rotY, System.Single rotZ, System.Single length, System.Int32 ropeType, System.Boolean isNetworked, System.Int32 p9, System.Single p10)`
+- `public static System.Void RDR2.Native.PHYSICS._ATTACH_ENTITES_TO_ROPE_3(System.Int32 ropeId, System.Int32 entity1, System.Int32 entity2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Single p7, System.Single p8, System.UInt64 p9, System.UInt64 p10)`
+- `public static System.Void RDR2.Native.PHYSICS._ATTACH_ENTITIES_TO_ROPE_2(System.Int32 ropeId, System.Int32 entity1, System.Int32 entity2, System.Single ent1X, System.Single ent1Y, System.Single ent1Z, System.Single ent2X, System.Single ent2Y, System.Single ent2Z, System.String boneName1, System.String boneName2)`
+- `public static System.Void RDR2.Native.PHYSICS._BREAK_ROPE(System.Int32* ropeId, System.Int32* ropeTop, System.Int32* ropeBottom, RDR2.Math.Vector3 offset, System.Int32 p6)`
+- `public static System.Void RDR2.Native.PHYSICS._BREAK_ROPE(System.Int32* ropeId, System.Int32* ropeTop, System.Int32* ropeBottom, System.Single offsetX, System.Single offsetY, System.Single offsetZ, System.Int32 p6)`
+- `public static System.Void RDR2.Native.PHYSICS._CREATE_ROPE_WINDING_ABILITY(System.Int32 ropeId, System.String p1, System.String ropeModelType, System.Single length, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PHYSICS._HITCH_HORSE(System.Int32 horse, RDR2.Math.Vector3 vec)`
+- `public static System.Void RDR2.Native.PHYSICS._HITCH_HORSE(System.Int32 horse, System.Single x, System.Single y, System.Single z)`
+- `public static System.Boolean RDR2.Native.PHYSICS._IS_ROPE_ATTACHED_TO_ENTITY(System.Int32 ropeId, System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.PHYSICS._IS_ROPE_BROKEN(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS._RELEASE_ROPE(System.Int32 ropeId)`
+- `public static System.Int32 RDR2.Native.PHYSICS._ROPE_GET_BREAKER_OF_ROPE(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS._START_ROPE_UNWINDING_BACK(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS._STOP_ROPE_UNWINDING_BACK(System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PHYSICS._UNHITCH_HORSE(System.Int32 horse)`
+
+## `RDR2.Native.PLAYER`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Void RDR2.Native.PLAYER.BOOST_PLAYER_HORSE_SPEED_FOR_TIME(System.Int32 player, System.Single speedBoost, System.Int32 duration)`
+- `public static System.Boolean RDR2.Native.PLAYER.CAN_PLAYER_START_MISSION(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.CLEAR_PLAYER_HAS_DAMAGED_AT_LEAST_ONE_NON_ANIMAL_PED(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.CLEAR_PLAYER_HAS_DAMAGED_AT_LEAST_ONE_PED(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.CLEAR_PLAYER_WANTED_LEVEL(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.DISABLE_PLAYER_FIRING(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.EAGLE_EYE_SET_CUSTOM_ENTITY_TINT(System.Int32 entity, System.Int32 red, System.Int32 green, System.Int32 blue)`
+- `public static System.Void RDR2.Native.PLAYER.FORCE_CLEANUP(System.Int32 cleanupFlags)`
+- `public static System.Void RDR2.Native.PLAYER.FORCE_CLEANUP_FOR_ALL_THREADS_WITH_THIS_NAME(System.String name, System.Int32 cleanupFlags)`
+- `public static System.Void RDR2.Native.PLAYER.FORCE_CLEANUP_FOR_THREAD_WITH_THIS_ID(System.Int32 id, System.Int32 cleanupFlags)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_CAUSE_OF_MOST_RECENT_FORCE_CLEANUP()`
+- `public static System.UInt32 RDR2.Native.PLAYER.GET_DISCOVERABLE_NAME_HASH_AND_TYPE_FOR_ENTITY(System.Int32 entity, System.UInt32* type)`
+- `public static System.Boolean RDR2.Native.PLAYER.GET_ENTITY_PLAYER_IS_FREE_AIMING_AT(System.Int32 player, System.Int32* entity)`
+- `public static System.Boolean RDR2.Native.PLAYER.GET_HAS_PLAYER_DISCOVERED_CHARACTER_NAME_MP(System.UInt32 discoveryHash)`
+- `public static System.Boolean RDR2.Native.PLAYER.GET_IS_PLAYER_UI_PROMPT_ACTIVE(System.Int32 player, System.Int32 p1)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_MAX_WANTED_LEVEL()`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_MOUNT_OWNED_BY_PLAYER(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_PLAYERS_LAST_VEHICLE()`
+- `public static System.Single RDR2.Native.PLAYER.GET_PLAYER_CURRENT_STEALTH_NOISE(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_PLAYER_GROUP(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_PLAYER_INDEX()`
+- `public static System.Boolean RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(System.Int32 player, System.Int32* outEntity, System.Boolean p2, System.Boolean p3)`
+- `public static System.Boolean RDR2.Native.PLAYER.GET_PLAYER_INVINCIBLE(System.Int32 player)`
+- `public static System.String RDR2.Native.PLAYER.GET_PLAYER_NAME(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_PLAYER_PED(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.GET_PLAYER_RECEIVED_BATTLE_EVENT_RECENTLY(System.Int32 player, System.Int32 p1, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PLAYER.GET_PLAYER_TARGET_ENTITY(System.Int32 player, System.Int32* entity)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_PLAYER_TEAM(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_PLAYER_WANTED_LEVEL(System.Int32 player)`
+- `public static System.UInt32 RDR2.Native.PLAYER.GET_TARGET_CHARACTER_NAME_FOR_LOCAL_PLAYER(System.Int32 ped)`
+- `public static System.UInt32 RDR2.Native.PLAYER.GET_TARGET_CHARACTER_NAME_SCRIPT_OVERRIDE_HASH(System.Int32 ped)`
+- `public static System.String RDR2.Native.PLAYER.GET_TARGET_CHARACTER_NAME_SCRIPT_OVERRIDE_RAW_STRING(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PLAYER.GET_WANTED_LEVEL_RADIUS(System.Int32 p0)`
+- `public static System.Int32 RDR2.Native.PLAYER.GET_WANTED_LEVEL_THRESHOLD(System.Int32 wantedLevel)`
+- `public static System.Boolean RDR2.Native.PLAYER.HAS_FORCE_CLEANUP_OCCURRED(System.Int32 cleanupFlags)`
+- `public static System.Boolean RDR2.Native.PLAYER.HAS_PLAYER_BEEN_SPOTTED_IN_STOLEN_VEHICLE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.HAS_PLAYER_DAMAGED_AT_LEAST_ONE_NON_ANIMAL_PED(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.HAS_PLAYER_DAMAGED_AT_LEAST_ONE_PED(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER.INT_TO_PARTICIPANTINDEX(System.Int32 value)`
+- `public static System.Int32 RDR2.Native.PLAYER.INT_TO_PLAYERINDEX(System.Int32 value)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_BEING_ARRESTED(System.Int32 player, System.Boolean atArresting)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_CLIMBING(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_CONTROL_ON(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_DEAD(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_FREE_AIMING(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_FREE_AIMING_AT_ENTITY(System.Int32 player, System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_PLAYING(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_READY_FOR_CUTSCENE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_RIDING_TRAIN(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_SCRIPT_CONTROL_ON(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_TARGETTING_ANYTHING(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_TARGETTING_ENTITY(System.Int32 player, System.Int32 entity, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_TELEPORT_ACTIVE()`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_PLAYER_WANTED_LEVEL_GREATER(System.Int32 player, System.Int32 wantedLevel)`
+- `public static System.Boolean RDR2.Native.PLAYER.IS_SYSTEM_UI_BEING_DISPLAYED()`
+- `public static System.Int32 RDR2.Native.PLAYER.NETWORK_PLAYER_ID_TO_INT()`
+- `public static System.Int32 RDR2.Native.PLAYER.PLAYER_ID()`
+- `public static System.Int32 RDR2.Native.PLAYER.PLAYER_PED_ID()`
+- `public static System.Void RDR2.Native.PLAYER.REPORT_POLICE_SPOTTED_PLAYER(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.RESET_LAW_RESPONSE_DELAY_OVERRIDE()`
+- `public static System.Void RDR2.Native.PLAYER.RESET_PLAYER_ARREST_STATE(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.RESET_PLAYER_INPUT_GAIT(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.RESET_WANTED_LEVEL_DIFFICULTY(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.RESTORE_PLAYER_STAMINA(System.Int32 player, System.Single p1)`
+- `public static System.Void RDR2.Native.PLAYER.SET_AIR_DRAG_MULTIPLIER_FOR_PLAYERS_VEHICLE(System.Int32 player, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_ALL_NEUTRAL_RANDOM_PEDS_FLEE_THIS_FRAME(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.SET_ALL_RANDOM_PEDS_FLEE(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_ALL_RANDOM_PEDS_FLEE_THIS_FRAME(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.SET_EVERYONE_IGNORE_PLAYER(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_LAW_RESPONSE_DELAY_OVERRIDE(System.Single p0)`
+- `public static System.Void RDR2.Native.PLAYER.SET_LOCKON_TO_FRIENDLY_PLAYERS(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_MAX_WANTED_LEVEL(System.Int32 maxWantedLevel)`
+- `public static System.Void RDR2.Native.PLAYER.SET_MIN_TIME_BEFORE_HORSE_BUCKING(System.Int32 mount, System.Int32 iMinBuckTime)`
+- `public static System.Boolean RDR2.Native.PLAYER.SET_PED_AS_TEMP_PLAYER_HORSE(System.Int32 player, System.Int32 horse)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_CAN_BE_HASSLED_BY_GANGS(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_CAN_USE_COVER(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_CLOTH_PIN_FRAMES(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_CONTROL(System.Int32 player, System.Boolean toggle, System.Int32 flags, System.Boolean bPreventHeadingChange)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_FORCED_AIM(System.Int32 player, System.Boolean toggle, System.Int32 ped, System.Int32 p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_HEALTH_RECHARGE_MULTIPLIER(System.Int32 player, System.Single regenRate)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_INVINCIBLE(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_LOCKON(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_LOCKON_RANGE_OVERRIDE(System.Int32 player, System.Single range)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_MAY_NOT_ENTER_ANY_VEHICLE(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_MAY_ONLY_ENTER_THIS_VEHICLE(System.Int32 player, System.Int32 vehicle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_MELEE_WEAPON_DAMAGE_MODIFIER(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_MODEL(System.Int32 player, System.UInt32 modelHash, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_NOISE_MULTIPLIER(System.Int32 player, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_SIMULATE_AIMING(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_SNEAKING_NOISE_MULTIPLIER(System.Int32 player, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_STAMINA_RECHARGE_MULTIPLIER(System.Int32 player, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_TARGETING_MODE(System.Int32 targetMode)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_TEAM(System.Int32 player, System.Int32 team, System.Boolean bRestrictToThisScript)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_WANTED_LEVEL(System.Int32 player, System.Int32 wantedLevel, System.Boolean disableNoMission)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_WEAPON_DAMAGE_MODIFIER(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_WEAPON_DEFENSE_MODIFIER(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_PLAYER_WEAPON_TYPE_DAMAGE_MODIFIER(System.Int32 player, System.UInt32 weaponHash, System.Single damageModifier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_POLICE_RADAR_BLIPS(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER.SET_SWIM_MULTIPLIER_FOR_PLAYER(System.Int32 player, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PLAYER.SET_WANTED_LEVEL_MULTIPLIER(System.Single multiplier)`
+- `public static System.Void RDR2.Native.PLAYER.SIMULATE_PLAYER_INPUT_GAIT(System.Int32 player, System.Single amount, System.Int32 gaitType, System.Single speed, System.Boolean p4, System.Boolean p5)`
+- `public static System.Void RDR2.Native.PLAYER.START_PLAYER_TELEPORT(System.Int32 player, RDR2.Math.Vector3 vec, System.Single heading, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.PLAYER.START_PLAYER_TELEPORT(System.Int32 player, System.Single x, System.Single y, System.Single z, System.Single heading, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.PLAYER.STOP_PLAYER_TELEPORT()`
+- `public static System.Void RDR2.Native.PLAYER.SUPPRESS_WITNESSES_CALLING_POLICE_THIS_FRAME(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER.UPDATE_PLAYER_TELEPORT(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER.UPDATE_WANTED_POSITION_THIS_FRAME(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._0x00B156AFEBCC5AE0(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x00BA333DA05ADC23(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x00EB5A760638DB55(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x03B4B759A8990505(System.UInt64 p0)`
+- `public static System.Int32 RDR2.Native.PLAYER._0x054473164C012699(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._0x06C3DB00B69D5435(System.Int32 player, System.String p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x06E1FB78B1E59CA5(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x086549F3B0381CB1(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x0869D499A7848309(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.PLAYER._0x08E22898A6AF4905(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x0B7803F6F7BB43E0()`
+- `public static System.Void RDR2.Native.PLAYER._0x0E1DB1F8F5B561DC(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.PLAYER._0x0E9057A9DA78D0F8(System.Int32 player, System.Int32 bitflag)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x0F4EAF69DA41AF43(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x0F9CF06986300875(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x0FAF95D71ED67ADE(System.Int32 player, System.String p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x107F2A66E1C4C83A(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x113EF458AB6CDA67(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x12E09E278C6C29B7(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x131E294EF60160DF(System.Int32 player, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.PLAYER._0x14E57F88BA0A07FC(System.UInt32 location)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x19B2C7A6C34FAD54(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PLAYER._0x1A6E84F13C952094(System.Int32 player, System.Int32 p1, System.UInt64* p2)`
+- `public static System.Void RDR2.Native.PLAYER._0x1AD8AD999C27F44A(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x1D256EED194F5B58(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x1DA5C5B0923E1B85(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x1E8099F449ABB0BA(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x1F488807BC8E0630(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._0x1FDA57E8908F2609(System.Int32 player, System.Int32 ped, System.Boolean useSteerassist)`
+- `public static System.Boolean RDR2.Native.PLAYER._0x2009F8AB7A5E9D6D(System.Int32 player)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x21091B4BEB6376EE(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x216BC0D3D2E413D2(System.Int32 player, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x22B3CABEDDB538B2(System.Int32 player, System.Single p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x22C8B10802301381(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x263D69767F76059C(System.Int32 player, System.Int32 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x27AD7162D3FED01E(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x2B12B6FC8B8772AB(System.Int32 player, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x2BB8D58E88777499(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x2BEED53B912537D0(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PLAYER._0x2C2D287748E8E9B7(System.Boolean p0)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x2E1ABE627C95ED9B()`
+- `public static System.Void RDR2.Native.PLAYER._0x2E67707BEC52CA4B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x310CE349E0C0EC4B(System.Int32 player, System.Int32 ped, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PLAYER._0x325434C68358D282(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER._0x330CA55A3647FA1C(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x35A33783EC3C3448(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x3813E11A378958A5(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x3946FC742AC305CD(System.Int32 player, System.Int32 ped, System.String p2, RDR2.Math.Vector3 vec, System.Int32 targetEntity, System.String p7)`
+- `public static System.Void RDR2.Native.PLAYER._0x3946FC742AC305CD(System.Int32 player, System.Int32 ped, System.String p2, System.Single x, System.Single y, System.Single z, System.Int32 targetEntity, System.String p7)`
+- `public static System.Void RDR2.Native.PLAYER._0x39BED552DB46FFA9(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x39D8D7082BC34B72(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x3A8611BD7BDE84F7(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x3ACAC8832E77BC93(System.Int32 player, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x3AD212429E095EFB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x3B296934DB026873(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x3BB84F812E052C90(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x3C4AE8506638C7E2(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x3D9DA5C9EFD20D88(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x3DAABE78A23694BC(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x45EF176B532CA851(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x497A18F8F88AA9D8()`
+- `public static System.Void RDR2.Native.PLAYER._0x4D1699543B1C023C(System.Int32 player, System.Single p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x4DBC4873707E8FD6(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PLAYER._0x4EC8BE63B8A5D4EF(System.Int32 player, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x4F0D2256AAE94EDA(System.Int32 p0)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x51139D8C17B16FBC(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PLAYER._0x57028FD99886F6F9()`
+- `public static System.Void RDR2.Native.PLAYER._0x570A13A4CA2799BB(System.Int32 player, System.Boolean p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x57D9991DC1334151(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x585CE159DB46FADB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x5B7B97E99F84138B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x5C2E5E3CAEEB1F58(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Boolean RDR2.Native.PLAYER._0x621D1B289CAF5978(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._0x628E742FE1F79C4A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x65887EAC535A0B0C(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x67659A8F248E0141(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x6852288340B43239(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x694FFA4308060CD1(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x6C54E69516CC56BD(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x6ECFC621A168424C(System.Int32 entity1, System.Int32 entity2, System.UInt64 p2, System.Single p3)`
+- `public static System.Void RDR2.Native.PLAYER._0x6EDB5D08CB03E763(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PLAYER._0x72AD59F7B7FB6E24(System.Int32 player, System.Int32 p1)`
+- `public static System.Boolean RDR2.Native.PLAYER._0x73EB2EF2E92D23BF()`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x747257807B8721CE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x76F7E1BCD623A429(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x77B0B6D17A3AC9AA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x77E83C315A3B31CA(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PLAYER._0x7AE93C45EC14A166(System.Int32 player, System.Int32* ped)`
+- `public static System.Void RDR2.Native.PLAYER._0x818241B3EDA84191(System.Int32 player, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x83C989D5B5B5B466(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x84481018E668E1B8(System.Int32 player, System.Int32 ped, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PLAYER._0x8591EE69CC3ED257(System.Int32 player, System.Boolean toggle)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x8702D9150D9FBB3D(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x8F44EBB3BA8F6D44(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x9044835BE9D9DBFE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x9073EC5456651A90(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x908D4B72854C8F62(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PLAYER._0x927861B2C08DBEA5(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._0x929DDD5538F3DF1F(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x93624B36E8851B42(System.Int32 player)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0x9422743A5BA50E10(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0x9461A8FAB0378E5B(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x988C9045531B9FCE(System.Int32 player, System.String p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x98CD760DE43B612E(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x9AFCF9FE1884BF62(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0x9FC5A003FB76EDBD(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xA0C683284DF027C7(System.Int32 player, System.Int32 p1, System.Boolean enable)`
+- `public static System.Void RDR2.Native.PLAYER._0xA28056CD1B04B250(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9, System.UInt64 p10)`
+- `public static System.Void RDR2.Native.PLAYER._0xA342495F93B7B838(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xA54000D4BFD90BDE(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xA62BBAAE67A05BB0(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xA82964B9D8D6A983()`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xAAED694CE814817F(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xACA45DDCEF6071C4(System.Int32 player, System.Boolean p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xB15CD2F9932C9AB5(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PLAYER._0xB331D8A73F9D2BDF(System.Int32 player, System.UInt64* p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xBA5CA1FEB5DE0DF6(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.PLAYER._0xBB6EA5D59E926095(System.Int32 category, System.UInt32 emote)`
+- `public static System.Void RDR2.Native.PLAYER._0xBBA140062B15A8AC(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._0xBC02B3D151D3859F(System.Int32 entity, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xBD96185264DDAAEA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xBEA3A6E5F5F79A6F(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xBED386157F65942C(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xBEFED69CE8317F91(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xC177C827CEFC0AA4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xC4873B053054C04B(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.PLAYER._0xC58CE6824E604DEC(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xC6366A585659D15C(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xC67A4910425F11F1(System.Int32 player, System.String name)`
+- `public static System.Void RDR2.Native.PLAYER._0xC71D07C96946E263(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xC74EB3F2EC169F6B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xC900A465364A85D6(System.Int32 player)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xC93A9A45430D484E(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xCA59808E51FD67C4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xCB0B9506BC91E441(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xCB61A63AA53D7D22(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xCBB54CC7FFFFAB86(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PLAYER._0xCD7CA3013FD12749(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xCDDD4B74660E2335(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PLAYER._0xCEDC16930526F728(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xCFB2EED4FCB7BD77(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PLAYER._0xCFFC3ECCD7A5CCEB(System.Int32 player, System.UInt32 weapon, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PLAYER._0xD1A70C1E8D1031FE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xD1F6B912785BFD35(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xD288E02E364972D2(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PLAYER._0xD48227263E3D06AE(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xDA9D7BE231FE865F(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xDAB6A2FC56B7DE65(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xDC5E09D012D759C4(System.Int32 entity1, System.Int32 entity2, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PLAYER._0xDC68829BB3F37023(System.Int32 player, System.Boolean showingInfoCard)`
+- `public static System.Void RDR2.Native.PLAYER._0xDD33A82352C4652F(System.Int32 player, System.Int32 ped, System.Int32 p2)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xDE6C85975F9D4894(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xDF93973251FB2CA5(System.Int32 player, System.Boolean p1)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xE022CC1B545F1D9F(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PLAYER._0xE1D356F5A66D0FFA(System.UInt32 emote)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xE50A67C33514A390(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xE5D3EB37ABC1EB03(System.Int32 player)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xE631EAF35828FA67(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PLAYER._0xE7F8707269544B29(System.Int32 player, System.Int32 ped)`
+- `public static System.Void RDR2.Native.PLAYER._0xE910932F4B30BE23(System.Int32 player)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xE92261BD28C0878F(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xE956C2340A76272E(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xEACEBAAE0A33FB3F(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PLAYER._0xEBB6E27AC2FF32DA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PLAYER._0xEBFF94328FF7A18A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._0xF21C7A3F3FFBA629(System.Int32 player)`
+- `public static System.UInt64 RDR2.Native.PLAYER._0xF4CB347D7B5EB0FD()`
+- `public static System.Void RDR2.Native.PLAYER._0xF993373285053D77(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PLAYER._0xFA437FA0738C370C(System.Int32 player, System.Single p1, System.Int32 p2, System.Int32 p3, System.Int32 p4)`
+- `public static System.Void RDR2.Native.PLAYER._0xFA7DAAE3959E6C7B(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PLAYER._ADD_PLAYER_AS_FOLLOW_TARGET(System.Int32 player, System.Int32 ped, System.Single p2, System.Single p3, System.Int32 followMode, System.Int32 followPriority, System.Boolean p6)`
+- `public static System.Void RDR2.Native.PLAYER._CLEAR_BOUNTY_TARGET(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._EAGLE_EYE_DISABLE_TRACKING_TRAIL(System.Int32 entity, System.String trail, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PLAYER._EAGLE_EYE_SET_COLOR(System.Int32 player, System.Boolean p1, System.UInt64* p2)`
+- `public static System.Void RDR2.Native.PLAYER._EAGLE_EYE_SET_CUSTOM_DISTANCE(System.Int32 entity, System.Single distance)`
+- `public static System.Void RDR2.Native.PLAYER._EAGLE_EYE_SET_DRAIN_RATE_MODIFIER(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER._EAGLE_EYE_SET_FOCUS_ON_ASSOCIATED_CLUE_TRAIL(System.Int32 player, System.Int32 linkedWaypointPed)`
+- `public static System.Void RDR2.Native.PLAYER._EAGLE_EYE_SET_PLUS_FLAG_DISABLED(System.Int32 ped, System.Boolean disabled)`
+- `public static System.Void RDR2.Native.PLAYER._EAGLE_EYE_SET_TRACKING_UPGRADE(System.Int32 player, System.Single p1)`
+- `public static System.Void RDR2.Native.PLAYER._EAGLE_EYE_SET_TRACKING_UPGRADE_2(System.Int32 player, System.Single p1)`
+- `public static System.Void RDR2.Native.PLAYER._ENABLE_CUSTOM_DEADEYE_ABILITY(System.Int32 player, System.Boolean enable)`
+- `public static System.Void RDR2.Native.PLAYER._ENABLE_EAGLEEYE(System.Int32 player, System.Boolean enable)`
+- `public static System.Void RDR2.Native.PLAYER._FORCE_REST_SCENARIO(System.Boolean toggle)`
+- `public static System.String RDR2.Native.PLAYER._FORMAT_PLAYER_NAME_STRING(System.String _string)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_ACTIVE_HORSE_FOR_PLAYER(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_AI_PLAYER_DEFENSE_MODIFIER_AGAINST_AI(System.Int32 player)`
+- `public static System.UInt32 RDR2.Native.PLAYER._GET_CONSTRUCTED_DISCOVERED_CHARACTER_NAME(System.UInt32 p0, System.Boolean model, System.Boolean outfit)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_DEADEYE_ABILITY_LEVEL(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER._GET_HAS_PLAYER_DISCOVERED_CHARACTER_NAME_SP(System.Int32 player, System.Int32 p1, System.UInt32 discoveryHash)`
+- `public static System.Boolean RDR2.Native.PLAYER._GET_IS_DEADEYE_TAGGING_ENABLED(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_NUM_MARKED_DEADEYE_TARGETS(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_CACHED_DEAD_EYE_AMOUNT(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_DEAD_EYE(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_DEAD_EYE_METER_LEVEL(System.Int32 player, System.Boolean p1)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_HEALTH(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_HEALTH_RECHARGE_MULTIPLIER(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_PLAYER_HUNTING_WAGON(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_MAX_DEAD_EYE(System.Int32 player, System.UInt64 p1)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_PLAYER_OWNER_OF_MOUNT(System.Int32 mount)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_PLAYER_OWNER_OF_VEHICLE(System.Int32 vehicle)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_PLAYER_PED_2(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_REQUIRED_DEAD_EYE_AMOUNT(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER._GET_PLAYER_RESET_FLAG(System.Int32 player, System.Int32 playerResetFlag)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_SPECIAL_ABILITY_MULTIPLIER(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_STAMINA(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_STAMINA_DEPLETION_MULTIPLIER(System.Int32 player)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_STAMINA_RECHARGE_MULTIPLIER(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER._GET_PLAYER_UI_PROMPT_FOR_PED_IS_ENABLED(System.Int32 player, System.Int32 ped, System.Int32 promptType, System.Int32 promptMode)`
+- `public static System.Boolean RDR2.Native.PLAYER._GET_PLAYER_UI_PROMPT_IS_DISABLED(System.Int32 player, System.Int32 promptType, System.Int32 promptMode)`
+- `public static System.Single RDR2.Native.PLAYER._GET_PLAYER_WEAPON_DAMAGE(System.Int32 player, System.UInt32 weaponHash)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_SADDLE_HORSE_FOR_PLAYER(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_TEMP_PLAYER_HORSE(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PLAYER._GET_VEHICLE_OWNED_BY_PLAYER(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER._IS_DEADEYE_ABILITY_LOCKED(System.Int32 player, System.Int32 abilityType)`
+- `public static System.Boolean RDR2.Native.PLAYER._IS_EAGLE_EYE_REGISTERED_FOR_ENTITY(System.Int32 player, System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.PLAYER._IS_PLAYER_FOLLOWING_TARGET(System.Int32 player, System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PLAYER._IS_PLAYER_FREE_FOCUSING(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER._IS_PLAYER_IN_SCOPE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER._IS_SECONDARY_SPECIAL_ABILITY_ACTIVE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PLAYER._IS_SPECIAL_ABILITY_ACTIVE(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._MODIFY_INFINITE_TRAIL_VISION(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER._MODIFY_PLAYER_DISCOVERED_CHARACTER_NAME_MP_SET_UNDISCOVERED(System.UInt32 discoveryHash)`
+- `public static System.Void RDR2.Native.PLAYER._MODIFY_PLAYER_UI_PROMPT(System.Int32 player, System.Int32 promptType, System.Int32 promptMode, System.Boolean disabled)`
+- `public static System.Void RDR2.Native.PLAYER._MODIFY_PLAYER_UI_PROMPT_FOR_PED(System.Int32 player, System.Int32 ped, System.Int32 promptType, System.Int32 promptMode, System.Boolean enabled)`
+- `public static System.Boolean RDR2.Native.PLAYER._NETWORK_HAS_PLAYER_VALID_PED(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._REGISTER_EAGLE_EYE_FOR_ENTITY(System.Int32 player, System.Int32 entity, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PLAYER._REGISTER_EAGLE_EYE_TRAILS_FOR_ENTITY(System.Int32 player, System.Int32 entity, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PLAYER._REMOVE_PLAYER_AS_FOLLOW_TARGET(System.Int32 player, System.Int32 ped)`
+- `public static System.Void RDR2.Native.PLAYER._SECONDARY_SPECIAL_ABILITY_SET_ACTIVE(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._SECONDARY_SPECIAL_ABILITY_SET_DISABLED(System.Int32 player, System.Boolean disabled)`
+- `public static System.Void RDR2.Native.PLAYER._SET_AI_PLAYER_DEFENSE_MODIFIER_AGAINST_AI(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER._SET_BOUNTY_TARGET(System.Int32 player, System.Int32 target)`
+- `public static System.Void RDR2.Native.PLAYER._SET_BOW_DRAW_REDUCTION_TIME_IN_DEADEYE(System.Int32 player, System.Single drawReductionTime)`
+- `public static System.Void RDR2.Native.PLAYER._SET_BOW_STAMINA_DRAIN_SPEED(System.Int32 player, System.Single staminaDrain)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DAMAGE_CLOSE_DISTANCE_BONUS(System.Int32 player, System.Single closeRangeLowerBound, System.Single closeRangeUpperBound)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DAMAGE_CLOSE_DISTANCE_BONUS_TOTAL(System.Int32 player, System.Single closeDamageBonus)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DAMAGE_FAR_DISTANCE_BONUS(System.Int32 player, System.Single farRangeLowerBound, System.Single farRangeUpperBound)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DAMAGE_FAR_DISTANCE_BONUS_TOTAL(System.Int32 player, System.Single farDamageBonus)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DEADEYE_ABILITY_DEPLETION_DELAY(System.Int32 player, System.Single delay)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DEADEYE_ABILITY_LEVEL(System.Int32 player, System.Int32 level)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DEADEYE_ABILITY_LOCKED(System.Int32 player, System.Int32 abilityType, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DEADEYE_TAGGING_CONFIG(System.Int32 player, System.Int32 filter)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DEADEYE_TAGGING_ENABLED(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER._SET_DISABLE_PLAYER_WANTED_LEVEL(System.Int32 player, System.Boolean disable)`
+- `public static System.Void RDR2.Native.PLAYER._SET_LOCAL_PLAYER_PERSONA_ABILITY_FLAG(System.Int32 flagId, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER._SET_LOCKON_FOCUS_FIRE_VFX(System.Int32 player, System.String p1)`
+- `public static System.Void RDR2.Native.PLAYER._SET_MAX_WANTED_LEVEL_2(System.Int32 maxWantedLevel)`
+- `public static System.Void RDR2.Native.PLAYER._SET_MOUNT_PROMPT_DISABLED(System.Boolean disabled)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PED_ACTIVE_PLAYER_HORSE(System.Int32 player, System.Int32 horse)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PED_AS_SADDLE_HORSE_FOR_PLAYER(System.Int32 player, System.Int32 mount)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_CAN_MERCY_KILL(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_DAMAGE_INFO_OVERRIDE(System.Int32 player, System.String damageInfo)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_DEFENSE_MODIFIER(System.Int32 player, System.Single weaponDefenseMod, System.Single meleeDefenseMod)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_DEFENSE_TYPE_MODIFIER(System.Int32 player, System.Int32 type, System.Single defenseModifier)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_EXPLOSIVE_WEAPON_DAMAGE_MODIFIER(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_HAS_DISCOVERED_CHARACTER_NAME_MP(System.UInt32 discoveryHash)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_HAS_DISCOVERED_CHARACTER_NAME_SP(System.Int32 player, System.Int32 p1, System.UInt32 discoveryHash)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_HEALTH_RECHARGE_TIME_MODIFIER(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_HUNTING_WAGON(System.Int32 player, System.Int32 wagon)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_IN_VEHICLE_TARGETING_MODE(System.Int32 targetMode)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_LASSO_DAMAGE_PER_SECOND(System.Int32 player, System.Single damage)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_LOCAL_ACCURACY_FLOOR_MODIFIER(System.Int32 player, System.Single accuracy)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_MANAGE_BUFF_SUPER_JUMP(System.Int32 player, System.Single p1)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_MAX_AMMO_OVERRIDE_FOR_AMMO_TYPE(System.Int32 player, System.UInt32 ammoType, System.Int32 amount)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_OWNS_MOUNT(System.Int32 player, System.Int32 mount)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_OWNS_VEHICLE(System.Int32 player, System.Int32 vehicle)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_REMOTE_ACCURACY_FLOOR_MODIFIER(System.Int32 player, System.Single accuracy)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_RESET_FLAG(System.Int32 player, System.Int32 playerResetFlag, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_STAMINA_SPRINT_DEPLETION_MULTIPLIER(System.Int32 player, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_STAT_FLAG_HASH(System.Int32 player, System.UInt32 p1)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_TOTAL_ACCURACY_MODIFIER(System.Int32 player, System.Single accuracy)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_TRAMPLE_DAMAGE_MODIFIER(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_WEAPON_GROUP_AS_INSTANT_KILL(System.Int32 player, System.UInt32 weaponGroup, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PLAYER._SET_PLAYER_WEAPON_GROUP_DAMAGE_MODIFIER(System.Int32 player, System.UInt32 weaponGroup, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER._SET_RECEIVED_HORSEBACK_DAMAGE_DECREASE(System.Int32 player, System.Single damageDecrease)`
+- `public static System.Void RDR2.Native.PLAYER._SET_SPECIAL_ABILITY_ACTIVATION_COST(System.Int32 player, System.Single activationCost, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PLAYER._SET_SPECIAL_ABILITY_DISABLE_TIMER(System.Int32 player, System.Single timer)`
+- `public static System.Void RDR2.Native.PLAYER._SET_SPECIAL_ABILITY_DURATION_COST(System.Int32 player, System.Single durationCost)`
+- `public static System.Void RDR2.Native.PLAYER._SET_SPECIAL_ABILITY_MULTIPLIER(System.Int32 player, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PLAYER._SET_WEAPON_DEGRADATION_MODIFIER(System.Int32 player, System.Single modifier)`
+- `public static System.Void RDR2.Native.PLAYER._SPECIAL_ABILITY_DRAIN_BY_AMOUNT(System.Int32 player, System.Single amount, System.UInt64 p2)`
+- `public static System.Single RDR2.Native.PLAYER._SPECIAL_ABILITY_GET_AMOUNT_CACHED(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._SPECIAL_ABILITY_RESTORE_BY_AMOUNT(System.Int32 player, System.Single amount, System.Int32 p2, System.Int32 p3, System.Int32 p4)`
+- `public static System.Void RDR2.Native.PLAYER._SPECIAL_ABILITY_RESTORE_OUTER_RING(System.Int32 player, System.Single amount)`
+- `public static System.Void RDR2.Native.PLAYER._SPECIAL_ABILITY_SET_DISABLED(System.Int32 player, System.Boolean disabled)`
+- `public static System.Void RDR2.Native.PLAYER._SPECIAL_ABILITY_SET_EAGLE_EYE_DISABLED(System.Int32 player)`
+- `public static System.Void RDR2.Native.PLAYER._SPECIAL_ABILITY_START_RESTORE(System.Int32 player, System.Int32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PLAYER._UNREGISTER_EAGLE_EYE_FOR_ENTITY(System.Int32 player, System.Int32 entity)`
+- `public static System.Void RDR2.Native.PLAYER._UNREGISTER_EAGLE_EYE_TRAILS_FOR_ENTITY(System.Int32 player, System.Int32 entity, System.UInt64 p2)`
+
+## `RDR2.Native.POPULATION`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Void RDR2.Native.POPULATION.CLEAR_SPAWNER_INFO_PRIORITY(System.UInt32 p0, System.UInt32 p1)`
+- `public static System.Void RDR2.Native.POPULATION.DISABLE_AMBIENT_ROAD_POPULATION(System.Boolean unk)`
+- `public static System.Void RDR2.Native.POPULATION.ENABLE_AMBIENT_ROAD_POPULATION()`
+- `public static System.Int32 RDR2.Native.POPULATION.GET_NUM_MODELS_IN_POPULATION_SET(System.UInt32 popSetHash)`
+- `public static System.UInt32 RDR2.Native.POPULATION.GET_PED_MODEL_NAME_IN_POPULATION_SET(System.UInt32 popSetHash, System.Int32 index)`
+- `public static System.UInt32 RDR2.Native.POPULATION.GET_RANDOM_MODEL_FROM_POPULATION_SET(System.UInt32 popSetHash, System.Int32 flags, System.UInt32 p2, System.Boolean p3, System.Boolean p4, RDR2.Math.Vector3 vec)`
+- `public static System.UInt32 RDR2.Native.POPULATION.GET_RANDOM_MODEL_FROM_POPULATION_SET(System.UInt32 popSetHash, System.Int32 flags, System.UInt32 p2, System.Boolean p3, System.Boolean p4, System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.POPULATION.SET_POPZONE_POPULATION_SET(System.Int32 popZone, System.UInt32 populationSetHash)`
+- `public static System.Void RDR2.Native.POPULATION.SET_SPAWNER_INFO_PRIORITY(System.UInt32 p0, System.UInt32 p1, System.Int32 priority)`
+- `public static System.Void RDR2.Native.POPULATION._0x08892122769770D5(System.Int32 popZone, System.Boolean p1)`
+- `public static System.Void RDR2.Native.POPULATION._0x0F1861101C9A9944(System.Int32 popZone, System.Boolean p1)`
+- `public static System.Void RDR2.Native.POPULATION._0x2161278C6322F740(System.Int32 includeFlags, System.Int32 excludeFlags, System.Int32 p2, System.UInt32 p3, System.Int32 p4, System.Int32 volume)`
+- `public static System.Void RDR2.Native.POPULATION._0x247F86595D396344(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.POPULATION._0x2660E7720EDC4BD0(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.POPULATION._0x324AB2A68AD8AEE5()`
+- `public static System.Void RDR2.Native.POPULATION._0x578E2FA64E847C60(System.Int32 popZone, System.Int32 p1)`
+- `public static System.Void RDR2.Native.POPULATION._0x638FCFC6042A9473(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.POPULATION._0x7E6BC0B94F5928F0(System.Int32 popZone, System.Int32 p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.POPULATION._0x8EC7CD701F872F87(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.POPULATION._0xC4533E3E87125C9E(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.POPULATION._0xDBBF12EA7C1029B2(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.POPULATION._0xEC116EDB683AD479(System.Boolean p0)`
+- `public static System.Void RDR2.Native.POPULATION._0xF45E46DEECF7DF6E(System.Int32 bitFlag, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.POPULATION._ADD_AMBIENT_AVOIDANCE_RESTRICTION(System.Int32 volume, System.Int32 includeFlags, System.Int32 excludeFlags, System.UInt32 p3, System.UInt32 p4, System.UInt32 p5, System.Int32 p6)`
+- `public static System.Void RDR2.Native.POPULATION._ADD_AMBIENT_SPAWN_RESTRICTION(System.Int32 volume, System.Int32 includeFlags, System.Int32 excludeFlags, System.UInt32 p3, System.UInt32 p4, System.UInt32 p5, System.Int32 p6)`
+- `public static System.Int32 RDR2.Native.POPULATION._CREATE_POPZONE_FROM_VOLUME(System.Int32 volume)`
+- `public static System.Void RDR2.Native.POPULATION._DELETE_SCRIPT_POPZONE(System.Int32 popZone)`
+- `public static System.UInt32 RDR2.Native.POPULATION._GET_RANDOM_FISH_TYPE_FOR_LOCATION()`
+- `public static System.Boolean RDR2.Native.POPULATION._IS_POPZONE_VALID(System.Int32 popZone)`
+- `public static System.Void RDR2.Native.POPULATION._REMOVE_AMBIENT_AVOIDANCE_RESTRICTION(System.Int32 volume)`
+- `public static System.Void RDR2.Native.POPULATION._REMOVE_AMBIENT_SPAWN_RESTRICTION(System.Int32 volume)`
+- `public static System.Void RDR2.Native.POPULATION._SET_PED_SHOULD_IGNORE_AVOIDANCE_VOLUMES(System.Int32 ped, System.Int32 p1)`
+
+## `RDR2.Native.POSSE`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Int32 RDR2.Native.POSSE.POSSE_GET_POSSE_MEMBERSHIP_COUNT()`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC06CFF658B2E51DA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC07CFF658B2E51DA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC084FF658B2E52DA(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC084FF658B2E53DA()`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC084FF658B2E54DA(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC084FF658B2E55DA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC084FF658B2E61DA(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC084FF658B2E71DA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC084FF658B2E81DA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC086FF658B2E51DA(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC086FF658B2E51DB()`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC087FF658B2E51DA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC089FF658B2E51DA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.POSSE._0xC08AFF658B2E51DA(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.POSSE._0xC08AFF658B2E51DB(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC08BFF658B2E51DA(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC08CFF658B2E51DA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC08DEF658B2E51DA(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC08DFF658B2E51DA()`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC08DFF658B2E51DB(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC08EFF658B2E51DB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC08FFF658B2E51DA()`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC08FFF658B2E51DB(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC09CFF658B2E51DA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC184FF658B2E55DA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC284FF658B2E55DA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.POSSE._0xC394FF658B2E55DA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.POSSE._0xC484FF658B2E55DA(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.POSSE._0xC584FF658B2E55DA(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.POSSE._0xC684FF658B2E55DA(System.UInt64 p0)`
+
+## `RDR2.Native.PROPSET`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Int32 RDR2.Native.PROPSET.CREATE_PROP_SET_INSTANCE_ATTACHED_TO_ENTITY(System.UInt32 hash, RDR2.Math.Vector3 vec, System.Int32 entity, System.Single p5, System.Boolean p6, System.Int32 p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PROPSET.CREATE_PROP_SET_INSTANCE_ATTACHED_TO_ENTITY(System.UInt32 hash, System.Single x, System.Single y, System.Single z, System.Int32 entity, System.Single p5, System.Boolean p6, System.Int32 p7, System.Boolean p8)`
+- `public static System.Boolean RDR2.Native.PROPSET.DOES_PROP_SET_EXIST(System.Int32 propSet)`
+- `public static System.Boolean RDR2.Native.PROPSET.IS_PROP_SET_FULLY_LOADED(System.Int32 propSet)`
+- `public static System.Void RDR2.Native.PROPSET._0x58E0B01D45CA7357(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PROPSET._0xC4B67EF3FD65622D(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.PROPSET._ADD_ADDITIONAL_PROP_SET_FOR_VEHICLE(System.Int32 vehicle, System.UInt32 propset)`
+- `public static System.Void RDR2.Native.PROPSET._ADD_LIGHT_PROP_SET_TO_VEHICLE(System.Int32 vehicle, System.UInt32 lightPropset)`
+- `public static System.Void RDR2.Native.PROPSET._ADD_PROP_SET_FOR_VEHICLE(System.Int32 vehicle, System.UInt32 propset)`
+- `public static System.Int32 RDR2.Native.PROPSET._CREATE_PROP_SET(System.UInt32 hash, RDR2.Math.Vector3 vec, System.Int32 p4, System.Single heading, System.Single p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PROPSET._CREATE_PROP_SET(System.UInt32 hash, System.Single x, System.Single y, System.Single z, System.Int32 p4, System.Single heading, System.Single p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PROPSET._CREATE_PROP_SET_2(System.UInt32 hash, RDR2.Math.Vector3 vec, System.Int32 p4, System.Single p5, System.Single p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PROPSET._CREATE_PROP_SET_2(System.UInt32 hash, System.Single x, System.Single y, System.Single z, System.Int32 p4, System.Single p5, System.Single p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PROPSET._CREATE_PROP_SET_4(System.UInt32 hash, RDR2.Math.Vector3 vec, System.Int32 entity, System.Single p5, System.Boolean p6, System.Int32 p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PROPSET._CREATE_PROP_SET_4(System.UInt32 hash, System.Single x, System.Single y, System.Single z, System.Int32 entity, System.Single p5, System.Boolean p6, System.Int32 p7, System.Boolean p8)`
+- `public static System.Void RDR2.Native.PROPSET._DELETE_PROP_SET(System.Int32 propSet, System.Boolean p1, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PROPSET._DOES_PROP_SET_OF_TYPE_EXIST_NEAR_COORDS(System.UInt32 propsetHash, RDR2.Math.Vector3 vec)`
+- `public static System.Boolean RDR2.Native.PROPSET._DOES_PROP_SET_OF_TYPE_EXIST_NEAR_COORDS(System.UInt32 propsetHash, System.Single x, System.Single y, System.Single z)`
+- `public static System.Boolean RDR2.Native.PROPSET._DOES_VEHICLE_HAVE_ANY_LIGHT_PROP_SET(System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.PROPSET._DOES_VEHICLE_HAVE_ANY_PROP_SET(System.Int32 vehicle)`
+- `public static System.Int32 RDR2.Native.PROPSET._GET_ENTITIES_FROM_PROP_SET(System.Int32 propSet, System.Int32 itemSet, System.UInt32 model, System.Boolean p3, System.Boolean p4)`
+- `public static System.Int32 RDR2.Native.PROPSET._GET_PROP_SET_AT_COORDS(System.UInt32 propsetHash, RDR2.Math.Vector3 vec)`
+- `public static System.Int32 RDR2.Native.PROPSET._GET_PROP_SET_AT_COORDS(System.UInt32 propsetHash, System.Single x, System.Single y, System.Single z)`
+- `public static System.UInt32 RDR2.Native.PROPSET._GET_PROP_SET_MODEL(System.Int32 propSet)`
+- `public static System.Int32 RDR2.Native.PROPSET._GET_TRAIN_CARRIAGE_PROP_SET(System.Int32 trainCarriage)`
+- `public static System.Int32 RDR2.Native.PROPSET._GET_VEHICLE_LIGHT_PROP_SET(System.Int32 vehicle)`
+- `public static System.Int32 RDR2.Native.PROPSET._GET_VEHICLE_PROP_SET(System.Int32 vehicle)`
+- `public static System.UInt32 RDR2.Native.PROPSET._GET_VEHICLE_PROP_SET_HASH(System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.PROPSET._HAS_PROP_SET_LOADED(System.UInt32 hash)`
+- `public static System.Boolean RDR2.Native.PROPSET._HAS_PROP_SET_LOADED_2(System.UInt32 hash)`
+- `public static System.Boolean RDR2.Native.PROPSET._HAS_VEHICLE_TRAILER_PROP_SET_LOADED(System.Int32 vehicle, System.Int32 wagonIndex)`
+- `public static System.Boolean RDR2.Native.PROPSET._IS_PROP_SET_VISIBLE(System.Int32 propSet)`
+- `public static System.Boolean RDR2.Native.PROPSET._IS_VEHICLE_LIGHT_PROP_SET_LOADED(System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.PROPSET._IS_VEHICLE_PROP_SET_LOADED(System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.PROPSET._IS_VEHICLE_PROP_SET_LOADED_ADDITIONAL(System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.PROPSET._RELEASE_PROP_SET(System.UInt32 hash)`
+- `public static System.Void RDR2.Native.PROPSET._REMOVE_VEHICLE_LIGHT_PROP_SETS(System.Int32 vehicle)`
+- `public static System.Void RDR2.Native.PROPSET._REMOVE_VEHICLE_PROP_SETS(System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.PROPSET._REQUEST_PROP_SET(System.UInt32 hash)`
+- `public static System.Boolean RDR2.Native.PROPSET._REQUEST_PROP_SET_2(System.UInt32 hash)`
+- `public static System.Void RDR2.Native.PROPSET._SET_PROP_SET_AS_NO_LONGER_NEEDED(System.Int32 propSet)`
+- `public static System.Void RDR2.Native.PROPSET._SET_PROP_SET_FLAG(System.Int32 propSet, System.Int32 flag)`
+- `public static System.Void RDR2.Native.PROPSET._SET_PROP_SET_VISIBLE(System.Int32 propSet, System.Boolean toggle)`
+

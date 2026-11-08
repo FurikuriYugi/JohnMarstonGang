@@ -1,0 +1,379 @@
+<!-- ScriptHookRDRNetAPI-Inventory chunk 7 of 26; methods=354; sha256=bfb7607d94b2de7f8530289377f163caad81098afc1fb7ee86191810a6cc6bba -->
+## `RDR2.Native.MISC`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Single RDR2.Native.MISC.ABSF(System.Single value)`
+- `public static System.Int32 RDR2.Native.MISC.ABSI(System.Int32 value)`
+- `public static System.Single RDR2.Native.MISC.ACOS(System.Single p0)`
+- `public static System.Void RDR2.Native.MISC.ACTION_MANAGER_ENABLE_ACTION(System.UInt32 hash, System.Boolean enable)`
+- `public static System.Boolean RDR2.Native.MISC.ACTION_MANAGER_IS_ACTION_ENABLED(System.UInt32 hash)`
+- `public static System.Void RDR2.Native.MISC.ACTIVITY_FEED_ACTION_START_WITH_COMMAND_LINE(System.String p0, System.String p1)`
+- `public static System.Void RDR2.Native.MISC.ACTIVITY_FEED_ACTION_START_WITH_COMMAND_LINE_ADD(System.String p0)`
+- `public static System.Void RDR2.Native.MISC.ACTIVITY_FEED_ADD_SUBSTRING_TO_CAPTION(System.String p0)`
+- `public static System.Void RDR2.Native.MISC.ACTIVITY_FEED_CREATE(System.String p0, System.String p1)`
+- `public static System.Void RDR2.Native.MISC.ACTIVITY_FEED_POST()`
+- `public static System.Int32 RDR2.Native.MISC.ADD_POP_MULTIPLIER_AREA(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.Single pedDensity, System.Single trafficDensity, System.Boolean p8, System.Boolean p9)`
+- `public static System.Int32 RDR2.Native.MISC.ADD_POP_MULTIPLIER_AREA(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.Single pedDensity, System.Single trafficDensity, System.Boolean p8, System.Boolean p9)`
+- `public static System.Void RDR2.Native.MISC.ADD_TACTICAL_NAV_MESH_POINT(RDR2.Math.Vector3 vec, System.Int32 p3)`
+- `public static System.Void RDR2.Native.MISC.ADD_TACTICAL_NAV_MESH_POINT(System.Single x, System.Single y, System.Single z, System.Int32 p3)`
+- `public static System.Boolean RDR2.Native.MISC.ARE_STRINGS_EQUAL(System.String string1, System.String string2)`
+- `public static System.Single RDR2.Native.MISC.ASIN(System.Single p0)`
+- `public static System.Single RDR2.Native.MISC.ATAN(System.Single p0)`
+- `public static System.Single RDR2.Native.MISC.ATAN2(System.Single p0, System.Single p1)`
+- `public static System.Void RDR2.Native.MISC.BLOCK_DISPATCH_SERVICE_RESOURCE_CREATION(System.Int32 dispatchService, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.CANCEL_ONSCREEN_KEYBOARD()`
+- `public static System.Void RDR2.Native.MISC.CLEAR_ANGLED_AREA_OF_VEHICLES(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7)`
+- `public static System.Void RDR2.Native.MISC.CLEAR_AREA(RDR2.Math.Vector3 vec, System.Single radius, System.Int32 flag)`
+- `public static System.Void RDR2.Native.MISC.CLEAR_AREA(System.Single x, System.Single y, System.Single z, System.Single radius, System.Int32 flag)`
+- `public static System.Void RDR2.Native.MISC.CLEAR_BIT(System.Int32* address, System.Int32 offset)`
+- `public static System.Void RDR2.Native.MISC.CLEAR_OVERRIDE_WEATHER()`
+- `public static System.Void RDR2.Native.MISC.CLEAR_TACTICAL_NAV_MESH_POINTS()`
+- `public static System.Void RDR2.Native.MISC.CLEAR_WEATHER_TYPE_PERSIST()`
+- `public static System.Int32 RDR2.Native.MISC.COMPARE_STRINGS(System.String str1, System.String str2, System.Boolean matchCase, System.Int32 maxLength)`
+- `public static System.Void RDR2.Native.MISC.COPY_SCRIPT_STRUCT(System.UInt64* dst, System.UInt64* src, System.Int32 size)`
+- `public static System.Boolean RDR2.Native.MISC.CREATE_INCIDENT(System.Int32 dispatchService, RDR2.Math.Vector3 vec, System.Int32 numUnits, System.Single radius, System.Int32* outIncidentID, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Boolean RDR2.Native.MISC.CREATE_INCIDENT(System.Int32 dispatchService, System.Single x, System.Single y, System.Single z, System.Int32 numUnits, System.Single radius, System.Int32* outIncidentID, System.UInt64 p7, System.UInt64 p8)`
+- `public static System.Void RDR2.Native.MISC.DELETE_INCIDENT(System.Int32 incidentId)`
+- `public static System.Void RDR2.Native.MISC.DISABLE_LOOTING_COMPOSITE_LOOTABLE_THIS_FRAME(System.Int32 compositeId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.MISC.DISPLAY_ONSCREEN_KEYBOARD(System.Int32 textType, System.String windowTitle, System.String p2, System.String defaultText, System.String defaultConcat1, System.String defaultConcat2, System.String defaultConcat3, System.Int32 maxInputLength)`
+- `public static System.Boolean RDR2.Native.MISC.DOES_POP_MULTIPLIER_AREA_EXIST(System.Int32 id)`
+- `public static System.Void RDR2.Native.MISC.ENABLE_DISPATCH_SERVICE(System.Int32 dispatchService, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.FIRE_SINGLE_BULLET(System.UInt64* args)`
+- `public static System.Void RDR2.Native.MISC.FORCE_LIGHTNING_FLASH()`
+- `public static System.Boolean RDR2.Native.MISC.GAME_FRAMEWORK_MANAGER_INIT(System.UInt32 transitionMode)`
+- `public static System.Single RDR2.Native.MISC.GET_ANGLE_BETWEEN_2D_VECTORS(System.Single x1, System.Single y1, System.Single x2, System.Single y2)`
+- `public static System.Int32 RDR2.Native.MISC.GET_BENCHMARK_ITERATIONS()`
+- `public static System.Int32 RDR2.Native.MISC.GET_BENCHMARK_PASS()`
+- `public static System.Int32 RDR2.Native.MISC.GET_BITS_IN_RANGE(System.Int32 var, System.Int32 rangeStart, System.Int32 rangeEnd)`
+- `public static RDR2.Math.Vector3 RDR2.Native.MISC.GET_CLOSEST_POINT_ON_LINE(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Single p7, System.Single p8, System.Boolean p9)`
+- `public static System.Boolean RDR2.Native.MISC.GET_COORDS_OF_PROJECTILE_TYPE_WITHIN_DISTANCE(System.Int32 ped, System.UInt32 weaponHash, System.Single distance, RDR2.Math.Vector3* outCoords, System.Boolean p4, System.Boolean mustBeOwnedByThisPed)`
+- `public static System.Void RDR2.Native.MISC.GET_CURR_WEATHER_STATE(System.UInt32* weatherType1, System.UInt32* weatherType2, System.Single* percentWeather2)`
+- `public static System.Single RDR2.Native.MISC.GET_DISTANCE_BETWEEN_COORDS(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.Boolean useZ)`
+- `public static System.Single RDR2.Native.MISC.GET_DISTANCE_BETWEEN_COORDS(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.Boolean useZ)`
+- `public static System.Int32 RDR2.Native.MISC.GET_FRAME_COUNT()`
+- `public static System.Single RDR2.Native.MISC.GET_FRAME_TIME()`
+- `public static System.Int32 RDR2.Native.MISC.GET_GAME_TIMER()`
+- `public static System.Boolean RDR2.Native.MISC.GET_GROUND_Z_AND_NORMAL_FOR_3D_COORD(RDR2.Math.Vector3 vec, System.Single* groundZ, RDR2.Math.Vector3* normal)`
+- `public static System.Boolean RDR2.Native.MISC.GET_GROUND_Z_AND_NORMAL_FOR_3D_COORD(System.Single x, System.Single y, System.Single z, System.Single* groundZ, RDR2.Math.Vector3* normal)`
+- `public static System.Boolean RDR2.Native.MISC.GET_GROUND_Z_FOR_3D_COORD(RDR2.Math.Vector3 vec, System.Single* groundZ, System.Boolean p4)`
+- `public static System.Boolean RDR2.Native.MISC.GET_GROUND_Z_FOR_3D_COORD(System.Single x, System.Single y, System.Single z, System.Single* groundZ, System.Boolean p4)`
+- `public static System.UInt32 RDR2.Native.MISC.GET_HASH_KEY(System.String _string)`
+- `public static System.Single RDR2.Native.MISC.GET_HEADING_FROM_VECTOR_2D(System.Single dx, System.Single dy)`
+- `public static System.Boolean RDR2.Native.MISC.GET_LINE_PLANE_INTERSECTION(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Single p7, System.Single p8, System.Single p9, System.Single p10, System.Single p11, System.Single* p12)`
+- `public static System.Boolean RDR2.Native.MISC.GET_MISSION_FLAG()`
+- `public static System.Void RDR2.Native.MISC.GET_MODEL_DIMENSIONS(System.UInt32 modelHash, RDR2.Math.Vector3* minimum, RDR2.Math.Vector3* maximum)`
+- `public static System.Int32 RDR2.Native.MISC.GET_NUMBER_OF_FREE_STACKS_OF_THIS_SIZE(System.Int32 stackSize)`
+- `public static System.Int32 RDR2.Native.MISC.GET_NUMBER_OF_MICROSECONDS_SINCE_LAST_CALL()`
+- `public static System.String RDR2.Native.MISC.GET_ONSCREEN_KEYBOARD_RESULT()`
+- `public static System.Boolean RDR2.Native.MISC.GET_PROJECTILE_OF_PROJECTILE_TYPE_WITHIN_DISTANCE(System.Int32 ped, System.UInt32 weaponHash, System.Single distance, RDR2.Math.Vector3* outCoords, System.Int32* outProjectile, System.Boolean p5, System.Boolean mustBeOwnedByThisPed)`
+- `public static System.Single RDR2.Native.MISC.GET_RAIN_LEVEL()`
+- `public static System.Boolean RDR2.Native.MISC.GET_RANDOM_EVENT_FLAG()`
+- `public static System.Single RDR2.Native.MISC.GET_RANDOM_FLOAT_IN_RANGE(System.Single startRange, System.Single endRange)`
+- `public static System.Int32 RDR2.Native.MISC.GET_RANDOM_INT_IN_RANGE(System.Int32 startRange, System.Int32 endRange)`
+- `public static System.Int32 RDR2.Native.MISC.GET_REAL_WORLD_TIME()`
+- `public static System.Int32 RDR2.Native.MISC.GET_SCRIPT_TIME_WITHIN_FRAME_IN_MICROSECONDS()`
+- `public static System.Single RDR2.Native.MISC.GET_SNOW_LEVEL()`
+- `public static System.Int32 RDR2.Native.MISC.GET_SYSTEM_TIME()`
+- `public static System.Single RDR2.Native.MISC.GET_SYSTEM_TIME_STEP()`
+- `public static RDR2.Math.Vector3 RDR2.Native.MISC.GET_WIND_DIRECTION()`
+- `public static System.Single RDR2.Native.MISC.GET_WIND_SPEED()`
+- `public static System.Boolean RDR2.Native.MISC.HAS_BULLET_IMPACTED_IN_AREA(RDR2.Math.Vector3 vec, System.Single p3, System.Boolean p4, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.MISC.HAS_BULLET_IMPACTED_IN_AREA(System.Single x, System.Single y, System.Single z, System.Single p3, System.Boolean p4, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.MISC.HAS_BULLET_IMPACTED_IN_BOX(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Boolean p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.MISC.IGNORE_NEXT_RESTART(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.INFORM_CODE_OF_CONTENT_ID_OF_CURRENT_UGC_MISSION(System.String p0)`
+- `public static System.Boolean RDR2.Native.MISC.IS_BIT_SET(System.Int32 address, System.Int32 offset)`
+- `public static System.Boolean RDR2.Native.MISC.IS_BULLET_IN_ANGLED_AREA(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Boolean p7)`
+- `public static System.Boolean RDR2.Native.MISC.IS_BULLET_IN_AREA(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.Boolean p4)`
+- `public static System.Boolean RDR2.Native.MISC.IS_BULLET_IN_BOX(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Boolean p6)`
+- `public static System.Boolean RDR2.Native.MISC.IS_DURANGO_VERSION()`
+- `public static System.Boolean RDR2.Native.MISC.IS_GAME_SESSION_STATE_MACHINE_IDLE()`
+- `public static System.Boolean RDR2.Native.MISC.IS_INCIDENT_VALID(System.Int32 incidentId)`
+- `public static System.Boolean RDR2.Native.MISC.IS_MAG_DEMO_1_ACTIVE()`
+- `public static System.Boolean RDR2.Native.MISC.IS_MINIGAME_IN_PROGRESS()`
+- `public static System.Boolean RDR2.Native.MISC.IS_ORBIS_VERSION()`
+- `public static System.Boolean RDR2.Native.MISC.IS_PC_VERSION()`
+- `public static System.Boolean RDR2.Native.MISC.IS_POSITION_OCCUPIED(RDR2.Math.Vector3 vec, System.Single range, System.Boolean p4, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.UInt64 p9, System.Boolean p10)`
+- `public static System.Boolean RDR2.Native.MISC.IS_POSITION_OCCUPIED(System.Single x, System.Single y, System.Single z, System.Single range, System.Boolean p4, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.UInt64 p9, System.Boolean p10)`
+- `public static System.Boolean RDR2.Native.MISC.IS_PROJECTILE_IN_AREA(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.Boolean ownedByPlayer)`
+- `public static System.Boolean RDR2.Native.MISC.IS_PROJECTILE_IN_AREA(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.Boolean ownedByPlayer)`
+- `public static System.Boolean RDR2.Native.MISC.IS_PROJECTILE_TYPE_IN_ANGLED_AREA(System.Single p0, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.UInt64 p7, System.Boolean p8)`
+- `public static System.Boolean RDR2.Native.MISC.IS_PROJECTILE_TYPE_IN_AREA(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.Int32 type, System.Boolean p7)`
+- `public static System.Boolean RDR2.Native.MISC.IS_PROJECTILE_TYPE_IN_AREA(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.Int32 type, System.Boolean p7)`
+- `public static System.Boolean RDR2.Native.MISC.IS_PROJECTILE_TYPE_WITHIN_DISTANCE(System.Single p0, System.Single p1, System.Single p2, System.UInt64 p3, System.Single p4, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.MISC.IS_STADIA_VERSION()`
+- `public static System.Boolean RDR2.Native.MISC.IS_STRING_NULL(System.String _string)`
+- `public static System.Boolean RDR2.Native.MISC.IS_STRING_NULL_OR_EMPTY(System.String _string)`
+- `public static System.Boolean RDR2.Native.MISC.IS_STRING_NULL_OR_EMPTY_OR_SPACES(System.String _string)`
+- `public static System.Void RDR2.Native.MISC.NETWORK_SET_SCRIPT_IS_SAFE_FOR_NETWORK_GAME()`
+- `public static System.Void RDR2.Native.MISC.NEXT_ONSCREEN_KEYBOARD_RESULT_WILL_DISPLAY_USING_THESE_FONTS(System.Int32 p0)`
+- `public static System.Boolean RDR2.Native.MISC.OVERRIDE_SAVE_HOUSE(System.Boolean p0, System.Single p1, System.Single p2, System.Single p3, System.Single p4, System.Boolean p5, System.Single p6, System.Single p7)`
+- `public static System.Void RDR2.Native.MISC.PAUSE_DEATH_ARREST_RESTART(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.POPULATE_NOW()`
+- `public static System.Boolean RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(System.Int32 entity, System.String text, System.Single radius, System.Single p3, System.Int32 flag, System.Single p5, System.Single p6, System.Int32 prompt, System.Boolean p8, System.Int32 p9)`
+- `public static System.Void RDR2.Native.MISC.REMOVE_DISPATCH_SPAWN_BLOCKING_AREA(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC.REMOVE_POP_MULTIPLIER_AREA(System.Int32 id, System.Boolean p1)`
+- `public static System.Void RDR2.Native.MISC.RESET_DISPATCH_IDEAL_SPAWN_DISTANCE()`
+- `public static System.Void RDR2.Native.MISC.RESET_END_USER_BENCHMARK()`
+- `public static System.Void RDR2.Native.MISC.RESET_SCRIPT_TIME_WITHIN_FRAME()`
+- `public static System.Void RDR2.Native.MISC.RESET_WANTED_RESPONSE_NUM_PEDS_TO_SPAWN()`
+- `public static System.Void RDR2.Native.MISC.SAVE_END_USER_BENCHMARK()`
+- `public static System.Boolean RDR2.Native.MISC.SCRIPT_RACE_GET_PLAYER_SPLIT_TIME(System.UInt64 p0, System.UInt64* p1, System.UInt64* p2)`
+- `public static System.Void RDR2.Native.MISC.SCRIPT_RACE_INIT(System.Int32 numCheckpoints, System.Int32 numLaps, System.Int32 numPlayers, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.MISC.SCRIPT_RACE_PLAYER_HIT_CHECKPOINT(System.Int32 part, System.Int32 checkpoint, System.Int32 lap, System.Int32 time)`
+- `public static System.Void RDR2.Native.MISC.SCRIPT_RACE_SHUTDOWN()`
+- `public static System.Void RDR2.Native.MISC.SET_BIT(System.Int32* address, System.Int32 offset)`
+- `public static System.Void RDR2.Native.MISC.SET_BITS_IN_RANGE(System.Int32* var, System.Int32 rangeStart, System.Int32 rangeEnd, System.Int32 p3)`
+- `public static System.Void RDR2.Native.MISC.SET_CHEAT_ACTIVE(System.Int32 cheatId)`
+- `public static System.Void RDR2.Native.MISC.SET_CREDITS_ACTIVE(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_CURR_WEATHER_STATE(System.UInt32 weatherType1, System.UInt32 weatherType2, System.Single percentWeather2, System.Boolean enabled)`
+- `public static System.Void RDR2.Native.MISC.SET_DISPATCH_IDEAL_SPAWN_DISTANCE(System.Single fIdealSpawnDistance)`
+- `public static System.Void RDR2.Native.MISC.SET_FADE_IN_AFTER_DEATH_ARREST(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_FADE_IN_AFTER_LOAD(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_GAME_PAUSED(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_MISSION_FLAG(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_PED_DECOMPOSED(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_RAIN(System.Single intensity)`
+- `public static System.Void RDR2.Native.MISC.SET_RANDOM_EVENT_FLAG(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_RANDOM_SEED(System.Int32 seed)`
+- `public static System.Void RDR2.Native.MISC.SET_RANDOM_WEATHER_TYPE(System.Boolean p0, System.Boolean p1)`
+- `public static System.Void RDR2.Native.MISC.SET_SUPER_JUMP_THIS_FRAME(System.Int32 player)`
+- `public static System.Void RDR2.Native.MISC.SET_THIS_SCRIPT_CAN_BE_PAUSED(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_THIS_SCRIPT_CAN_REMOVE_BLIPS_CREATED_BY_ANY_SCRIPT(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC.SET_TIME_SCALE(System.Single timeScale)`
+- `public static System.Void RDR2.Native.MISC.SET_WEATHER_TYPE(System.UInt32 weatherType, System.Boolean p1, System.Boolean p2, System.Boolean transition, System.Single transitionTime, System.Boolean p5)`
+- `public static System.Void RDR2.Native.MISC.SET_WIND_DIRECTION(System.Single direction)`
+- `public static System.Void RDR2.Native.MISC.SET_WIND_SPEED(System.Single speed)`
+- `public static System.Void RDR2.Native.MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.Int32 damage, System.Boolean p7, System.UInt32 weaponHash, System.Int32 ownerPed, System.Boolean isAudible, System.Boolean isInvisible, System.Single speed, System.Boolean p13)`
+- `public static System.Void RDR2.Native.MISC.SHOOT_SINGLE_BULLET_BETWEEN_COORDS(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.Int32 damage, System.Boolean p7, System.UInt32 weaponHash, System.Int32 ownerPed, System.Boolean isAudible, System.Boolean isInvisible, System.Single speed, System.Boolean p13)`
+- `public static System.Boolean RDR2.Native.MISC.SHOULD_USE_METRIC_MEASUREMENTS()`
+- `public static System.Void RDR2.Native.MISC.START_END_USER_BENCHMARK()`
+- `public static System.Void RDR2.Native.MISC.STOP_CURRENT_LOADING_PROGRESS_TIMER()`
+- `public static System.Void RDR2.Native.MISC.STOP_END_USER_BENCHMARK()`
+- `public static System.Boolean RDR2.Native.MISC.STRING_TO_INT(System.String _string, System.Int32* outInteger)`
+- `public static System.Single RDR2.Native.MISC.TAN(System.Single p0)`
+- `public static System.Boolean RDR2.Native.MISC.UI_STARTED_END_USER_BENCHMARK()`
+- `public static System.Boolean RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(System.Int32 entity)`
+- `public static System.Int32 RDR2.Native.MISC.UPDATE_ONSCREEN_KEYBOARD()`
+- `public static System.String RDR2.Native.MISC.VAR_STRING(System.Int32 flags, params RDR2.Native.InputArgument[] args)`
+- `public static System.Void RDR2.Native.MISC.WATER_OVERRIDE_SET_OCEANWAVEMAXAMPLITUDE(System.Single maxAmplitude)`
+- `public static System.Void RDR2.Native.MISC.WATER_OVERRIDE_SET_SHOREWAVEAMPLITUDE(System.Single amplitude)`
+- `public static System.UInt64 RDR2.Native.MISC._0x0358B8A41916C613(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.MISC._0x0730E518486DEEC3(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x082C043C7AFC3747(System.Int32 compositeId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.MISC._0x0A487CC74A517FB5(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.MISC._0x0D0AE5081F88CFE1(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x1096603B519C905F(System.String name)`
+- `public static System.Void RDR2.Native.MISC._0x154340E87D8CC178(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x183672FE838A661B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x243CEDE8F916B994()`
+- `public static System.Void RDR2.Native.MISC._0x2916B30DC6C41179(System.UInt32 weatherType)`
+- `public static System.UInt64 RDR2.Native.MISC._0x33982467B1E349EF(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.UInt64 RDR2.Native.MISC._0x35165C658077CD0B()`
+- `public static System.Void RDR2.Native.MISC._0x38C0C9CAE1544500(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.MISC._0x38C2BF94D15F464D(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x3A87FDA8F1B6CDFB(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.MISC._0x3C3C7B1B5EC08764()`
+- `public static System.Void RDR2.Native.MISC._0x4647842FE8F31C1E(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.MISC._0x49C44FE78A135A1D(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x49F3241C28EBBFBC(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x4B0501A468B749F8()`
+- `public static System.Boolean RDR2.Native.MISC._0x4B101DBCC9482F2D(System.Int32 ped)`
+- `public static System.Void RDR2.Native.MISC._0x4D5C9CC7E7E23E09()`
+- `public static System.Void RDR2.Native.MISC._0x553D67295DDD2309(System.Int32 entity)`
+- `public static System.Void RDR2.Native.MISC._0x5801BE2DF2AF07EC(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.MISC._0x5B4A8121A47D844D(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.MISC._0x627B68D9CE6EE8DE(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x68319452C5064ABA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.MISC._0x6BCF7B5CD338281A(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.MISC._0x6BED40493A1AFDB8(System.UInt64* p0, System.Single p1)`
+- `public static System.UInt64 RDR2.Native.MISC._0x6C7B68D3CE60E8DE(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.MISC._0x6F02B5E50511721E(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x745808BB01CEC6B9(System.Single p0)`
+- `public static System.Void RDR2.Native.MISC._0x74ACA66484CEBAF0(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.MISC._0x7A76104CC2CC69E8(System.Int32 entity, System.Int32 p1, System.Int32 p2)`
+- `public static System.UInt64 RDR2.Native.MISC._0x7CF96F1250EF3221(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x7FA58CED69405F9A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.MISC._0x8314FC2013ECE2DA(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.UInt64 RDR2.Native.MISC._0x8BB99B85444544D9(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.MISC._0x8C0F6A3D7236DEEB(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.MISC._0x8DB104CCEBCD58C5(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.MISC._0x94E8CA3DEE952789(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.MISC._0x94FCADCF9F0C368E(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0x96282005C5C6801F(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.MISC._0x970339EFA4FDE518(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.MISC._0x9A252AA23D7098F2()`
+- `public static System.Void RDR2.Native.MISC._0x9BF2C0C568C61641(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0xA08111B053D84B4D(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0xA3A8926951471C82()`
+- `public static System.Void RDR2.Native.MISC._0xA9342743B634A462(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0xAB26DEEE120FD3FD(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.MISC._0xAD44856A1CD29635(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.MISC._0xAF3A84C7DE6A1DC5(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.MISC._0xAF530E56505D1BD6(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0xB08C4FA25BC29DB9(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.MISC._0xB1F6665AA54DCD5C(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0xB711EB4BC8D06013()`
+- `public static System.Void RDR2.Native.MISC._0xBB282CF5D2333FB8(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.MISC._0xBBE5B63EFFB08E68(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.UInt64 RDR2.Native.MISC._0xCC1BAF72D571DB8D(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.MISC._0xCC3EDC5614B03F61(System.Int32 p0)`
+- `public static System.Void RDR2.Native.MISC._0xD3F943B88F55376A(System.UInt32 weatherType)`
+- `public static System.Void RDR2.Native.MISC._0xDA4D8EB04E8E2928(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0xDBDA48EC456ED908()`
+- `public static System.UInt64 RDR2.Native.MISC._0xDC057B86FC157031()`
+- `public static System.UInt64 RDR2.Native.MISC._0xDC416CA762BC4F43(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.MISC._0xDE2C3B74D2B3705C(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.MISC._0xEB946B9E579729AD(System.Int32 ped, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.MISC._0xF18AF483DF70BBDE(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISC._0xF569E33FB72ED28E()`
+- `public static System.Void RDR2.Native.MISC._0xF63FA29D4A9ACA86(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.MISC._0xF650DCF5D6F312C1(System.UInt64 p0)`
+- `public static System.String RDR2.Native.MISC._0xF81C53561D15F330()`
+- `public static System.Void RDR2.Native.MISC._0xFC6ECB9170145ECE()`
+- `public static System.Void RDR2.Native.MISC._0xFF252E2BAFB7330F(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.MISC._ADD_DISPATCH_SPAWN_BLOCKING_AREA(System.Int32 volume)`
+- `public static System.Int32 RDR2.Native.MISC._ADD_POP_MULTIPLIER_VOLUME(System.Int32 volume, System.Single pedDensity, System.Single vehicleDensity, System.Boolean p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.MISC._CLEAR_ALL_BIT_FLAGS(System.UInt64* bitFlags)`
+- `public static System.Void RDR2.Native.MISC._CLEAR_BIT_FLAG(System.UInt64* bitFlags, System.Int32 flag)`
+- `public static System.Void RDR2.Native.MISC._CLEAR_VOLUME_AREA(System.Int32 volume, System.Int32 flag)`
+- `public static System.Void RDR2.Native.MISC._CLEAR_WEATHER_TYPE_PERSIST_OVERTIME(System.Int32 milliseconds)`
+- `public static System.Void RDR2.Native.MISC._CLEAR_WEATHER_VARIATION(System.String weatherType, System.Boolean p1)`
+- `public static System.Int32 RDR2.Native.MISC._COUNT_BIT_FLAGS(System.UInt64* bitFlags)`
+- `public static System.Void RDR2.Native.MISC._CREATE_AI_MEMORY(System.UInt64* args, System.Int32 aiMemoryType)`
+- `public static System.String RDR2.Native.MISC._CREATE_COLOR_STRING(System.Int32 rgb)`
+- `public static System.Boolean RDR2.Native.MISC._CREATE_INCIDENT_WITH_ENTITIES(System.Int32 dispatchService, RDR2.Math.Vector3 vec, System.Int32 itemSet, System.Single radius, System.Int32* outIncidentID)`
+- `public static System.Boolean RDR2.Native.MISC._CREATE_INCIDENT_WITH_ENTITIES(System.Int32 dispatchService, System.Single x, System.Single y, System.Single z, System.Int32 itemSet, System.Single radius, System.Int32* outIncidentID)`
+- `public static System.Boolean RDR2.Native.MISC._DOES_ITEM_HAVE_VALID_BASE(System.Int32 item)`
+- `public static System.Boolean RDR2.Native.MISC._DOES_POP_MULTIPLIER_AREA_EXIST_FOR_VOLUME(System.Int32 volume)`
+- `public static System.Boolean RDR2.Native.MISC._DOES_STRING_EXIST_IN_STRING(System.String string1, System.String string2)`
+- `public static System.Void RDR2.Native.MISC._FORCE_LIGHTNING_FLASH_AT_COORDS(RDR2.Math.Vector3 vec, System.Single p3)`
+- `public static System.Void RDR2.Native.MISC._FORCE_LIGHTNING_FLASH_AT_COORDS(System.Single x, System.Single y, System.Single z, System.Single p3)`
+- `public static System.UInt32 RDR2.Native.MISC._GAME_FRAMEWORK_MANAGER_GET_MODE()`
+- `public static System.Void RDR2.Native.MISC._GAME_FRAMEWORK_MANAGER_SHUTDOWN()`
+- `public static System.Boolean RDR2.Native.MISC._GET_AI_PED_DOES_HAVE_EVENT_MEMORY(System.UInt64* args, System.Int32 p1)`
+- `public static System.Single RDR2.Native.MISC._GET_EASING_CURVE_VALUE(System.Single t, System.Single b, System.Single d, System.Int32 easingCurveType)`
+- `public static System.Int32 RDR2.Native.MISC._GET_ENTITY_FROM_ITEM(System.Int32 item)`
+- `public static System.Void RDR2.Native.MISC._GET_FORCED_WEATHER(System.UInt32* weather, System.UInt32* p1)`
+- `public static System.Int32 RDR2.Native.MISC._GET_GAME_TIMER_NON_SCALED_CLIPPED()`
+- `public static System.Int32 RDR2.Native.MISC._GET_ITEM_TYPE(System.Int32 handle)`
+- `public static System.Boolean RDR2.Native.MISC._GET_LOOTING_EVENT_HAS_FIRED(System.Int32 ped, System.String eventName)`
+- `public static System.Int32 RDR2.Native.MISC._GET_MAX_NUM_INSTRUCTIONS()`
+- `public static System.UInt32 RDR2.Native.MISC._GET_NEXT_WEATHER_TYPE_HASH_NAME()`
+- `public static System.Int32 RDR2.Native.MISC._GET_NUMBER_OF_INSTRUCTIONS()`
+- `public static System.Int32 RDR2.Native.MISC._GET_OBJECT_FROM_INDEXED_ITEM(System.Int32 item)`
+- `public static System.Int32 RDR2.Native.MISC._GET_PED_FROM_INDEXED_ITEM(System.Int32 item)`
+- `public static System.UInt32 RDR2.Native.MISC._GET_PREV_WEATHER_TYPE_HASH_NAME()`
+- `public static System.UInt32 RDR2.Native.MISC._GET_RANDOM_WEATHER_TYPE()`
+- `public static System.Int32 RDR2.Native.MISC._GET_RANDOM_WEATHER_TYPE_INDEX()`
+- `public static System.Int32 RDR2.Native.MISC._GET_STATUS_OF_SAVEGAME_OPERATION(System.Int32 p0)`
+- `public static System.String RDR2.Native.MISC._GET_STRING_FROM_BOOL(System.Boolean value)`
+- `public static System.String RDR2.Native.MISC._GET_STRING_FROM_FLOAT(System.Single value, System.Int32 digits)`
+- `public static System.String RDR2.Native.MISC._GET_STRING_FROM_VECTOR(RDR2.Math.Vector3 vec)`
+- `public static System.String RDR2.Native.MISC._GET_STRING_FROM_VECTOR(System.Single x, System.Single y, System.Single z)`
+- `public static System.Single RDR2.Native.MISC._GET_TEMPERATURE_AT_COORDS(RDR2.Math.Vector3 vec)`
+- `public static System.Single RDR2.Native.MISC._GET_TEMPERATURE_AT_COORDS(System.Single x, System.Single y, System.Single z)`
+- `public static System.Int32 RDR2.Native.MISC._GET_VEHICLE_FROM_INDEXED_ITEM(System.Int32 item)`
+- `public static System.Void RDR2.Native.MISC._INT_TO_STRING(System.Int32 value, System.String format, System.String buffer)`
+- `public static System.Boolean RDR2.Native.MISC._IS_ANY_BIT_FLAG_SET(System.UInt64* bitFlags)`
+- `public static System.Boolean RDR2.Native.MISC._IS_BASE_A_COVER_POINT(System.Int32 handle)`
+- `public static System.Boolean RDR2.Native.MISC._IS_BASE_A_PERSISTENT_CHARACTER(System.Int32 handle)`
+- `public static System.Boolean RDR2.Native.MISC._IS_BIT_FLAG_SET(System.UInt64* bitFlags, System.Int32 flag)`
+- `public static System.Boolean RDR2.Native.MISC._IS_GLOBAL_BLOCK_VALID(System.Int32 index)`
+- `public static System.Boolean RDR2.Native.MISC._IS_MISSION_CREATOR_ACTIVE()`
+- `public static System.Boolean RDR2.Native.MISC._IS_PED_DECOMPOSED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.MISC._IS_PLAYER_OWNING_STANDALONE_SP()`
+- `public static System.Void RDR2.Native.MISC._LOOT_TABLES_GET_INFO(System.Int32 ped, System.Boolean p1, System.Boolean p2, System.UInt32 lootTableKey, System.UInt64* p4, System.UInt64 p5)`
+- `public static System.Boolean RDR2.Native.MISC._QUEUE_SAVEGAME_OPERATION(System.Int32 p0)`
+- `public static System.Single RDR2.Native.MISC._READ_INT_AS_FLOAT(System.Int32 value)`
+- `public static System.Void RDR2.Native.MISC._REMOVE_POP_MULTIPLIER_AREA_FOR_VOLUME(System.Int32 volume, System.Int32 p1)`
+- `public static System.Void RDR2.Native.MISC._RESET_DISPATCH_MAX_SPAWN_DISTANCE()`
+- `public static System.Void RDR2.Native.MISC._RESET_DISPATCH_MIN_SPAWN_DISTANCE()`
+- `public static System.Void RDR2.Native.MISC._SET_AI_MEMORY_REACTIONS_ENABLED(System.Boolean enabled)`
+- `public static System.Void RDR2.Native.MISC._SET_BIT_FLAG(System.UInt64* bitFlags, System.Int32 flag)`
+- `public static System.Void RDR2.Native.MISC._SET_DISPATCH_MAX_SPAWN_DISTANCE(System.Single maxSpawnDistance)`
+- `public static System.Void RDR2.Native.MISC._SET_DISPATCH_MIN_SPAWN_DISTANCE(System.Single minSpawnDistance)`
+- `public static System.Void RDR2.Native.MISC._SET_GAME_LOGIC_PAUSED()`
+- `public static System.Void RDR2.Native.MISC._SET_GLOBAL_BLOCK_IS_LOADED(System.Int32 index, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC._SET_INCIDENT_UNK(System.Int32 incidentId)`
+- `public static System.Void RDR2.Native.MISC._SET_LOOT_PELT_SATCHEL_ITEM(System.Int32 ped, System.UInt64 item)`
+- `public static System.Void RDR2.Native.MISC._SET_OVERRIDE_WEATHER(System.UInt32 weatherType)`
+- `public static System.Void RDR2.Native.MISC._SET_SNOW_LEVEL(System.Single level)`
+- `public static System.Void RDR2.Native.MISC._SET_WEATHER_TYPE_2(System.UInt32 weatherType, System.Int32 p1, System.Int32 p2, System.Int32 p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.MISC._SET_WEATHER_TYPE_FROZEN(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.MISC._SET_WEATHER_VARIATION(System.String weatherType, System.String variation)`
+- `public static System.Boolean RDR2.Native.MISC._SHOULD_USE_24_HOUR_CLOCK()`
+- `public static System.Boolean RDR2.Native.MISC._SHOULD_USE_METRIC_MEASUREMENTS_2()`
+- `public static System.Boolean RDR2.Native.MISC._SHOULD_USE_METRIC_TEMPERATURE()`
+- `public static System.Boolean RDR2.Native.MISC._SHOULD_USE_METRIC_WEIGHT()`
+
+## `RDR2.Native.MISSIONDATA`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.UInt32 RDR2.Native.MISSIONDATA.MISSIONDATA_GET_CATAGORY(System.UInt32 missionId)`
+- `public static System.Int32 RDR2.Native.MISSIONDATA.MISSIONDATA_GET_HIGH_SCORE(System.UInt32 missionId)`
+- `public static System.Int32 RDR2.Native.MISSIONDATA.MISSIONDATA_GET_RATING(System.UInt32 missionId)`
+- `public static System.Int32 RDR2.Native.MISSIONDATA.MISSIONDATA_GET_REPLAY_STATE(System.UInt64 p0)`
+- `public static System.UInt32 RDR2.Native.MISSIONDATA.MISSIONDATA_GET_TEXTURE_NAME(System.UInt32 missionId)`
+- `public static System.UInt32 RDR2.Native.MISSIONDATA.MISSIONDATA_GET_TEXTURE_TXD(System.UInt32 missionId)`
+- `public static System.Boolean RDR2.Native.MISSIONDATA.MISSIONDATA_IS_REQUIRED_STORY_MISSION(System.UInt32 missionId)`
+- `public static System.Boolean RDR2.Native.MISSIONDATA.MISSIONDATA_IS_VALID(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.MISSIONDATA.MISSIONDATA_SET_HIGH_SCORE(System.UInt32 missionId, System.Int32 score)`
+- `public static System.Void RDR2.Native.MISSIONDATA.MISSIONDATA_SET_RATING_SCORES(System.UInt32 missionId, System.Int32 bronzeScore, System.Int32 silverScore, System.Int32 goldScore)`
+- `public static System.Void RDR2.Native.MISSIONDATA.MISSIONDATA_SET_REPLAY_LOCKED_FOR_CATEGORY(System.UInt32 category, System.Boolean locked)`
+- `public static System.Boolean RDR2.Native.MISSIONDATA.MISSIONDATA_WAS_COMPLETED(System.UInt32 missionId)`
+- `public static System.Boolean RDR2.Native.MISSIONDATA._MISSIONDATA_IS_REPLAY_CATEGORY_LOCKED(System.UInt32 category)`
+- `public static System.Void RDR2.Native.MISSIONDATA._MISSIONDATA_SET_MISSION_RATING(System.UInt32 missionId, System.Int32 rating)`
+- `public static System.Void RDR2.Native.MISSIONDATA._MISSIONDATA_SET_REPLAY_STATE_LOCKED(System.UInt32 missionId, System.Int32 replayState)`
+- `public static System.Void RDR2.Native.MISSIONDATA._MISSIONDATA_TIMECYCLE_BOX_DELETE()`
+- `public static System.Boolean RDR2.Native.MISSIONDATA._MISSIONDATA_TIMECYCLE_BOX_EXISTS()`
+- `public static System.Void RDR2.Native.MISSIONDATA._MISSIONDATA_TIMECYCLE_BOX_SET_MODIFIER(System.String timecycleName)`
+
+## `RDR2.Native.MONEY`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Boolean RDR2.Native.MONEY._0x07AD9E43FD478527(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.String RDR2.Native.MONEY._0xA46FD001D1BE896C()`
+- `public static System.Boolean RDR2.Native.MONEY._MONEY_DECREMENT_CASH_BALANCE(System.Int32 amount)`
+- `public static System.Int32 RDR2.Native.MONEY._MONEY_GET_CASH_BALANCE()`
+- `public static System.Boolean RDR2.Native.MONEY._MONEY_INCREMENT_CASH_BALANCE(System.Int32 amount, System.UInt32 addReason)`
+- `public static System.Int32 RDR2.Native.MONEY._NETWORK_GET_CASH_BALANCE()`
+- `public static System.String RDR2.Native.MONEY._NETWORK_GET_STRING_CASH_BALANCE()`
+- `public static System.Boolean RDR2.Native.MONEY._NETWORK_IS_MONEY_BALANCE_NOT_LESS_THAN(System.Int32 cashBalance, System.Int32 goldBarBalance)`
+
+## `RDR2.Native.NETSHOPPING`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Boolean RDR2.Native.NETSHOPPING.CASHINVENTORY_INIT_SESSION_STATUS(System.Int32* p0, System.Int32* p1)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING.CASHINVENTORY_IS_CONNECTION_FAULTED()`
+- `public static System.Int32 RDR2.Native.NETSHOPPING._0x38640A8C2DEF011B(System.Int32 p0)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._0x3FA09DD57B93C0DE(System.UInt32 p0, System.Int32 p1, System.Int32 p2, System.UInt64 p3, System.Int32 p4)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._0x92A32BA29622763F(System.Int32 id, System.Int32 index, System.UInt64* p2)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._0xA0B7094629724974(System.UInt32 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._0xA3B8D31C13CB4239(System.Int32 p0, System.UInt32 p1, System.UInt64* p2, System.Int32 p3, System.UInt64* p4, System.Int32 p5)`
+- `public static System.Int32 RDR2.Native.NETSHOPPING._0xB6F4557060EF0FB4(System.Int32 p0, System.Int32 p1)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._0xCE54C9ABE6FBC6DB(System.UInt32 p0)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._0xD1555FBC96C88444(System.UInt32 p0, System.Int32 p1, System.Int32 p2, System.UInt64 p3, System.Int32 p4)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_INIT_SESSION_IS_FAULTED()`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_IS_SESSION_READY()`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_ADD_AWARD(System.Int32 id, System.UInt32 hash, System.UInt64* p2, System.UInt64* p3)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_CHECKOUT(System.Int32 id)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_CHECKOUT_STATUS(System.Int32 id, System.Int32* status)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_DELETE(System.Int32 id)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_FIRE_AND_FORGET_ITEM(System.UInt32 actionHash, System.Int32* id, System.UInt64* item, System.Int32 p3)`
+- `public static System.UInt32 RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_GET_ACTION(System.Int32 id)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_GET_BASKET_IS_VALID(System.Int32 id)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_GET_ITEM_INFO(System.Int32 id, System.Int32 index, System.UInt64* itemInfo)`
+- `public static System.Int32 RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_GET_NUM_OF_ITEMS(System.Int32 id)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_RESPONSE_GET_ITEM_INFO(System.Int32 id, System.Int32 index, System.UInt64* itemInfo)`
+- `public static System.Boolean RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_START(System.Int32* id, System.UInt32 type, System.UInt32 actionHash)`
+- `public static System.Int32 RDR2.Native.NETSHOPPING._CASHINVENTORY_TRANSACTION_VALIDATE_ITEM(System.UInt32 p0, System.UInt64* p1)`
+

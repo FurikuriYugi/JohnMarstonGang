@@ -1,0 +1,1057 @@
+<!-- ScriptHookRDRNetAPI-Inventory chunk 10 of 26; methods=1050; sha256=bfb7607d94b2de7f8530289377f163caad81098afc1fb7ee86191810a6cc6bba -->
+## `RDR2.Native.PED`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Void RDR2.Native.PED.ADD_ARMOUR_TO_PED(System.Int32 ped, System.Int32 amount)`
+- `public static System.Void RDR2.Native.PED.ADD_CUSTOM_FORMATION_LOCATION(System.Int32 groupId, RDR2.Math.Vector3 vec, System.Int32 position)`
+- `public static System.Void RDR2.Native.PED.ADD_CUSTOM_FORMATION_LOCATION(System.Int32 groupId, System.Single x, System.Single y, System.Single z, System.Int32 position)`
+- `public static System.Boolean RDR2.Native.PED.ADD_FORMATION_LOCATION(System.Int32 groupId, System.Single p1, System.Single p2, System.Single p3)`
+- `public static System.Boolean RDR2.Native.PED.ADD_RELATIONSHIP_GROUP(System.String name, System.UInt32* groupHash)`
+- `public static System.Int32 RDR2.Native.PED.ADD_SCENARIO_BLOCKING_AREA(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.Boolean p6, System.Int32 blockingFlags)`
+- `public static System.Int32 RDR2.Native.PED.ADD_SCENARIO_BLOCKING_AREA(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.Boolean p6, System.Int32 blockingFlags)`
+- `public static System.Void RDR2.Native.PED.APPLY_DAMAGE_TO_PED(System.Int32 ped, System.Int32 damageAmount, System.Int32 p2, System.Int32 boneId, System.Int32 pedKiller)`
+- `public static System.Void RDR2.Native.PED.APPLY_PED_BLOOD_SPECIFIC(System.Int32 ped, System.UInt64 p1, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.UInt64 p6, System.Single p7, System.UInt64* p8)`
+- `public static System.Void RDR2.Native.PED.APPLY_PED_DAMAGE_PACK(System.Int32 ped, System.String damagePack, System.Single damage, System.Single mult)`
+- `public static System.Boolean RDR2.Native.PED.CAN_KNOCK_PED_OFF_VEHICLE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.CAN_PED_BE_MOUNTED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.CAN_PED_IN_COMBAT_SEE_TARGET(System.Int32 ped, System.Int32 target)`
+- `public static System.Boolean RDR2.Native.PED.CAN_PED_RAGDOLL(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.CAN_PED_SEE_ENTITY(System.Int32 ped, System.Int32 targetEntity, System.Boolean p2, System.Boolean p3)`
+- `public static System.Int32 RDR2.Native.PED.CAN_PED_SEE_PED_CACHED(System.Int32 ped, System.Int32 targetPed, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED.CLEAR_FACIAL_IDLE_ANIM_OVERRIDE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.CLEAR_PED_BLOOD_DAMAGE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.CLEAR_PED_BLOOD_DAMAGE_BY_ZONE(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED.CLEAR_PED_DAMAGE_DECAL_BY_ZONE(System.Int32 ped, System.Int32 p1, System.String p2)`
+- `public static System.Void RDR2.Native.PED.CLEAR_PED_DECORATIONS(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.CLEAR_PED_ENV_DIRT(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.CLEAR_PED_LAST_DAMAGE_BONE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.CLEAR_PED_NON_CREATION_AREA()`
+- `public static System.Void RDR2.Native.PED.CLEAR_PED_WETNESS(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.CLEAR_RAGDOLL_BLOCKING_FLAGS(System.Int32 ped, System.Int32 flags)`
+- `public static System.Void RDR2.Native.PED.CLEAR_RELATIONSHIP_BETWEEN_GROUPS(System.Int32 relationship, System.UInt32 group1, System.UInt32 group2)`
+- `public static System.Int32 RDR2.Native.PED.CLONE_PED(System.Int32 ped, System.Boolean isNetwork, System.Boolean bScriptHostPed, System.Boolean copyHeadBlendFlag)`
+- `public static System.Void RDR2.Native.PED.CLONE_PED_TO_TARGET(System.Int32 ped, System.Int32 targetPed)`
+- `public static System.Boolean RDR2.Native.PED.COMPUTE_SATCHEL_ITEM_FOR_PED_DAMAGE(System.UInt64 p0, System.Int32 pedAttached, System.Int32 damageCleanliness)`
+- `public static System.Int32 RDR2.Native.PED.COUNT_PEDS_IN_COMBAT_WITH_TARGET(System.Int32 ped, System.Int32 flag)`
+- `public static System.Int32 RDR2.Native.PED.COUNT_PEDS_IN_COMBAT_WITH_TARGET_WITHIN_RADIUS(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single radius, System.Int32 flag)`
+- `public static System.Int32 RDR2.Native.PED.COUNT_PEDS_IN_COMBAT_WITH_TARGET_WITHIN_RADIUS(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single radius, System.Int32 flag)`
+- `public static System.Int32 RDR2.Native.PED.CREATE_GROUP(System.Int32 taskAllocator)`
+- `public static System.Int32 RDR2.Native.PED.CREATE_PED(System.UInt32 modelHash, RDR2.Math.Vector3 vec, System.Single heading, System.Boolean isNetwork, System.Boolean bScriptHostPed, System.Boolean p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PED.CREATE_PED(System.UInt32 modelHash, System.Single x, System.Single y, System.Single z, System.Single heading, System.Boolean isNetwork, System.Boolean bScriptHostPed, System.Boolean p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PED.CREATE_PED_INSIDE_VEHICLE(System.Int32 vehicle, System.UInt32 modelHash, System.Int32 seatIndex, System.Boolean p3, System.Boolean p4, System.Boolean p5)`
+- `public static System.Int32 RDR2.Native.PED.CREATE_PED_ON_MOUNT(System.Int32 mount, System.UInt32 modelHash, System.Int32 index, System.Boolean p3, System.Boolean p4, System.Boolean p5, System.Boolean p6)`
+- `public static System.Void RDR2.Native.PED.DELETE_PED(System.Int32* ped)`
+- `public static System.Void RDR2.Native.PED.DETACH_CARRIABLE_ENTITY(System.Int32 entity, System.Boolean p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED.DISABLE_PED_INJURED_ON_GROUND_BEHAVIOUR(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.DOES_GROUP_EXIST(System.Int32 groupId)`
+- `public static System.Void RDR2.Native.PED.EXPLODE_PED_HEAD(System.Int32 ped, System.UInt32 weaponHash)`
+- `public static System.Void RDR2.Native.PED.FADE_AND_DESTROY_PED(System.Int32* ped)`
+- `public static System.Void RDR2.Native.PED.FIND_ALL_ATTACHED_CARRIABLE_ENTITIES(System.Int32 ped, System.Int32 itemset)`
+- `public static System.Void RDR2.Native.PED.FORCE_ALL_HEADING_VALUES_TO_ALIGN(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.FORCE_PED_AI_AND_ANIMATION_UPDATE(System.Int32 ped, System.Boolean p1, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PED.FORCE_PED_MOTION_STATE(System.Int32 ped, System.UInt32 motionStateHash, System.Boolean p2, System.Int32 p3, System.Boolean p4)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PED.GET_ANIM_INITIAL_OFFSET_POSITION(System.String animDict, System.String animName, RDR2.Math.Vector3 vec, RDR2.Math.Vector3 rotation, System.Single p8, System.Int32 p9)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PED.GET_ANIM_INITIAL_OFFSET_POSITION(System.String animDict, System.String animName, System.Single x, System.Single y, System.Single z, System.Single xRot, System.Single yRot, System.Single zRot, System.Single p8, System.Int32 p9)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PED.GET_ANIM_INITIAL_OFFSET_ROTATION(System.String animDict, System.String animName, RDR2.Math.Vector3 vec, RDR2.Math.Vector3 rotation, System.Single p8, System.Int32 p9)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PED.GET_ANIM_INITIAL_OFFSET_ROTATION(System.String animDict, System.String animName, System.Single x, System.Single y, System.Single z, System.Single xRot, System.Single yRot, System.Single zRot, System.Single p8, System.Int32 p9)`
+- `public static System.UInt64 RDR2.Native.PED.GET_CARRIED_ATTACHED_INFO_FOR_SLOT(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Boolean RDR2.Native.PED.GET_CLOSEST_PED(RDR2.Math.Vector3 vec, System.Single radius, System.Boolean p4, System.Boolean p5, System.Int32* outPed, System.Boolean p7, System.Boolean p8, System.Boolean p9, System.Int32 pedType)`
+- `public static System.Boolean RDR2.Native.PED.GET_CLOSEST_PED(System.Single x, System.Single y, System.Single z, System.Single radius, System.Boolean p4, System.Boolean p5, System.Int32* outPed, System.Boolean p7, System.Boolean p8, System.Boolean p9, System.Int32 pedType)`
+- `public static System.Single RDR2.Native.PED.GET_COMBAT_FLOAT(System.Int32 ped, System.Int32 combatType)`
+- `public static System.Int32 RDR2.Native.PED.GET_CURRENT_TARGET_FOR_PED(System.Int32 ped)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PED.GET_DEAD_PED_PICKUP_COORDS(System.Int32 ped, System.Single p1, System.Single p2)`
+- `public static System.Void RDR2.Native.PED.GET_GROUP_SIZE(System.Int32 groupId, System.Boolean* hasLeader, System.Int32* numberOfFollowers)`
+- `public static System.Boolean RDR2.Native.PED.GET_IS_PED_RESPONDING_TO_NEGATIVE_INTERACTION(System.Int32 ped, System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PED.GET_IS_PED_RESPONDING_TO_POSITIVE_INTERACTION(System.Int32 ped, System.Int32 player)`
+- `public static System.Int32 RDR2.Native.PED.GET_JACK_TARGET(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_LOOTING_PICKUP_TARGET_ENTITY(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_MELEE_TARGET_FOR_PED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_META_PED_ASSET_GUIDS(System.Int32 ped, System.Int32 index, System.UInt32* drawable, System.UInt32* albedo, System.UInt32* normal, System.UInt32* material)`
+- `public static System.Boolean RDR2.Native.PED.GET_META_PED_ASSET_TINT(System.Int32 ped, System.Int32 index, System.UInt32* pallete, System.Int32* tint0, System.Int32* tint1, System.Int32* tint2)`
+- `public static System.Int32 RDR2.Native.PED.GET_MOUNT(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_NUM_META_PED_OUTFITS(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PEDS_JACKER(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_ACCURACY(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_AS_GROUP_LEADER(System.Int32 groupID)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_AS_GROUP_MEMBER(System.Int32 groupID, System.Int32 memberNumber)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_BLACKBOARD_SCRIPT_BOOL(System.Int32 ped, System.String variableName)`
+- `public static System.Single RDR2.Native.PED.GET_PED_BLACKBOARD_SCRIPT_FLOAT(System.Int32 ped, System.String variableName)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_BLACKBOARD_SCRIPT_INT(System.Int32 ped, System.String variableName)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PED.GET_PED_BONE_COORDS(System.Int32 ped, System.Int32 boneId, RDR2.Math.Vector3 offset)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PED.GET_PED_BONE_COORDS(System.Int32 ped, System.Int32 boneId, System.Single offsetX, System.Single offsetY, System.Single offsetZ)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_BONE_INDEX(System.Int32 ped, System.Int32 boneId)`
+- `public static System.UInt32 RDR2.Native.PED.GET_PED_CAUSE_OF_DEATH(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_COMBAT_MOVEMENT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_CONFIG_FLAG(System.Int32 ped, System.Int32 flagId, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_CROUCH_MOVEMENT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_CURRENT_MOVE_BLEND_RATIO(System.Int32 ped, System.Single* speedX, System.Single* speedY)`
+- `public static RDR2.Math.Vector3 RDR2.Native.PED.GET_PED_DEFENSIVE_AREA_POSITION(System.Int32 ped, System.Boolean p1)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_GRAPPLE_STATE(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_GROUP_INDEX(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_IS_BEING_GRAPPLED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_IS_DOING_COMBAT_ROLL(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_IS_GRAPPLING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_LAST_DAMAGE_BONE(System.Int32 ped, System.Int32* outBone)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_LOOT_STATUS_MP(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_MAX_HEALTH(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_MONEY(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_MOTION_FOCUS_ENTITY(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_NEARBY_PEDS(System.Int32 ped, System.UInt64* sizeAndPeds, System.Int32 ignoredPedType, System.Int32 p3)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_NEARBY_VEHICLES(System.Int32 ped, System.UInt64* sizeAndVehs)`
+- `public static System.UInt32 RDR2.Native.PED.GET_PED_RELATIONSHIP_GROUP_DEFAULT_HASH(System.Int32 ped)`
+- `public static System.UInt32 RDR2.Native.PED.GET_PED_RELATIONSHIP_GROUP_HASH(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_RESET_FLAG(System.Int32 ped, System.Int32 flagId)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_SOURCE_OF_DEATH(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GET_PED_STEALTH_MOVEMENT(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_TIME_OF_DEATH(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED.GET_PED_TO_PLAYER_WEAPON_DAMAGE_MODIFIER(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PED_TYPE(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_PLAYER_PED_IS_FOLLOWING(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_RELATIONSHIP_BETWEEN_GROUPS(System.UInt32 group1, System.UInt32 group2)`
+- `public static System.Int32 RDR2.Native.PED.GET_RELATIONSHIP_BETWEEN_PEDS(System.Int32 ped1, System.Int32 ped2)`
+- `public static System.Int32 RDR2.Native.PED.GET_SEAT_PED_IS_TRYING_TO_ENTER(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_SEAT_PED_IS_USING(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_TRACKED_PED_PIXELCOUNT(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_VEHICLE_PED_IS_ENTERING(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED.GET_VEHICLE_PED_IS_IN(System.Int32 ped, System.Boolean lastVehicle)`
+- `public static System.Int32 RDR2.Native.PED.GET_VEHICLE_PED_IS_USING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.GIVE_PED_HASH_SCENARIO_PROP(System.Int32 ped, System.Int32 _object, System.String conditionalAnim, System.UInt32 scenarioType, System.UInt32 p4, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.PED.HAS_MOTION_TYPE_ASSET_LOADED(System.UInt32 nameHash, System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.INIT_PED_DEFAULT_HEALTH(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.INSTANTLY_FILL_PED_POPULATION()`
+- `public static System.Boolean RDR2.Native.PED.IS_ANIMAL_INTERACTION_POSSIBLE(System.Int32 ped, System.Int32 animal)`
+- `public static System.Boolean RDR2.Native.PED.IS_ANY_HOSTILE_PED_NEAR_POINT(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single radius)`
+- `public static System.Boolean RDR2.Native.PED.IS_ANY_HOSTILE_PED_NEAR_POINT(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single radius)`
+- `public static System.Boolean RDR2.Native.PED.IS_ANY_PED_NEAR_POINT(RDR2.Math.Vector3 vec, System.Single radius)`
+- `public static System.Boolean RDR2.Native.PED.IS_ANY_PED_NEAR_POINT(System.Single x, System.Single y, System.Single z, System.Single radius)`
+- `public static System.Boolean RDR2.Native.PED.IS_ANY_PED_SHOOTING_IN_AREA(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.Boolean p6, System.Boolean p7)`
+- `public static System.Boolean RDR2.Native.PED.IS_ANY_PED_SHOOTING_IN_AREA(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.Boolean p6, System.Boolean p7)`
+- `public static System.Boolean RDR2.Native.PED.IS_EVENT_IN_QUEUE(System.Int32 ped, System.UInt32 eventType)`
+- `public static System.Boolean RDR2.Native.PED.IS_GROUP_LOCALLY_CONTROLLED(System.Int32 groupId)`
+- `public static System.Boolean RDR2.Native.PED.IS_INSTANTLY_FILL_PED_POPULATION_FINISHED()`
+- `public static System.Boolean RDR2.Native.PED.IS_LOCATION_SPAWN_SAFE(System.Int32 ped, System.Single p1)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_AIMING_FROM_COVER(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_A_PLAYER(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_BEING_DRAGGED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_BEING_HOGTIED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_BEING_JACKED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_BEING_STEALTH_KILLED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_BEING_STUNNED(System.Int32 ped, System.Int32 p1)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_CARRYING_SOMETHING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_CLIMBING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_DEAD_OR_DYING(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_DEFENSIVE_AREA_ACTIVE(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_DIVING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_ENTERING_ANY_TRANSPORT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_EVASIVE_DIVING(System.Int32 ped, System.Int32* evadingEntity)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_FACING_PED(System.Int32 ped, System.Int32 otherPed, System.Single angle)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_FALLING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_FALLING_OVER(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_FATALLY_INJURED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_FLEEING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_FULLY_ON_MOUNT(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_GETTING_INTO_A_VEHICLE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_GOING_INTO_COVER(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_GROUP_MEMBER(System.Int32 ped, System.Int32 groupId, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_HANGING_ON_TO_VEHICLE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_HEADING_TOWARDS_POSITION(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single p4)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_HEADING_TOWARDS_POSITION(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single p4)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_HEADTRACKING_ENTITY(System.Int32 ped, System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_HEADTRACKING_PED(System.Int32 ped1, System.Int32 ped2)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_HOGTIED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_HOGTYING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_HUMAN(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_INCAPACITATED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_INJURED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_ANY_BOAT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_ANY_HELI(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_ANY_PLANE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_ANY_TAXI(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_ANY_TRAIN(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_ANY_VEHICLE(System.Int32 ped, System.Boolean atGetIn)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_COMBAT(System.Int32 ped, System.Int32 target)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_COVER(System.Int32 ped, System.Boolean p1, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_COVER_FACING_LEFT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_FLYING_VEHICLE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_GROUP(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_MELEE_COMBAT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_MODEL(System.Int32 ped, System.UInt32 modelHash)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_IN_VEHICLE(System.Int32 ped, System.Int32 vehicle, System.Boolean atGetIn)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_JACKING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_JUMPING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_LASSOED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_MALE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_MODEL(System.Int32 ped, System.UInt32 modelHash)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_ON_FOOT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_ON_MOUNT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_ON_SPECIFIC_VEHICLE(System.Int32 ped, System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_ON_VEHICLE(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_OPENING_DOOR(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_PERFORMING_MELEE_ACTION(System.Int32 ped, System.Int32 p1, System.UInt32 p2)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_PLANTING_BOMB(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_PRONE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_RAGDOLL(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_READY_TO_RENDER(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_RELOADING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_RESPONDING_TO_EVENT(System.Int32 ped, System.UInt32 eventType)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_RESPONDING_TO_THREAT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_RUNNING_MOBILE_PHONE_TASK(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_RUNNING_RAGDOLL_TASK(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_SHOOTING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_SITTING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_SITTING_IN_ANY_VEHICLE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_SITTING_IN_VEHICLE(System.Int32 ped, System.Int32 vehicle)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_STOPPED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_SWIMMING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_SWIMMING_UNDER_WATER(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_USING_ACTION_MODE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_USING_ANY_SCENARIO(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_USING_SCENARIO_HASH(System.Int32 ped, System.UInt32 scenarioHash)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_USING_THIS_SCENARIO(System.Int32 ped, System.Int32 scenario)`
+- `public static System.Boolean RDR2.Native.PED.IS_PED_VAULTING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.IS_TARGET_PED_IN_PERCEPTION_AREA(System.Int32 ped, System.Int32 targetPed, System.Single p2, System.Single customDistance, System.Single p4, System.Single p5)`
+- `public static System.Boolean RDR2.Native.PED.IS_TRACKED_PED_VISIBLE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.KNOCK_OFF_PED_PROP(System.Int32 ped, System.Boolean p1, System.Boolean p2, System.Boolean p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PED.KNOCK_PED_OFF_VEHICLE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.PED_COWER_IN_PLACE(System.Int32 ped, System.Int32 ped2)`
+- `public static System.Void RDR2.Native.PED.PED_COWER_MOVE_TO_POINT(System.Int32 ped, System.Single p1, System.Single p2, System.Single p3, System.Int32 ped2, System.Single p5)`
+- `public static System.Void RDR2.Native.PED.REGISTER_HATED_TARGETS_AROUND_PED(System.Int32 ped, System.Single radius)`
+- `public static System.Void RDR2.Native.PED.REGISTER_TARGET(System.Int32 ped, System.Int32 targetPed, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED.RELEASE_PED_VISIBILITY_TRACKING(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.REMOVE_GROUP(System.Int32 groupId)`
+- `public static System.Void RDR2.Native.PED.REMOVE_PED_DEFENSIVE_AREA(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.REMOVE_PED_FROM_GROUP(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.REMOVE_RELATIONSHIP_GROUP(System.UInt32 groupHash)`
+- `public static System.Void RDR2.Native.PED.REMOVE_SCENARIO_BLOCKING_AREA(System.UInt64 p0, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED.REMOVE_SCENARIO_BLOCKING_AREAS()`
+- `public static System.Void RDR2.Native.PED.REMOVE_SHOP_ITEM_FROM_PED_BY_CATEGORY(System.Int32 ped, System.UInt32 componentCategory, System.Int32 p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.PED.REMOVE_TAG_FROM_META_PED(System.Int32 ped, System.UInt32 component, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PED.REQUEST_PED_USE_SMALL_BBOX_VISIBILITY_TRACKING(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED.REQUEST_PED_VEHICLE_VISIBILITY_TRACKING(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED.REQUEST_PED_VISIBILITY_TRACKING(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.RESET_AI_WEAPON_DAMAGE_MODIFIER()`
+- `public static System.Void RDR2.Native.PED.RESET_GROUP_FORMATION_DEFAULT_SPACING(System.Int32 groupId)`
+- `public static System.Void RDR2.Native.PED.RESET_HORSE_AVOIDANCE_LEVEL_TO_DEFAULT(System.Int32 horse)`
+- `public static System.Void RDR2.Native.PED.RESET_PED_IN_VEHICLE_CONTEXT(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.RESET_PED_LAST_VEHICLE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.RESET_PED_RAGDOLL_TIMER(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.RESET_PED_WEAPON_MOVEMENT_CLIPSET(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.RESURRECT_PED(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.REVIVE_INJURED_PED(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.SET_AI_MELEE_WEAPON_DAMAGE_MODIFIER(System.Single modifier)`
+- `public static System.Void RDR2.Native.PED.SET_AI_WEAPON_DAMAGE_MODIFIER(System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_BLOCKING_OF_NON_TEMPORARY_EVENTS_FOR_AMBIENT_PEDS_THIS_FRAME(System.Boolean p0)`
+- `public static System.Void RDR2.Native.PED.SET_COMBAT_FLOAT(System.Int32 ped, System.Int32 combatType, System.Single newValue)`
+- `public static System.Void RDR2.Native.PED.SET_CREATE_RANDOM_COPS(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_ENABLE_BOUND_ANKLES(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_ENABLE_HANDCUFFS(System.Int32 ped, System.Boolean p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED.SET_FACIAL_IDLE_ANIM_OVERRIDE(System.Int32 ped, System.String animName, System.String animDict)`
+- `public static System.Boolean RDR2.Native.PED.SET_FORMATION_POSITIONS_TARGET_RADIUS(System.Int32 groupId, System.Single radius)`
+- `public static System.Void RDR2.Native.PED.SET_GROUP_FORMATION(System.Int32 groupId, System.Int32 formationType)`
+- `public static System.Void RDR2.Native.PED.SET_GROUP_FORMATION_SPACING(System.Int32 groupId, System.Single p1, System.Single p2, System.Single p3)`
+- `public static System.Void RDR2.Native.PED.SET_GROUP_SEPARATION_RANGE(System.Int32 groupId, System.Single separationRange)`
+- `public static System.Void RDR2.Native.PED.SET_HORSE_AVOIDANCE_LEVEL(System.Int32 horse, System.Int32 avoidanceLevel)`
+- `public static System.Void RDR2.Native.PED.SET_IK_TARGET(System.Int32 ped, System.Int32 ikIndex, System.Int32 entityLookAt, System.Int32 boneLookAt, RDR2.Math.Vector3 offset, System.UInt64 p7, System.Int32 blendInDuration, System.Int32 blendOutDuration)`
+- `public static System.Void RDR2.Native.PED.SET_IK_TARGET(System.Int32 ped, System.Int32 ikIndex, System.Int32 entityLookAt, System.Int32 boneLookAt, System.Single offsetX, System.Single offsetY, System.Single offsetZ, System.UInt64 p7, System.Int32 blendInDuration, System.Int32 blendOutDuration)`
+- `public static System.Void RDR2.Native.PED.SET_LOOTING_FLAG(System.Int32 ped, System.Int32 lootFlag, System.Boolean enabled)`
+- `public static System.Void RDR2.Native.PED.SET_PAUSE_PED_WRITHE_BLEEDOUT(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_ACCURACY(System.Int32 ped, System.Int32 accuracy)`
+- `public static System.Void RDR2.Native.PED.SET_PED_AS_COP(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_AS_GROUP_LEADER(System.Int32 ped, System.Int32 groupId, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED.SET_PED_AS_GROUP_MEMBER(System.Int32 ped, System.Int32 groupId)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_ARM_IK(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_BE_INCAPACITATED(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE(System.Int32 ped, System.Int32 state)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_BE_TARGETTED(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_BE_TARGETTED_BY_PLAYER(System.Int32 ped, System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_BE_TARGETTED_BY_TEAM(System.Int32 ped, System.Int32 team, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_HEAD_IK(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_LEG_IK(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_PLAY_AMBIENT_ANIMS(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_PLAY_AMBIENT_BASE_ANIMS(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_PLAY_GESTURE_ANIMS(System.Int32 ped, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_RAGDOLL(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_RAGDOLL_FROM_PLAYER_IMPACT(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_TELEPORT_TO_GROUP_LEADER(System.Int32 pedHandle, System.Int32 groupId, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_TORSO_IK(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_TORSO_REACT_IK(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_TORSO_VEHICLE_IK(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAN_USE_AUTO_CONVERSATION_LOOKAT(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CAPSULE(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CLOTH_PIN_FRAMES(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED.SET_PED_COMBAT_ABILITY(System.Int32 ped, System.Int32 abilityLevel)`
+- `public static System.Void RDR2.Native.PED.SET_PED_COMBAT_ATTRIBUTES(System.Int32 ped, System.Int32 attributeIndex, System.Boolean enabled)`
+- `public static System.Void RDR2.Native.PED.SET_PED_COMBAT_MOVEMENT(System.Int32 ped, System.Int32 combatMovement)`
+- `public static System.Void RDR2.Native.PED.SET_PED_COMBAT_RANGE(System.Int32 ped, System.Int32 range)`
+- `public static System.Void RDR2.Native.PED.SET_PED_CONFIG_FLAG(System.Int32 ped, System.Int32 flagId, System.Boolean value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_DEFENSIVE_AREA_DIRECTION(System.Int32 ped, System.Single p1, System.Single p2, System.Single p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PED.SET_PED_DEFENSIVE_AREA_VOLUME(System.Int32 ped, System.Int32 volume, System.Boolean p2, System.Boolean p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PED.SET_PED_DESIRED_HEADING(System.Int32 ped, System.Single heading)`
+- `public static System.Void RDR2.Native.PED.SET_PED_FIRING_PATTERN(System.Int32 ped, System.UInt32 patternHash)`
+- `public static System.Void RDR2.Native.PED.SET_PED_FLEE_ATTRIBUTES(System.Int32 ped, System.Int32 attributeFlags, System.Boolean enable)`
+- `public static System.Void RDR2.Native.PED.SET_PED_GESTURE_GROUP(System.Int32 ped, System.String gesture, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PED.SET_PED_GRAVITY(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_GROUP_MEMBER_PASSENGER_INDEX(System.Int32 ped, System.Int32 index)`
+- `public static System.Void RDR2.Native.PED.SET_PED_HEARING_RANGE(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_HIGHLY_PERCEPTIVE(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_ID_RANGE(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_INJURED_ON_GROUND_BEHAVIOUR(System.Int32 ped, System.Single unk)`
+- `public static System.Void RDR2.Native.PED.SET_PED_INTO_VEHICLE(System.Int32 ped, System.Int32 vehicle, System.Int32 seatIndex)`
+- `public static System.Void RDR2.Native.PED.SET_PED_KEEP_TASK(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_LASSO_HOGTIE_FLAG(System.Int32 ped, System.Int32 flagId, System.Boolean value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_LEG_IK_MODE(System.Int32 ped, System.Int32 mode)`
+- `public static System.Void RDR2.Native.PED.SET_PED_LOD_MULTIPLIER(System.Int32 ped, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MAX_HEALTH(System.Int32 ped, System.Int32 value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MAX_MOVE_BLEND_RATIO(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MAX_TIME_IN_WATER(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MAX_TIME_UNDERWATER(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MIN_MOVE_BLEND_RATIO(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MODEL_IS_SUPPRESSED(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MONEY(System.Int32 ped, System.Int32 amount)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MOVE_ANIMS_BLEND_OUT(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.SET_PED_MOVE_RATE_OVERRIDE(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_NAME_DEBUG(System.Int32 ped, System.String name)`
+- `public static System.Void RDR2.Native.PED.SET_PED_NON_CREATION_AREA(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2)`
+- `public static System.Void RDR2.Native.PED.SET_PED_NON_CREATION_AREA(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2)`
+- `public static System.Void RDR2.Native.PED.SET_PED_ONTO_MOUNT(System.Int32 ped, System.Int32 mount, System.Int32 seatIndex, System.Boolean p3)`
+- `public static System.Void RDR2.Native.PED.SET_PED_OWNS_ANIMAL(System.Int32 ped, System.Int32 animal, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_PANIC_EXIT_SCENARIO(System.Int32 ped, RDR2.Math.Vector3 vec)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_PANIC_EXIT_SCENARIO(System.Int32 ped, System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.PED.SET_PED_RAGDOLL_FORCE_FALL(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.SET_PED_RAGDOLL_ON_COLLISION(System.Int32 ped, System.Boolean toggle, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED.SET_PED_RANDOM_COMPONENT_VARIATION(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED.SET_PED_RELATIONSHIP_GROUP_DEFAULT_HASH(System.Int32 ped, System.UInt32 hash)`
+- `public static System.Void RDR2.Native.PED.SET_PED_RELATIONSHIP_GROUP_HASH(System.Int32 ped, System.UInt32 relationshipGroup)`
+- `public static System.Void RDR2.Native.PED.SET_PED_RESET_FLAG(System.Int32 ped, System.Int32 flagId, System.Boolean doReset)`
+- `public static System.Void RDR2.Native.PED.SET_PED_SEEING_RANGE(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_SHOOT_RATE(System.Int32 ped, System.Int32 shootRate)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_COMBAT_SCENARIO_EXIT(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 lookIntensity)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_COMBAT_SCENARIO_EXIT(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 lookIntensity)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_DIRECTED_NORMAL_SCENARIO_EXIT(System.Int32 ped, RDR2.Math.Vector3 vec)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_DIRECTED_NORMAL_SCENARIO_EXIT(System.Int32 ped, System.Single x, System.Single y, System.Single z)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_EMOTIONAL_SCENARIO_EXIT(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 lookIntensity, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_EMOTIONAL_SCENARIO_EXIT(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 lookIntensity, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_FLEE_SCENARIO_EXIT(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 lookIntensity)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_FLEE_SCENARIO_EXIT(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 lookIntensity)`
+- `public static System.Void RDR2.Native.PED.SET_PED_SHOULD_PLAY_IMMEDIATE_SCENARIO_EXIT(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.SET_PED_SHOULD_PLAY_NORMAL_SCENARIO_EXIT(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_QUICK_SCENARIO_EXIT(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 lookIntensity, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_SHOULD_PLAY_QUICK_SCENARIO_EXIT(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 lookIntensity, System.Boolean p5)`
+- `public static System.Void RDR2.Native.PED.SET_PED_SPHERE_DEFENSIVE_AREA(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single radius, System.Boolean p5, System.Boolean p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.PED.SET_PED_SPHERE_DEFENSIVE_AREA(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single radius, System.Boolean p5, System.Boolean p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.PED.SET_PED_STEALTH_MOVEMENT(System.Int32 ped, System.Boolean toggle, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PED.SET_PED_SWEAT(System.Int32 ped, System.Single sweat)`
+- `public static System.Void RDR2.Native.PED.SET_PED_TARGET_LOSS_RESPONSE(System.Int32 ped, System.Int32 responseType)`
+- `public static System.Void RDR2.Native.PED.SET_PED_TO_INFORM_RESPECTED_FRIENDS(System.Int32 ped, System.Single radius, System.Int32 maxFriends)`
+- `public static System.Void RDR2.Native.PED.SET_PED_TO_PLAYER_WEAPON_DAMAGE_MODIFIER(System.Int32 ped, System.Single damageModifier)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_TO_RAGDOLL(System.Int32 ped, System.Int32 timeMin, System.Int32 timeMax, System.Int32 ragdollType, System.Boolean p4, System.Boolean p5, System.String p6)`
+- `public static System.Boolean RDR2.Native.PED.SET_PED_TO_RAGDOLL_WITH_FALL(System.Int32 ped, System.Int32 timeMin, System.Int32 timeMax, System.Int32 ragdollType, System.Single falldirX, System.Single falldirY, System.Single falldirZ, System.Single p7, System.Single p8, System.Single p9, System.Single p10, System.Single p11, System.Single p12, System.Single p13)`
+- `public static System.Void RDR2.Native.PED.SET_PED_USING_ACTION_MODE(System.Int32 ped, System.Boolean bActionModeEnabled, System.Int32 p2, System.String action)`
+- `public static System.Void RDR2.Native.PED.SET_PED_VISUAL_FIELD_CENTER_ANGLE(System.Int32 ped, System.Single angle)`
+- `public static System.Void RDR2.Native.PED.SET_PED_VISUAL_FIELD_MAX_ANGLE(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_VISUAL_FIELD_MIN_ANGLE(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED.SET_PED_VISUAL_FIELD_PERIPHERAL_RANGE(System.Int32 ped, System.Single range)`
+- `public static System.Void RDR2.Native.PED.SET_PED_WETNESS_ENABLED_THIS_FRAME(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.SET_PED_WETNESS_HEIGHT(System.Int32 ped, System.Single height)`
+- `public static System.Void RDR2.Native.PED.SET_POP_CONTROL_SPHERE_THIS_FRAME(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PED.SET_RAGDOLL_BLOCKING_FLAGS(System.Int32 ped, System.Int32 flags)`
+- `public static System.Void RDR2.Native.PED.SET_RELATIONSHIP_BETWEEN_GROUPS(System.Int32 relationship, System.UInt32 group1, System.UInt32 group2)`
+- `public static System.Void RDR2.Native.PED.SET_SCENARIO_PED_DENSITY_MULTIPLIER_THIS_FRAME(System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED.SPAWNPOINTS_CANCEL_SEARCH()`
+- `public static System.Int32 RDR2.Native.PED.SPAWNPOINTS_GET_NUM_SEARCH_RESULTS()`
+- `public static System.Void RDR2.Native.PED.SPAWNPOINTS_GET_SEARCH_RESULT(System.Int32 randomInt, System.Single* x, System.UInt64* y, System.Single* z)`
+- `public static System.Void RDR2.Native.PED.SPAWNPOINTS_GET_SEARCH_RESULT_FLAGS(System.UInt64 p0, System.UInt64* p1)`
+- `public static System.Boolean RDR2.Native.PED.SPAWNPOINTS_IS_SEARCH_ACTIVE()`
+- `public static System.Boolean RDR2.Native.PED.SPAWNPOINTS_IS_SEARCH_COMPLETE()`
+- `public static System.Boolean RDR2.Native.PED.SPAWNPOINTS_IS_SEARCH_FAILED()`
+- `public static System.Void RDR2.Native.PED.SPAWNPOINTS_START_SEARCH(RDR2.Math.Vector3 vec, System.Single width, System.Single p4, System.Int32 spawnpointsFlag, System.Single p6, System.Int32 duration, System.Single p8)`
+- `public static System.Void RDR2.Native.PED.SPAWNPOINTS_START_SEARCH(System.Single x, System.Single y, System.Single z, System.Single width, System.Single p4, System.Int32 spawnpointsFlag, System.Single p6, System.Int32 duration, System.Single p8)`
+- `public static System.Void RDR2.Native.PED.SPAWNPOINTS_START_SEARCH_IN_ANGLED_AREA(RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.Single width, System.Int32 spawnpointsFlag, System.Single p8, System.Int32 duration, System.Single p10)`
+- `public static System.Void RDR2.Native.PED.SPAWNPOINTS_START_SEARCH_IN_ANGLED_AREA(System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.Single width, System.Int32 spawnpointsFlag, System.Single p8, System.Int32 duration, System.Single p10)`
+- `public static System.Void RDR2.Native.PED.SPECIAL_FUNCTION_DO_NOT_USE(System.Int32 ped, System.Boolean p1)`
+- `public static System.Single RDR2.Native.PED.TIME_SINCE_PED_LAST_SHOT(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED.TOGGLE_SCENARIO_PED_COWER_IN_PLACE(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Boolean RDR2.Native.PED.WAS_PED_SKELETON_UPDATED(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x00B380FF2DF6AB7A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x0105FEE8F9091255(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x024EC9B649111915(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x028E7B3BBA0BD2FC(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x02E741E19E39628C(System.Int32 ped, System.Single p1)`
+- `public static System.Boolean RDR2.Native.PED._0x0455546F23FF08E4(System.Int32 groupId)`
+- `public static System.Boolean RDR2.Native.PED._0x06A10B4D7F50B0C3(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x06FA94C835787C64(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x070A3841406C43D5(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PED._0x078076AB50FB117F(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single p4, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.PED._0x078076AB50FB117F(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single p4, System.Boolean p5)`
+- `public static System.Void RDR2.Native.PED._0x07EA5B053FA60AC7(System.Int32 groupId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x09171A6F8FDE5DC1(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.UInt64 RDR2.Native.PED._0x095C2277FED731DB(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0x09D7AFD3716DA8E1(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x09E378C52B1433B5(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PED._0x0A4618FFD517E24D(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x0ADA3EC589E1736E()`
+- `public static System.Void RDR2.Native.PED._0x0B787A37EEDD226F(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PED._0x0D3B1568917EBDA0(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x0D497AA69059FE40(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Single RDR2.Native.PED._0x0EA9EACBA3B01601(System.Int32 ped1, System.Int32 ped2, System.Boolean p2)`
+- `public static System.Boolean RDR2.Native.PED._0x0EEF7A81C17679DB(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x0F967019CC853BCC(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x0FB1BA7FF73B41E1(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x0FFDF937E5C11382(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Boolean RDR2.Native.PED._0x101B45C5F56D970F(System.UInt64* p0, System.Int32 ped, System.Int32 damageCleanliness, System.Int32 p3)`
+- `public static System.Void RDR2.Native.PED._0x10F96086123B939F(System.Int32 legendaryPed, System.Int32 preyPed, System.Single p2)`
+- `public static System.Boolean RDR2.Native.PED._0x1148F706CF4EBDDA(System.Int32 ped, System.UInt32 p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PED._0x1298B3D8E4C2409F(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0x12EB4E31F092C9B3(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x12F2D161BF4031FC(System.Int32 ped, System.Single p1)`
+- `public static System.Single RDR2.Native.PED._0x134775B093AD5C38(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x154B7E841AC7412F(System.Int32 groupId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x15F4732C357B1D6D(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x16802C32B2FCA06B(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PED._0x16F798A05BB9E3B5(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x19B14E04B009E28B(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x1D23D3F70606D788(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x1D4636C90BBEFACB(System.Int32 ped, System.Int32 p1)`
+- `public static System.Boolean RDR2.Native.PED._0x1E017404784AA6A3(System.Int32 ped, System.UInt32 p1)`
+- `public static System.Void RDR2.Native.PED._0x1F44B7E283C09EDE(System.Int32 ped, System.Single p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PED._0x1F8215D0E446F593(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x1FA132CBCD7CB239(System.Int32 ped, System.UInt32 p1)`
+- `public static System.Void RDR2.Native.PED._0x20C5459379D75C1C(System.Int32 ped, System.String p1)`
+- `public static System.Void RDR2.Native.PED._0x2371C39D4F91C288(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x23BDE06596A22CEC(System.Int32 ped, System.Int32 p1, System.Single p2, System.UInt64 p3)`
+- `public static System.UInt64 RDR2.Native.PED._0x242EDF85D4E87B65(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0x256EDD55C6BE1482(System.Int32 ped)`
+- `public static System.UInt64 RDR2.Native.PED._0x273915CE30780986(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x27E8A84C12B0B7D1(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x28508173C6A7CC18(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0x290B2E6CCDE532E1(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x29924EB8EE9DB926(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0x29F3539189D3E277(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x2B4CE170DE09F346(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Single RDR2.Native.PED._0x2BA9D7BF629F920C(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x2D976DBDC731DF80(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x2DC0E8DCBD3546E9(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x2DD4E0E26DFAD97D(System.Int32 ped1, System.Int32 ped2, System.Single p2)`
+- `public static System.Void RDR2.Native.PED._0x2E5B5D1F1453E08E(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x2FA568BFA725F8D6(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.UInt64 RDR2.Native.PED._0x31B2E7F2E3C58B89(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.UInt64 RDR2.Native.PED._0x32417CB860A3BDC4(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x326F7951EF0D7F75(System.Int32 ped, System.UInt32 eventType)`
+- `public static System.Void RDR2.Native.PED._0x329772C47DBB2FBC(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x32CCAD8A981B53D3(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x32CEDA9A0AB4CEF7(System.Int32 ped, System.UInt32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._0x34B5CEAC180A5D6E(System.Int32 ped, System.UInt32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._0x34C11114887150FD(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x34EDDD59364AD74A(System.Int32 ped, System.UInt64* p1)`
+- `public static System.Int32 RDR2.Native.PED._0x354CA4DDDEEC397A(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x36513AFFC703C60D(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0x370A973252741AC4(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x3A5697B80FED5EBE(System.Int32 ped, System.Single p1, System.Single p2, System.Single p3, System.Single p4)`
+- `public static System.Int32 RDR2.Native.PED._0x3ACCE14DFA6BA8C2(System.Int32 ped, System.Int32 p1, RDR2.Math.Vector3 vec, System.Single p5, System.Int32 itemset)`
+- `public static System.Int32 RDR2.Native.PED._0x3ACCE14DFA6BA8C2(System.Int32 ped, System.Int32 p1, System.Single x, System.Single y, System.Single z, System.Single p5, System.Int32 itemset)`
+- `public static System.Boolean RDR2.Native.PED._0x3AEC4A410ECAF30D(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x3C529A827998F9B3(System.Int32 ped, System.Int32 p1, System.Int32 p2)`
+- `public static System.Int32 RDR2.Native.PED._0x3D9F958834AB9C30(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x3EFED081B4834BA1(System.UInt64 p0)`
+- `public static System.Int32 RDR2.Native.PED._0x3FCBB5FCFD968698(System.UInt32 drawable, System.UInt32 albedo, System.UInt32 normal, System.UInt32 material, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PED._0x3FDBB99EFD8CE4AF(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x3FDCC1F8C17E303E(System.Int32 ped, System.Int32 p1, System.Single p2)`
+- `public static System.Void RDR2.Native.PED._0x405180B14DA5A935(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x40C3524D4ED83554(System.Int32 groupId, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED._0x40C9155AF8BC13F3(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x413697EC260AABBF(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x41C23A8E6B344867(System.Int32 ped, System.String p1)`
+- `public static System.Void RDR2.Native.PED._0x45FEA6D5539BD474(System.Int32 ped, System.String p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x4642182A298187D0(System.Int32 ped, System.Int32 p1, System.UInt64* p2, System.Int32 p3, System.Int32 p4)`
+- `public static System.Single RDR2.Native.PED._0x46BF2A810679D6E6(System.Int32 ped, System.Single maxMoveBlendRatio)`
+- `public static System.Void RDR2.Native.PED._0x49DADFC4CD808B0A(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Int32 RDR2.Native.PED._0x4B19F171450E0D4F(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x4E68C7EF706DF35D(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single p4, System.UInt32 relationshipGroup)`
+- `public static System.Void RDR2.Native.PED._0x4E68C7EF706DF35D(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single p4, System.UInt32 relationshipGroup)`
+- `public static System.Void RDR2.Native.PED._0x4EC4EA2F72B36358(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x4EFC1F8FF1AD94DE(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.PED._0x4F27603E44A8E4C0(System.Int32 ped, System.Int32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._0x4F63433CE3C08230(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED._0x5203038FF8BAE577(System.Int32 ped, System.Int32 p1, System.Int32 p2)`
+- `public static System.UInt64 RDR2.Native.PED._0x52250B92EA70BE3D(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0x52A24D8A1DA89658(System.Int32 ped, System.Int32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._0x53BA7D96B9A421D9(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x54D3CD482742C482(System.Int32 animal, System.Single p2)`
+- `public static System.Boolean RDR2.Native.PED._0x550CB89DD7F4FA3D(System.Int32 ped1, System.Int32 ped2)`
+- `public static System.Void RDR2.Native.PED._0x55546004A244302A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x56076667E7C2DCD6(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x56E4BAD93D33453C(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PED._0x577C60BA06D0EA64(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x57F35552E771BE9D(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x58D32261AE0F0843(System.Int32 ped, System.Int32 boneId, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Single p7, System.String p8)`
+- `public static System.Void RDR2.Native.PED._0x5A1A929C8B729B4A(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x5AF24CA9C974E51A(System.Int32 ped1, System.Int32 ped2)`
+- `public static System.Void RDR2.Native.PED._0x5B73975B4F12F7F3(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PED._0x5BB04BC74A474B47(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PED._0x5BF0B9D9A8E227A0(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x5C6C7C70CA302801(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x5C90E20C25E6D83C(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0x5CA20FBE49891BBD(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x5CB2EBB467BE3ED6(System.Int32 animal, System.Single p2)`
+- `public static System.Void RDR2.Native.PED._0x5D4CD22A8C82A81A(System.Int32 ped, System.Boolean p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x5DA36CCCB63C0895(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Int32 RDR2.Native.PED._0x5E9FAF6C513347B4(System.Int32 ped, System.UInt32 eventType)`
+- `public static System.UInt64 RDR2.Native.PED._0x5EFA8A3D8A60D662(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x5FCF25D584065BFD(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PED._0x600BBDD29820370C(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x604E1010E3162E86(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x606D529DADA3C940(System.Int32 ped, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x6243635AF2F1B826(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.UInt64 RDR2.Native.PED._0x62FDF4E678E40CC6(System.Int32 entity, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x633F83B301C87994(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x642720D8D69328B6(System.Int32 ped, System.UInt32 p1)`
+- `public static System.Boolean RDR2.Native.PED._0x6507AC3BD7C99009(RDR2.Math.Vector3 vec, System.Single p3)`
+- `public static System.Boolean RDR2.Native.PED._0x6507AC3BD7C99009(System.Single x, System.Single y, System.Single z, System.Single p3)`
+- `public static System.Void RDR2.Native.PED._0x6734F0A6A52C371C(System.Int32 player, System.Int32 horseSlot)`
+- `public static System.Void RDR2.Native.PED._0x6A190B94C2541A99(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0x6A489892E813951A(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0x6B67320E0D57856A(System.Int32 ped, System.UInt64* p1, System.Int32 p2, System.Boolean p3)`
+- `public static System.UInt64 RDR2.Native.PED._0x6DB875AFC584FA32(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x6E8B87139854022D(System.Int32 ped, System.String clipset)`
+- `public static System.UInt64 RDR2.Native.PED._0x6F43C351A5D51E2F(System.Int32 ped, System.UInt64* p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x6F46F8ACB44C4FC1(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0x7020839C7302D8AC(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x704C908E9C405136(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x712B2C2B2471B493(System.Int32 ped, System.UInt32 p1)`
+- `public static System.Void RDR2.Native.PED._0x735662994E60A710(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x7406C71F4AC2FFCC(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0x7583A9D35248B83F(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x758F081DB204DDDE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x75A082563B4452E5(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PED._0x75D3333409CD33CE(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Single RDR2.Native.PED._0x763FA8A9D76EE3A7(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x77243ED4F7CAAA55(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x7883AA809DF43D98(System.Int32 ped, System.Single healthLimit)`
+- `public static System.Void RDR2.Native.PED._0x7ABBD9E449E0DB00(System.Int32 ped, System.Boolean p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x7B5C293238EE4F20(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PED._0x7BB810E8B343AC7B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0x7C08E7CB8D951B70(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0x7C10221CE718AA72(System.Int32 ped, System.Int32 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x7C8AA850617651D9(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x7E5185B979706210(System.Int32 groupId, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x7E8F9949B7AABBF0(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x7EDB3C766B0D073F(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x7EE3A8660F38797E(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x7F090958AE95B61B(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x8101BA1C0B462412(System.Int32 ped, System.Int32 ropeId)`
+- `public static System.Void RDR2.Native.PED._0x815C0074A1BC0D93(System.Int32 ped, System.Int32 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x82CB0F3F0C7785E5(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0x851966E1E35AF491(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x85F500F4E24CA43E(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0x86F0B6730C32AC14(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x86FAFC18E3D4380C(System.Int32 groupId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x878E8104FA27CDAE(System.Int32 vehicle, System.UInt32 p1)`
+- `public static System.Void RDR2.Native.PED._0x87C2724A56F66020(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x8822F124788B8D0A(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED._0x8822F139408B8D0A(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x88A5564B19C15391(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x88A95BB640FC186F(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x88B2026A3B0BE33D(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0x897934E868EDDD6C(System.Int32 ped, System.Int32 p1, System.Single p2, System.Single p3, System.Single p4)`
+- `public static System.UInt64 RDR2.Native.PED._0x89816B58C3466262(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x899DFA0009AC93DE(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0x89E59DBD15E21177(System.Int32 groupId, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0x8AF46E5159A5B620(System.Int32 ped, System.UInt32 speechParams)`
+- `public static System.Int32 RDR2.Native.PED._0x8AF8E647D6B2A649(System.Int32 groupId, System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x8AFCCC0F18D70018(System.Int32 groupId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x8BA0C65AC15A7D33(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Int32 RDR2.Native.PED._0x8BE24D74D74C6E9B(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x8CB2553C559102C1(System.Int32 ped, System.Int32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._0x8D9DB115FBA8E23D(System.UInt64 p0)`
+- `public static System.Single RDR2.Native.PED._0x900CA00CE703E1E2(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x9078FB0557364099(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0x913D04A5176F84C9(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x917760CFE7A0E0F1(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x9184788BFF1EDAD7(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x91BAB9E064F036CD(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x92A1B55A59720395(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PED._0x94132D7C8D3575C4(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0x947E43F544B6AB34(System.Int32 ped, System.Int32 player, System.Int32 flag, System.Int32 ms)`
+- `public static System.Void RDR2.Native.PED._0x9629FAF6460D35CB(System.UInt32 group, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x96595B36D6A2279B(System.Int32 animal, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._0x966DE09688A1DE39(System.Int32 groupId, System.Single p1, System.Single p2, System.Single p3, System.Single p4)`
+- `public static System.Void RDR2.Native.PED._0x96C7B659854DE629(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x97A38B65EBDA3D50(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x97B06669AC569003(System.Int32 ped1, System.Int32 ped2)`
+- `public static System.Void RDR2.Native.PED._0x97C475212B327666(System.Int32 groupId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0x9851DE7AEC10B4E1(RDR2.Math.Vector3 vec, System.Single p3, System.Int32 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.PED._0x9851DE7AEC10B4E1(System.Single x, System.Single y, System.Single z, System.Single p3, System.Int32 p4, System.UInt64 p5)`
+- `public static System.Void RDR2.Native.PED._0x992187D975635DF5(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PED._0x99DF2639DA76C1DC(System.Int32 ped1, System.Int32 ped2, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PED._0x9A4AC116CC1EEE14(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0x9AB33CB5834885B3(System.Int32 ped, System.Single p1, System.Single p2, System.Single p3, System.Single p4)`
+- `public static System.Void RDR2.Native.PED._0x9B65444C07B782BF(System.Int32 ped, System.String p1)`
+- `public static System.UInt64 RDR2.Native.PED._0x9B90842304C938A7(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0x9B9B9FA0EA283E3D(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0x9BBEAF8B0C007F1E(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED._0x9C81338B2E62CE0A(System.Int32 player, System.Int32 ped, System.Int32 shotNearRecentlyTime)`
+- `public static System.Void RDR2.Native.PED._0x9D8DFE2DE9CB4DFC(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0x9E3842E5DAD69F80(System.Int32 volume)`
+- `public static System.Void RDR2.Native.PED._0x9E66708B2B41F14A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0x9F0F28B42C4EE80A(System.Int32 animal, System.Single p2)`
+- `public static System.Void RDR2.Native.PED._0x9F933E0985E12C51(System.Int32 ped, System.Single p1, System.Single p2, System.Single p3)`
+- `public static System.Void RDR2.Native.PED._0xA064BBABB064446F(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PED._0xA180FBD502A03125(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Boolean RDR2.Native.PED._0xA1FBAC56D38563E2(System.Int32 volume)`
+- `public static System.Void RDR2.Native.PED._0xA2116C1E4ED85C24(System.Int32 ped, System.Boolean inverted)`
+- `public static System.UInt64 RDR2.Native.PED._0xA218D2BBCAA7388C(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xA274F51EF7E34B95(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xA2B8E47442C76CEC(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xA2F8B3B5FEDFC100(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xA31D350D66FA1855(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xA3C53CDE922BC78B(System.Int32 ped, System.String p1)`
+- `public static System.Void RDR2.Native.PED._0xA405BF9F01960C16(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PED._0xA4AC05B1A364EBC5(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Boolean RDR2.Native.PED._0xA4B6432E3880F2F9(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xA691C10054275290(System.Int32 mount, System.Int32 player, System.Int32 dismountedTimestamp)`
+- `public static System.Void RDR2.Native.PED._0xA6D6F03095C88F59(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xA7A806677F8DE138(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xA7DC9266ED6A4E51(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xA8A95CECB1906EA2(System.Int32 groupId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0xA90684ED185CCB4B(System.Int32 animal, System.Boolean p1, System.Single p2, System.Single p3)`
+- `public static System.Void RDR2.Native.PED._0xA967D6A8ED2D713B(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0xAA6C49AE90A32299(System.Int32 ped, System.UInt32 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xAAB86462966168CE(System.Int32 ped, System.Boolean isMP)`
+- `public static System.Void RDR2.Native.PED._0xAAC0EE3B4999ABB5(System.Int32 ped, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.PED._0xAD3330E3C3E98007(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xAE6B68A83ABBE7C0(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xAF041C10756C30FB(System.Int32 ped, System.Boolean p1, System.Boolean p2, System.Boolean p3)`
+- `public static System.Boolean RDR2.Native.PED._0xB05CC690CDE8A4A9(System.Int32 groupId, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0xB06F5F1DEF417216(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PED._0xB285AD0EC870B2DF(System.Int32 ped, System.UInt32 hash)`
+- `public static System.UInt64 RDR2.Native.PED._0xB292203008EBBAAC(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.PED._0xB29C553BA582D09E(System.UInt64* p0, System.UInt32 model, System.Int32 damageCleanliness, System.Int32 p3)`
+- `public static System.Void RDR2.Native.PED._0xB4B7C92FCE7347B7(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0xB65927F861E7AE39(System.Int32 ped, System.Int32 p1)`
+- `public static System.Boolean RDR2.Native.PED._0xB7DBB2986B87E230(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0xB8AB265426CFE6DD(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0xB8B6430EAD2D2437(System.Int32 ped, System.UInt32 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xB8E2D655E1D5BD39(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0xB91AB3BE7F655D49(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xB9BDFAE609DFB7C5(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0xBAD2A311667A50D7(System.Int32 ped, System.Boolean p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xBB3E5370EBB6BE28(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xBC1DC48270468444(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xBCC76708E5677E1D(System.Int32 ped, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED._0xBD0E4F52F6D95242(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xBF567DF2BEF211A6(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xBFA6B7731C3BAF02()`
+- `public static System.Void RDR2.Native.PED._0xC17A94CC8FC3C61A(System.Int32 entity, System.Int32 flag, System.Single p2, System.Single p3, System.Single p4)`
+- `public static System.Void RDR2.Native.PED._0xC2722B252C79E641(System.Int32 ped, System.UInt64 p1, System.UInt64 p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.PED._0xC2745D9261664901(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xC2EF407645BEECDC(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0xC3995D396F1D97B6(System.Int32 ped, System.Int32 p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PED._0xC412AA1C73111FE0(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.UInt64 RDR2.Native.PED._0xC48AF420371C7407(System.Int32 ped, System.UInt32 grapple)`
+- `public static System.Void RDR2.Native.PED._0xC494C76A34266E82(System.Int32 ped, System.Int32 p1)`
+- `public static System.Int32 RDR2.Native.PED._0xC5303F460A40D21D(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0xC5B78E41DCF8227C(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0xC6136B40FFFB778B(System.Boolean p0)`
+- `public static System.Void RDR2.Native.PED._0xC6981AFF6D2A71C2(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xC6C4E15CF7D52FEA(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xC9151483CC06A414(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xC991EF46FE323867(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xC99F104BDF8C7F5A(System.Int32 ped, System.Boolean p1)`
+- `public static System.Single RDR2.Native.PED._0xCA95924C893A0C91(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0xCA95C156C14B2054(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xCAC43D060099EA72(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xCB1A3864C524F784(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xCB86D3E3E3708901(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Boolean RDR2.Native.PED._0xCB8F4C9343EBE240(System.Int32 ped, System.UInt32 eventType, RDR2.Math.Vector3* coords)`
+- `public static System.Void RDR2.Native.PED._0xCBDE59C48F2B06F5(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0xCD9E5F94A2F38683(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0xCDFB8C04D4C95D9B(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PED._0xCE7A6C1D5CDE1F9D(System.Int32 ped, System.Int32 _object, System.String propName, System.String animName)`
+- `public static System.Void RDR2.Native.PED._0xCF0B19806473D324(System.Int32 ped, RDR2.Math.Vector3 vec)`
+- `public static System.Void RDR2.Native.PED._0xCF0B19806473D324(System.Int32 ped, System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.PED._0xD049920CD29F6CC8(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PED._0xD049FDAF089FDDB0(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0xD103F6DBB5442BE8(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0xD2F0FE8805D91647(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PED._0xD355E2F1BB41087E(System.Int32 ped, System.Single p1)`
+- `public static System.Boolean RDR2.Native.PED._0xD4D403EA031F351C(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._0xD55DB4466D00A258(System.Int32 legendaryAnimal)`
+- `public static System.Void RDR2.Native.PED._0xD5BD1B5318A81994(System.Int32 groupId, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0xD61FCF9FCFD515B7(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0xD7D2F45C56A4F4DF(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0xD8544F6260F5F01E(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0xD8CEEED54C672B5D(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6)`
+- `public static System.UInt64 RDR2.Native.PED._0xD97BC27AC039F681(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Boolean RDR2.Native.PED._0xDC88D06719070C39(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xDC91F22F09BC6C2F(System.UInt32 group, System.Boolean p1)`
+- `public static System.Single RDR2.Native.PED._0xDC9273D95976BA22(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xDD9540E7B1C9714F(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PED._0xDDFAD4DEAA7FA362(System.Int32 groupId, System.Single p1, System.Single p2, System.Single p3, System.Single p4)`
+- `public static System.Void RDR2.Native.PED._0xDEDBED3020DA49DC(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xDEE8D30AA5C2E28D(System.Int32 ped, System.UInt32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._0xE0FE107AB174D64A(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xE1103300F3456DE7(System.Int32 groupId, System.Single p1, System.Single p2)`
+- `public static System.Void RDR2.Native.PED._0xE1AADD0055D76603(System.Int32 ped, System.Int32 entity, System.Int32 boneIndex1, System.Int32 boneIndex2, RDR2.Math.Vector3 vec, System.Single p7, System.Boolean p8, System.Boolean p9, System.Int32 p10)`
+- `public static System.Void RDR2.Native.PED._0xE1AADD0055D76603(System.Int32 ped, System.Int32 entity, System.Int32 boneIndex1, System.Int32 boneIndex2, System.Single x, System.Single y, System.Single z, System.Single p7, System.Boolean p8, System.Boolean p9, System.Int32 p10)`
+- `public static System.Void RDR2.Native.PED._0xE1B3BE07D3AADDED(System.Int32 ped, System.Int32 p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._0xE20027B414BFE6C7(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xE29D8CD66553DBAA(System.Int32 horse)`
+- `public static System.Void RDR2.Native.PED._0xE37ACEE15AC50C7E(System.Int32 ped, System.String p1)`
+- `public static System.Void RDR2.Native.PED._0xE4C95E0AE31C6512(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xE4EF4382E22C780C(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xE50C9816B3F22D8B(System.Int32 ped, System.UInt32 p1, System.Single p2)`
+- `public static System.Void RDR2.Native.PED._0xE6CB36F43A95D75F(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xE735A7DA22E88359(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xE737D5F14304A2EC(System.Int32 ped, System.Int32 player, System.Int32 p2)`
+- `public static System.Int32 RDR2.Native.PED._0xE76687023D8C8505(System.UInt32 perscharModel, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0xE8ABE3B73FC7FE17(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Int32 RDR2.Native.PED._0xE8D1CCB9375C101B(System.Int32 mount, System.Int32 player)`
+- `public static System.Void RDR2.Native.PED._0xE9E06EA514A69061(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xEA8763E505AFD49A(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0xEB8886E1065654CD(System.Int32 ped, System.Int32 p1, System.String p2, System.Single p3)`
+- `public static System.Boolean RDR2.Native.PED._0xEBAAC9A750E7563B(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xEBD49472BCCF7642(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xEC60D1D225BC50AA(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0xED1C764997A86D5A(System.Int32 ped1, System.Int32 ped2)`
+- `public static System.Void RDR2.Native.PED._0xEEDC9B29314B2733(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5, System.UInt64 p6, System.UInt64 p7, System.UInt64 p8, System.UInt64 p9)`
+- `public static System.Void RDR2.Native.PED._0xEF371232BC6053E1(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xF47D54B986F0A346(System.Int32 ped, System.Int32 danceIntensity)`
+- `public static System.Int32 RDR2.Native.PED._0xF4860514AD354226(System.Int32 shockingEvent, RDR2.Math.Vector3 vec, System.Single p4, System.Int32* p5)`
+- `public static System.Int32 RDR2.Native.PED._0xF4860514AD354226(System.Int32 shockingEvent, System.Single x, System.Single y, System.Single z, System.Single p4, System.Int32* p5)`
+- `public static System.Void RDR2.Native.PED._0xF634E2892220EF34(System.Int32 ped, System.UInt64 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xF6A8C4B4A11AE89C(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.UInt64 RDR2.Native.PED._0xF7327ACC7A89AEF1(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.PED._0xF917F92BF22ECBAB(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._0xF9331B3A314EB49D(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xF9CBD46433E36713(System.Int32 ped, System.Int32 targetEntity, System.Single p2, System.Single p3, System.Single p4, System.Single p5, System.Single p6, System.Single p7, System.Single p8, System.String p9)`
+- `public static System.Void RDR2.Native.PED._0xF9CFF5BB70E8A2CB(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._0xFA0D206B489A6846(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PED._0xFA742B82D093D848(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Boolean RDR2.Native.PED._0xFA8C10DCE0706D43(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._0xFC23348F0F4E245F(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.UInt64 RDR2.Native.PED._0xFC3B580C4380B5B7(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.PED._0xFD3C31A2E45671E7(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._0xFD8E853F0BC2E942(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.PED._0xFEA6126C34DF2532(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._0xFFA1594703ED27CA(System.Int32 ped, System.Int32 p1)`
+- `public static System.UInt64 RDR2.Native.PED._0xFFCC2DB2D9953401(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Int32 RDR2.Native.PED._0xFFDE295662405B25(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._ADD_PED_STAY_OUT_VOLUME(System.Int32 ped, System.Int32 volume)`
+- `public static System.Boolean RDR2.Native.PED._ADD_PED_SUBSCRIBE_TO_LEGENDARY_BLIPS(System.Int32 ped)`
+- `public static System.UInt64 RDR2.Native.PED._ADD_SCENARIO_BLOCKING_VOLUME(System.Int32 volume, System.Boolean p1, System.Int32 flag)`
+- `public static System.Void RDR2.Native.PED._ADD_SCENARIO_TRANSITION(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._ADD_TEXTURE_LAYER(System.Int32 textureId, System.UInt32 albedoHash, System.UInt32 normalHash, System.UInt32 materialHash, System.Int32 blendType, System.Single texAlpha, System.Int32 sheetGridIndex)`
+- `public static System.Boolean RDR2.Native.PED._APPLY_PED_METAPED_OUTFIT(System.Int32 requestId, System.Int32 ped, System.Boolean p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.PED._APPLY_SHOP_ITEM_TO_PED(System.Int32 ped, System.UInt32 componentHash, System.Boolean immediately, System.Boolean isMp, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PED._APPLY_TEXTURE_ON_PED(System.Int32 ped, System.UInt32 componentHash, System.Int32 textureId)`
+- `public static System.Boolean RDR2.Native.PED._ARE_ALL_AMBIENT_PED_RESERVATIONS_READY()`
+- `public static System.Void RDR2.Native.PED._ATTACH_VOLUME_TO_ENTITY(System.Int32 volume, System.Int32 entity, RDR2.Math.Vector3 offset, RDR2.Math.Vector3 rotation, System.Int32 p8, System.Boolean p9)`
+- `public static System.Void RDR2.Native.PED._ATTACH_VOLUME_TO_ENTITY(System.Int32 volume, System.Int32 entity, System.Single offsetX, System.Single offsetY, System.Single offsetZ, System.Single rotX, System.Single rotY, System.Single rotZ, System.Int32 p8, System.Boolean p9)`
+- `public static System.Boolean RDR2.Native.PED._CAN_PED_USE_SCENARIO_POINT(System.Int32 ped, System.Int32 scenario, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Boolean RDR2.Native.PED._CHANGE_PED_STAMINA(System.Int32 ped, System.Single amount)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PED_ACTION_DISABLE_FLAG(System.Int32 ped, System.Int32 actionDisableFlag)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PED_BLOOD_DAMAGE_FACIAL(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PED_COMBAT_STYLE(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PED_DESIRED_LOCO_FOR_MODEL(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PED_DESIRED_LOCO_MOTION_TYPE(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PED_GRAPPLE_FLAG(System.Int32 ped, System.Int32 flag)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PED_TARGET_ACTION_DISABLE_FLAG(System.Int32 ped, System.Int32 actionDisableFlag)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PED_TEXTURE(System.Int32 textureId)`
+- `public static System.Void RDR2.Native.PED._CLEAR_PELT_FROM_HORSE(System.Int32 horse, System.Int32 peltId)`
+- `public static System.Int32 RDR2.Native.PED._COMPUTE_SATCHEL_ITEM_FOR_PED_CARCASS(System.UInt64* outInventoryItemArray, System.Int32 ped, System.Int32 damageCleanliness, System.Int32 skinningQuality)`
+- `public static System.Int32 RDR2.Native.PED._CREATE_GRAVITY_WELL(RDR2.Math.Vector3 vec, System.Single heading, System.Single radius, System.Single p5, System.Single p6, System.Single p7, System.Boolean stopAtDestination)`
+- `public static System.Int32 RDR2.Native.PED._CREATE_GRAVITY_WELL(System.Single xPos, System.Single yPos, System.Single zPos, System.Single heading, System.Single radius, System.Single p5, System.Single p6, System.Single p7, System.Boolean stopAtDestination)`
+- `public static System.Int32 RDR2.Native.PED._CREATE_METAPED_ASSET(System.UInt32 asset, RDR2.Math.Vector3 vec, RDR2.Math.Vector3 rotation, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Int32 RDR2.Native.PED._CREATE_METAPED_ASSET(System.UInt32 asset, System.Single posX, System.Single posY, System.Single posZ, System.Single rotX, System.Single rotY, System.Single rotZ, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Int32 RDR2.Native.PED._CREATE_METAPED_OUTFIT_PED(System.Int32 requestId, RDR2.Math.Vector3 vec, System.Single heading, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PED._CREATE_METAPED_OUTFIT_PED(System.Int32 requestId, System.Single x, System.Single y, System.Single z, System.Single heading, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8)`
+- `public static System.Int32 RDR2.Native.PED._CREATE_METAPED_PED(System.Int32 requestId, RDR2.Math.Vector3 vec, System.Single heading, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Int32 RDR2.Native.PED._CREATE_METAPED_PED(System.Int32 requestId, System.Single x, System.Single y, System.Single z, System.Single heading, System.Boolean p5, System.Boolean p6, System.Boolean p7, System.Boolean p8, System.Boolean p9)`
+- `public static System.Void RDR2.Native.PED._DETACH_VOLUME_FROM_ENTITY(System.Int32 volume, System.Int32 entity)`
+- `public static System.Void RDR2.Native.PED._DISABLE_ALL_LOOK_AT_REQUESTS(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._DISABLE_AMBIENT_LOOK_AT_REQUESTS(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.PED._DOES_METAPED_OUTFIT_EXIST_FOR_PED_MODEL(System.UInt32 outfit, System.UInt32 model)`
+- `public static System.Boolean RDR2.Native.PED._DOES_METAPED_SUBOUTFIT_EXIST_FOR_PED_MODEL(System.UInt32 outfit, System.UInt32 suboutfit, System.UInt32 model)`
+- `public static System.Void RDR2.Native.PED._EQUIP_META_PED_OUTFIT(System.Int32 ped, System.UInt32 hash)`
+- `public static System.Void RDR2.Native.PED._EQUIP_META_PED_OUTFIT_EXTRA(System.Int32 ped, System.Int32 component, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.PED._EQUIP_META_PED_OUTFIT_PRESET(System.Int32 ped, System.Int32 presetId, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._EQUIP_META_PED_SUBOUTFIT(System.Int32 ped, System.UInt32 suboutfit, System.Int32 p2)`
+- `public static System.Void RDR2.Native.PED._FAKE_SET_PED_LOCO_INJURED(System.Int32 ped, System.Boolean enabled)`
+- `public static System.Void RDR2.Native.PED._FORCE_PED_DEATH(System.Int32 ped, System.Int32 pedKiller, System.UInt32 weapon)`
+- `public static System.Int32 RDR2.Native.PED._GET_ACTIVE_ANIMAL_OWNER(System.Int32 animal)`
+- `public static System.UInt32 RDR2.Native.PED._GET_ACTIVE_DYNAMIC_SCENARIO(System.Int32 ped)`
+- `public static System.UInt32 RDR2.Native.PED._GET_ACTIVE_DYNAMIC_SCENARIO_2(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._GET_BLOCKING_OF_NON_TEMPORARY_EVENTS(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_CARRIER_AS_HUMAN(System.Int32 entity)`
+- `public static System.Int32 RDR2.Native.PED._GET_CARRIER_AS_MOUNT(System.Int32 entity)`
+- `public static System.Int32 RDR2.Native.PED._GET_CARRIER_AS_PED(System.Int32 entity)`
+- `public static System.UInt32 RDR2.Native.PED._GET_DEFAULT_RELATIONSHIP_GROUP_HASH(System.UInt32 modelHash)`
+- `public static System.Int32 RDR2.Native.PED._GET_FIRST_ENTITY_PED_IS_CARRYING(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_GROUP_FORMATION(System.Int32 groupId)`
+- `public static System.Single RDR2.Native.PED._GET_HEALTH_RECHARGE_MULTIPLIER(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_HORSE_TAMING_STATE(System.Int32 horse)`
+- `public static System.Int32 RDR2.Native.PED._GET_INCAPACITATION_TIME_REMAINING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._GET_IS_PED_BEING_ROBBED(System.Int32 ped, System.Int32 player, System.Boolean trueUntilPlayerPocketsItem)`
+- `public static System.Boolean RDR2.Native.PED._GET_IS_PED_COMMAND_HASH_PRESENT(System.Int32 ped, System.UInt32 commandHash)`
+- `public static System.Boolean RDR2.Native.PED._GET_IS_PED_IN_DISPUTE_WITH_PED(System.Int32 ped, System.Int32 pedInDisputeWith)`
+- `public static System.Boolean RDR2.Native.PED._GET_IS_PED_MOTIVATION_STATE_ENABLED(System.Int32 ped, System.Int32 motivationState)`
+- `public static System.Int32 RDR2.Native.PED._GET_LASSOED_LASSOER(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_LASSOER_OF_PED(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_LASSO_TARGET(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_LAST_LED_MOUNT(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_LAST_MOUNT(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_LAST_VEHICLE_DRAFT_HORSE_WAS_ATTACHED_TO(System.Int32 horse)`
+- `public static System.Boolean RDR2.Native.PED._GET_LOOTING_FLAG(System.Int32 ped, System.Int32 lootFlag)`
+- `public static System.Int32 RDR2.Native.PED._GET_META_PED_TYPE(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_NUM_COMPONENTS_IN_PED(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_NUM_COMPONENT_CATEGORIES_IN_PED(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_NUM_FREE_SLOTS_IN_PED_POOL()`
+- `public static System.Int32 RDR2.Native.PED._GET_NUM_RESERVED_AMBIENT_PEDS_DESIRED()`
+- `public static System.Int32 RDR2.Native.PED._GET_NUM_RESERVED_AMBIENT_PEDS_READY()`
+- `public static System.UInt64 RDR2.Native.PED._GET_NUM_RESERVED_HEALTH(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PEDS_IN_COMBAT_WITH_TARGET(System.Int32 ped, System.Int32 itemset, System.Int32 flag)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_ATTITUDE(System.Int32 ped, System.Int32 player)`
+- `public static System.Boolean RDR2.Native.PED._GET_PED_BLACKBOARD_BOOL(System.Int32 ped, System.String variableName)`
+- `public static System.Single RDR2.Native.PED._GET_PED_BLACKBOARD_FLOAT(System.Int32 ped, System.String variableName)`
+- `public static System.UInt32 RDR2.Native.PED._GET_PED_BLACKBOARD_HASH(System.Int32 ped, System.String variableName)`
+- `public static System.UInt32 RDR2.Native.PED._GET_PED_BRAWLING_STYLE(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._GET_PED_CAN_BE_INCAPACITATED_THIS_FRAME(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._GET_PED_COMBAT_ATTRIBUTE(System.Int32 ped, System.Int32 attributeIndex)`
+- `public static System.UInt32 RDR2.Native.PED._GET_PED_COMPONENT_CATEGORY_BY_INDEX(System.Int32 ped, System.Int32 index)`
+- `public static System.Boolean RDR2.Native.PED._GET_PED_DAMAGED(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_DAMAGE_CLEANLINESS(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_DEFENSIVE_VOLUME(System.Int32 ped, System.UInt64 p1)`
+- `public static System.Single RDR2.Native.PED._GET_PED_DRUNKNESS(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_PED_FACE_FEATURE(System.Int32 ped, System.Int32 index)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_GRAPPLER(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_GRAPPLE_FLAG(System.Int32 ped)`
+- `public static System.UInt32 RDR2.Native.PED._GET_PED_GRAPPLE_STYLE(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_PED_HEIGHT(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_PED_ID_RANGE(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_INCAPACITATION_HEALTH(System.Int32 ped)`
+- `public static System.UInt32 RDR2.Native.PED._GET_PED_INTERACTION_PERSONALITY(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._GET_PED_LASSO_HOGTIE_FLAG(System.Int32 ped, System.Int32 flagId)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_LAST_DROPPED_HAT(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_PED_LOD_MULTIPLIER(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_PED_MAX_STAMINA(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_PED_MELEE_ACTION_PHASE(System.Int32 ped)`
+- `public static System.UInt32 RDR2.Native.PED._GET_PED_META_OUTFIT_HASH(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_MODEL_SIZE_FROM_HASH(System.UInt32 modelHash)`
+- `public static System.Single RDR2.Native.PED._GET_PED_MOTIVATION(System.Int32 ped, System.Int32 motivationState, System.Int32 targetPed)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_QUALITY(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_REGISTER_PROP(System.Int32 ped, System.String p1, System.Boolean p2)`
+- `public static System.Single RDR2.Native.PED._GET_PED_REMAINING_REVIVAL_TIME(System.Int32 ped, System.Boolean normalized)`
+- `public static System.Single RDR2.Native.PED._GET_PED_STAMINA(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_PED_STAMINA_NORMALIZED(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PED_TRANQUILIZER(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_PELT_FROM_HORSE(System.Int32 horse, System.Int32 index)`
+- `public static System.Single RDR2.Native.PED._GET_PLAYER_CURRENT_ANIMAL_DAMAGE_MODIFIER(System.Int32 player)`
+- `public static System.Single RDR2.Native.PED._GET_PLAYER_PED_WATER_DEPTH(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_RIDER_OF_MOUNT(System.Int32 mount, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.PED._GET_SHOP_PED_BASE_LAYERS(System.UInt32 shopItem, System.UInt64 p1, System.Int32 ped, System.Int32 metapedType, System.Boolean p4, System.UInt32* drawable, System.UInt32* albedo, System.UInt32* normal, System.UInt32* material, System.UInt32* p9, System.UInt32* p10, System.UInt32* p11, System.UInt32* p12)`
+- `public static System.UInt32 RDR2.Native.PED._GET_SHOP_PED_COMPONENT_AT_INDEX(System.Int32 ped, System.Int32 index, System.Boolean p2, System.UInt64* argStruct, System.UInt64* argStruct2)`
+- `public static System.UInt32 RDR2.Native.PED._GET_SHOP_PED_COMPONENT_CATEGORY(System.UInt32 componentHash, System.Int32 metapedType, System.Boolean isMP)`
+- `public static System.UInt64 RDR2.Native.PED._GET_SHOP_PED_HAT_COMPONENT(System.Int32 ped, System.Int32 metapedType, System.Boolean p2)`
+- `public static System.Single RDR2.Native.PED._GET_STAMINA_DEPLETION_MULTIPLIER(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_STAMINA_RECHARGE_MULTIPLIER(System.Int32 ped)`
+- `public static System.Single RDR2.Native.PED._GET_TOTAL_PED_DAMAGE_FROM_AI(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_TRANSPORT_PED_IS_SEATED_ON(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.PED._GET_VEHICLE_DRAFT_HORSE_IS_ATTACHED_TO(System.Int32 horse)`
+- `public static System.Void RDR2.Native.PED._GIVE_PED_HASH_COMMAND(System.Int32 ped, System.UInt32 commandHash, System.Single activationDuration)`
+- `public static System.Boolean RDR2.Native.PED._GIVE_PED_SCENARIO_PROP(System.Int32 ped, System.Int32 _object, System.String conditionalAnim, System.String p3, System.String p4, System.Boolean p5)`
+- `public static System.Boolean RDR2.Native.PED._GIVE_PED_SCENARIO_PROP_DYNAMIC(System.Int32 ped, System.Int32 _object, System.String p2, System.String p3, System.Boolean p4)`
+- `public static System.Boolean RDR2.Native.PED._HAS_METAPED_ASSET_LOADED(System.Int32 requestId)`
+- `public static System.Boolean RDR2.Native.PED._HAS_METAPED_OUTFIT_LOADED(System.Int32 requestId)`
+- `public static System.Boolean RDR2.Native.PED._HAS_METAPED_PED_REQUEST_LOADED(System.Int32 requestId)`
+- `public static System.Boolean RDR2.Native.PED._HAS_PED_BEEN_SHOVED_RECENTLY(System.Int32 ped, System.Int32 ms)`
+- `public static System.Boolean RDR2.Native.PED._HAS_PED_EMOTIONAL_PRESET_LOADED(System.Int32 ped, System.String name)`
+- `public static System.Boolean RDR2.Native.PED._HAS_PED_TAKEN_GORE_DAMAGE(System.Int32 ped, System.Int32 limb)`
+- `public static System.Void RDR2.Native.PED._HORSE_AGITATE(System.Int32 mount, System.Boolean kickOffRider)`
+- `public static System.Void RDR2.Native.PED._INCAPACITATED_REVIVE(System.Int32 ped, System.Int32 ped2)`
+- `public static System.Boolean RDR2.Native.PED._IS_ANIMAL_CONTROLLED_BY_A_PLAYER(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_ANIMAL_INTERACTION_RUNNING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_METAPED_ASSET_VALID(System.Int32 requestId)`
+- `public static System.Boolean RDR2.Native.PED._IS_METAPED_FISH(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_METAPED_OUTFIT_REQUEST_VALID(System.Int32 requestId)`
+- `public static System.Boolean RDR2.Native.PED._IS_METAPED_PED_REQUEST_VALID(System.Int32 requestId)`
+- `public static System.Boolean RDR2.Native.PED._IS_METAPED_USING_COMPONENT(System.Int32 ped, System.UInt32 component)`
+- `public static System.Boolean RDR2.Native.PED._IS_META_PED_OUTFIT_EQUIPPED(System.Int32 ped, System.UInt32 outfit)`
+- `public static System.Boolean RDR2.Native.PED._IS_MOUNT_SEAT_FREE(System.Int32 mount, System.Int32 seat)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_ACTION_DISABLE_FLAG_ENABLED(System.Int32 ped, System.Int32 actionDisableFlag)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_CHILD(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_CLIMBING_LADDER(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_COWERING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_DOING_SCENARIO_TRANSITION(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_DRAGGING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_DRUNK(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_GROUP_LEADER(System.Int32 ped, System.Int32 groupId)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_INTIMIDATED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_MODEL_SUPPRESSED(System.UInt32 model)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_QUEUED_FOR_DELETION(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_SLIDING(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_TARGET_ACTION_DISABLE_FLAG_ENABLED(System.Int32 ped, System.Int32 actionDisableFlag)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_USING_ACTION_MODE_2(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_PED_VISIBILITY_TRACKED(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._IS_SCENARIO_BLOCKING_AREA_VALID(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.PED._IS_TARGET(System.Int32 ped, System.Int32 targetPed)`
+- `public static System.Boolean RDR2.Native.PED._IS_TEXTURE_VALID(System.Int32 textureId)`
+- `public static System.Boolean RDR2.Native.PED._IS_THIS_MODEL_A_HORSE(System.UInt32 model)`
+- `public static System.Boolean RDR2.Native.PED._IS_TRACKED_PED_VISIBILITY_PERCENTAGE_NOT_LESS_THAN(System.Int32 ped, System.Single percent)`
+- `public static System.Boolean RDR2.Native.PED._IS_USING_SLIPSTREAM(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._PED_CLEAR_LOCO_MOTION(System.Int32 ped)`
+- `public static System.Boolean RDR2.Native.PED._PED_DUELING_DID_PLAYER_HEADSHOT_OPPONENT(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._PED_EMOTIONAL_PRESET_LOCO_MOTION(System.Int32 ped, System.String presetName, System.Int32 targetPed, System.Int32 duration, System.Int32 flag)`
+- `public static System.Int32 RDR2.Native.PED._REFRESH_LOOT_STATE_FOR_PED(System.Int32 ped, System.Int32 p1, System.Int32* lootTarget, System.Int32 p3, System.Int32 p4)`
+- `public static System.Void RDR2.Native.PED._REFRESH_META_PED_SHOP_ITEMS(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._REGISTER_HATED_TARGETS_IN_AREA(System.Int32 ped, RDR2.Math.Vector3 vec, System.Single radius)`
+- `public static System.Void RDR2.Native.PED._REGISTER_HATED_TARGETS_IN_AREA(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Single radius)`
+- `public static System.Void RDR2.Native.PED._RELEASE_METAPED_ASSET_REQUEST(System.Int32 requestId)`
+- `public static System.Void RDR2.Native.PED._RELEASE_METAPED_OUTFIT_REQUEST(System.Int32 requestId)`
+- `public static System.Void RDR2.Native.PED._RELEASE_METAPED_PED_REQUEST(System.Int32 requestId)`
+- `public static System.Void RDR2.Native.PED._RELEASE_TEXTURE(System.Int32 textureId)`
+- `public static System.Void RDR2.Native.PED._REMOVE_GRAVITY_WELL(System.Int32 handle)`
+- `public static System.Void RDR2.Native.PED._REMOVE_MOTION_TYPE_ASSET(System.UInt32 nameHash, System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._REMOVE_PED_BLACKBOARD_BOOL(System.Int32 ped, System.String variableName)`
+- `public static System.Void RDR2.Native.PED._REMOVE_PED_BLACKBOARD_FLOAT(System.Int32 ped, System.String variableName)`
+- `public static System.Void RDR2.Native.PED._REMOVE_PED_BLACKBOARD_HASH(System.Int32 ped, System.String variableName)`
+- `public static System.Void RDR2.Native.PED._REMOVE_PED_BLACKBOARD_INT(System.Int32 ped, System.String variableName)`
+- `public static System.Void RDR2.Native.PED._REMOVE_PED_EMOTIONAL_PRESET(System.Int32 ped, System.String name)`
+- `public static System.Void RDR2.Native.PED._REMOVE_PED_FROM_MOUNT(System.Int32 ped, System.Boolean p1, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._REMOVE_PED_OVERLAY(System.Int32 textureId, System.Int32 overlayId)`
+- `public static System.Void RDR2.Native.PED._REMOVE_PED_PROP(System.Int32 ped, System.String propName)`
+- `public static System.Boolean RDR2.Native.PED._REMOVE_PED_STAY_OUT_VOLUME(System.Int32 ped, System.Int32 volume)`
+- `public static System.Boolean RDR2.Native.PED._REMOVE_PED_SUBSCRIBE_TO_LEGENDARY_BLIPS(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._REMOVE_SHOP_ITEM_FROM_PED(System.Int32 ped, System.UInt32 componentHash, System.Int32 p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.PED._REMOVE_TARGET(System.Int32 ped, System.Int32 targetPed)`
+- `public static System.Int32 RDR2.Native.PED._REQUEST_METAPED_ASSET_BUNDLE(System.UInt32 asset, System.Int32 p1)`
+- `public static System.UInt64 RDR2.Native.PED._REQUEST_METAPED_COMPONENT(System.Int32 metaPedType, System.UInt64 p1, System.Int32 p2, System.Int32 p3, System.Int32 p4)`
+- `public static System.Int32 RDR2.Native.PED._REQUEST_METAPED_OUTFIT(System.UInt32 model, System.UInt32 outfit)`
+- `public static System.Int32 RDR2.Native.PED._REQUEST_METAPED_PED(System.UInt32 model, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._REQUEST_MOTION_TYPE_ASSET(System.UInt32 nameHash, System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._REQUEST_PED_EMOTIONAL_PRESET(System.Int32 ped, System.String name)`
+- `public static System.Void RDR2.Native.PED._REQUEST_PED_FACIAL_MOOD_THIS_FRAME(System.Int32 ped, System.UInt32 mood, System.Int32 p2)`
+- `public static System.UInt64 RDR2.Native.PED._REQUEST_PED_FOR_SCENARIO_TYPE(System.Int32 ped, System.Int32 _object, System.String p2, System.UInt32 scenarioType, System.String p4, System.Boolean p5)`
+- `public static System.Void RDR2.Native.PED._REQUEST_PED_GETUP_ANIMATION(System.Int32 ped, System.String getUpType)`
+- `public static System.UInt64 RDR2.Native.PED._REQUEST_PROP_SCENARIO_PED(System.Int32 ped, System.Int32 _object, System.String p2, System.String p3, System.String p4, System.Boolean p5)`
+- `public static System.Int32 RDR2.Native.PED._REQUEST_TEXTURE(System.UInt32 albedoHash, System.UInt32 normalHash, System.UInt32 materialHash)`
+- `public static System.Void RDR2.Native.PED._RESERVE_AMBIENT_PEDS(System.Int32 numPeds)`
+- `public static System.Void RDR2.Native.PED._RESERVE_AMBIENT_PEDS_TOTAL(System.Int32 numPeds)`
+- `public static System.Void RDR2.Native.PED._RESET_PED_COMPONENTS(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._RESET_PED_INCAPACITATION_BLEED_OUT_DURATION(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._RESET_PED_LADDER_MOVEMENT_SPEED_MODIFIER(System.Int32 ped)`
+- `public static System.Void RDR2.Native.PED._RESET_PED_TEXTURE(System.Int32 textureId)`
+- `public static System.Void RDR2.Native.PED._RESTORE_PED_STAMINA(System.Int32 ped, System.Single stamina)`
+- `public static System.Void RDR2.Native.PED._SET_ACCURACY_AGAINST_LOCAL_PLAYER_MODIFIER(System.Int32 ped, System.Single modifier)`
+- `public static System.Void RDR2.Native.PED._SET_AMBIENT_ANIMAL_DENSITY_MULTIPLIER_THIS_FRAME(System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_AMBIENT_HUMAN_DENSITY_MULTIPLIER_THIS_FRAME(System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_AMBIENT_PED_DENSITY_MULTIPLIER_THIS_FRAME(System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_CURRENT_DEFENSE_AGAINST_PLAYERS_MODIFIER(System.Int32 horse, System.Single modifier)`
+- `public static System.Void RDR2.Native.PED._SET_DEFENSE_MODIFIER_FOR_PED(System.Int32 ped, System.Single modifier)`
+- `public static System.Void RDR2.Native.PED._SET_FORMATION_AUTO_ASSIGN_POSITION(System.Int32 groupId, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_HEALTH_RECHARGE_MULTIPLIER(System.Int32 ped, System.Int32 multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_INTERACTION_LOCKON_FLAG(System.Int32 ped, System.Int32 player, System.Int32 flag, System.Boolean enable)`
+- `public static System.Void RDR2.Native.PED._SET_METAPED_WEARINESS(System.Int32 ped, System.Single weariness)`
+- `public static System.Void RDR2.Native.PED._SET_META_PED_TAG(System.Int32 ped, System.UInt32 drawable, System.UInt32 albedo, System.UInt32 normal, System.UInt32 material, System.UInt32 palette, System.Int32 tint0, System.Int32 tint1, System.Int32 tint2)`
+- `public static System.Void RDR2.Native.PED._SET_MOUNT_BONDING_LEVEL(System.Int32 ped, System.Int32 bondingLevel)`
+- `public static System.Void RDR2.Native.PED._SET_MOUNT_SECURITY_ENABLED(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_ACTION_DISABLE_FLAG(System.Int32 ped, System.Int32 actionDisableFlag)`
+- `public static System.Void RDR2.Native.PED._SET_PED_ACTIVATE_WOUND_EFFECT(System.Int32 ped, System.Int32 p1, System.Int32 boneId, System.Single moveWoundLeftRight, System.Single bloodFountainPressure, System.Single yaw, System.Single bloodFountainDirection, System.Single bloodFountainPulse, System.Single p8, System.Single p9)`
+- `public static System.Void RDR2.Native.PED._SET_PED_ANIMAL_DETECTION_MODIFIER(System.Int32 ped, System.Single modifier)`
+- `public static System.Void RDR2.Native.PED._SET_PED_BEAT_MULTIPLIER(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._SET_PED_BLACKBOARD_BOOL(System.Int32 ped, System.String variableName, System.Boolean value, System.Int32 removeTimer)`
+- `public static System.Void RDR2.Native.PED._SET_PED_BLACKBOARD_FLOAT(System.Int32 ped, System.String variableName, System.Single value, System.Int32 removeTimer)`
+- `public static System.Void RDR2.Native.PED._SET_PED_BLACKBOARD_HASH(System.Int32 ped, System.String variableName, System.String value, System.Int32 removeTimer)`
+- `public static System.Void RDR2.Native.PED._SET_PED_BLACKBOARD_INT(System.Int32 ped, System.String variableName, System.Int32 value, System.Int32 removeTimer)`
+- `public static System.Void RDR2.Native.PED._SET_PED_BLEEDOUT_PROFILE(System.Int32 ped, System.UInt32 bleedoutProfile)`
+- `public static System.Void RDR2.Native.PED._SET_PED_BRAWLING_STYLE(System.Int32 ped, System.UInt32 brawlingStyle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_CAN_BE_LASSOED(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_CAN_UNK_BODYPART_IK(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_COMBAT_ATTRIBUTE_HASH(System.Int32 ped, System.UInt32 p1)`
+- `public static System.Void RDR2.Native.PED._SET_PED_COMBAT_BEHAVIOUR(System.Int32 ped, System.UInt32 behaviour)`
+- `public static System.Void RDR2.Native.PED._SET_PED_COMBAT_STYLE(System.Int32 ped, System.UInt32 combatStyleHash, System.Int32 p2, System.Single duration)`
+- `public static System.Void RDR2.Native.PED._SET_PED_COMBAT_STYLE_MOD(System.Int32 ped, System.UInt32 combatStyleModHash, System.Single duration)`
+- `public static System.Void RDR2.Native.PED._SET_PED_CROUCH_MOVEMENT(System.Int32 ped, System.Boolean state, System.Int32 p2, System.Boolean immediately)`
+- `public static System.Void RDR2.Native.PED._SET_PED_CULL_RANGE(System.Int32 ped, System.Single p1, System.Single p2)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DAMAGED(System.Int32 ped, System.Boolean damaged)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DAMAGE_CLEANLINESS(System.Int32 ped, System.Int32 damageCleanliness)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DEFENSIVE_AREA_TO_ANGLED_AREA(System.Int32 ped, RDR2.Math.Vector3 vec1, RDR2.Math.Vector3 vec2, System.UInt64 p7, System.Boolean p8, System.Boolean p9, System.Int32 entity, System.Boolean p11)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DEFENSIVE_AREA_TO_ANGLED_AREA(System.Int32 ped, System.Single x1, System.Single y1, System.Single z1, System.Single x2, System.Single y2, System.Single z2, System.UInt64 p7, System.Boolean p8, System.Boolean p9, System.Int32 entity, System.Boolean p11)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DEFENSIVE_SPHERE_ATTACHED_TO_ENTITY(System.Int32 ped, System.Int32 entity, RDR2.Math.Vector3 vec, System.Single radius, System.Int32 p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DEFENSIVE_SPHERE_ATTACHED_TO_ENTITY(System.Int32 ped, System.Int32 entity, System.Single x, System.Single y, System.Single z, System.Single radius, System.Int32 p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DESIRED_LOCO_FOR_MODEL(System.Int32 ped, System.String locomotionArchetype)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DESIRED_LOCO_MOTION_TYPE(System.Int32 ped, System.String locoMotionType)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DIRT_CLEANED(System.Int32 ped, System.Single p1, System.Int32 p2, System.Boolean p3, System.Boolean p4)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DISABLE_KICK_MOVE(System.Int32 ped, System.Boolean disable)`
+- `public static System.Void RDR2.Native.PED._SET_PED_DRUNKNESS(System.Int32 ped, System.Boolean enabled, System.Single drunknessLevel)`
+- `public static System.Void RDR2.Native.PED._SET_PED_FACE_FEATURE(System.Int32 ped, System.Int32 index, System.Single value)`
+- `public static System.Void RDR2.Native.PED._SET_PED_FIRING_PATTERN_2(System.Int32 ped, System.UInt32 patternHash)`
+- `public static System.Void RDR2.Native.PED._SET_PED_FIRING_PATTERN_3(System.Int32 ped, System.UInt32 patternHash)`
+- `public static System.Void RDR2.Native.PED._SET_PED_FORMATION_POSITION(System.Int32 ped, System.Int32 position, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_GETUP_ANIMATION(System.Int32 ped, System.String animName, System.Boolean p2)`
+- `public static System.Void RDR2.Native.PED._SET_PED_GRAPPLE_ACTION(System.Int32 ped, System.UInt32 grappleAction)`
+- `public static System.Void RDR2.Native.PED._SET_PED_GRAPPLE_ANIMATION(System.Int32 ped, System.UInt32 grappleAnim)`
+- `public static System.UInt64 RDR2.Native.PED._SET_PED_GRAPPLE_EFFECT_MULTIPLIER(System.Int32 ped, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_PED_GRAPPLE_FLAG(System.Int32 ped, System.Int32 flag, System.Boolean enable)`
+- `public static System.Void RDR2.Native.PED._SET_PED_GRAPPLE_SEQUENCE(System.Int32 ped, System.String grappleSequence)`
+- `public static System.UInt64 RDR2.Native.PED._SET_PED_GRAPPLE_STYLE(System.Int32 ped, System.UInt32 style)`
+- `public static System.Void RDR2.Native.PED._SET_PED_HEADSHOT_DAMAGE_MULTIPLIER(System.Int32 ped, System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_PED_HEALTH_CONFIG(System.Int32 ped, System.UInt32 configHash)`
+- `public static System.Void RDR2.Native.PED._SET_PED_IMMERSION_FLAG(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_INCAPACITATION_FLAGS(System.Int32 ped, System.Int32 flags)`
+- `public static System.Void RDR2.Native.PED._SET_PED_INCAPACITATION_MODIFIERS(System.Int32 ped, System.Boolean canBeIncapacitated, System.Int32 threshold, System.Int32 bleedoutTime, System.Int32 p4)`
+- `public static System.Void RDR2.Native.PED._SET_PED_INCAPACITATION_TOTAL_BLEED_OUT_DURATION(System.Int32 ped, System.Single duration)`
+- `public static System.Void RDR2.Native.PED._SET_PED_INTERACTION_PERSONALITY(System.Int32 ped, System.UInt32 personality)`
+- `public static System.Void RDR2.Native.PED._SET_PED_KNOCKED_BY_ONE_HIT(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._SET_PED_LADDER_MOVEMENT_SPEED_MODIFIER(System.Int32 ped, System.Single p1)`
+- `public static System.Void RDR2.Native.PED._SET_PED_LIGHTS(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_MOTIVATION(System.Int32 ped, System.Int32 motivationState, System.Single threshold, System.Int32 targetPed)`
+- `public static System.Void RDR2.Native.PED._SET_PED_MOTIVATION_MODIFIER(System.Int32 ped, System.Int32 motivationState, System.Single modifier)`
+- `public static System.Void RDR2.Native.PED._SET_PED_MOTIVATION_STATE_OVERRIDE(System.Int32 ped, System.Int32 motivationState, System.Boolean enabled)`
+- `public static System.Void RDR2.Native.PED._SET_PED_PROMPT_NAME(System.Int32 ped, System.String name)`
+- `public static System.Void RDR2.Native.PED._SET_PED_PROMPT_NAME_FROM_GXT_ENTRY(System.Int32 ped, System.UInt32 gxtEntryHash)`
+- `public static System.Void RDR2.Native.PED._SET_PED_QUALITY(System.Int32 ped, System.Int32 quality)`
+- `public static System.Void RDR2.Native.PED._SET_PED_SCALE(System.Int32 ped, System.Single scale)`
+- `public static System.Void RDR2.Native.PED._SET_PED_SCENT(System.Int32 ped, System.Single scent)`
+- `public static System.Void RDR2.Native.PED._SET_PED_TARGET_ACTION_DISABLE_FLAG(System.Int32 ped, System.Int32 actionDisableFlag)`
+- `public static System.Void RDR2.Native.PED._SET_PED_TO_BE_REMOVED(System.Int32 ped, System.Single p1, System.Single p2, System.Int32 p3, System.UInt64 p4)`
+- `public static System.Void RDR2.Native.PED._SET_PED_TO_DISABLE_RAGDOLL(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_TRAIL_EFFECT(System.Int32 ped, System.Boolean p1, System.Single duration)`
+- `public static System.UInt64 RDR2.Native.PED._SET_PED_USE_HORSE_MAP_COLLISION(System.Int32 ped, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.PED._SET_PED_VOICE_VOLUME(System.Int32 ped, System.Single volume)`
+- `public static System.Void RDR2.Native.PED._SET_PED_WRITHING_DURATION(System.Int32 ped, System.Single writhingDuration1, System.Single writhingDuration2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.PED._SET_PELT_FOR_HORSE(System.Int32 horse, System.Int32 peltId)`
+- `public static System.Void RDR2.Native.PED._SET_PLAYER_ANTAGONIZE_DISABLED_FOR_PED(System.Int32 ped, System.Int32 player, System.Int32 duration)`
+- `public static System.UInt64 RDR2.Native.PED._SET_PLAYER_CURRENT_ANIMAL_DAMAGE_MODIFIER(System.Int32 player, System.Single modifier, System.Int32 p2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.PED._SET_PLAYER_GREET_DISABLED_FOR_PED(System.Int32 ped, System.Int32 player, System.Int32 duration)`
+- `public static System.Void RDR2.Native.PED._SET_RANDOM_OUTFIT_VARIATION(System.Int32 ped, System.Boolean p1)`
+- `public static System.Void RDR2.Native.PED._SET_REMOVE_PED_NETWORKED(System.Int32 ped, System.Int32 p1)`
+- `public static System.Void RDR2.Native.PED._SET_SCENARIO_ANIMAL_DENSITY_MULTIPLIER_THIS_FRAME(System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_SCENARIO_HUMAN_DENSITY_MULTIPLIER_THIS_FRAME(System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_SCENARIO_PED_DENSITY_THIS_FRAME(System.UInt32 configHash)`
+- `public static System.Void RDR2.Native.PED._SET_SCENARIO_PED_RANGE_MULTIPLIER_THIS_FRAME(System.Single multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_STAMINA_DEPLETION_MULTIPLIER(System.Int32 ped, System.Int32 multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_STAMINA_RECHARGE_MULTIPLIER(System.Int32 ped, System.Int32 multiplier)`
+- `public static System.Void RDR2.Native.PED._SET_TANK_ATTRIBUTE_SIZE(System.Int32 ped, System.Int32 attributeIndex, System.Single size)`
+- `public static System.Void RDR2.Native.PED._SET_TEXTURE_LAYER_ALPHA(System.Int32 textureId, System.Int32 layerId, System.Single texAlpha)`
+- `public static System.Void RDR2.Native.PED._SET_TEXTURE_LAYER_MOD(System.Int32 textureId, System.Int32 layerId, System.UInt32 modTextureHash, System.Single modAlpha, System.Int32 modChannel)`
+- `public static System.Void RDR2.Native.PED._SET_TEXTURE_LAYER_PALLETE(System.Int32 textureId, System.Int32 layerId, System.UInt32 paletteHash)`
+- `public static System.Void RDR2.Native.PED._SET_TEXTURE_LAYER_ROUGHNESS(System.Int32 textureId, System.Int32 layerId, System.Single texRough)`
+- `public static System.Void RDR2.Native.PED._SET_TEXTURE_LAYER_SHEET_GRID_INDEX(System.Int32 textureId, System.Int32 layerId, System.Int32 sheetGridIndex)`
+- `public static System.Void RDR2.Native.PED._SET_TEXTURE_LAYER_TEXTURE_MAP(System.Int32 textureId, System.Int32 layerId, System.UInt32 albedoHash, System.UInt32 normalHash, System.UInt32 materialHash)`
+- `public static System.Void RDR2.Native.PED._SET_TEXTURE_LAYER_TINT(System.Int32 textureId, System.Int32 layerId, System.Int32 tint0, System.Int32 tint1, System.Int32 tint2)`
+- `public static System.Void RDR2.Native.PED._SET_TOTAL_PED_DAMAGE_FALLOFF_BONUS(System.Int32 ped, System.Single bonus)`
+- `public static System.Void RDR2.Native.PED._SET_TOTAL_PED_DAMAGE_FROM_AI(System.Int32 ped, System.Single totalDamage)`
+- `public static System.UInt64 RDR2.Native.PED._SHOOT_TRIGGER_AT_COORDS(System.Int32 ped, RDR2.Math.Vector3 vec, System.Int32 p4, System.Single p5, System.Int32 p6, System.Single p7)`
+- `public static System.UInt64 RDR2.Native.PED._SHOOT_TRIGGER_AT_COORDS(System.Int32 ped, System.Single x, System.Single y, System.Single z, System.Int32 p4, System.Single p5, System.Int32 p6, System.Single p7)`
+- `public static System.Void RDR2.Native.PED._SPAWNPOINTS_START_SEARCH_WITH_VOLUME(System.Int32 volume, System.Int32 spawnpointsFlag, System.Single p2, System.Int32 duration, System.Single p4)`
+- `public static System.Void RDR2.Native.PED._UNRESERVE_AMBIENT_PEDS(System.Int32 numPeds)`
+- `public static System.Void RDR2.Native.PED._UPDATE_ANIMAL_DAMAGE_MODIFIER(System.Int32 player)`
+- `public static System.Void RDR2.Native.PED._UPDATE_PED_TEXTURE(System.Int32 textureId)`
+- `public static System.Void RDR2.Native.PED._UPDATE_PED_VARIATION(System.Int32 ped, System.Boolean p1, System.Boolean p2, System.Boolean p3, System.Boolean p4, System.Boolean p5)`
+- `public static System.Void RDR2.Native.PED._UPDATE_PED_WOUND_EFFECT(System.Int32 ped, System.Single value)`
+- `public static System.Void RDR2.Native.PED._UPDATE_SHOP_ITEM_WEARABLE_STATE(System.Int32 ped, System.UInt32 componentHash, System.UInt32 wearableState, System.Int32 p3, System.Boolean p4, System.Int32 p5)`
+- `public static System.Void RDR2.Native.PED._WARP_PED_OUT_OF_VEHICLE(System.Int32 ped)`
+

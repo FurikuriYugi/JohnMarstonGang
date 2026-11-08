@@ -1,0 +1,578 @@
+<!-- ScriptHookRDRNetAPI-Inventory chunk 8 of 26; methods=571; sha256=bfb7607d94b2de7f8530289377f163caad81098afc1fb7ee86191810a6cc6bba -->
+## `RDR2.Native.NETWORK`
+
+- Kind: class
+- Base type: `System.Object`
+
+- `public static System.Void RDR2.Native.NETWORK.ACTIVATE_DAMAGE_TRACKER_ON_NETWORK_ID(System.Int32 netID, System.Boolean toggle)`
+- `public static System.Boolean RDR2.Native.NETWORK.CAN_REGISTER_MISSION_ENTITIES(System.Int32 ped_amt, System.Int32 vehicle_amt, System.Int32 object_amt, System.Int32 pickup_amt)`
+- `public static System.Boolean RDR2.Native.NETWORK.CAN_REGISTER_MISSION_OBJECTS(System.Int32 amount)`
+- `public static System.Boolean RDR2.Native.NETWORK.CAN_REGISTER_MISSION_PEDS(System.Int32 amount)`
+- `public static System.Boolean RDR2.Native.NETWORK.CAN_REGISTER_MISSION_PICKUPS(System.Int32 amount)`
+- `public static System.Boolean RDR2.Native.NETWORK.CAN_REGISTER_MISSION_VEHICLES(System.Int32 amount)`
+- `public static System.Void RDR2.Native.NETWORK.CLEAR_SERVICE_EVENT_ARGUMENTS()`
+- `public static System.Boolean RDR2.Native.NETWORK.CLOUD_DID_REQUEST_SUCCEED(System.Int32 id)`
+- `public static System.Boolean RDR2.Native.NETWORK.CLOUD_HAS_REQUEST_COMPLETED(System.Int32 id)`
+- `public static System.Void RDR2.Native.NETWORK.CONVERT_POSIX_TIME(System.Int32 posixTime, System.UInt64* timeStructure)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_CLOUD_TIME_AS_INT()`
+- `public static System.String RDR2.Native.NETWORK.GET_LAUNCH_PARAM_VALUE(System.String paramName)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_MAX_NUM_NETWORK_OBJECTS()`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_MAX_NUM_NETWORK_PEDS()`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_MAX_NUM_NETWORK_PICKUPS()`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_MAX_NUM_NETWORK_VEHICLES()`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_NETWORK_TIME()`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_NETWORK_TIME_ACCURATE()`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_NUM_CREATED_MISSION_OBJECTS(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_NUM_CREATED_MISSION_PEDS(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_NUM_CREATED_MISSION_VEHICLES(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_NUM_RESERVED_MISSION_OBJECTS(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_NUM_RESERVED_MISSION_PEDS(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_NUM_RESERVED_MISSION_VEHICLES(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK.GET_RESERVED_MISSION_ENTITIES_IN_AREA(RDR2.Math.Vector3 vec, System.Boolean p3, System.Int32* peds, System.Int32* vehicles, System.Int32* objects, System.Int32* pickups)`
+- `public static System.Void RDR2.Native.NETWORK.GET_RESERVED_MISSION_ENTITIES_IN_AREA(System.Single x, System.Single y, System.Single z, System.Boolean p3, System.Int32* peds, System.Int32* vehicles, System.Int32* objects, System.Int32* pickups)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_STATUS_OF_TEXTURE_DOWNLOAD(System.Int32 textureDownloadId)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_TIME_DIFFERENCE(System.Int32 timeA, System.Int32 timeB)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_TIME_OFFSET(System.Int32 timeA, System.Int32 timeB)`
+- `public static System.Int32 RDR2.Native.NETWORK.GET_UNIQUE_INT_FOR_PLAYER(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.HAS_NETWORK_TIME_STARTED()`
+- `public static System.Boolean RDR2.Native.NETWORK.IS_DAMAGE_TRACKER_ACTIVE_ON_NETWORK_ID(System.Int32 netID)`
+- `public static System.Boolean RDR2.Native.NETWORK.IS_ENTITY_A_GHOST(System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.NETWORK.IS_NETWORK_ID_OWNED_BY_PARTICIPANT(System.Int32 netId)`
+- `public static System.Boolean RDR2.Native.NETWORK.IS_OBJECT_REASSIGNMENT_IN_PROGRESS()`
+- `public static System.Boolean RDR2.Native.NETWORK.IS_SPHERE_VISIBLE_TO_ANOTHER_MACHINE(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Boolean RDR2.Native.NETWORK.IS_SPHERE_VISIBLE_TO_PLAYER(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64 p4, System.UInt64 p5)`
+- `public static System.Boolean RDR2.Native.NETWORK.IS_TIME_LESS_THAN(System.Int32 timeA, System.Int32 timeB)`
+- `public static System.Boolean RDR2.Native.NETWORK.IS_TIME_MORE_THAN(System.Int32 timeA, System.Int32 timeB)`
+- `public static System.Void RDR2.Native.NETWORK.KEEP_NETWORK_ID_IN_FAST_INSTANCE(System.Int32 netId, System.Boolean p1, System.Int32 p2)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_ACCEPT_RS_INVITE(System.Int32 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_ACCESS_TUNABLE_BOOL(System.UInt32 tunableContext, System.UInt32 tunableName)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_ACCESS_TUNABLE_INT(System.UInt32 tunableContext, System.UInt32 tunableName, System.Int32* value)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_ACTION_PLATFORM_INVITE()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_ACTIVITY_RESET_TO_IDLE()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_ACTIVITY_SET_CURRENT(System.Int32 netPlaylistActivity)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_ADD_FRIEND(System.UInt64* gamerHandle, System.String message)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_ALLOW_ALL_ENTITY_FADING_FOR_INSTANCES(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_ALLOW_ENTITY_FADING_FOR_INSTANCES(System.Int32 entity, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_ALLOW_REMOTE_ATTACHMENT_MODIFICATION(System.Int32 entity, System.Boolean toggle)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_ARE_HANDLES_THE_SAME(System.UInt64* gamerHandle1, System.UInt64* gamerHandle2)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_ARE_PLAYERS_IN_SAME_TUTORIAL_SESSION(System.Int32 player, System.Int32 index)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_AUTO_SESSION_CAN_SPLIT_SESSION(System.Int32* p0)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_AUTO_SESSION_FINISH_INSTANCE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_AUTO_SESSION_IS_ALLOWED_TO_MERGE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_AUTO_SESSION_IS_OBJECT_CREATION_PAUSED()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_AUTO_SESSION_SPLIT_SESSION(System.Int32 playersToTake, System.Int32 maxInstancePlayers, System.Int32 sessionFlags, System.Int32 bucketId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_AWARD_HAS_REACHED_MAXCLAIM(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_CAN_ACCESS_MULTIPLAYER(System.Int32* loadingState)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_CAN_REFRESH_FRIEND_PAGE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_CAN_SESSION_END()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_CAN_VIEW_GAMER_USER_CONTENT(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_CHECK_ACCESS_AND_ALERT_IF_FAIL()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_CHECK_COMMUNICATION_PRIVILEGES(System.Int32 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_CHECK_USER_CONTENT_PRIVILEGES(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_CLEAR_CLOCK_TIME_OVERRIDE()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_CLEAR_FOUND_GAMERS()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_CLEAR_GET_GAMER_STATUS()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_CLEAR_PLATFORM_INVITE()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_CONCEAL_PLAYER(System.Int32 player, System.Boolean toggle)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_DID_FIND_GAMERS_SUCCEED()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_DID_GET_GAMER_STATUS_SUCCEED()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_DISABLE_LEAVE_REMOTE_PED_BEHIND(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_DISABLE_PROXIMITY_MIGRATION(System.Int32 netID)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_DISABLE_REALTIME_MULTIPLAYER()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_DISPLAYNAMES_FROM_HANDLES_START(System.UInt64* p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_DOES_NETWORK_ID_EXIST(System.Int32 netID)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_DOES_TUNABLE_EXIST(System.UInt32 tunableContext, System.UInt32 tunableName)`
+- `public static System.UInt64 RDR2.Native.NETWORK.NETWORK_DUMP_NET_IF_CONFIG()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_END_TUTORIAL_SESSION()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_GET_ASSISTED_DAMAGE_OF_ENTITY(System.Int32 player, System.Int32 entity, System.Int32* p2)`
+- `public static System.Single RDR2.Native.NETWORK.NETWORK_GET_AVERAGE_LATENCY(System.Int32 player)`
+- `public static System.Single RDR2.Native.NETWORK.NETWORK_GET_AVERAGE_PACKET_LOSS(System.Int32 player)`
+- `public static System.Single RDR2.Native.NETWORK.NETWORK_GET_AVERAGE_PING(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_DESTROYER_OF_NETWORK_ID(System.Int32 netId, System.UInt32* weaponHash)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_DISPLAYNAMES_FROM_HANDLES(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_ENTITY_FROM_NETWORK_ID(System.Int32 netId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_GET_ENTITY_IS_NETWORKED(System.Int32 entity)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_ENTITY_KILLER_OF_PLAYER(System.Int32 player, System.UInt32* weaponHash)`
+- `public static System.String RDR2.Native.NETWORK.NETWORK_GET_GAMERTAG_FROM_HANDLE(System.UInt64* gamerHandle)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_GAME_MODE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_GET_GLOBAL_CLOCK(System.Int32* hour, System.Int32* minute, System.Int32* second)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_GET_GLOBAL_MULTIPLAYER_CLOCK(System.Int32* hours, System.Int32* minutes, System.Int32* seconds)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_HIGHEST_RELIABLE_RESEND_COUNT(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_HOST_OF_SCRIPT(System.String scriptName, System.Int32 p1, System.Int32 p2)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_HOST_OF_THIS_SCRIPT()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_HOST_OF_THREAD(System.Int32 threadId)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_INSTANCE_ID_OF_THIS_SCRIPT()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_GET_LOCAL_HANDLE(System.UInt64* gamerHandle)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_MAX_NUM_PARTICIPANTS()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_NETWORK_ID_FROM_ENTITY(System.Int32 entity)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_NETWORK_ID_FROM_ROPE_ID(System.Int32 ropeId)`
+- `public static System.UInt64 RDR2.Native.NETWORK.NETWORK_GET_NET_STATISTICS_INFO()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_NP_UNAVAILABLE_REASON()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_NUM_CONNECTED_PLAYERS()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_NUM_PARTICIPANTS()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_NUM_SCRIPT_PARTICIPANTS(System.String scriptName, System.Int32 instanceId, System.UInt32 position)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_NUM_UNACKED_RELIABLES(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_PARTICIPANT_INDEX(System.Int32 index)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_PLAYER_FROM_GAMER_HANDLE(System.UInt64* gamerHandle)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_PLAYER_INDEX(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_PLAYER_INDEX_FROM_PED(System.Int32 ped)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_PROMOTION_DLG_SEEN_COUNT()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_RANDOM_INT_RANGED(System.Int32 rangeStart, System.Int32 rangeEnd)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_GET_RECENT_GAMER_NAMES(System.Int32 p0, System.Int32 p1, System.UInt64* outData, System.Int32 dataSize)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_ROPE_ID_FROM_NETWORK_ID(System.Int32 netId)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_SCRIPT_STATUS()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_GET_THIS_SCRIPT_IS_NETWORK_SCRIPT()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_TIMEOUT_TIME()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_TOTAL_NUM_FRIENDS()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_TOTAL_NUM_PLAYERS()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_TUNABLE_CLOUD_CRC()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_GET_UNRELIABLE_RESEND_COUNT(System.Int32 player)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_HANDLE_FROM_FRIEND(System.Int32 friendIndex, System.UInt64* gamerHandle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_HANDLE_FROM_PLAYER(System.Int32 player, System.UInt64* gamerHandle)`
+- `public static System.UInt32 RDR2.Native.NETWORK.NETWORK_HASH_FROM_PLAYER_HANDLE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_CONTROL_OF_ENTITY(System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_CONTROL_OF_NETWORK_ID(System.Int32 netId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_CONTROL_OF_PICKUP(System.Int32 pickup)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_CONTROL_OF_PICKUP_PLACEMENT(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_ENTITY_BEEN_REGISTERED_WITH_THIS_THREAD(System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_PENDING_INVITE_FAILURE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_RECEIVED_HOST_BROADCAST_DATA()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_ROS_PRIVILEGE(System.Int32 index)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_SOCIAL_CLUB_ACCOUNT()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAS_VALID_ROS_CREDENTIALS()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAVE_ONLINE_PRIVILEGES()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_HAVE_ROS_BANNED_PRIV()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_AIM_CAM_ACTIVE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_CLOCK_TIME_OVERRIDDEN()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_CLOUD_AVAILABLE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_CONNECTED_VIA_RELAY(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_CUSTOM_UPSELL_ENABLED()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_FEATURE_SUPPORTED(System.Int32 featureId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_FINDING_GAMERS()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_FRIEND(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_GAMER_IN_MY_SESSION(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_GAME_IN_PROGRESS()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_HANDLE_VALID(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_HOST()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_IN_MP_CUTSCENE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_IN_PLATFORM_PARTY()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_IN_PLATFORM_PARTY_CHAT()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_IN_SESSION()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_IN_SPECTATOR_MODE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_IN_TUTORIAL_SESSION()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PARTICIPANT_ACTIVE(System.Int32 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PENDING_FRIEND(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PLATFORM_INVITE_PENDING()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PLAYER_ACTIVE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PLAYER_A_PARTICIPANT(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PLAYER_A_PARTICIPANT_ON_SCRIPT(System.Int32 p0, System.UInt64* p1, System.UInt64 p2)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PLAYER_CONCEALED(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PLAYER_CONNECTED(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PLAYER_INDEX_VALID(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PLAYER_IN_MP_CUTSCENE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_PROMOTION_ENABLED()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_RESETTING_POPULATION()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_SCRIPT_ACTIVE(System.String scriptName, System.Int32 p1, System.Boolean p2, System.Int32 p3)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_SCRIPT_ACTIVE_BY_HASH(System.UInt32 scriptHash, System.Int32 p1, System.Boolean p2, System.Int32 p3)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_SESSION_ACTIVE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_SESSION_STARTED()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_SIGNED_ONLINE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_TUNABLE_CLOUD_REQUEST_PENDING()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_IS_TUTORIAL_SESSION_CHANGE_PENDING()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_REFRESH_CURRENT_FRIEND_PAGE()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_REGISTER_ENTITY_AS_NETWORKED(System.Int32 entity)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_REGISTER_HOST_BROADCAST_VARIABLES(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_REGISTER_PLAYER_BROADCAST_VARIABLES(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_REQUEST_CLOUD_TUNABLES()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_REQUEST_CONTROL_OF_NETWORK_ID(System.Int32 netId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_REQUEST_CONTROL_OF_PICKUP_PLACEMENT(System.UInt64 p0)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_REQUEST_JOIN(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_REQUEST_RECENT_GAMER_NAMES(System.Int32 p0, System.Int32 playerCount)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_REQUEST_SESSION_SEAMLESS(System.Int32 flags, System.Int32 seamlessType, System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_RESET_POPULATION(System.Boolean p0, System.Int32 p1)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_RESURRECT_LOCAL_PLAYER(RDR2.Math.Vector3 vec, System.Single heading, System.Int32 p4, System.Boolean p5, System.UInt64 p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_RESURRECT_LOCAL_PLAYER(System.Single x, System.Single y, System.Single z, System.Single heading, System.Int32 p4, System.Boolean p5, System.UInt64 p6, System.Boolean p7)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SEED_RANDOM_NUMBER_GENERATOR(System.Int32 seed)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_SESSION_GET_SESSION_FLAGS()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_SESSION_GET_SESSION_TYPE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_IS_ANY_REQUEST_IN_PROGRESS()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_IS_PRIVATE()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_IS_REQUEST_IN_PROGRESS(System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_IS_REQUEST_PENDING_TRANSITION(System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_IS_SESSION_REQUEST_ID_VALID(System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_IS_TRANSITIONING()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_LEAVE_SESSION()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_LEFT_QUEUE_OR_REQUESTED_SESSION(System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_REMOVE_SESSION_FLAGS(System.Int32 flags)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_REQUEST_SESSION_COMPETITIVE(System.Int32 flags, System.Int32 matchType, System.Int32 userHash, System.Int32 p3, System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_REQUEST_SESSION_PRIVATE(System.Int32 flags, System.Int32 numPlayers, System.Int32 userHash, System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SESSION_REQUEST_SESSION_SEAMLESS(System.Int32 flags, System.Int32 seamlessType, System.Int32 userHash, System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SET_COMPLETED_MP_INTRO_FLOW_ON_CURRENT_SLOT(System.Boolean completed)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_ENTITY_ONLY_EXISTS_FOR_PARTICIPANTS(System.Int32 entity, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_ENTITY_REMAINS_WHEN_UNNETWORKED(System.Int32 entity, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_FRIENDLY_FIRE_OPTION(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_IN_MP_CUTSCENE(System.Boolean p0, System.Boolean p1, System.Int32 p2, System.Boolean p3)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_IN_SPECTATOR_MODE(System.Boolean toggle, System.Int32 playerPed)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_LOCAL_PLAYER_INVINCIBLE_TIME(System.Int32 time)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_LOCAL_PLAYER_PENDING_FAST_INSTANCE_ID(System.Int32 instanceId)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_LOCAL_PLAYER_SYNC_LOOK_AT(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_MISSION_FINISHED()`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SET_MP_MISSION_FLAG_ON_CURRENT_SLOT(System.Boolean enabled, System.Int32 flagIndex)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_PLAYER_IS_PASSIVE(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_RECENT_GAMERS_ENABLED(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_RICH_PRESENCE(System.Int32 p0, System.UInt64* p1, System.Int32 p2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_SCRIPT_READY_FOR_EVENTS(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SET_THIS_SCRIPT_IS_NETWORK_SCRIPT(System.Int32 maxNumMissionParticipants, System.Boolean p1, System.Int32 instanceId)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_SHOULD_SHOW_PROMOTION_DLG()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SHOW_ACCOUNT_UPGRADE_UI()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SHOW_CHAT_RESTRICTION_MSC(System.Int32 player)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SHOW_PROFILE_UI(System.UInt64* gamerHandle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SHOW_PSN_UGC_RESTRICTION()`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SPAWN_CONFIG_SET_FLAGS(System.Int32 flags)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SPAWN_CONFIG_SET_GROUND_TO_ROOT_OFFSET(System.Single offset)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_SPAWN_CONFIG_SET_TUNING_FLOAT(System.UInt32 p0, System.Single p1)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_START_SOLO_TUTORIAL_SESSION()`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_START_USER_CONTENT_PERMISSIONS_CHECK(System.UInt64* gamerHandle)`
+- `public static System.Void RDR2.Native.NETWORK.NETWORK_TRIGGER_DAMAGE_EVENT_FOR_ZERO_DAMAGE(System.Int32 entity, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.NETWORK.NETWORK_TRY_ACCESS_TUNABLE_BOOL_HASH(System.UInt32 tunableContext, System.UInt32 tunableName, System.Boolean defaultValue)`
+- `public static System.Single RDR2.Native.NETWORK.NETWORK_TRY_ACCESS_TUNABLE_FLOAT_HASH(System.UInt32 tunableContext, System.UInt32 tunableName, System.Single defaultValue)`
+- `public static System.Int32 RDR2.Native.NETWORK.NETWORK_TRY_ACCESS_TUNABLE_INT_HASH(System.UInt32 tunableContext, System.UInt32 tunableName, System.Int32 defaultValue)`
+- `public static System.Int32 RDR2.Native.NETWORK.NET_TO_ENT(System.Int32 netHandle)`
+- `public static System.Int32 RDR2.Native.NETWORK.NET_TO_OBJ(System.Int32 netHandle)`
+- `public static System.Int32 RDR2.Native.NETWORK.NET_TO_PED(System.Int32 netHandle)`
+- `public static System.Int32 RDR2.Native.NETWORK.NET_TO_VEH(System.Int32 netHandle)`
+- `public static System.Int32 RDR2.Native.NETWORK.OBJ_TO_NET(System.Int32 _object)`
+- `public static System.Int32 RDR2.Native.NETWORK.PARTICIPANT_ID()`
+- `public static System.Int32 RDR2.Native.NETWORK.PARTICIPANT_ID_TO_INT()`
+- `public static System.Int32 RDR2.Native.NETWORK.PED_TO_NET(System.Int32 ped)`
+- `public static System.Void RDR2.Native.NETWORK.PREVENT_MIGRATION_OF_ENTITIES_IN_FAST_INSTANCE_FOR_LOCAL_PLAYER(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.PREVENT_NETWORK_ID_MIGRATION(System.Int32 netId)`
+- `public static System.Void RDR2.Native.NETWORK.RESERVE_NETWORK_CLIENT_MISSION_OBJECTS(System.Int32 amount)`
+- `public static System.Void RDR2.Native.NETWORK.RESERVE_NETWORK_CLIENT_MISSION_PEDS(System.Int32 amount)`
+- `public static System.Void RDR2.Native.NETWORK.RESERVE_NETWORK_MISSION_OBJECTS(System.Int32 amount)`
+- `public static System.Void RDR2.Native.NETWORK.RESERVE_NETWORK_MISSION_PEDS(System.Int32 amount)`
+- `public static System.Void RDR2.Native.NETWORK.RESERVE_NETWORK_MISSION_PICKUPS(System.Int32 amount)`
+- `public static System.Void RDR2.Native.NETWORK.RESERVE_NETWORK_MISSION_VEHICLES(System.Int32 amount)`
+- `public static System.Void RDR2.Native.NETWORK.SET_ENTITY_VISIBLE_IN_CUTSCENE(System.Int32 entity, System.Boolean p1, System.Boolean p2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.NETWORK.SET_LOCAL_PLAYER_AS_GHOST(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.SET_LOCAL_PLAYER_INVISIBLE_LOCALLY(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK.SET_LOCAL_PLAYER_VISIBLE_IN_CUTSCENE(System.Boolean local, System.Boolean remote, System.Int32 instanceId)`
+- `public static System.Void RDR2.Native.NETWORK.SET_NETWORK_ID_ALWAYS_EXISTS_FOR_PLAYER(System.Int32 netId, System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.SET_NETWORK_ID_EXISTS_ON_ALL_MACHINES(System.Int32 netId, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.SET_NETWORK_ID_STOP_CLONING(System.Int32 networkId, System.Boolean bStopCloning)`
+- `public static System.Void RDR2.Native.NETWORK.SET_NETWORK_ID_VISIBLE_IN_CUTSCENE(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.NETWORK.SET_PLAYER_INVISIBLE_LOCALLY(System.Int32 player, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK.SET_PLAYER_VISIBLE_LOCALLY(System.Int32 player, System.Boolean toggle)`
+- `public static System.String RDR2.Native.NETWORK.TEXTURE_DOWNLOAD_GET_NAME(System.Int32 textureDownloadId)`
+- `public static System.Void RDR2.Native.NETWORK.TEXTURE_DOWNLOAD_RELEASE(System.Int32 textureDownloadId)`
+- `public static System.Int32 RDR2.Native.NETWORK.TEXTURE_DOWNLOAD_REQUEST(System.UInt64* gamerHandle, System.String filePath, System.String name, System.Boolean p3)`
+- `public static System.Void RDR2.Native.NETWORK.UGC_CLEAR_QUERY_RESULTS(System.Int32 ugcRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_DID_DESCRIPTION_REQUEST_SUCCEED(System.UInt32 description)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_DID_REQUEST_SUCCEED(System.Int32 ugcRequestId)`
+- `public static System.String RDR2.Native.NETWORK.UGC_GET_CACHED_DESCRIPTION(System.UInt32 description, System.Int32 length)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_HAS_DESCRIPTION_REQUEST_FINISHED(System.UInt32 description)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_HAS_REQUEST_FINISHED(System.Int32 ugcRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_IS_DESCRIPTION_REQUEST_IN_PROGRESS(System.UInt32 description)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_IS_LANGUAGE_SUPPORTED(System.Int32 languageId)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_IS_REQUEST_PENDING(System.Int32 ugcRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_QUERY_GET_CONTENT_HAS_PLAYER_RECORD(System.UInt64 p0, System.Int32 index)`
+- `public static System.Int32 RDR2.Native.NETWORK.UGC_QUERY_GET_CONTENT_NUM(System.Int32 ugcRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_QUERY_WAS_FORCE_CANCELLED(System.Int32 ugcRequestId)`
+- `public static System.Void RDR2.Native.NETWORK.UGC_RELEASE_ALL_CACHED_DESCRIPTIONS()`
+- `public static System.Boolean RDR2.Native.NETWORK.UGC_RELEASE_CACHED_DESCRIPTION(System.UInt32 description)`
+- `public static System.Int32 RDR2.Native.NETWORK.UGC_REQUEST_CACHED_DESCRIPTION(System.UInt32 description)`
+- `public static System.Int32 RDR2.Native.NETWORK.UGC_REQUEST_CONTENT_DATA_FROM_PARAMS(System.String contentTypeName, System.String contentId, System.Int32 fileId, System.Int32 fileVersion, System.Int32 languageId)`
+- `public static System.Void RDR2.Native.NETWORK.UGC_SET_QUERY_DATA_FROM_OFFLINE(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK.UGC_TEXTURE_DOWNLOAD_REQUEST(System.UInt64* p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3, System.UInt64* p4, System.Boolean p5)`
+- `public static System.Int32 RDR2.Native.NETWORK.VEH_TO_NET(System.Int32 vehicle)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x02B3CDD652B3CDD6()`
+- `public static System.Void RDR2.Native.NETWORK._0x02C4C6C2900D84DF(System.Int32 player, System.UInt64 p1)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x039AD6B57D5179FF()`
+- `public static System.Int32 RDR2.Native.NETWORK._0x039B692B3318FAB6(System.Boolean p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x062842D61D0D53FD()`
+- `public static System.Boolean RDR2.Native.NETWORK._0x0B6B4507AC5EA8B8()`
+- `public static System.Void RDR2.Native.NETWORK._0x0BF90CBB6B72977B()`
+- `public static System.Void RDR2.Native.NETWORK._0x0CC28C08613BA9E5(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x0D183D8490EE4366(System.Int32 p0, System.Int32 p1)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x0E54D4DA6018FF8E()`
+- `public static System.Int32 RDR2.Native.NETWORK._0x106CBDD5077DEDE1(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x13F592FC3BF0EA84(System.Int32 volume, System.Boolean p1, System.Single originalWeight, System.UInt64 p3, System.UInt64 p4)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x1413B6BF27AB7A95()`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x160F0CE6D76A39C9()`
+- `public static System.Boolean RDR2.Native.NETWORK._0x16EFB123C4451032(System.Int32 p0, System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x18B94666CF610AEB()`
+- `public static System.Void RDR2.Native.NETWORK._0x19447FCAE97704DC(System.UInt32 ctx, System.Int32 ec, System.Boolean ex, System.Boolean ro)`
+- `public static System.Void RDR2.Native.NETWORK._0x19B52C20B5C4757C()`
+- `public static System.Int32 RDR2.Native.NETWORK._0x1E4E097D71D449FB(System.Boolean p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x232E1EB23CDB313C()`
+- `public static System.Boolean RDR2.Native.NETWORK._0x236321F1178A5446(System.Int32 player, System.Int32 ped, System.UInt64* p2)`
+- `public static System.Void RDR2.Native.NETWORK._0x2686BD9566B65EDA(RDR2.Math.Vector3 vec)`
+- `public static System.Void RDR2.Native.NETWORK._0x2686BD9566B65EDA(System.Single x, System.Single y, System.Single z)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x26A867C0B7A456D1(System.Int32 entity)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x271F95E55C663B8B(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x273E04A3A7AD1F2D()`
+- `public static System.Int32 RDR2.Native.NETWORK._0x27B1AE4D8C652F08(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x2C4E98DDA475364F(System.String p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x2CD41AC000E6F611()`
+- `public static System.Void RDR2.Native.NETWORK._0x3034C77C79A58880(System.Boolean p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x316FD416C432C761()`
+- `public static System.Void RDR2.Native.NETWORK._0x335AF56613CA0F49(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x34BC1E79546BA543(System.Boolean p0)`
+- `public static System.String RDR2.Native.NETWORK._0x356F9FB0698C1FEB(System.Int32 player, System.Int32 personaPhotoLocalCacheType)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x3AA0CDC63696166D(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x3CBD6565D9C3B133(System.Int32 p0, System.Int32 p1, System.Single p2)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x3E4A16BC669E71B3()`
+- `public static System.Void RDR2.Native.NETWORK._0x3E74A687A73979C6(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x3E8CCE6769DB5F34(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x3F0ABAE38A0515AD(System.Int32 p0, System.Int32 p1)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x3F2EE18A3E294801(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x405DDEFB1F531B18(System.Int32 volume, System.Boolean p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Void RDR2.Native.NETWORK._0x40FEDB13870042F1()`
+- `public static System.Int32 RDR2.Native.NETWORK._0x41452E8A3B9C0C4B()`
+- `public static System.Void RDR2.Native.NETWORK._0x422F9D6D6C7BC290(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x43CF999205084B4B()`
+- `public static System.Int32 RDR2.Native.NETWORK._0x4538EE7C321590BC(System.Int32 networkId)`
+- `public static System.Void RDR2.Native.NETWORK._0x455156F47DC6B78C(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x4835413EA6F9C9CD(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x49CF17A564918E8D()`
+- `public static System.Int32 RDR2.Native.NETWORK._0x5133CF81924F1129()`
+- `public static System.Void RDR2.Native.NETWORK._0x51951DE06C0D1C40(System.Int32 player, System.Int32 type)`
+- `public static System.Void RDR2.Native.NETWORK._0x564552C6AF1EEAB1()`
+- `public static System.Void RDR2.Native.NETWORK._0x5759160AC17C13CE(System.UInt64* gamerHandle, System.String message)`
+- `public static System.Void RDR2.Native.NETWORK._0x5A91BCEF74944E93(System.Int32 player, System.Single p1)`
+- `public static System.Void RDR2.Native.NETWORK._0x5B9C6AC118FD4774()`
+- `public static System.Void RDR2.Native.NETWORK._0x5CB8B0C846D0F30B(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x5CD3AAD8FF9ED121(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x5D3C528B7A7DF836(System.UInt32 p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x5ED39DA62BEB1330(System.Int32 p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x5F0E99071582DECA(System.UInt64 p0, System.Int32 index, System.Int32 p2)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x5F328FC909F0E0FF(System.Int32 p0, System.Int32 p1, System.Int32 p2, System.Int32 p3)`
+- `public static System.Void RDR2.Native.NETWORK._0x603469298A4308AF(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x61BFBAA795E712AD()`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x64A36BA85CE01A81(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2, System.UInt64 p3)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x665161D250850A9F(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x67CCDF74C4DF7169()`
+- `public static System.Void RDR2.Native.NETWORK._0x691E4DE5309EAEFC(System.UInt64 p0, System.UInt64* p1)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x6C27442A225A241A(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x6C7E04E9DE451789()`
+- `public static System.Void RDR2.Native.NETWORK._0x6CEE2E30021DAEC6()`
+- `public static System.Int32 RDR2.Native.NETWORK._0x6CF82A7F65A5AD5F(System.Int32 ped, System.UInt64* p1)`
+- `public static System.Void RDR2.Native.NETWORK._0x704F92B3AF20D857(System.Boolean setting)`
+- `public static System.Void RDR2.Native.NETWORK._0x71FA2D1880C48032(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x744BFBB0CA908161(System.Boolean p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x75FC34A2BA345BD1(System.Int32 entity, System.Int32 player, System.UInt64* p2)`
+- `public static System.Void RDR2.Native.NETWORK._0x7673C0D2C5CDAC55()`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x77B299E8799B1332(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.NETWORK._0x780A13F780A13F1B(System.Boolean toggle)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x78271BC02AE9AF83(System.Int32 p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x7A8E8DF782B47EB0(System.UInt64 p0, System.UInt64 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.NETWORK._0x7B3FF2D193628126(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x7BCA0A3972708436(System.UInt64* outData, System.Int32 p1)`
+- `public static System.Void RDR2.Native.NETWORK._0x7E300B5B86AB1D1A(System.UInt64* p0, System.Int32 p1, System.Int32 p2, System.Int32 p3, System.Int32 p4, System.Int32 p5, System.Int32 p6, System.Int32 p7, System.Int32 p8, System.Int32 p9, System.Int32 p10, System.Int32 p11, System.Int32 p12, System.Int32 p13, System.Int32 p14)`
+- `public static System.Void RDR2.Native.NETWORK._0x814729078AED6D30()`
+- `public static System.Boolean RDR2.Native.NETWORK._0x862C5040F4888741(System.Int32 player1, System.Int32 player2)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x880A7202301E282B(System.UInt64* p0, System.UInt64* p1, RDR2.Math.Vector3 vec, System.Single p5, System.UInt64 p6)`
+- `public static System.Boolean RDR2.Native.NETWORK._0x880A7202301E282B(System.UInt64* p0, System.UInt64* p1, System.Single x, System.Single y, System.Single z, System.Single p5, System.UInt64 p6)`
+- `public static System.Void RDR2.Native.NETWORK._0x894B5ECAB45D2342(System.Int32 netHandle, System.UInt64 p1)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x917AD74BDCF8B6E9(System.Boolean p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x923346025512DFB7(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0x950ACD8F05B7B9DF(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x979765465A6F25FC(System.Int32 entity, System.Boolean p1)`
+- `public static System.Void RDR2.Native.NETWORK._0x97BCE4C4B3191228()`
+- `public static System.Boolean RDR2.Native.NETWORK._0x981146E5C9CE9250(System.Int32 inviteIndex)`
+- `public static System.Int32 RDR2.Native.NETWORK._0x982D7AD755B8F62C(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK._0x9B39B0555CC692B5()`
+- `public static System.Boolean RDR2.Native.NETWORK._0x9E5A47744C0F0376(System.Int32 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xA2837A5E21FB5A58(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xA47D48D06AA5A188()`
+- `public static System.Void RDR2.Native.NETWORK._0xA63E4F050F20021F()`
+- `public static System.Void RDR2.Native.NETWORK._0xA6F1BAABFF6AD7B9(System.UInt64* p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xA7670F7991099680(System.Int32 p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._0xA94ECE191D90637A()`
+- `public static System.Void RDR2.Native.NETWORK._0xA95470DA137587F5(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xACC44768AF229042()`
+- `public static System.Boolean RDR2.Native.NETWORK._0xAFA14F98327791CE(System.UInt64* sessionRequestId)`
+- `public static System.Void RDR2.Native.NETWORK._0xB131E686BD97B3F8()`
+- `public static System.Int32 RDR2.Native.NETWORK._0xB389289F031F059A()`
+- `public static System.Int32 RDR2.Native.NETWORK._0xBAF7E2979442B29F(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xBB1EC8C2EEF33BAA(System.Int32 entity)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0xBB697756309D77EE(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xBC7D36946D19E60E(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._0xBF8276E51761F9DA()`
+- `public static System.Boolean RDR2.Native.NETWORK._0xC028B3F52C707C49(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0xC0CFFDA87C2C163D(System.Int32 p0, System.UInt64 p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.NETWORK._0xC1968045EEB563B7(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xC8B6D18E22484643()`
+- `public static System.UInt64 RDR2.Native.NETWORK._0xC964FCD3D1720697()`
+- `public static System.Int32 RDR2.Native.NETWORK._0xCA58D4FD20D70F24(System.UInt64 p0)`
+- `public static System.String RDR2.Native.NETWORK._0xCAF4CA2F87779F8F(System.UInt64* gamerHandle, System.Int32 p1)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0xCC4E72C339461ED1()`
+- `public static System.Boolean RDR2.Native.NETWORK._0xCD53E6CBF609C012(System.Int32 ugcRequestId)`
+- `public static System.Void RDR2.Native.NETWORK._0xCF23AB5BD47B384D(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xD1FFB246F4E088AC(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xD39A72AE5EBD57E5()`
+- `public static System.UInt64 RDR2.Native.NETWORK._0xD3A3C8B9F3BDEF81()`
+- `public static System.Void RDR2.Native.NETWORK._0xD3B6EBC6C3D77D44(System.Int32 p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0xD4022C7286B0DFA2(System.String p0, System.Int32 p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.NETWORK._0xD42C543F73233041(System.Boolean p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xD637D327080CD86E(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xD78A26024BB13E08(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xD7BAD4062074B9C1(System.UInt64 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xD7D0DF27CB1765B5(System.Int32 p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xDA1BFED8582F61F0()`
+- `public static System.Void RDR2.Native.NETWORK._0xDC6AD5C046F33AB4(System.Boolean p0, System.Boolean p1)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xDCA4A74135E1DEA5(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0xE10F2D7715ABABEC(System.UInt64 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xE31A04513237DC89(System.Int32 entity)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xE348D1404BD80146(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK._0xE39600E50D608693(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Void RDR2.Native.NETWORK._0xE3AB5EEFCB6671A2(System.Int32 setting)`
+- `public static System.Void RDR2.Native.NETWORK._0xE5634491A58C2703(System.Single p0)`
+- `public static System.String RDR2.Native.NETWORK._0xE59F4924BD3A718D(System.Int32 p0)`
+- `public static System.Void RDR2.Native.NETWORK._0xE5FF65CFF5160752()`
+- `public static System.String RDR2.Native.NETWORK._0xE79BA3BC265895DA(System.Int32 p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._0xE8E633215471BB5D(System.UInt64 p0)`
+- `public static System.UInt64 RDR2.Native.NETWORK._0xEC089F84A9C16C62()`
+- `public static System.Boolean RDR2.Native.NETWORK._0xF23A6D6C11D8EC15(System.UInt64* gamerHandle)`
+- `public static System.Int32 RDR2.Native.NETWORK._0xF260AF6F43953316(System.Int32 handle)`
+- `public static System.Int32 RDR2.Native.NETWORK._0xF302AB9D978352EE(System.Int32 entity)`
+- `public static System.Void RDR2.Native.NETWORK._0xF342F6BD0A8287D5(System.UInt64 p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._0xF8DC69DC1AD19072(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._0xFB3205788F8AFA3F()`
+- `public static System.Void RDR2.Native.NETWORK._0xFC6FCF4C03F1BBF6()`
+- `public static System.Void RDR2.Native.NETWORK._0xFD4272A137703449()`
+- `public static System.Void RDR2.Native.NETWORK._0xFD8112109A96877C()`
+- `public static System.Int32 RDR2.Native.NETWORK._0xFE53B1F8D43F19BF(System.Int32 player1, System.Int32 player2)`
+- `public static System.Void RDR2.Native.NETWORK._0xFF36F36B07E69059(System.UInt64 p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._ANIM_SCENE_TO_NET(System.Int32 animScene)`
+- `public static System.Void RDR2.Native.NETWORK._CLEAR_LAUNCH_PARAM(System.String paramName)`
+- `public static System.Boolean RDR2.Native.NETWORK._COMMERCE_STORE_IS_ENABLED()`
+- `public static System.Boolean RDR2.Native.NETWORK._COMMERCE_STORE_IS_OPEN()`
+- `public static System.Boolean RDR2.Native.NETWORK._GET_LAUNCH_PARAM_EXISTS(System.String paramName)`
+- `public static System.String RDR2.Native.NETWORK._GET_LAUNCH_PARAM_STRING()`
+- `public static System.Int32 RDR2.Native.NETWORK._GET_NUM_CREATED_MISSION_PICKUPS(System.Boolean p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._GET_NUM_PEER_NEGOTIATION_RESPONSES()`
+- `public static System.Int32 RDR2.Native.NETWORK._GET_NUM_RESERVED_MISSION_PICKUPS(System.Boolean p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._GET_PLAYER_WAYPOINT_IS_ACTIVE(System.Int32 player)`
+- `public static System.Void RDR2.Native.NETWORK._GET_RESERVED_MISSION_ENTITIES_FOR_THREAD(System.Int32 threadId, System.Int32* pedMax, System.Int32* vehicleMax, System.Int32* unkMax, System.Int32* pedMin, System.Int32* vehicleMin, System.Int32* unkMin)`
+- `public static System.Boolean RDR2.Native.NETWORK._GET_SOCIAL_MATCHMAKING_ALLOWED()`
+- `public static System.Int32 RDR2.Native.NETWORK._LOCAL_PLAYER_PEDSHOT_TEXTURE_DOWNLOAD_REQUEST(System.Int32 playerSlot, System.Int32 personaPhotoLocalCacheType)`
+- `public static System.Int32 RDR2.Native.NETWORK._MUGSHOT_TEXTURE_DOWNLOAD_REQUEST(System.UInt64* gamerHandle, System.Int32 p1, System.String name, System.Boolean p3)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_ADD_PLAYER_TO_RECENT_GAMERS_LIST(System.Int32 player, System.Int32 p1)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_ALERT(System.UInt32 ctx, System.UInt32 lh, System.Int32 ec, System.Int32 h)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_ARE_ONLINE_NOTIFICATIONS_SHOWN_IN_STORY_MODE()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_ARE_PLAYERS_IN_SAME_PLATFORM_PARTY(System.UInt64* gamerHandle1, System.UInt64* gamerHandle2)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_AUTO_SESSION_IS_AUTO_WARP_DISABLED()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_AUTO_SESSION_IS_INSTANCED_SESSION()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_AUTO_SESSION_IS_PROCESSING_SESSION_SPLIT()`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_AUTO_SESSION_SET_ALLOWED_TO_MERGE(System.Boolean toggle, System.UInt64* p1, System.Int32 p2)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_AUTO_SESSION_SET_ALLOWED_TO_SPLIT(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_AUTO_SESSION_SET_AUTO_WARP_ENABLED(System.Boolean toggle)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_AUTO_SESSION_SPLIT_SESSION_SUCCESSFUL()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_CAN_ADD_FRIEND(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_CAN_RECEIVE_INVITE_FROM_HANDLE(System.UInt64* gamerHandle)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_CLEAR_CLOCK_OVERRIDE_OVERTIME(System.Int32 milliseconds)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_CLOCK_TIME_OVERRIDE(System.Int32 hour, System.Int32 minute, System.Int32 second, System.Int32 transitionTime, System.Boolean pauseClock)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_CLOCK_TIME_OVERRIDE_2(System.Int32 hour, System.Int32 minute, System.Int32 second, System.Int32 transitionTime, System.Boolean pauseClock, System.Boolean clockwise)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_DEBUG_REQUEST_ENTITY_POSITION(System.UInt64* p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_DID_RECENT_GAMER_NAMES_REQUEST_SUCCEED()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_GET_CURRENT_FRIEND_PAGE_DATA(System.UInt64* p0)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_GET_DISPLAY_NAME_FROM_HANDLE(System.UInt64* gamerHandle, System.String displayName)`
+- `public static System.String RDR2.Native.NETWORK._NETWORK_GET_GAMERTAG_FROM_FRIEND(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_GET_GAMER_SESSION_FROM_HANDLE(System.UInt64* data, System.Int32 count)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_GAMER_STATUS(System.UInt64* gamerHandle, System.Int32 p1)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_GLOBAL_ENTITY_FLAGS(System.Int32 entity)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_INSTANCE_ID_OF_THREAD(System.Int32 threadId)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_NUM_RECENT_GAMERS()`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_PLATFORM_INVITE_ID()`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_PLAYER_FAST_INSTANCE_ID(System.Int32 player)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_PLAYER_OWNER_OF_NETWORK_ID(System.Int32 netId)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_RANK()`
+- `public static System.String RDR2.Native.NETWORK._NETWORK_GET_ROS_TITLE_NAME()`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_SESSION_HOST()`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_SIZE_OF_HOST_BROADCAST_DATA_STORAGE(System.Int32* p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_SIZE_OF_PLAYER_BROADCAST_DATA_STORAGE(System.Int32* p0)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_GET_XP()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_HAS_COMPLETED_MP_INTRO_FLOW_ON_CURRENT_SLOT()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_HAS_CONTROL_OF_ANIM_SCENE(System.Int32 animScene)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_HAS_CURRENT_GET_GAMER_STATUS_STARTED()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_IS_IN_SESSION_LOBBY()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_IS_PLAYER_IN_SPECTATOR_MODE(System.Int32 player)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_IS_PREVIOUS_UPLOAD_PENDING()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_IS_RECENT_GAMER_NAMES_REQUEST_IN_PROGRESS()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_IS_THREAD_ACTIVE(System.Int32 threadId)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_IS_TRACKED_PLAYER_VISIBLE(System.Int32 player, System.Int32 trackedPlayer)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_PERSONA_PHOTO_WRITE_LOCAL(System.String texture, System.Int32 playerSlot, System.Int32 p2, System.Int32 personaPhotoLocalCacheType)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_PERSONA_PHOTO_WRITE_SC_PROFILE(System.String texture, System.Int32 personaPhotoType, System.Int32 formatIndex)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_REMOVE_FRIEND(System.UInt64* gamerHandle)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_REQUEST_CONTROL_OF_ANIM_SCENE(System.Int32 animScene)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_RESURRECT_LOCAL_PLAYER_2(System.UInt64* args)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SEND_SESSION_INVITE(System.UInt64* gamerHandle, System.String contentId, System.UInt64* data, System.Int32 dataSize, System.Int32 p4, System.Int32 flags)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_ADD_SESSION_FLAGS(System.Int32 flags)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_ARE_SESSION_IDS_EQUAL(System.UInt64* sessionId1, System.UInt64* sessionId2)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_CANCEL_REQUEST(System.UInt64* sessionRequestId)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SESSION_GET_SESSION_ID(System.UInt64* sessionId)`
+- `public static System.Int32 RDR2.Native.NETWORK._NETWORK_SESSION_GET_SESSION_REQUEST_RESULT(System.UInt64* sessionRequestId, System.Int32* p1)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_IS_NSRR_SUCCESS(System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_IS_REQUEST_IN_PROGRESS_BY_QUEUE_GROUP(System.Int32 queueGroup)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SESSION_PLAYLIST_GET_UPCOMING_CONTENT()`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SESSION_PLAYLIST_GO_TO_NEXT_CONTENT()`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_REMOVE_PLAYER_FLAGS(System.Int32 flags)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_REQUEST_SESSION_NOMINATED(System.Int32 flags, System.Int32 userHash, System.Int32 p2, System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_REQUEST_SESSION_ON_CALL(System.Int32 flags, System.Int32 category, System.UInt64* p2, System.Int32 userHash, System.UInt64* sessionRequestId)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_SET_PLAYER_FLAGS(System.Int32 flags)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SESSION_TRANSITION_TO_SESSION(System.UInt64* sessionRequestId)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SET_IN_STATIC_SPECTATOR_MODE(System.Boolean toggle, RDR2.Math.Vector3 vec)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SET_IN_STATIC_SPECTATOR_MODE(System.Boolean toggle, System.Single x, System.Single y, System.Single z)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_ADD_EXCLUSION_VOLUME(System.Int32 volume)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_ADD_PROPERTY_PREFERENCE(System.Int32 configProperty, System.Boolean include, System.Single weight)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_ADD_PROPERTY_SCRIPTED(System.Int32 configProperty, System.Boolean include)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_ADD_SPAWN_POINT(RDR2.Math.Vector3 vec, System.Single heading)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_ADD_SPAWN_POINT(System.Single x, System.Single y, System.Single z, System.Single heading)`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_REMOVE_EXCLUSION_VOLUME(System.Int32 volume)`
+- `public static System.Boolean RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_SEARCH_IN_PROGRESS()`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_SET_CANCEL_SEARCH()`
+- `public static System.Void RDR2.Native.NETWORK._NETWORK_SPAWN_CONFIG_SET_LEVEL_WATER_DEPTH(System.Int32 waterDepthLevel)`
+- `public static System.Int32 RDR2.Native.NETWORK._NET_TO_ANIM_SCENE(System.Int32 netId)`
+- `public static System.Int32 RDR2.Native.NETWORK._NET_TO_PROPSET(System.Int32 netId)`
+- `public static System.Int32 RDR2.Native.NETWORK._PEDMUGSHOT_GET_STATUS()`
+- `public static System.UInt64 RDR2.Native.NETWORK._PEDMUGSHOT_REQUEST_SEND()`
+- `public static System.Boolean RDR2.Native.NETWORK._PEDMUGSHOT_TAKE()`
+- `public static System.Int32 RDR2.Native.NETWORK._PROPSET_TO_NET(System.Int32 propSet)`
+- `public static System.Void RDR2.Native.NETWORK._REPORT_PLAYER(System.Int32 player, System.Int32 reportType, System.String description, System.String horseName)`
+- `public static System.String RDR2.Native.NETWORK._REQUEST_PEDSHOT_TEXTURE_DOWNLOAD(System.UInt64* gamerHandle, System.Int32 p1)`
+- `public static System.Void RDR2.Native.NETWORK._SET_DOOR_NETWORKED(System.UInt32 doorHash)`
+- `public static System.Void RDR2.Native.NETWORK._SET_DOOR_UNNETWORKED(System.UInt64 p0, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK._SET_ENTITY_GHOSTED_TO_LOCAL_PLAYER(System.Int32 entity, System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK._SET_LAUNCH_PARAM_STRING(System.String _params)`
+- `public static System.Void RDR2.Native.NETWORK._SET_LAUNCH_PARAM_VALUE(System.String paramName, System.String value)`
+- `public static System.Void RDR2.Native.NETWORK._SET_LOCAL_PLAYER_DAMAGE_MULTIPLIER_FOR_PLAYER(System.Int32 player, System.Single damageMultiplier)`
+- `public static System.Void RDR2.Native.NETWORK._SET_NETWORK_RESPOT_TIMER(System.Int32 entity, System.Int32 timer, System.Boolean p2)`
+- `public static System.Void RDR2.Native.NETWORK._SET_PLAYER_VISIBILITY_TO_LOCAL_PLAYER_DISABLED(System.Int32 player, System.Boolean disabled)`
+- `public static System.Void RDR2.Native.NETWORK._SET_SOCIAL_MATCHMAKING_ALLOWED(System.Boolean toggle)`
+- `public static System.Void RDR2.Native.NETWORK._TEXTURE_DOWNLOAD_RELEASE_BY_NAME(System.String name)`
+- `public static System.Boolean RDR2.Native.NETWORK._TEXTURE_DOWNLOAD_TEXTURE_NAME_IS_VALID(System.String name)`
+- `public static System.Boolean RDR2.Native.NETWORK._UGC_HAS_PRIVILEGE()`
+- `public static System.Boolean RDR2.Native.NETWORK._UGC_IS_BOOK_MARKED(System.String contentId)`
+- `public static System.Int32 RDR2.Native.NETWORK._UGC_QUERY_BY_CATEGORY(System.Int32 categoryType, System.Int32 p1, System.Int32 maxGet, System.String contentTypeName, System.Int32 p4, System.Boolean p5)`
+- `public static System.Int32 RDR2.Native.NETWORK._UGC_QUERY_BY_CONTENT_ID(System.String contentId, System.Boolean latestVersion, System.String contentTypeName)`
+- `public static System.Int32 RDR2.Native.NETWORK._UGC_QUERY_BY_CONTENT_TYPE(System.Int32 p0, System.Int32 maxGet, System.String contentTypeName, System.Int32 p3, System.Int32 p4, System.Int32 p5)`
+- `public static System.Boolean RDR2.Native.NETWORK._UGC_QUERY_GET_BOOK_MARKED(System.UInt64 p0, System.Int32 index)`
+- `public static System.UInt64 RDR2.Native.NETWORK._UGC_QUERY_GET_CREATOR_HANDLE(System.UInt64 p0, System.Int32 index, System.UInt64* gamerHandle)`
+- `public static System.String RDR2.Native.NETWORK._UGC_QUERY_GET_CREATOR_PHOTO(System.UInt64 p0, System.Int32 p1, System.UInt64 p2)`
+- `public static System.Void RDR2.Native.NETWORK._UGC_QUERY_GET_DATE(System.UInt64 p0, System.Int32 index, System.UInt64* p2)`
+- `public static System.Int32 RDR2.Native.NETWORK._UGC_QUERY_GET_LANGUAGE(System.UInt64 p0, System.Int32 index)`
+- `public static System.UInt32 RDR2.Native.NETWORK._UGC_QUERY_GET_MISSION_DESC_HASH(System.UInt64 p0, System.Int32 index)`
+- `public static System.String RDR2.Native.NETWORK._UGC_QUERY_GET_NAME(System.UInt64 p0, System.Int32 index)`
+- `public static System.String RDR2.Native.NETWORK._UGC_QUERY_GET_OWNER_ID(System.UInt64 p0, System.Int32 index)`
+- `public static System.String RDR2.Native.NETWORK._UGC_QUERY_GET_PLAYLIST_NAME(System.UInt64 p0, System.Int32 index)`
+- `public static System.Int32 RDR2.Native.NETWORK._UGC_QUERY_GET_POSIX_PUBLISHED_DATE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Int32 RDR2.Native.NETWORK._UGC_QUERY_GET_POSIX_UPDATED_DATE(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Boolean RDR2.Native.NETWORK._UGC_QUERY_GET_PUBLISHED(System.UInt64 p0, System.UInt64 p1)`
+- `public static System.Single RDR2.Native.NETWORK._UGC_QUERY_GET_RATING(System.UInt64 p0, System.Int32 index, System.Int32 p2)`
+- `public static System.String RDR2.Native.NETWORK._UGC_QUERY_GET_ROOT_CONTENT_ID(System.UInt64 p0, System.Int32 index)`
+- `public static System.Int32 RDR2.Native.NETWORK._UGC_QUERY_GET_VERSION(System.UInt64 p0, System.Int32 index, System.Int32 p2)`
+

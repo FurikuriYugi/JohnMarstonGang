@@ -1,0 +1,33 @@
+# ScriptHookRDRNetAPI inventory index
+
+- Assembly: `ScriptHookRDRNetAPI`
+- Version: `2.2.0.0`
+- SHA-256: `bfb7607d94b2de7f8530289377f163caad81098afc1fb7ee86191810a6cc6bba`
+- JSON: `ScriptHookRDRNetAPI-Inventory.json`
+
+- [ScriptHookRDRNetAPI-Inventory-001.md](ScriptHookRDRNetAPI-Inventory-001.md) — 20 types, 51 methods
+- [ScriptHookRDRNetAPI-Inventory-002.md](ScriptHookRDRNetAPI-Inventory-002.md) — 30 types, 426 methods
+- [ScriptHookRDRNetAPI-Inventory-003.md](ScriptHookRDRNetAPI-Inventory-003.md) — 9 types, 627 methods
+- [ScriptHookRDRNetAPI-Inventory-004.md](ScriptHookRDRNetAPI-Inventory-004.md) — 11 types, 611 methods
+- [ScriptHookRDRNetAPI-Inventory-005.md](ScriptHookRDRNetAPI-Inventory-005.md) — 8 types, 622 methods
+- [ScriptHookRDRNetAPI-Inventory-006.md](ScriptHookRDRNetAPI-Inventory-006.md) — 9 types, 475 methods
+- [ScriptHookRDRNetAPI-Inventory-007.md](ScriptHookRDRNetAPI-Inventory-007.md) — 4 types, 354 methods
+- [ScriptHookRDRNetAPI-Inventory-008.md](ScriptHookRDRNetAPI-Inventory-008.md) — 1 types, 571 methods
+- [ScriptHookRDRNetAPI-Inventory-009.md](ScriptHookRDRNetAPI-Inventory-009.md) — 3 types, 296 methods
+- [ScriptHookRDRNetAPI-Inventory-010.md](ScriptHookRDRNetAPI-Inventory-010.md) — 1 types, 1050 methods
+- [ScriptHookRDRNetAPI-Inventory-011.md](ScriptHookRDRNetAPI-Inventory-011.md) — 7 types, 656 methods
+- [ScriptHookRDRNetAPI-Inventory-012.md](ScriptHookRDRNetAPI-Inventory-012.md) — 11 types, 393 methods
+- [ScriptHookRDRNetAPI-Inventory-013.md](ScriptHookRDRNetAPI-Inventory-013.md) — 1 types, 702 methods
+- [ScriptHookRDRNetAPI-Inventory-014.md](ScriptHookRDRNetAPI-Inventory-014.md) — 13 types, 610 methods
+- [ScriptHookRDRNetAPI-Inventory-015.md](ScriptHookRDRNetAPI-Inventory-015.md) — 43 types, 383 methods
+- [ScriptHookRDRNetAPI-Inventory-016.md](ScriptHookRDRNetAPI-Inventory-016.md) — 69 types, 43 methods
+- [ScriptHookRDRNetAPI-Inventory-017.md](ScriptHookRDRNetAPI-Inventory-017.md) — 1 types, 0 methods
+- [ScriptHookRDRNetAPI-Inventory-018.md](ScriptHookRDRNetAPI-Inventory-018.md) — 37 types, 192 methods
+- [ScriptHookRDRNetAPI-Inventory-019.md](ScriptHookRDRNetAPI-Inventory-019.md) — 14 types, 78 methods
+- [ScriptHookRDRNetAPI-Inventory-020.md](ScriptHookRDRNetAPI-Inventory-020.md) — 4 types, 0 methods
+- [ScriptHookRDRNetAPI-Inventory-021.md](ScriptHookRDRNetAPI-Inventory-021.md) — 5 types, 0 methods
+- [ScriptHookRDRNetAPI-Inventory-022.md](ScriptHookRDRNetAPI-Inventory-022.md) — 5 types, 0 methods
+- [ScriptHookRDRNetAPI-Inventory-023.md](ScriptHookRDRNetAPI-Inventory-023.md) — 1 types, 0 methods
+- [ScriptHookRDRNetAPI-Inventory-024.md](ScriptHookRDRNetAPI-Inventory-024.md) — 2 types, 0 methods
+- [ScriptHookRDRNetAPI-Inventory-025.md](ScriptHookRDRNetAPI-Inventory-025.md) — 8 types, 0 methods
+- [ScriptHookRDRNetAPI-Inventory-026.md](ScriptHookRDRNetAPI-Inventory-026.md) — 3 types, 0 methods
