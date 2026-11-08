@@ -1,61 +1,72 @@
 # Research Notes
 
-## NPC recruitment prompt test
+## Current mode
 
-Testing currently concerns a native G-button prompt shown while the player focuses a nearby human NPC. Pressing G must only be logged during this test; it must not recruit the NPC or change gang membership.
+The project is in test mode. Do not edit `StoryBoard.md` during this phase. Keep test findings in this file and native/API findings in `NativeReferenceGuide.md`.
 
-The present diagnostic uses the existing game string key `CUTSCENE_SKIP`. Its visible text is whatever the game associates with that key in the current localization. It is a prompt-rendering probe, not the desired final “Recruit” label.
+## NPC interaction prompt test
 
-## Latest in-game report
+The test is intended to determine whether the game can show an interaction-lock-on prompt for a nearby human NPC and a separate G-button diagnostic prompt when the player focuses that NPC.
 
-The player locked onto an NPC and pressed G; no “Recruit” option appeared. That is not a successful recruitment-prompt test: the current test deliberately does not display “Recruit” and does not implement recruitment.
+Pressing G must only be logged. This test must not recruit the NPC or change gang membership.
 
-The checked-in log previously recorded prompt creation but did not record target or input activity after startup. The prior test only checked G after it had accepted a target and returned early when no qualifying target was found. This made it impossible to tell from the log whether target resolution, input detection, or prompt rendering was failing.
+## Prompt systems and entity targeting
 
-## Prompt text limitation
+There are two related but distinct operations:
 
-RDR2 prompt research describes prompt text as a game `VAR_STRING`. However, the ScriptHookRDR2DotNet-V2 issue about custom prompt text reports that `_UI_PROMPT_SET_TEXT` accepts text reliably only when the string is already present in the game's string database. Passing a C# literal such as `"Recruit"` is therefore not a reliable way to test whether a prompt group is visible.
+1. `REGISTER_INTERACTION_LOCKON_PROMPT` registers an interaction-lock-on prompt on a specific entity. For this test, that entity is a nearby human NPC. Its radius controls the approach prompt, and the native's separate focus-distance argument controls how far away the entity can still be focused.
+2. `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY` returns the prompt group for an entity. The diagnostic UI prompt is assigned to that group with `_UI_PROMPT_SET_GROUP`, so it can appear while that NPC is focused.
 
-Use a known game string key to test prompt rendering separately from support for a custom recruitment label. Do not claim the final “G Recruit” label works until a custom-string route has been established and tested.
+The NPC is the target entity in both cases. The distinction is not “NPC versus target”; it is the per-entity lock-on registration versus the regular UI prompt assigned to that entity's prompt group.
 
-## Correct group mechanism for a focused entity
+The prompt research describes `REGISTER_INTERACTION_LOCKON_PROMPT` as taking an entity, text, radius, focus distance, flags, additional parameters, and an approach-prompt boolean. It also describes `UNREGISTER_INTERACTION_LOCKON_PROMPT` as removing the registration for an entity. The test registers only nearby human peds and unregisters them when they leave the registration range. The native research indicates the approximate ten-object limit does not appear to apply to peds, but the test still limits registrations by distance to avoid unnecessary global registrations.
 
-For a prompt that should appear when an entity is focused, assign the prompt to that entity's prompt group:
+## Diagnostic label and G control
 
-1. Get the focused entity's group with `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY`.
-2. Assign the prompt to that group with `_UI_PROMPT_SET_GROUP`.
-3. Enable and show the prompt while the eligible entity is focused.
-4. Hide or disable the prompt when there is no eligible focused entity.
+The test uses `CUTSCENE_SKIP` as a diagnostic game string key. It is not the desired final “Recruit” label. The native approach label and the UI prompt text are separate text routes; seeing one does not prove the other works.
 
-The earlier diagnostic called `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` for a manually chosen group. That active-group approach is not the entity-specific focus-group pattern described in the prompt research, so the new test uses the focused entity's group instead.
+The prompt control is `INPUT_INTERACT_OPTION1` (`0x760A9C6F`). This is a game control, not a hard-coded keyboard key. The displayed key depends on the player's current control mapping and input device.
+
+The test records both raw control presses and the UI prompt's own just-pressed state. Neither log entry indicates recruitment; the test intentionally performs no recruitment action.
+
+## Previous in-game report
+
+The previous report was: right-clicking an NPC did not show a “G Recruit” option. The previous diagnostic used a standard UI prompt and assigned it to the focused entity's prompt group, but did not register `REGISTER_INTERACTION_LOCKON_PROMPT`. It also used `CUTSCENE_SKIP`, not the text “Recruit.” Therefore, that result did not establish whether the entity-specific approach/lock-on prompt registration works, nor whether a custom “Recruit” label works.
+
+The previous log reported `rawTarget=none` during the attempt. That means the focused-target getter did not provide an entity at those times. It does not mean an NPC cannot be the target entity for `REGISTER_INTERACTION_LOCKON_PROMPT`; that native is registered directly against the NPC handle.
 
 ## Current diagnostic behavior
 
-The current `Test.cs`:
+The updated `Test.cs`:
 
-- Registers one prompt using the existing game key `CUTSCENE_SKIP`.
-- Uses `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) as the prompt control.
-- Reads the interaction-lock-on target every tick and logs changes, including no-target state.
-- Logs G control presses independently of target detection and prompt visibility.
-- Checks for a human target within 8.0 game units before showing the diagnostic prompt.
-- Gets the target's prompt group and assigns the prompt to it.
-- Logs prompt active state, group assignment, target properties, and a heartbeat every two seconds.
-- Does not recruit the target or modify gang state.
+- Creates a standard UI prompt using `CUTSCENE_SKIP` and `INPUT_INTERACT_OPTION1`.
+- Periodically enumerates peds and registers the interaction-lock-on prompt on nearby human NPCs.
+- Uses `REGISTER_INTERACTION_LOCKON_PROMPT` with a 10.0-unit approach radius and a 12.0-unit focus distance.
+- Enables the approach label in the native registration.
+- Unregisters entities that are no longer nearby and unregisters all remaining entities when the script aborts.
+- Independently reads the focused entity through `Game.Player.GetInteractionLockonTargetEntity()`.
+- Gets that focused NPC's prompt group and assigns the standard UI diagnostic prompt to it.
+- Logs target state, registration calls, input presses, prompt state, group assignment, and a two-second heartbeat.
+- Does not recruit or modify gang state.
 
-The control is a game control, not a hard-coded keyboard key. The displayed key depends on the player's current control mapping and input device.
+A registration log means the native call was issued without throwing an exception; it does not prove the game rendered the label.
 
 ## Interpreting the next test
 
-- `TARGET STATE: rawTarget=none` throughout the lock-on attempt means the ScriptHook interaction-lock-on target getter is not returning a target in that situation.
-- A target handle with `human=false` or `inRange=false` means the candidate is being rejected by the diagnostic's eligibility checks.
-- `GROUP LOOKUP/ASSIGNMENT ERROR` indicates a group-native or wrapper problem.
-- `groupAssigned=true` with `promptActive=false` means a target and group were found, but the game did not activate the prompt.
-- `promptActive=true` means the game considers the prompt active; check whether the known game label is visible.
-- `RAW G-CONTROL PRESS DETECTED` confirms the selected control was detected. It does not mean the prompt was visible or recruitment succeeded.
-- The absence of “Recruit” is expected in this test. The diagnostic is not a recruitment implementation.
+- `ILO REGISTRATION ERROR` means the native call or managed wrapper failed.
+- `ILO REGISTRATION ISSUED` means only that the call returned without a managed exception; check in-game whether an approach label appears.
+- `focusedTarget=none` means the current focus-target getter returned no entity at that tick.
+- `human=false` or `inRange=false` means the focused entity is not eligible for the diagnostic G prompt.
+- `GROUP LOOKUP/ASSIGNMENT ERROR` means the target-group lookup or assignment failed.
+- `groupAssigned=true` with `uiPromptActive=false` means a target and group were found, but the diagnostic UI prompt was not active.
+- `RAW G-CONTROL PRESS DETECTED` confirms the selected game control was detected; it does not prove the prompt was visible.
+- `UI PROMPT PRESS DETECTED` confirms the prompt's own pressed state; it still does not recruit.
+- The absence of “Recruit” is expected in this diagnostic. The displayed label is the game key `CUTSCENE_SKIP`.
 
-Do not claim recruitment works until a separate test displays the intended label and verifies the recruitment action.
+Record separately whether the outer lock-on/approach label appears, whether the diagnostic G prompt appears while focused, and whether G is detected. Do not claim recruitment works until a later test displays the intended label and verifies a recruitment action.
 
-## Storyboard
+## Test results
 
-Do not edit `StoryBoard.md` while in test mode.
+- Previous attempt: right-clicked an NPC; no “G Recruit” option appeared.
+- Interpretation: inconclusive for the current native test because the previous test did not call `REGISTER_INTERACTION_LOCKON_PROMPT` and did not use “Recruit” as its prompt text.
+- Updated test result: pending in-game build and test.
