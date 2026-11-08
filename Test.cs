@@ -7,10 +7,7 @@ public class Test : Script
 {
     private const uint InputInteractOption1 = 0x760A9C6Fu;
     private const int PromptGroupTab = 0;
-    private const string RecruitPromptText = "Recruit";
     private const string RegisteredPromptLabel = "CUTSCENE_SKIP";
-    private static readonly TimeSpan PromptTextPhaseDuration =
-        TimeSpan.FromSeconds(6);
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -29,28 +26,21 @@ public class Test : Script
     private string _lastGroupActivePageError;
     private string _lastInputError;
     private string _lastPromptError;
-    private string _lastPromptTextError;
     private bool _hasLoggedPromptActiveState;
     private bool _lastPromptActiveState;
     private int _lastAssignedTargetHandle = int.MinValue;
     private int _lastAssignedGroupId = int.MinValue;
-    private bool _isRegisteredLabelPhase;
-    private bool _hasStartedPhaseClock;
-    private DateTime _nextPhaseSwitchUtc;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Focused-target prompt text comparison test: Recruit/G ===");
-        Log(
-            "Goal: compare custom VAR_STRING Recruit against the " +
-            "registered CUTSCENE_SKIP label on the same prompt.");
-        Log(
-            "The prompt alternates text phases every six seconds while " +
-            "a focused human target and target group are available.");
-        Log(
-            "No recruitment or gang membership changes are performed.");
+        Log("=== Static registered-label focused-target prompt test ===");
+        Log("Prompt label: CUTSCENE_SKIP; expected prompt text: G Skip.");
+        Log("Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.");
+        Log("The label is set once before prompt registration.");
+        Log("The prompt is assigned to a focused human target's prompt group.");
+        Log("No recruitment or gang membership changes are performed.");
 
         CreatePrompt();
 
@@ -75,7 +65,17 @@ public class Test : Script
                 _promptHandle,
                 InputInteractOption1);
 
-            SetPromptTextPhase(false);
+            string promptText = RDR2.Native.MISC.VAR_STRING(
+                10,
+                RegisteredPromptLabel);
+
+            RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
+                _promptHandle,
+                promptText);
+
+            Log(
+                "PROMPT TEXT SET BEFORE REGISTRATION: label=" +
+                RegisteredPromptLabel);
 
             RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
                 _promptHandle,
@@ -93,9 +93,10 @@ public class Test : Script
                 false);
 
             Log(
-                "PROMPT CREATED: name=Recruit/G; handle=" +
+                "PROMPT CREATED: handle=" +
                 _promptHandle +
-                "; initialTextPhase=custom Recruit");
+                "; label=" +
+                RegisteredPromptLabel);
         }
         catch (Exception exception)
         {
@@ -131,7 +132,6 @@ public class Test : Script
         if (!hasValidHumanTarget)
         {
             _hasLoggedGroupActivePage = false;
-            _hasStartedPhaseClock = false;
             UpdatePrompt(false);
             return;
         }
@@ -161,112 +161,7 @@ public class Test : Script
             groupFound &&
             promptAssigned;
 
-        if (shouldShowPrompt)
-        {
-            AdvancePromptTextPhase();
-        }
-        else
-        {
-            _hasStartedPhaseClock = false;
-        }
-
         UpdatePrompt(shouldShowPrompt);
-    }
-
-    private void AdvancePromptTextPhase()
-    {
-        DateTime nowUtc = DateTime.UtcNow;
-
-        if (!_hasStartedPhaseClock)
-        {
-            _hasStartedPhaseClock = true;
-            _nextPhaseSwitchUtc =
-                nowUtc + PromptTextPhaseDuration;
-
-            Log(
-                "PROMPT TEXT PHASE CLOCK STARTED: currentPhase=" +
-                GetPromptTextPhaseName() +
-                "; nextSwitchInSeconds=" +
-                PromptTextPhaseDuration.TotalSeconds.ToString(
-                    CultureInfo.InvariantCulture));
-            return;
-        }
-
-        if (nowUtc < _nextPhaseSwitchUtc)
-        {
-            return;
-        }
-
-        _isRegisteredLabelPhase = !_isRegisteredLabelPhase;
-        SetPromptTextPhase(_isRegisteredLabelPhase);
-
-        _nextPhaseSwitchUtc =
-            nowUtc + PromptTextPhaseDuration;
-
-        Log(
-            "PROMPT TEXT PHASE TIMER RESET: currentPhase=" +
-            GetPromptTextPhaseName());
-    }
-
-    private void SetPromptTextPhase(bool useRegisteredLabel)
-    {
-        if (_promptHandle <= 0)
-        {
-            return;
-        }
-
-        try
-        {
-            string promptText;
-
-            if (useRegisteredLabel)
-            {
-                promptText = RDR2.Native.MISC.VAR_STRING(
-                    10,
-                    RegisteredPromptLabel);
-            }
-            else
-            {
-                promptText = RDR2.Native.MISC.VAR_STRING(
-                    10,
-                    "LITERAL_STRING",
-                    RecruitPromptText);
-            }
-
-            RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
-                _promptHandle,
-                promptText);
-
-            _isRegisteredLabelPhase = useRegisteredLabel;
-
-            Log(
-                "PROMPT TEXT PHASE SET: phase=" +
-                GetPromptTextPhaseName() +
-                "; source=" +
-                (useRegisteredLabel
-                    ? "registered label " + RegisteredPromptLabel
-                    : "VAR_STRING LITERAL_STRING " + RecruitPromptText));
-
-            _lastPromptTextError = null;
-        }
-        catch (Exception exception)
-        {
-            LogErrorOnce(
-                ref _lastPromptTextError,
-                "PROMPT TEXT SET ERROR: phase=" +
-                (useRegisteredLabel
-                    ? RegisteredPromptLabel
-                    : RecruitPromptText) +
-                "; " +
-                InnermostMessage(exception));
-        }
-    }
-
-    private string GetPromptTextPhaseName()
-    {
-        return _isRegisteredLabelPhase
-            ? "registered CUTSCENE_SKIP"
-            : "custom Recruit";
     }
 
     private void ReadFocusedTarget(
@@ -327,9 +222,7 @@ public class Test : Script
                 InputInteractOption1))
             {
                 Log(
-                    "RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED; " +
-                    "promptTextPhase=" +
-                    GetPromptTextPhaseName());
+                    "RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED");
             }
 
             _lastInputError = null;
@@ -485,10 +378,10 @@ public class Test : Script
                 _lastPromptActiveState = promptActive;
 
                 Log(
-                    "PROMPT ACTIVE: name=Recruit/G; active=" +
-                    promptActive +
-                    "; textPhase=" +
-                    GetPromptTextPhaseName());
+                    "PROMPT ACTIVE: label=" +
+                    RegisteredPromptLabel +
+                    "; active=" +
+                    promptActive);
             }
 
             if (promptActive &&
@@ -496,9 +389,9 @@ public class Test : Script
                     _promptHandle))
             {
                 Log(
-                    "PROMPT PRESSED: name=Recruit/G; " +
-                    "no recruitment performed; textPhase=" +
-                    GetPromptTextPhaseName());
+                    "PROMPT PRESSED: label=" +
+                    RegisteredPromptLabel +
+                    "; no recruitment performed.");
             }
 
             _lastPromptError = null;
@@ -579,7 +472,7 @@ public class Test : Script
             RDR2.Native.HUD._UI_PROMPT_DELETE(
                 _promptHandle);
 
-            Log("PROMPT DELETED: name=Recruit/G");
+            Log("PROMPT DELETED: label=" + RegisteredPromptLabel);
             _promptHandle = 0;
         }
         catch (Exception exception)

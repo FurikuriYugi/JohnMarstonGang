@@ -1,22 +1,19 @@
-2026-11-08 15:13:04.532 === Focused-target prompt text comparison test: Recruit/G ===
-2026-11-08 15:13:04.532 Goal: compare custom VAR_STRING Recruit against the registered CUTSCENE_SKIP label on the same prompt.
-2026-11-08 15:13:04.532 The prompt alternates text phases every six seconds while a focused human target and target group are available.
-2026-11-08 15:13:04.533 No recruitment or gang membership changes are performed.
-2026-11-08 15:13:04.542 PROMPT TEXT PHASE SET: phase=custom Recruit; source=VAR_STRING LITERAL_STRING Recruit
-2026-11-08 15:13:04.542 PROMPT CREATED: name=Recruit/G; handle=212738; initialTextPhase=custom Recruit
-2026-11-08 15:13:04.580 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 15:13:04.582 PROMPT ACTIVE: name=Recruit/G; active=False; textPhase=custom Recruit
-2026-11-08 15:13:13.193 TARGET: nativeFound=True; handle=204034; human=True
-2026-11-08 15:13:13.194 PROMPT GROUP ASSIGNED: target=204034; group=268566621
-2026-11-08 15:13:13.194 PROMPT GROUP ACTIVE PAGE: group=268566621; page=-1; active=False
-2026-11-08 15:13:13.195 PROMPT TEXT PHASE CLOCK STARTED: currentPhase=custom Recruit; nextSwitchInSeconds=6
-2026-11-08 15:13:13.206 PROMPT GROUP ACTIVE PAGE: group=268566621; page=0; active=True
-2026-11-08 15:13:13.206 PROMPT ACTIVE: name=Recruit/G; active=True; textPhase=custom Recruit
-2026-11-08 15:13:19.197 PROMPT TEXT PHASE SET: phase=registered CUTSCENE_SKIP; source=registered label CUTSCENE_SKIP
-2026-11-08 15:13:19.197 PROMPT TEXT PHASE TIMER RESET: currentPhase=registered CUTSCENE_SKIP
-2026-11-08 15:13:23.563 RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED; promptTextPhase=registered CUTSCENE_SKIP
-2026-11-08 15:13:23.682 PROMPT PRESSED: name=Recruit/G; no recruitment performed; textPhase=registered CUTSCENE_SKIP
-2026-11-08 15:13:25.204 PROMPT TEXT PHASE SET: phase=custom Recruit; source=VAR_STRING LITERAL_STRING Recruit
-2026-11-08 15:13:25.205 PROMPT TEXT PHASE TIMER RESET: currentPhase=custom Recruit
-2026-11-08 15:13:25.663 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 15:13:25.664 PROMPT ACTIVE: name=Recruit/G; active=False; textPhase=custom Recruit
+2026-11-08 15:20:24.943 === Static registered-label focused-target prompt test ===
+2026-11-08 15:20:24.943 Prompt label: CUTSCENE_SKIP; expected prompt text: G Skip.
+2026-11-08 15:20:24.944 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.
+2026-11-08 15:20:24.944 The label is set once before prompt registration.
+2026-11-08 15:20:24.944 The prompt is assigned to a focused human target's prompt group.
+2026-11-08 15:20:24.944 No recruitment or gang membership changes are performed.
+2026-11-08 15:20:24.953 PROMPT TEXT SET BEFORE REGISTRATION: label=CUTSCENE_SKIP
+2026-11-08 15:20:24.954 PROMPT CREATED: handle=205314; label=CUTSCENE_SKIP
+2026-11-08 15:20:24.991 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 15:20:24.993 PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 15:20:31.701 TARGET: nativeFound=True; handle=197634; human=True
+2026-11-08 15:20:31.703 PROMPT GROUP ASSIGNED: target=197634; group=268566610
+2026-11-08 15:20:31.703 PROMPT GROUP ACTIVE PAGE: group=268566610; page=-1; active=False
+2026-11-08 15:20:31.715 PROMPT GROUP ACTIVE PAGE: group=268566610; page=0; active=True
+2026-11-08 15:20:31.715 PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
+2026-11-08 15:20:40.207 RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED
+2026-11-08 15:20:40.352 PROMPT PRESSED: label=CUTSCENE_SKIP; no recruitment performed.
+2026-11-08 15:20:41.742 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 15:20:41.743 PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
