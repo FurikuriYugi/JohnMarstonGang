@@ -1,7 +1,7 @@
-2026-11-08 00:08:55.956 === Registered-string prompt rendering diagnostic ===
-2026-11-08 00:08:55.956 Prompt text key: CUTSCENE_SKIP
-2026-11-08 00:08:55.956 Prompt group-name key: CUTSCENE_SKIP
-2026-11-08 00:08:55.956 Prompt group ID: 4869447
-2026-11-08 00:08:55.956 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-08 00:08:55.957 G input only logs an event. It does not recruit.
-2026-11-08 00:08:55.966 PROMPT CREATED: handle=212482
+2026-11-08 00:16:23.824 === Registered-string prompt rendering diagnostic ===
+2026-11-08 00:16:23.824 Prompt text key: CUTSCENE_SKIP
+2026-11-08 00:16:23.824 Prompt group-name key: CUTSCENE_SKIP
+2026-11-08 00:16:23.824 Prompt group ID: 4869447
+2026-11-08 00:16:23.824 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+2026-11-08 00:16:23.825 G input only logs an event. It does not recruit.
+2026-11-08 00:16:23.835 PROMPT CREATED: handle=207618
