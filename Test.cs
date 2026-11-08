@@ -22,9 +22,13 @@ public class Test : Script
     private int _lastGroupTargetHandle = int.MinValue;
     private bool _lastPromptActive;
     private bool _hasLoggedPromptState;
+    private int _lastActivePageGroupId = int.MinValue;
+    private int _lastGroupActivePage = int.MinValue;
+    private bool _hasLoggedGroupActivePage;
     private string _lastTargetError;
     private string _lastInputError;
     private string _lastGroupError;
+    private string _lastGroupActivePageError;
     private string _lastPromptError;
 
     public Test()
@@ -40,6 +44,11 @@ public class Test : Script
         Log(
             "Prompt control: INPUT_INTERACT_OPTION1; hash=0x" +
             InputInteractOption1.ToString("X8"));
+        Log(
+            "Group diagnostic: " +
+            "_UI_PROMPT_GET_GROUP_ACTIVE_PAGE");
+        Log(
+            "This test does not force an exclusive active prompt group.");
         Log("No recruitment or gang membership changes are performed.");
 
         CreatePrompt();
@@ -139,6 +148,16 @@ public class Test : Script
                 targetHandle,
                 out targetGroupId,
                 out groupAssignedForCurrentTarget);
+        }
+
+        if (groupAssignedForCurrentTarget &&
+            targetGroupId >= 0)
+        {
+            LogGroupActivePageIfChanged(targetGroupId);
+        }
+        else
+        {
+            _hasLoggedGroupActivePage = false;
         }
 
         bool showPrompt =
@@ -282,6 +301,42 @@ public class Test : Script
             LogErrorOnce(
                 ref _lastGroupError,
                 "GROUP LOOKUP/ASSIGNMENT ERROR: " +
+                InnermostMessage(exception));
+        }
+    }
+
+    private void LogGroupActivePageIfChanged(int groupId)
+    {
+        try
+        {
+            int activePage =
+                RDR2.Native.HUD
+                    ._UI_PROMPT_GET_GROUP_ACTIVE_PAGE((uint)groupId);
+
+            if (!_hasLoggedGroupActivePage ||
+                groupId != _lastActivePageGroupId ||
+                activePage != _lastGroupActivePage)
+            {
+                _hasLoggedGroupActivePage = true;
+                _lastActivePageGroupId = groupId;
+                _lastGroupActivePage = activePage;
+
+                Log(
+                    "PROMPT GROUP ACTIVE PAGE: group=" +
+                    groupId +
+                    "; page=" +
+                    activePage +
+                    "; active=" +
+                    (activePage >= 0));
+            }
+
+            _lastGroupActivePageError = null;
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                ref _lastGroupActivePageError,
+                "GROUP ACTIVE-PAGE LOOKUP ERROR: " +
                 InnermostMessage(exception));
         }
     }

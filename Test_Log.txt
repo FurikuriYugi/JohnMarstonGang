@@ -1,16 +1,18 @@
-2026-11-08 11:46:48.286 === Focused-target Recruit prompt test ===
-2026-11-08 11:46:48.287 Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY
-2026-11-08 11:46:48.287 Prompt text: Recruit
-2026-11-08 11:46:48.287 Prompt text builder: RDR2.Native.MISC.VAR_STRING(10, LITERAL_STRING, PromptText)
-2026-11-08 11:46:48.287 Prompt control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-08 11:46:48.287 No recruitment or gang membership changes are performed.
-2026-11-08 11:46:48.298 PROMPT CREATED: handle=209410
-2026-11-08 11:46:48.335 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 11:46:48.336 PROMPT ACTIVE: False
-2026-11-08 11:47:11.529 TARGET: nativeFound=True; handle=199426; human=True
-2026-11-08 11:47:11.531 PROMPT GROUP ASSIGNED: target=199426; group=268566616
-2026-11-08 11:47:11.546 PROMPT ACTIVE: True
-2026-11-08 11:47:15.802 RAW INPUT_INTERACT_OPTION1 PRESS DETECTED
-2026-11-08 11:47:15.935 RECRUIT PROMPT PRESSED; no recruitment performed.
-2026-11-08 11:47:16.904 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 11:47:16.905 PROMPT ACTIVE: False
+2026-11-08 12:05:14.086 === Focused-target Recruit prompt test ===
+2026-11-08 12:05:14.086 Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY
+2026-11-08 12:05:14.086 Prompt text: Recruit
+2026-11-08 12:05:14.086 Prompt text builder: RDR2.Native.MISC.VAR_STRING(10, LITERAL_STRING, PromptText)
+2026-11-08 12:05:14.086 Prompt control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+2026-11-08 12:05:14.087 Group diagnostic: _UI_PROMPT_GET_GROUP_ACTIVE_PAGE
+2026-11-08 12:05:14.087 This test does not force an exclusive active prompt group.
+2026-11-08 12:05:14.087 No recruitment or gang membership changes are performed.
+2026-11-08 12:05:14.098 PROMPT CREATED: handle=216834
+2026-11-08 12:05:14.135 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 12:05:14.137 PROMPT ACTIVE: False
+2026-11-08 12:05:21.693 TARGET: nativeFound=True; handle=207874; human=True
+2026-11-08 12:05:21.695 PROMPT GROUP ASSIGNED: target=207874; group=268566631
+2026-11-08 12:05:21.695 PROMPT GROUP ACTIVE PAGE: group=268566631; page=-1; active=False
+2026-11-08 12:05:21.706 PROMPT GROUP ACTIVE PAGE: group=268566631; page=0; active=True
+2026-11-08 12:05:21.707 PROMPT ACTIVE: True
+2026-11-08 12:05:26.503 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 12:05:26.503 PROMPT ACTIVE: False
