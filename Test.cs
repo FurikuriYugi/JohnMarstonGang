@@ -96,17 +96,18 @@ public class Test : Script
     private void OnTick(object sender, EventArgs e)
     {
         bool rawControlJustPressed = ReadControlPress();
-
-        int targetHandle;
-        bool targetIsHuman;
+        
+        int targetHandle = 0;
+        bool targetIsHuman = false;
 
         bool hasFocusedTarget = TryGetFocusedTarget(
-            out targetHandle,
+            targetHandle,
             out targetIsHuman);
 
         LogTargetStateIfChanged(
             targetHandle,
             targetIsHuman);
+
 
         if (rawControlJustPressed)
         {
@@ -166,7 +167,7 @@ public class Test : Script
     }
 
     private bool TryGetFocusedTarget(
-        out int targetHandle,
+        int targetHandle,
         out bool targetIsHuman)
     {
         targetHandle = 0;
@@ -179,7 +180,7 @@ public class Test : Script
                 bool nativeFoundTarget =
                     RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(
                         Game.Player.Handle,
-                        (int*)targetHandle,
+                        &targetHandle,
                         true,
                         true);
 
