@@ -226,3 +226,19 @@ A successful control-state read only reports what the control wrapper observed. 
 - Can any supported public API expose the built-in menu entries or internal interaction result directly?
 - Does the interaction menu change its available controls based on weapon state, distance, honor, NPC type, mission state, or other conditions?
 - Which supported public prompt API, if any, can add a new action to the focused-entity interaction menu?
+
+## Clarification from the native-option test
+
+The user confirmed that the built-in interaction options were pressed one at a time. The user observed that Rob, Threaten, and Aim At caused the NPC to flee or become hostile.
+
+The tested NPC did not show a recruitment option. The user therefore did not press G. This run does not test recruitment, does not confirm the G binding, and does not show that a custom recruitment prompt works.
+
+The current `Test_Log.txt` records presses for `INPUT_INTERACT_LOCKON_POS` and `INPUT_INTERACT_LOCKON_ROB`, among other focus/aim input states. It does not record a press of `INPUT_INTERACT_OPTION1` or `INPUT_INTERACT_LOCKON_NEG`. Do not infer that Threaten maps to the negative-interaction hash, or that Aim At maps to a particular candidate hash, from the visible behavior alone.
+
+The user’s visual report supplements the sniffer log. The sniffer observes candidate control states and selected ped properties; it does not intercept the game’s internal interaction result or prove which input caused a state change.
+
+## Current next-test procedure
+
+Use the read-only sniffer. In Story Mode, focus one human NPC and test only an option that is visibly present. Record the exact visible label and the NPC’s response separately for each action. Do not test G when no G option is displayed. Send the generated `Test_Log.txt` with those observations.
+
+The sniffer writes `Test_Log.txt` under the game’s base directory. To have the game write through to the repository copy on Windows, create a symbolic link in the game directory pointing to the repository’s `Test_Log.txt`; remove or rename any existing regular file of that name first. The link must be created in the local checkout and is not created by this chat.

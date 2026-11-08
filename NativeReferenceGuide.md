@@ -34,3 +34,22 @@ public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
     int* entity
 );
 ```
+
+## Read-only interaction sniffer
+
+The current v2.2.0 test log resolved these wrappers:
+
+- `PAD.IS_CONTROL_JUST_PRESSED(int, uint)`
+- `PAD.IS_CONTROL_PRESSED(int, uint)`
+- `PAD.IS_CONTROL_ENABLED(int, uint)`
+- `ENTITY.GET_ENTITY_HEALTH(int)`
+- `PED.IS_PED_IN_COMBAT(int, int)`
+- `PED.IS_PED_FLEEING(int)`
+- `PED.IS_PED_SHOOTING(int)`
+- `PED.IS_PED_RAGDOLL(int)`
+
+`PLAYER.GET_PLAYER_TARGET_ENTITY` was previously validated in this project as an unsafe pointer call with signature `bool(int, int*)`. The current sniffer uses it only while the player is free-focusing and then checks that the entity exists and is human.
+
+The test log reported `_GET_CURRENT_CONTROL_CONTEXT` as unavailable. Do not depend on that wrapper unless the installed v2.2.0 assembly is checked again and a compatible method is found.
+
+The listed control hashes are diagnostic candidates. Enabled/pressed observations and the user’s visible menu/action report should be recorded separately; a hash label or observed NPC reaction alone does not establish the game’s internal action mapping.
