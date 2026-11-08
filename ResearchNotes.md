@@ -51,6 +51,7 @@ Log only information relevant to:
 - The v2.2.0 wrapper exposes `MISC.VAR_STRING` as `string(int, InputArgument[])`.
 - Runtime reflection reported `REGISTER_INTERACTION_LOCKON_PROMPT` and `UNREGISTER_INTERACTION_LOCKON_PROMPT` as returning `System.Boolean`.
 - These wrapper signatures do not establish parameter meanings or in-game behavior.
+- The latest test file resolves `_UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE` by reflection so the test can log whether the installed HUD wrapper exposes a compatible method. The exact installed wrapper signature remains to be confirmed by that test's log.
 
 ### In-game findings — 2026-11-07
 
@@ -107,32 +108,38 @@ The user tested while unarmed and right-mouse focusing a human NPC.
 
 **Conclusion:** This is a visibility failure for the typed G prompt setup: target detection, prompt registration, and target-group assignment succeeded, but the user did not see the action. The missing completion wrapper does not explain the missing display.
 
-### In-game findings — latest ILO-enabled G prompt group-order test
+### In-game findings — latest ILO-enabled G prompt attempt
 
-The supplied log has no calendar date. The user tested while unarmed and right-mouse focusing a human NPC.
+The user tested while unarmed and right-mouse focusing a human NPC. The supplied log does not include a calendar date.
+
+- The harness found focused human target `206338`.
+- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true`.
+- Prompt handle `325890` was registered and assigned to target group `268566628`.
+- The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
+- The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
+- The user did not see **G Recruit** in the focused NPC's lock-on menu.
+- The ILO was unregistered when focus changed; unregistration returned `true`.
+- The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
+- No recruitment or gang-data changes were performed.
+
+**Conclusion:** ILO registration returned `true`, but this did not make the action visible. The prompt's registration and group assignment calls completed, but their success does not prove that the menu rendered the prompt.
+
+### In-game findings — latest group-order test
+
+The user tested while unarmed and right-mouse focusing a human NPC. The supplied log does not include a calendar date.
 
 - The harness found focused human target `204546`.
 - `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true`.
 - Prompt handle `242690` was registered and assigned to target group `268566627`.
+- The test called `_UI_PROMPT_SET_GROUP` after `_UI_PROMPT_REGISTER_END`.
 - The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
 - The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
 - The user did not see **G Recruit** in the focused NPC's lock-on menu.
-- Group assignment was performed after `_UI_PROMPT_REGISTER_END`; this did not make the prompt visible.
+- The ILO was unregistered when focus changed; unregistration returned `true`.
 - The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
-- `UNREGISTER_INTERACTION_LOCKON_PROMPT` returned `true` when focus changed.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** The group-order hypothesis did not resolve the visibility failure. Target detection, ILO registration, prompt registration, and group assignment all completed without a logged setup error, but none proves that the game rendered the action.
-
-### `PP_GREET` research note
-
-External prompt-type research lists `PP_GREET` as prompt type ID `3`, separately from `PP_INTERACTION_LOCKON` and `PP_INTERACTION_LOCKON_GROUP`. This identifies it as a prompt-type label in that list; it does not establish a keyboard glyph, a control-action hash, or a supported way to assign that type to a custom UI prompt. Keep the R-glyph interpretation as a hypothesis unless a native/API declaration or in-game test confirms it.
-
-### Current test hypothesis and next research step
-
-The latest test rules out “assign the target group after prompt registration” as a sufficient fix. Do not repeat that ordering change or treat a successful ILO return as display confirmation.
-
-Before changing `Test.cs`, investigate whether the game's `PP_GREET` prompt type is connected to a native/API mechanism that can be used for a custom interaction. Confirm the exact native or wrapper contract first. If no such mechanism is found, choose the next test from a documented, independently testable prompt setting and change only that setting.
+**Conclusion:** Assigning the target group after prompt registration did not make the action visible. ILO registration, prompt registration, and group assignment returning successfully still do not prove that the menu rendered the prompt.
 
 ### External prompt research
 
@@ -143,26 +150,32 @@ External RDR2 prompt research describes these as separate operations:
 3. Get the prompt group for the target entity and assign the created prompt to that group.
 4. Register an interaction-lock-on prompt on an entity when needed for its focus/approach interaction.
 
-The research reports that peds can be focused by default. It describes the ILO `prompt` parameter as not working with a custom prompt in that research setup, and says peds' focused action prompts are shown by assigning a UI prompt to the entity's prompt group. Its examples demonstrate group assignment as a separate operation on a registered prompt. The research does not prove that assigning the group before `_UI_PROMPT_REGISTER_END` is invalid in this project's wrapper/runtime.
+The research reports that peds can be focused by default. It describes the ILO `prompt` parameter as not working with a custom prompt in that research setup, and says peds' focused action prompts are shown by assigning a UI prompt to the entity's prompt group. Its examples demonstrate group assignment as a separate operation on a registered prompt.
 
-Treat these as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or game behavior.
+External research also documents `_UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE` (`0x2F385ECC5200938D`). It describes this native as choosing the control used for prompt ordering and says to call it during registration or immediately afterward. The documented ordering examples include several context and quick-select controls, but not `INPUT_INTERACT_OPTION1`. Whether this native accepts or helps order the test's G action remains unverified.
+
+The test discussion raised `PP_GREET` as a possible clue to the built-in Greet interaction. The reviewed native/prompt research does not establish that `PP_GREET` is a keyboard glyph, a control-action hash, or a supported way to assign a type to a custom UI prompt. Keep that interpretation unverified.
+
+Treat these findings as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or game behavior.
 
 ### Current test hypothesis and next run
 
-The latest ILO-enabled run did not display **G Recruit**. The next test changes only the order of group assignment relative to prompt registration:
+The latest group-order test did not display **G Recruit**. The next test keeps the prior setup and adds only an explicit input-ordering call:
 
 - Keep the test's `INPUT_INTERACT_OPTION1` control (`0x760A9C6F`) and its reported default G mapping.
-- Keep focused-human target selection, ILO parameters, target prompt group, prompt text, and prompt configuration.
-- Call `_UI_PROMPT_REGISTER_END` before `_UI_PROMPT_SET_GROUP`.
+- Keep focused-human target selection, ILO parameters, target prompt group, prompt text, prompt configuration, and group assignment after `_UI_PROMPT_REGISTER_END`.
+- Resolve `_UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE` from the installed HUD wrapper and record the resolved method signature.
+- If a compatible wrapper is available, call it for the G control during prompt registration, before `_UI_PROMPT_REGISTER_END`.
+- If no compatible wrapper is available, log that result and do not treat the run as a prompt-visibility test.
 - Do not add ambient-group or active-group activation, another prompt control, or recruitment behavior.
-- Record whether ILO registration returns `true`, whether prompt registration ends, whether group assignment completes, whether **G Recruit** is visible, and whether the optional standard-mode completion check reports completion.
+- Record whether ILO registration returns `true`, whether ordering setup succeeds, whether prompt registration ends, whether group assignment completes, whether **G Recruit** is visible, and whether the optional standard-mode completion check reports completion.
 
-This tests whether assigning the target group only after prompt registration changes rendering. A successful native call still does not prove that the action rendered.
+This tests whether explicitly setting the prompt's ordering input affects rendering. External research's ordering examples do not establish that `INPUT_INTERACT_OPTION1` is a supported ordering input. A successful native call still does not prove that the action rendered.
 
 ### Open questions
 
-- Does assigning the target entity group after `_UI_PROMPT_REGISTER_END` make the custom action visible?
-- Does ILO registration affect display of a custom action prompt for an already-focusable ped when the G action and target-group assignment are held constant?
+- Does `_UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE` accept `INPUT_INTERACT_OPTION1` for ordering this focused-entity action?
+- Does explicitly setting that input ordering make the custom action visible?
 - Does the action prompt text render consistently with the installed API/runtime DLL pairing?
 - Can the same interaction be implemented through a supported public prompt API rather than reflection?
 - Which `REGISTER_INTERACTION_LOCKON_PROMPT` parameters are required for an NPC already focusable by the base game?

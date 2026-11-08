@@ -6,12 +6,12 @@ using RDR2;
 public class Test : Script
 {
     // INPUT_INTERACT_OPTION1 in the InteractionLockOn context.
-    // The test uses its reported default keyboard mapping: G.
+    // The existing test reports its default keyboard mapping as G.
     private const uint RecruitInputActionHash = 0x760A9C6F;
     private const int PromptTextLiteralString = 10;
 
     // ILO setup parameters for this diagnostic test.
-    // The text is not meant to appear as an approach prompt because p8 is false.
+    // The text is not intended to appear as an approach prompt because p8 is false.
     private const float IloRadius = 2.0f;
     private const float IloFocusDistance = 2.0f;
     private const int IloFlags = 0;
@@ -20,6 +20,9 @@ public class Test : Script
     private const int IloPromptHandle = 0;
     private const bool IloShowApproachPrompt = false;
     private const int IloUnknownInt9 = -1;
+
+    private const string PromptOrderingMethodName =
+        "_UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE";
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -30,30 +33,34 @@ public class Test : Script
     private int _promptHandle = -1;
     private int _promptGroup = -1;
     private int _iloRegisteredTarget = -1;
+
     private bool _iloRegistrationAttemptedForTarget;
     private bool _completedForTarget;
     private bool _setupFailedForTarget;
     private bool _completionWarningLogged;
     private bool _errorLogged;
+
     private MethodInfo _promptHasStandardModeCompleted;
+    private MethodInfo _promptSetOrderingAsInputType;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Native lock-on G Recruit prompt group-order test initialized ===");
+        Log("=== Native lock-on G Recruit prompt ordering test initialized ===");
         Log("TEST ONLY: create a temporary G Recruit action prompt for the focused human NPC.");
-        Log("INPUT ACTION: INPUT_INTERACT_OPTION1 (0x760A9C6F; InteractionLockOn context; default G).");
+        Log("INPUT ACTION: INPUT_INTERACT_OPTION1 (0x760A9C6F; InteractionLockOn context; reported default G).");
         Log("PROMPT TEXT: direct VAR_STRING wrapper call using an explicit InputArgument array.");
-        Log("PROMPT GROUP: assign the native prompt to the focused entity's target prompt group.");
-        Log("GROUP-ORDER TEST: call UI_PROMPT_SET_GROUP after UI_PROMPT_REGISTER_END.");
+        Log("PROMPT ORDERING TEST: call _UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE during prompt registration.");
+        Log("PROMPT GROUP: assign the native prompt to the focused entity's target prompt group after registration ends.");
         Log("ILO TEST: register an ILO for the already-focused human target; log its Boolean result.");
         Log("ILO APPROACH PROMPT: disabled for this test; no separate approach text is intended.");
         Log("No ambient-group or active-group activation is performed.");
         Log("No recruitment or gang-data changes are performed.");
         Log("Unarmed test conditions: stand close to a human NPC, right-mouse focus them, and check for G Recruit.");
-        Log("Native setup success does not prove that the prompt rendered in game.");
+        Log("Native setup success does not prove that the prompt rendered.");
 
+        ResolvePromptOrderingMethod();
         ResolveOptionalCompletionMethod();
 
         RDR2.UI.Screen.PrintSubtitle(
@@ -167,6 +174,14 @@ public class Test : Script
     {
         try
         {
+            if (_promptSetOrderingAsInputType == null)
+            {
+                throw new InvalidOperationException(
+                    "The installed HUD wrapper did not expose a compatible " +
+                    PromptOrderingMethodName +
+                    " method. No prompt-visibility result can be tested.");
+            }
+
             TryRegisterIlo(targetHandle);
 
             _promptGroup =
@@ -230,8 +245,10 @@ public class Test : Script
                 _promptHandle,
                 true);
 
-            // Finish registering the prompt before assigning it to the
-            // focused entity's target prompt group.
+            // External prompt research says this ordering control must be set
+            // while the prompt is being registered or immediately afterward.
+            SetPromptOrderingAsInputType(_promptHandle);
+
             RDR2.Native.HUD._UI_PROMPT_REGISTER_END(
                 _promptHandle);
 
@@ -239,6 +256,8 @@ public class Test : Script
                 "PROMPT REGISTER END: target=" + targetHandle +
                 "; handle=" + _promptHandle);
 
+            // Keep the previous test's group-assignment order unchanged so
+            // this run changes only the ordering setting.
             RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 _promptHandle,
                 _promptGroup,
@@ -251,7 +270,7 @@ public class Test : Script
 
             Log(
                 "PROMPT CONTROL: INPUT_INTERACT_OPTION1 " +
-                "(0x760A9C6F; default G in InteractionLockOn).");
+                "(0x760A9C6F; reported default G in InteractionLockOn).");
 
             Log(
                 "PROMPT TEXT: VAR_STRING(10, " +
@@ -272,6 +291,37 @@ public class Test : Script
 
             ClearPrompt();
         }
+    }
+
+    private void SetPromptOrderingAsInputType(int promptHandle)
+    {
+        ParameterInfo[] parameters =
+            _promptSetOrderingAsInputType.GetParameters();
+
+        object inputTypeArgument =
+            Convert.ChangeType(
+                RecruitInputActionHash,
+                parameters[1].ParameterType);
+
+        object nativeResult =
+            _promptSetOrderingAsInputType.Invoke(
+                null,
+                new object[]
+                {
+                    promptHandle,
+                    inputTypeArgument
+                });
+
+        string returnText =
+            nativeResult == null
+                ? "void"
+                : nativeResult.ToString();
+
+        Log(
+            "PROMPT ORDERING SET: method=" +
+            GetMethodSignature(_promptSetOrderingAsInputType) +
+            "; input=INPUT_INTERACT_OPTION1 (0x760A9C6F)" +
+            "; nativeReturn=" + returnText);
     }
 
     private void TryRegisterIlo(int targetHandle)
@@ -321,6 +371,93 @@ public class Test : Script
                 "; " +
                 GetExceptionMessage(exception));
         }
+    }
+
+    private void ResolvePromptOrderingMethod()
+    {
+        try
+        {
+            MethodInfo[] methods =
+                typeof(RDR2.Native.HUD).GetMethods(
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic |
+                    BindingFlags.Static);
+
+            for (int i = 0; i < methods.Length; i++)
+            {
+                MethodInfo method = methods[i];
+
+                if (!string.Equals(
+                    method.Name,
+                    PromptOrderingMethodName,
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                ParameterInfo[] parameters =
+                    method.GetParameters();
+
+                if (parameters.Length != 2 ||
+                    parameters[0].ParameterType != typeof(int) ||
+                    !IsSupportedInputTypeParameter(
+                        parameters[1].ParameterType))
+                {
+                    continue;
+                }
+
+                _promptSetOrderingAsInputType = method;
+                break;
+            }
+        }
+        catch (Exception exception)
+        {
+            Log(
+                "PROMPT ORDERING LOOKUP FAILED: " +
+                GetExceptionMessage(exception));
+        }
+
+        if (_promptSetOrderingAsInputType == null)
+        {
+            Log(
+                "NOTE: Compatible " +
+                PromptOrderingMethodName +
+                " wrapper was not resolved. The prompt test will stop " +
+                "before prompt registration for a focused target.");
+        }
+        else
+        {
+            Log(
+                "PROMPT ORDERING WRAPPER RESOLVED: " +
+                GetMethodSignature(_promptSetOrderingAsInputType));
+        }
+    }
+
+    private static bool IsSupportedInputTypeParameter(Type parameterType)
+    {
+        return parameterType == typeof(int) ||
+               parameterType == typeof(uint) ||
+               parameterType == typeof(long) ||
+               parameterType == typeof(ulong);
+    }
+
+    private static string GetMethodSignature(MethodInfo method)
+    {
+        ParameterInfo[] parameters = method.GetParameters();
+        string[] parameterNames = new string[parameters.Length];
+
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            parameterNames[i] =
+                parameters[i].ParameterType.Name;
+        }
+
+        return method.DeclaringType.FullName +
+               "." +
+               method.Name +
+               "(" +
+               string.Join(", ", parameterNames) +
+               ")";
     }
 
     private void ResolveOptionalCompletionMethod()
@@ -399,7 +536,10 @@ public class Test : Script
             object completedResult =
                 _promptHasStandardModeCompleted.Invoke(
                     null,
-                    new object[] { _promptHandle });
+                    new object[]
+                    {
+                        _promptHandle
+                    });
 
             bool completed =
                 completedResult != null &&
@@ -513,7 +653,7 @@ public class Test : Script
         }
 
         return current.GetType().FullName +
-            ": " +
-            current.Message;
+               ": " +
+               current.Message;
     }
 }
