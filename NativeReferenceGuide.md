@@ -11,7 +11,7 @@ Record API and native patterns relevant to the NPC recruitment-prompt test. The 
 - Prefer generated `RDR2.Native` wrappers when the installed API exposes and confirms the required signature.
 - Use the ASI and API DLL files from the same ScriptHookRDR2DotNet-V2 release archive.
 - Do not infer meanings for parameters named `p3`, `p5`, or similar.
-- Keep target selection, ILO registration, UI-prompt creation, prompt-group attachment, input detection, and recruitment execution as separate testable operations.
+- Keep target selection, prompt creation, prompt-group attachment, group activation, input detection, and recruitment execution as separate testable operations.
 - For diagnostics, optional native wrappers can be resolved by reflection. Log the resolved signature; wrapper presence and return value do not establish in-game effect.
 - Do not use `System.Text.Json`; use Newtonsoft.Json when JSON is needed.
 
@@ -19,12 +19,11 @@ Record API and native patterns relevant to the NPC recruitment-prompt test. The 
 
 The production path in `Main.cs` uses `PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY` and falls back to `Game.Player.GetFreeAimEntity()`.
 
-The isolated test previously resolved this v2.2.0 wrapper:
+The isolated test uses nearby-ped scanning to select a living human NPC, then checks the player's lock-on/focus target. The v2.2.0 wrapper previously resolved for `GET_PLAYER_TARGET_ENTITY` is:
 
 ```csharp
 public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
     int player,
     int* entity
 );
-
 ```

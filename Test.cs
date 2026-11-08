@@ -1,26 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using RDR2;
 
 public class Test : Script
 {
     private const int ControlPadIndex = 0;
     private const uint InputInteractOption1 = 0x760A9C6Fu;
+
     private const int TargetScanIntervalMilliseconds = 500;
     private const int InputHeartbeatIntervalMilliseconds = 2000;
+
     private const float TargetSelectionDistance = 8.0f;
     private const float TargetRetentionDistance = 9.0f;
+
+    private const float AmbientGroupRadius = 8.0f;
+    private const int AmbientGroupParameter2 = 2;
+    private const int AmbientGroupTabCount = 0;
+    private const int AmbientGroupFlags = 0;
 
     private const int VarStringType = 10;
     private const string VarStringFormat = "LITERAL_STRING";
     private const string PromptText = "Recruit";
+    private const string PromptGroupName = "NPC";
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
+
+    private readonly Dictionary<string, MethodInfo> _nativeMethods =
+        new Dictionary<string, MethodInfo>();
+
+    private readonly HashSet<string> _loggedErrors =
+        new HashSet<string>();
 
     private readonly Dictionary<string, MethodInfo> _probeMethods =
         new Dictionary<string, MethodInfo>();
@@ -31,9 +45,6 @@ public class Test : Script
     private readonly Dictionary<string, bool> _currentProbeValues =
         new Dictionary<string, bool>();
 
-    private readonly HashSet<string> _loggedErrors =
-        new HashSet<string>();
-
     private int _trackedTargetHandle;
     private int _focusedPromptHandle;
     private int _focusedPromptGroupId;
@@ -43,6 +54,7 @@ public class Test : Script
     private bool _generalErrorLogged;
     private bool _targetResolutionErrorLogged;
     private bool _promptErrorLogged;
+    private bool _ambientActivationLoggedForTarget;
 
     private DateTime _lastTargetScanUtc;
     private DateTime _lastInputHeartbeatUtc;
@@ -51,27 +63,48 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Focused NPC custom Recruit prompt test initialized ===");
-        Log("Prompt text source: VAR_STRING(" +
+        Log("=== Focused NPC ambient Recruit prompt test initialized ===");
+        Log("Prompt text: VAR_STRING(" +
             VarStringType + ", \"" + VarStringFormat +
             "\", \"" + PromptText + "\").");
+        Log("Prompt group name: \"" + PromptGroupName + "\".");
         Log("Input control: INPUT_INTERACT_OPTION1; hash=0x" +
             InputInteractOption1.ToString("X8"));
-        Log("The prompt is attached to the focused NPC target's prompt group.");
+        Log("Ambient group activation is attempted every focused tick.");
         Log("This test does not recruit, change gang membership, or trigger an animation.");
 
         ResolveProbe("UI_PROMPT_IS_ACTIVE", new object[] { 0 });
         ResolveProbe("UI_PROMPT_IS_PRESSED", new object[] { 0 });
         ResolveProbe("UI_PROMPT_IS_JUST_PRESSED", new object[] { 0 });
+
         ResolveProbe(
             "IS_CONTROL_ENABLED",
             new object[] { ControlPadIndex, InputInteractOption1 });
+
         ResolveProbe(
             "IS_CONTROL_PRESSED",
             new object[] { ControlPadIndex, InputInteractOption1 });
+
         ResolveProbe(
             "IS_CONTROL_JUST_PRESSED",
             new object[] { ControlPadIndex, InputInteractOption1 });
+
+        ResolveNative(
+            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
+            new object[]
+            {
+                0,
+                AmbientGroupRadius,
+                AmbientGroupParameter2,
+                AmbientGroupTabCount,
+                0,
+                0UL,
+                AmbientGroupFlags
+            });
+
+        ResolveNative(
+            "UI_PROMPT_SET_STANDARD_MODE",
+            new object[] { 0, true });
 
         CreateFocusedPrompt();
 
@@ -95,6 +128,7 @@ public class Test : Script
             {
                 _generalErrorLogged = true;
                 Log("TEST ERROR: " + GetInnermostMessage(exception));
+
                 RDR2.UI.Screen.PrintSubtitle(
                     "Recruit prompt test error. Check Test_Log.txt.");
             }
@@ -103,10 +137,7 @@ public class Test : Script
 
     private void ResolveProbe(string nativeName, object[] sampleArguments)
     {
-        MethodInfo method = FindCompatibleNativeMethod(
-            nativeName,
-            sampleArguments);
-
+        MethodInfo method = ResolveNative(nativeName, sampleArguments);
         _probeMethods[nativeName] = method;
 
         if (method == null)
@@ -118,6 +149,29 @@ public class Test : Script
 
         Log("PROBE WRAPPER: " + nativeName +
             "; signature=" + FormatMethodSignature(method));
+    }
+
+    private MethodInfo ResolveNative(string nativeName, object[] sampleArguments)
+    {
+        MethodInfo existingMethod;
+        if (_nativeMethods.TryGetValue(nativeName, out existingMethod))
+        {
+            return existingMethod;
+        }
+
+        MethodInfo method = FindCompatibleNativeMethod(
+            nativeName,
+            sampleArguments);
+
+        _nativeMethods[nativeName] = method;
+
+        if (method != null)
+        {
+            Log("NATIVE WRAPPER: " + nativeName +
+                "; signature=" + FormatMethodSignature(method));
+        }
+
+        return method;
     }
 
     private void UpdateNearbyTargetIfNeeded()
@@ -160,7 +214,8 @@ public class Test : Script
             Game.Player.Character.Position);
 
         Log("HUMAN TARGET BEGIN: target=" +
-            _trackedTargetHandle + "; distance=" + distance);
+            _trackedTargetHandle +
+            "; distance=" + distance);
     }
 
     private Ped FindNearbyHumanTarget()
@@ -194,7 +249,8 @@ public class Test : Script
                 continue;
             }
 
-            float distance = ped.Position.DistanceTo(playerPed.Position);
+            float distance = ped.Position.DistanceTo(
+                playerPed.Position);
 
             if (ped.Handle == _trackedTargetHandle &&
                 distance <= TargetRetentionDistance)
@@ -236,6 +292,7 @@ public class Test : Script
         {
             Log("TARGET NO LONGER EXISTS: target=" +
                 _trackedTargetHandle);
+
             ClearTrackedTarget();
             return;
         }
@@ -252,12 +309,14 @@ public class Test : Script
             {
                 Log("TRACKED TARGET FOCUS BEGIN: target=" +
                     _trackedTargetHandle);
+
                 AttachFocusedPrompt(_trackedTargetHandle);
             }
             else
             {
                 Log("TRACKED TARGET FOCUS END: target=" +
                     _trackedTargetHandle);
+
                 DetachFocusedPrompt();
             }
         }
@@ -269,6 +328,7 @@ public class Test : Script
             return;
         }
 
+        ActivateAmbientPromptGroupThisFrame();
         SampleInputProbes();
     }
 
@@ -329,7 +389,7 @@ public class Test : Script
             out object promptResult))
         {
             LogPromptErrorOnce(
-                "Could not find a compatible UI_PROMPT_REGISTER_BEGIN wrapper.");
+                "Could not find or invoke UI_PROMPT_REGISTER_BEGIN.");
             return;
         }
 
@@ -339,6 +399,7 @@ public class Test : Script
             LogPromptErrorOnce(
                 "UI_PROMPT_REGISTER_BEGIN returned an invalid handle: " +
                 FormatResult(promptResult));
+
             _focusedPromptHandle = 0;
             return;
         }
@@ -355,7 +416,8 @@ public class Test : Script
             out object controlResult))
         {
             LogPromptErrorOnce(
-                "Could not set the focused prompt control action.");
+                "Could not set INPUT_INTERACT_OPTION1 on the prompt.");
+
             DeleteFocusedPrompt();
             return;
         }
@@ -375,13 +437,16 @@ public class Test : Script
             out object textResult))
         {
             LogPromptErrorOnce(
-                "Could not create the literal prompt text with VAR_STRING.");
+                "Could not create literal prompt text with VAR_STRING.");
+
             DeleteFocusedPrompt();
             return;
         }
 
         Log("VAR_STRING RESULT: type=" +
-            (textResult == null ? "null" : textResult.GetType().FullName) +
+            (textResult == null
+                ? "null"
+                : textResult.GetType().FullName) +
             "; value=" + FormatResult(textResult));
 
         if (!TryInvokeNative(
@@ -395,12 +460,26 @@ public class Test : Script
         {
             LogPromptErrorOnce(
                 "Could not set the prompt text from the VAR_STRING result.");
+
             DeleteFocusedPrompt();
             return;
         }
 
         Log("PROMPT TEXT SET: literal=\"" + PromptText +
             "\"; result=" + FormatResult(setTextResult));
+
+        bool standardModeSet = TryInvokeNative(
+            "UI_PROMPT_SET_STANDARD_MODE",
+            new object[]
+            {
+                _focusedPromptHandle,
+                true
+            },
+            out object standardModeResult);
+
+        Log("PROMPT STANDARD MODE: wrapperInvoked=" +
+            standardModeSet +
+            "; result=" + FormatResult(standardModeResult));
 
         if (!TryInvokeNative(
             "UI_PROMPT_REGISTER_END",
@@ -409,6 +488,7 @@ public class Test : Script
         {
             LogPromptErrorOnce(
                 "Could not finish UI_PROMPT_REGISTER_END.");
+
             DeleteFocusedPrompt();
             return;
         }
@@ -434,6 +514,8 @@ public class Test : Script
 
     private void AttachFocusedPrompt(int targetHandle)
     {
+        _ambientActivationLoggedForTarget = false;
+
         if (_focusedPromptHandle <= 0)
         {
             LogPromptErrorOnce(
@@ -447,15 +529,16 @@ public class Test : Script
             out object groupResult))
         {
             LogPromptErrorOnce(
-                "Could not find a compatible " +
-                "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY wrapper.");
+                "Could not find or invoke " +
+                "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY.");
             return;
         }
 
-        if (!TryConvertToInt(groupResult, out int groupId))
+        if (!TryConvertToInt(groupResult, out int groupId) ||
+            groupId == 0)
         {
             LogPromptErrorOnce(
-                "Target prompt-group native returned an unexpected value: " +
+                "Target prompt-group native returned an invalid value: " +
                 FormatResult(groupResult));
             return;
         }
@@ -477,6 +560,7 @@ public class Test : Script
         {
             LogPromptErrorOnce(
                 "Could not attach the prompt to the target's prompt group.");
+
             _focusedPromptGroupId = 0;
             return;
         }
@@ -507,11 +591,87 @@ public class Test : Script
             "; visibleResult=" + FormatResult(visibleResult));
 
         RDR2.UI.Screen.PrintSubtitle(
-            "G Recruit prompt attached. Tap G once.");
+            "Recruit prompt attached. Check for G Recruit.");
+    }
+
+    private void ActivateAmbientPromptGroupThisFrame()
+    {
+        if (_trackedTargetHandle <= 0 ||
+            _focusedPromptGroupId == 0)
+        {
+            return;
+        }
+
+        if (!_nativeMethods.ContainsKey(
+            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME"))
+        {
+            ResolveNative(
+                "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
+                new object[]
+                {
+                    _trackedTargetHandle,
+                    AmbientGroupRadius,
+                    AmbientGroupParameter2,
+                    AmbientGroupTabCount,
+                    _focusedPromptGroupId,
+                    0UL,
+                    AmbientGroupFlags
+                });
+        }
+
+        if (!TryInvokeNative(
+            "VAR_STRING",
+            new object[]
+            {
+                VarStringType,
+                VarStringFormat,
+                PromptGroupName
+            },
+            out object groupNameResult))
+        {
+            LogPromptErrorOnce(
+                "Could not create the ambient prompt-group name.");
+            return;
+        }
+
+        bool invoked = TryInvokeNative(
+            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
+            new object[]
+            {
+                _trackedTargetHandle,
+                AmbientGroupRadius,
+                AmbientGroupParameter2,
+                AmbientGroupTabCount,
+                _focusedPromptGroupId,
+                groupNameResult,
+                AmbientGroupFlags
+            },
+            out object activationResult);
+
+        if (!invoked)
+        {
+            return;
+        }
+
+        if (!_ambientActivationLoggedForTarget)
+        {
+            _ambientActivationLoggedForTarget = true;
+
+            Log("AMBIENT GROUP ACTIVATION INVOKED: target=" +
+                _trackedTargetHandle +
+                "; radius=" + AmbientGroupRadius +
+                "; p2=" + AmbientGroupParameter2 +
+                "; tabCount=" + AmbientGroupTabCount +
+                "; group=" + _focusedPromptGroupId +
+                "; flags=" + AmbientGroupFlags +
+                "; result=" + FormatResult(activationResult));
+        }
     }
 
     private void DetachFocusedPrompt()
     {
+        _ambientActivationLoggedForTarget = false;
+
         if (_focusedPromptHandle <= 0)
         {
             _focusedPromptGroupId = 0;
@@ -542,12 +702,9 @@ public class Test : Script
             Log("PROMPT GROUP DETACH: prompt=" +
                 _focusedPromptHandle +
                 "; group=" + _focusedPromptGroupId +
-                "; wrapperFound=" + removed +
+                "; wrapperInvoked=" + removed +
                 "; result=" + FormatResult(removeResult));
-        }
 
-        if (_focusedPromptGroupId != 0)
-        {
             Log("FOCUSED PROMPT DISABLED: prompt=" +
                 _focusedPromptHandle +
                 "; enabledResult=" + FormatResult(enabledResult) +
@@ -614,11 +771,32 @@ public class Test : Script
         }
     }
 
+    private void ResolveProbeMethodIfNeeded(
+        string nativeName,
+        object[] arguments)
+    {
+        if (_probeMethods.ContainsKey(nativeName))
+        {
+            return;
+        }
+
+        MethodInfo method = ResolveNative(nativeName, arguments);
+        _probeMethods[nativeName] = method;
+
+        if (method == null)
+        {
+            Log("PROBE WRAPPER NOT FOUND: " + nativeName +
+                "; argumentCount=" + arguments.Length);
+        }
+    }
+
     private void SampleProbe(
         string nativeName,
         object[] arguments,
         bool isPulse)
     {
+        ResolveProbeMethodIfNeeded(nativeName, arguments);
+
         if (!_probeMethods.TryGetValue(
             nativeName,
             out MethodInfo method) ||
@@ -636,7 +814,9 @@ public class Test : Script
 
         try
         {
-            value = Convert.ToBoolean(result);
+            value = Convert.ToBoolean(
+                result,
+                CultureInfo.InvariantCulture);
         }
         catch
         {
@@ -724,7 +904,7 @@ public class Test : Script
 
         Log("FOCUSED PROMPT DELETE: prompt=" +
             _focusedPromptHandle +
-            "; wrapperFound=" + deleted +
+            "; wrapperInvoked=" + deleted +
             "; result=" + FormatResult(deleteResult));
 
         _focusedPromptHandle = 0;
@@ -750,9 +930,7 @@ public class Test : Script
         object[] arguments,
         out object result)
     {
-        MethodInfo method = FindCompatibleNativeMethod(
-            nativeName,
-            arguments);
+        MethodInfo method = ResolveNative(nativeName, arguments);
 
         if (method == null)
         {
@@ -760,6 +938,7 @@ public class Test : Script
                 "native_missing_" + nativeName,
                 "NATIVE WRAPPER NOT FOUND: " + nativeName +
                 "; argumentCount=" + arguments.Length);
+
             result = null;
             return false;
         }
@@ -777,93 +956,34 @@ public class Test : Script
         try
         {
             ParameterInfo[] parameters = method.GetParameters();
-            bool hasParamArray =
-                parameters.Length > 0 &&
-                Attribute.IsDefined(
-                    parameters[parameters.Length - 1],
-                    typeof(ParamArrayAttribute));
 
-            object[] invokeArguments;
-
-            if (hasParamArray)
+            if (parameters.Length != arguments.Length)
             {
-                int fixedParameterCount = parameters.Length - 1;
-
-                if (arguments.Length < fixedParameterCount)
-                {
-                    LogErrorOnce(
-                        "native_count_" + method.Name,
-                        "NATIVE ARGUMENT COUNT MISMATCH: " +
-                        FormatMethodSignature(method));
-                    return false;
-                }
-
-                invokeArguments = new object[parameters.Length];
-
-                for (int i = 0; i < fixedParameterCount; i++)
-                {
-                    if (!TryConvertArgument(
-                        arguments[i],
-                        parameters[i].ParameterType,
-                        out invokeArguments[i]))
-                    {
-                        LogArgumentConversionFailure(method, i);
-                        return false;
-                    }
-                }
-
-                Type elementType =
-                    parameters[parameters.Length - 1]
-                        .ParameterType
-                        .GetElementType();
-
-                int extraArgumentCount =
-                    arguments.Length - fixedParameterCount;
-
-                Array extraArguments =
-                    Array.CreateInstance(elementType, extraArgumentCount);
-
-                for (int i = 0; i < extraArgumentCount; i++)
-                {
-                    if (!TryConvertArgument(
-                        arguments[fixedParameterCount + i],
-                        elementType,
-                        out object convertedArgument))
-                    {
-                        LogArgumentConversionFailure(
-                            method,
-                            fixedParameterCount + i);
-                        return false;
-                    }
-
-                    extraArguments.SetValue(convertedArgument, i);
-                }
-
-                invokeArguments[parameters.Length - 1] = extraArguments;
+                LogErrorOnce(
+                    "native_count_" + method.Name,
+                    "NATIVE ARGUMENT COUNT MISMATCH: " +
+                    FormatMethodSignature(method));
+                return false;
             }
-            else
+
+            object[] invokeArguments =
+                new object[arguments.Length];
+
+            for (int i = 0; i < arguments.Length; i++)
             {
-                if (parameters.Length != arguments.Length)
+                if (!TryConvertArgument(
+                    arguments[i],
+                    parameters[i].ParameterType,
+                    out invokeArguments[i]))
                 {
                     LogErrorOnce(
-                        "native_count_" + method.Name,
-                        "NATIVE ARGUMENT COUNT MISMATCH: " +
+                        "native_conversion_" + method.Name + "_" + i,
+                        "NATIVE ARGUMENT CONVERSION FAILED: " +
+                        method.Name +
+                        "; parameter=" + i +
+                        "; signature=" +
                         FormatMethodSignature(method));
                     return false;
-                }
-
-                invokeArguments = new object[arguments.Length];
-
-                for (int i = 0; i < arguments.Length; i++)
-                {
-                    if (!TryConvertArgument(
-                        arguments[i],
-                        parameters[i].ParameterType,
-                        out invokeArguments[i]))
-                    {
-                        LogArgumentConversionFailure(method, i);
-                        return false;
-                    }
                 }
             }
 
@@ -879,20 +999,6 @@ public class Test : Script
                 "; " + GetInnermostMessage(exception));
             return false;
         }
-    }
-
-    private void LogArgumentConversionFailure(
-        MethodInfo method,
-        int parameterIndex)
-    {
-        ParameterInfo[] parameters = method.GetParameters();
-
-        LogErrorOnce(
-            "native_conversion_" + method.Name + "_" + parameterIndex,
-            "NATIVE ARGUMENT CONVERSION FAILED: " +
-            method.Name +
-            "; parameter=" + parameterIndex +
-            "; signature=" + FormatMethodSignature(method));
     }
 
     private MethodInfo FindCompatibleNativeMethod(
@@ -950,30 +1056,15 @@ public class Test : Script
                 }
 
                 ParameterInfo[] parameters = method.GetParameters();
-                bool hasParamArray =
-                    parameters.Length > 0 &&
-                    Attribute.IsDefined(
-                        parameters[parameters.Length - 1],
-                        typeof(ParamArrayAttribute));
 
-                if (!hasParamArray &&
-                    parameters.Length != arguments.Length)
-                {
-                    continue;
-                }
-
-                if (hasParamArray &&
-                    arguments.Length < parameters.Length - 1)
+                if (parameters.Length != arguments.Length)
                 {
                     continue;
                 }
 
                 bool compatible = true;
-                int fixedParameterCount = hasParamArray
-                    ? parameters.Length - 1
-                    : parameters.Length;
 
-                for (int i = 0; i < fixedParameterCount; i++)
+                for (int i = 0; i < parameters.Length; i++)
                 {
                     if (!CanConvertArgument(
                         arguments[i],
@@ -981,32 +1072,6 @@ public class Test : Script
                     {
                         compatible = false;
                         break;
-                    }
-                }
-
-                if (!compatible)
-                {
-                    continue;
-                }
-
-                if (hasParamArray)
-                {
-                    Type elementType =
-                        parameters[parameters.Length - 1]
-                            .ParameterType
-                            .GetElementType();
-
-                    for (int i = fixedParameterCount;
-                        i < arguments.Length;
-                        i++)
-                    {
-                        if (!CanConvertArgument(
-                            arguments[i],
-                            elementType))
-                        {
-                            compatible = false;
-                            break;
-                        }
                     }
                 }
 
@@ -1020,55 +1085,34 @@ public class Test : Script
         return null;
     }
 
-    private static string NormalizeNativeName(string name)
-    {
-        return name.Replace("_", string.Empty);
-    }
-
-    private static bool CanConvertArgument(
+    private bool CanConvertArgument(
         object value,
         Type targetType)
     {
-        if (value == null)
-        {
-            return !targetType.IsValueType ||
-                Nullable.GetUnderlyingType(targetType) != null;
-        }
+        object convertedValue;
 
-        Type effectiveType =
-            Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-        if (effectiveType.IsAssignableFrom(value.GetType()))
-        {
-            return true;
-        }
-
-        if (effectiveType.IsEnum)
-        {
-            return IsNumericType(value.GetType());
-        }
-
-        if (IsNumericType(effectiveType) &&
-            IsNumericType(value.GetType()))
-        {
-            return true;
-        }
-
-        if (effectiveType == typeof(IntPtr) ||
-            effectiveType == typeof(UIntPtr))
-        {
-            return IsNumericType(value.GetType());
-        }
-
-        return false;
+        return TryConvertArgument(
+            value,
+            targetType,
+            out convertedValue);
     }
 
-    private static bool TryConvertArgument(
+    private bool TryConvertArgument(
         object value,
         Type targetType,
-        out object converted)
+        out object convertedValue)
     {
-        converted = null;
+        convertedValue = null;
+
+        if (targetType == null)
+        {
+            return false;
+        }
+
+        if (targetType.IsByRef)
+        {
+            targetType = targetType.GetElementType();
+        }
 
         if (value == null)
         {
@@ -1076,80 +1120,66 @@ public class Test : Script
                 Nullable.GetUnderlyingType(targetType) != null;
         }
 
-        Type effectiveType =
-            Nullable.GetUnderlyingType(targetType) ?? targetType;
+        Type nullableType =
+            Nullable.GetUnderlyingType(targetType);
+
+        if (nullableType != null)
+        {
+            targetType = nullableType;
+        }
 
         try
         {
-            if (effectiveType.IsAssignableFrom(value.GetType()))
+            if (targetType.IsInstanceOfType(value))
             {
-                converted = value;
+                convertedValue = value;
                 return true;
             }
 
-            if (effectiveType.IsEnum)
+            if (targetType.IsEnum)
             {
-                converted = Enum.ToObject(effectiveType, value);
+                convertedValue = Enum.ToObject(
+                    targetType,
+                    Convert.ToInt64(
+                        value,
+                        CultureInfo.InvariantCulture));
                 return true;
             }
 
-            if (effectiveType == typeof(IntPtr))
+            if (targetType == typeof(IntPtr))
             {
-                converted = new IntPtr(Convert.ToInt64(value));
+                convertedValue = new IntPtr(
+                    Convert.ToInt64(
+                        value,
+                        CultureInfo.InvariantCulture));
                 return true;
             }
 
-            if (effectiveType == typeof(UIntPtr))
+            if (targetType == typeof(UIntPtr))
             {
-                converted = new UIntPtr(Convert.ToUInt64(value));
+                convertedValue = new UIntPtr(
+                    Convert.ToUInt64(
+                        value,
+                        CultureInfo.InvariantCulture));
                 return true;
             }
 
-            if (IsNumericType(effectiveType) &&
-                IsNumericType(value.GetType()))
-            {
-                converted = Convert.ChangeType(value, effectiveType);
-                return true;
-            }
+            convertedValue = Convert.ChangeType(
+                value,
+                targetType,
+                CultureInfo.InvariantCulture);
+
+            return true;
         }
         catch
         {
             return false;
         }
-
-        return false;
     }
 
-    private static bool IsNumericType(Type type)
+    private bool TryConvertToInt(object value, out int result)
     {
-        Type effectiveType =
-            Nullable.GetUnderlyingType(type) ?? type;
-
-        switch (Type.GetTypeCode(effectiveType))
-        {
-            case TypeCode.Byte:
-            case TypeCode.SByte:
-            case TypeCode.UInt16:
-            case TypeCode.UInt32:
-            case TypeCode.UInt64:
-            case TypeCode.Int16:
-            case TypeCode.Int32:
-            case TypeCode.Int64:
-            case TypeCode.Single:
-            case TypeCode.Double:
-            case TypeCode.Decimal:
-                return true;
-
-            default:
-                return false;
-        }
-    }
-
-    private static bool TryConvertToInt(
-        object value,
-        out int converted)
-    {
-        converted = 0;
+        result = 0;
 
         if (value == null)
         {
@@ -1158,24 +1188,62 @@ public class Test : Script
 
         try
         {
-            if (value is IntPtr intPtr)
-            {
-                converted = intPtr.ToInt32();
-                return true;
-            }
-
-            if (value is UIntPtr uintPtr)
-            {
-                converted = unchecked((int)uintPtr.ToUInt32());
-                return true;
-            }
-
-            converted = Convert.ToInt32(value);
+            result = Convert.ToInt32(
+                value,
+                CultureInfo.InvariantCulture);
             return true;
         }
         catch
         {
             return false;
+        }
+    }
+
+    private string NormalizeNativeName(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return string.Empty;
+        }
+
+        return name
+            .Replace("_", string.Empty)
+            .Replace(" ", string.Empty)
+            .ToUpperInvariant();
+    }
+
+    private string FormatMethodSignature(MethodInfo method)
+    {
+        ParameterInfo[] parameters = method.GetParameters();
+        List<string> parameterNames = new List<string>();
+
+        foreach (ParameterInfo parameter in parameters)
+        {
+            parameterNames.Add(
+                parameter.ParameterType.FullName);
+        }
+
+        return method.DeclaringType.FullName +
+            "." + method.Name +
+            "(" + string.Join(", ", parameterNames.ToArray()) + ")";
+    }
+
+    private string FormatResult(object value)
+    {
+        if (value == null)
+        {
+            return "null";
+        }
+
+        try
+        {
+            return Convert.ToString(
+                value,
+                CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return value.ToString();
         }
     }
 
@@ -1200,39 +1268,17 @@ public class Test : Script
 
     private void Log(string message)
     {
-        string line = "[" +
-            DateTime.Now.ToString("HH:mm:ss.fff") +
-            "] " + message + Environment.NewLine;
+        string line =
+            DateTime.Now.ToString(
+                "yyyy-MM-dd HH:mm:ss.fff",
+                CultureInfo.InvariantCulture) +
+            " " + message +
+            Environment.NewLine;
 
         File.AppendAllText(_logPath, line);
     }
 
-    private static string FormatResult(object result)
-    {
-        if (result == null)
-        {
-            return "null";
-        }
-
-        return result.GetType().FullName + ":" + result;
-    }
-
-    private static string FormatMethodSignature(MethodInfo method)
-    {
-        List<string> parameterTypes = new List<string>();
-
-        foreach (ParameterInfo parameter in method.GetParameters())
-        {
-            parameterTypes.Add(parameter.ParameterType.FullName);
-        }
-
-        return method.DeclaringType.FullName +
-            "." + method.Name +
-            "(" + string.Join(", ", parameterTypes.ToArray()) +
-            ") : " + method.ReturnType.FullName;
-    }
-
-    private static string GetInnermostMessage(Exception exception)
+    private string GetInnermostMessage(Exception exception)
     {
         Exception current = exception;
 
