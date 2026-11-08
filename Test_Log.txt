@@ -1,14 +1,40 @@
-[20:33:50.434] === Native ILO recruitment-label test initialized ===
-[20:33:50.434] This test registers the native ILO prompt text "Recruit" on the currently aimed/focused human NPC.
-[20:33:50.434] This test does not create a UI prompt, assign a prompt group, suppress controls, recruit an NPC, or change gang data.
-[20:33:50.434] The ILO native does not take a G/control argument. INPUT_INTERACT_OPTION1 is observed as a candidate input only.
-[20:33:50.434] ILO registration arguments: radius=2.5; focusDistance=2.5; flags=0; unknownFloat1=0; unknownFloat2=0; customPromptHandle=0; showApproachPrompt=True; unknownInt=-1
-[20:33:50.435] NATIVE WRAPPER REGISTER_INTERACTION_LOCKON_PROMPT: RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(System.Int32, System.String, System.Single, System.Single, System.Int32, System.Single, System.Single, System.Int32, System.Boolean, System.Int32) -> System.Boolean
-[20:33:50.435] NATIVE WRAPPER UNREGISTER_INTERACTION_LOCKON_PROMPT: RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(System.Int32) -> System.Boolean
-[20:33:58.861] HUMAN TARGET BEGIN: target=203778; freeFocusing=True
-[20:33:58.862] G CANDIDATE CONTROL: target=203778; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; enabled=True; note=reported G mapping; not bound by the ILO native
-[20:33:58.864] ILO REGISTER RESULT: target=203778; returned=System.Boolean:True
-[20:33:58.864] ILO REGISTERED: target=203778; text="Recruit"; note=true return does not prove the prompt rendered
-[20:34:04.967] G CANDIDATE JUST PRESSED: target=203778; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; controlEnabled=True; note=observed only; no recruitment action was executed
-[20:34:08.255] HUMAN TARGET END: target=203778
-[20:34:08.256] ILO UNREGISTER RESULT: target=203778; returned=System.Boolean:True
+[21:05:40.721] === ILO approach-prompt timing test initialized ===
+[21:05:40.722] This test registers the ILO on the nearest human NPC within 8 metres, before the NPC is aimed at.
+[21:05:40.722] The ILO radius is 2.5 metres and its approach-prompt argument is true.
+[21:05:40.722] The test observes focus and INPUT_INTERACT_OPTION1, but does not create a UI prompt, bind a control, recruit an NPC, or change gang data.
+[21:05:40.723] Registration arguments: radius=2.5; focusDistance=2.5; flags=0; unknownFloat1=0; unknownFloat2=0; customPromptHandle=0; showApproachPrompt=True; unknownInt=-1
+[21:05:40.723] NATIVE WRAPPER REGISTER_INTERACTION_LOCKON_PROMPT: RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(System.Int32, System.String, System.Single, System.Single, System.Int32, System.Single, System.Single, System.Int32, System.Boolean, System.Int32) -> System.Boolean
+[21:05:40.723] NATIVE WRAPPER UNREGISTER_INTERACTION_LOCKON_PROMPT: RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(System.Int32) -> System.Boolean
+[21:05:40.823] HUMAN TARGET BEGIN: target=203010; distance=1.560238; freeFocusing=False; registeredBeforeFocus=true
+[21:05:40.825] ILO REGISTER RESULT: target=203010; returned=System.Boolean:True
+[21:05:40.825] ILO REGISTERED: target=203010; text="Recruit"; registeredBeforeFocus=true; note=true return does not prove the prompt rendered
+[21:05:47.347] HUMAN TARGET END: target=203010
+[21:05:47.348] ILO UNREGISTER RESULT: target=203010; returned=System.Boolean:True
+[21:05:54.966] HUMAN TARGET BEGIN: target=203266; distance=6.78576; freeFocusing=False; registeredBeforeFocus=true
+[21:05:54.967] ILO REGISTER RESULT: target=203266; returned=System.Boolean:True
+[21:05:54.967] ILO REGISTERED: target=203266; text="Recruit"; registeredBeforeFocus=true; note=true return does not prove the prompt rendered
+[21:05:57.795] TRACKED TARGET FOCUS BEGIN: target=203266
+[21:05:57.798] G CANDIDATE CONTROL: target=203266; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; enabled=True; note=reported G mapping; not bound by the ILO native
+[21:06:01.149] TRACKED TARGET FOCUS END: target=203266
+[21:06:15.722] HUMAN TARGET END: target=203266
+[21:06:15.723] ILO UNREGISTER RESULT: target=203266; returned=System.Boolean:True
+[21:06:15.723] HUMAN TARGET BEGIN: target=186626; distance=2.137524; freeFocusing=False; registeredBeforeFocus=true
+[21:06:15.723] ILO REGISTER RESULT: target=186626; returned=System.Boolean:True
+[21:06:15.724] ILO REGISTERED: target=186626; text="Recruit"; registeredBeforeFocus=true; note=true return does not prove the prompt rendered
+[21:06:18.253] HUMAN TARGET END: target=186626
+[21:06:18.253] ILO UNREGISTER RESULT: target=186626; returned=System.Boolean:True
+[21:06:19.269] HUMAN TARGET BEGIN: target=203010; distance=7.864995; freeFocusing=False; registeredBeforeFocus=true
+[21:06:19.270] ILO REGISTER RESULT: target=203010; returned=System.Boolean:True
+[21:06:19.270] ILO REGISTERED: target=203010; text="Recruit"; registeredBeforeFocus=true; note=true return does not prove the prompt rendered
+[21:06:27.425] TRACKED TARGET FOCUS BEGIN: target=203010
+[21:06:27.426] G CANDIDATE CONTROL: target=203010; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; enabled=True; note=reported G mapping; not bound by the ILO native
+[21:06:30.256] TRACKED TARGET FOCUS END: target=203010
+[21:06:43.589] HUMAN TARGET END: target=203010
+[21:06:43.589] ILO UNREGISTER RESULT: target=203010; returned=System.Boolean:True
+[21:06:43.590] HUMAN TARGET BEGIN: target=186370; distance=2.863608; freeFocusing=False; registeredBeforeFocus=true
+[21:06:43.590] ILO REGISTER RESULT: target=186370; returned=System.Boolean:True
+[21:06:43.590] ILO REGISTERED: target=186370; text="Recruit"; registeredBeforeFocus=true; note=true return does not prove the prompt rendered
+[21:06:44.436] TRACKED TARGET FOCUS BEGIN: target=186370
+[21:06:44.436] G CANDIDATE CONTROL: target=186370; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; enabled=True; note=reported G mapping; not bound by the ILO native
+[21:06:47.063] G CANDIDATE JUST PRESSED: target=186370; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; note=observed only; no recruitment action was executed
+[21:06:48.683] TRACKED TARGET FOCUS END: target=186370
