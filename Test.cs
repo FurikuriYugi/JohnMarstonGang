@@ -20,8 +20,6 @@ public class Test : Script
     private const int AmbientGroupTabCount = 0;
     private const int AmbientGroupFlags = 0;
 
-    private const int VarStringType = 10;
-    private const string VarStringFormat = "LITERAL_STRING";
     private const string PromptText = "Recruit";
     private const string PromptGroupName = "NPC";
 
@@ -57,10 +55,8 @@ public class Test : Script
         File.WriteAllText(_logPath, string.Empty);
 
         Log("=== Focused NPC ambient Recruit prompt test initialized ===");
-        Log("Prompt text: VAR_STRING<string>(" +
-            VarStringType + ", \"" + VarStringFormat +
-            "\", \"" + PromptText + "\").");
-        Log("Prompt group name: \"" + PromptGroupName + "\".");
+        Log("Prompt text: \"" + PromptText + "\" (System.String).");
+        Log("Prompt group name: \"" + PromptGroupName + "\" (System.String).");
         Log("Input control: INPUT_INTERACT_OPTION1; hash=0x" +
             InputInteractOption1.ToString("X8"));
         Log("Ambient group activation is attempted every focused tick.");
@@ -327,21 +323,12 @@ public class Test : Script
             Log("PROMPT CONTROL ACTION SET: INPUT_INTERACT_OPTION1; hash=0x" +
                 InputInteractOption1.ToString("X8"));
 
-            IntPtr textResult =
-                RDR2.Native.MISC.VAR_STRING<string>(
-                    VarStringType,
-                    VarStringFormat,
-                    PromptText);
-
-            Log("VAR_STRING RESULT: type=" +
-                textResult.GetType().FullName +
-                "; value=" + textResult);
-
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 _focusedPromptHandle,
-                textResult);
+                PromptText);
 
-            Log("PROMPT TEXT SET: literal=\"" + PromptText + "\"");
+            Log("PROMPT TEXT SET: \"" + PromptText +
+                "\"; argumentType=System.String");
 
             RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
                 _focusedPromptHandle,
