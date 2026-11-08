@@ -18,6 +18,10 @@ public class Test : Script
     private const bool IloShowApproachPrompt = true;
     private const int IloUnknownInt = -1;
 
+    // This registered game string is a baseline, not the final "Recruit" label.
+    // The API has a known issue with custom prompt text created through VAR_STRING.
+    private const string FocusedPromptTextKey = "WARDROBE_INSPECT_PROMPT";
+
     private const float TargetSelectionDistance = 8.0f;
     private const float TargetRetentionDistance = 9.0f;
     private const int TargetScanIntervalMilliseconds = 500;
@@ -32,11 +36,18 @@ public class Test : Script
     private int _trackedTargetHandle;
     private int _iloRegisteredTargetHandle;
     private bool _iloRegistrationReturnedTrue;
+
+    private int _focusedPromptHandle;
+    private int _focusedPromptGroupId;
+    private bool _promptWasPressed;
     private bool _targetWasFocused;
+
     private bool _hasScannedForTarget;
     private DateTime _lastTargetScanUtc;
+
     private bool _generalErrorLogged;
     private bool _targetResolutionErrorLogged;
+    private bool _promptErrorLogged;
 
     public Test()
     {
@@ -65,14 +76,17 @@ public class Test : Script
                 typeof(int)
             });
 
-        Log("=== ILO approach-prompt timing test initialized ===");
+        Log("=== Focused NPC prompt-group baseline test initialized ===");
         Log("This test registers the ILO on the nearest human NPC within " +
-            TargetSelectionDistance + " metres, before the NPC is aimed at.");
-        Log("The ILO radius is " + IloRadius +
-            " metres and its approach-prompt argument is true.");
-        Log("The test observes focus and INPUT_INTERACT_OPTION1, but does not " +
-            "create a UI prompt, bind a control, recruit an NPC, or change gang data.");
-        Log("Registration arguments: radius=" + IloRadius +
+            TargetSelectionDistance + " metres before focus.");
+        Log("The ILO approach text is \"" + IloPromptText + "\".");
+        Log("While the NPC is focused, the test tries to attach a G prompt " +
+            "using the target entity's prompt group.");
+        Log("The focused prompt uses the registered text key \"" +
+            FocusedPromptTextKey + "\", not custom Recruit text.");
+        Log("No recruitment action is executed and no gang data is changed.");
+
+        Log("ILO arguments: radius=" + IloRadius +
             "; focusDistance=" + IloFocusDistance +
             "; flags=" + IloFlags +
             "; unknownFloat1=" + IloUnknownFloat1 +
@@ -99,10 +113,13 @@ public class Test : Script
             Log("ILO CLEANUP UNAVAILABLE: no compatible unregister wrapper was found.");
         }
 
+        CreateFocusedPrompt();
+
         RDR2.UI.Screen.PrintSubtitle(
-            "ILO test ready. Walk near a human NPC.");
+            "Prompt test ready. Focus a human NPC.");
 
         Tick += OnTick;
+        Aborted += OnAborted;
     }
 
     private void OnTick(object sender, EventArgs e)
@@ -110,7 +127,7 @@ public class Test : Script
         try
         {
             UpdateNearbyTargetIfNeeded();
-            SampleFocusAndGControl();
+            SampleFocusAndPrompt();
         }
         catch (Exception exception)
         {
@@ -118,8 +135,9 @@ public class Test : Script
             {
                 _generalErrorLogged = true;
                 Log("TEST ERROR: " + GetInnermostMessage(exception));
+
                 RDR2.UI.Screen.PrintSubtitle(
-                    "ILO test error. Check Test_Log.txt.");
+                    "Prompt test error. Check Test_Log.txt.");
             }
         }
     }
@@ -139,8 +157,8 @@ public class Test : Script
         _lastTargetScanUtc = now;
 
         Ped selectedPed = FindNearbyHumanTarget();
-
         int selectedHandle = 0;
+
         if (selectedPed != null && selectedPed.Exists())
         {
             selectedHandle = selectedPed.Handle;
@@ -238,10 +256,11 @@ public class Test : Script
         return RDR2.Native.PED.IS_PED_HUMAN(entityHandle);
     }
 
-    private void SampleFocusAndGControl()
+    private void SampleFocusAndPrompt()
     {
         if (_trackedTargetHandle <= 0)
         {
+            DetachFocusedPrompt();
             return;
         }
 
@@ -260,35 +279,63 @@ public class Test : Script
         {
             _targetWasFocused = targetIsFocused;
 
-            Log(targetIsFocused
-                ? "TRACKED TARGET FOCUS BEGIN: target=" + _trackedTargetHandle
-                : "TRACKED TARGET FOCUS END: target=" + _trackedTargetHandle);
-
             if (targetIsFocused)
             {
+                Log("TRACKED TARGET FOCUS BEGIN: target=" +
+                    _trackedTargetHandle);
+
                 LogGControlAvailability(_trackedTargetHandle);
+                AttachFocusedPrompt(_trackedTargetHandle);
+            }
+            else
+            {
+                Log("TRACKED TARGET FOCUS END: target=" +
+                    _trackedTargetHandle);
+
+                DetachFocusedPrompt();
             }
         }
 
-        if (!targetIsFocused)
+        if (!targetIsFocused ||
+            _focusedPromptHandle <= 0)
         {
             return;
         }
 
-        bool pressed =
-            RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
-                ControlPadIndex,
-                InputInteractOption1);
+        bool promptPressed;
 
-        if (pressed)
+        if (!TryInvokeNative(
+            "UI_PROMPT_IS_PRESSED",
+            new object[] { _focusedPromptHandle },
+            out object pressedResult))
         {
-            Log("G CANDIDATE JUST PRESSED: target=" +
+            return;
+        }
+
+        try
+        {
+            promptPressed = Convert.ToBoolean(pressedResult);
+        }
+        catch
+        {
+            LogPromptErrorOnce(
+                "UI_PROMPT_IS_PRESSED returned an unexpected value: " +
+                FormatResult(pressedResult));
+            return;
+        }
+
+        if (promptPressed && !_promptWasPressed)
+        {
+            Log("FOCUSED PROMPT PRESSED: target=" +
                 _trackedTargetHandle +
-                "; name=INPUT_INTERACT_OPTION1" +
+                "; prompt=" + _focusedPromptHandle +
+                "; control=INPUT_INTERACT_OPTION1" +
                 "; hash=0x" +
                 InputInteractOption1.ToString("X8") +
-                "; note=observed only; no recruitment action was executed");
+                "; note=baseline prompt only; no recruitment action executed");
         }
+
+        _promptWasPressed = promptPressed;
     }
 
     private int GetCurrentHumanTargetHandle()
@@ -340,6 +387,243 @@ public class Test : Script
         return 0;
     }
 
+    private void CreateFocusedPrompt()
+    {
+        if (!TryInvokeNative(
+            "UI_PROMPT_REGISTER_BEGIN",
+            new object[0],
+            out object promptResult))
+        {
+            LogPromptErrorOnce(
+                "Could not find a compatible UI_PROMPT_REGISTER_BEGIN wrapper.");
+            return;
+        }
+
+        if (!TryConvertToInt(promptResult, out _focusedPromptHandle) ||
+            _focusedPromptHandle <= 0)
+        {
+            LogPromptErrorOnce(
+                "UI_PROMPT_REGISTER_BEGIN returned an invalid handle: " +
+                FormatResult(promptResult));
+            _focusedPromptHandle = 0;
+            return;
+        }
+
+        Log("FOCUSED PROMPT HANDLE: " + _focusedPromptHandle);
+
+        if (!TryInvokeNative(
+            "UI_PROMPT_SET_CONTROL_ACTION",
+            new object[]
+            {
+                _focusedPromptHandle,
+                InputInteractOption1
+            },
+            out object controlResult))
+        {
+            LogPromptErrorOnce(
+                "Could not set the focused prompt control action.");
+            DeleteFocusedPrompt();
+            return;
+        }
+
+        Log("PROMPT CONTROL ACTION SET: " +
+            "INPUT_INTERACT_OPTION1; hash=0x" +
+            InputInteractOption1.ToString("X8") +
+            "; result=" + FormatResult(controlResult));
+
+        if (!TryInvokeNative(
+            "UI_PROMPT_SET_TEXT",
+            new object[]
+            {
+                _focusedPromptHandle,
+                FocusedPromptTextKey
+            },
+            out object textResult))
+        {
+            LogPromptErrorOnce(
+                "Could not set prompt text using the registered game string key. " +
+                "Check the resolved UI_PROMPT_SET_TEXT wrapper signature.");
+            DeleteFocusedPrompt();
+            return;
+        }
+
+        Log("PROMPT TEXT SET: key=\"" + FocusedPromptTextKey +
+            "\"; result=" + FormatResult(textResult));
+
+        if (!TryInvokeNative(
+            "UI_PROMPT_REGISTER_END",
+            new object[] { _focusedPromptHandle },
+            out object registerEndResult))
+        {
+            LogPromptErrorOnce(
+                "Could not finish UI_PROMPT_REGISTER_END.");
+            DeleteFocusedPrompt();
+            return;
+        }
+
+        Log("PROMPT REGISTER END: result=" +
+            FormatResult(registerEndResult));
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_ENABLED",
+            new object[] { _focusedPromptHandle, false },
+            out object enabledResult);
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_VISIBLE",
+            new object[] { _focusedPromptHandle, false },
+            out object visibleResult);
+
+        Log("FOCUSED PROMPT CREATED: prompt=" +
+            _focusedPromptHandle +
+            "; initialEnabled=false; initialVisible=false");
+    }
+
+    private void AttachFocusedPrompt(int targetHandle)
+    {
+        if (_focusedPromptHandle <= 0)
+        {
+            LogPromptErrorOnce(
+                "Cannot attach prompt because prompt creation failed.");
+            return;
+        }
+
+        if (!TryInvokeNative(
+            "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY",
+            new object[] { targetHandle },
+            out object groupResult))
+        {
+            LogPromptErrorOnce(
+                "Could not find a compatible " +
+                "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY wrapper.");
+            return;
+        }
+
+        if (!TryConvertToInt(groupResult, out int groupId))
+        {
+            LogPromptErrorOnce(
+                "Target prompt-group native returned an unexpected value: " +
+                FormatResult(groupResult));
+            return;
+        }
+
+        _focusedPromptGroupId = groupId;
+
+        Log("TARGET PROMPT GROUP: target=" + targetHandle +
+            "; group=" + _focusedPromptGroupId);
+
+        if (!TryInvokeNative(
+            "UI_PROMPT_SET_GROUP",
+            new object[]
+            {
+                _focusedPromptHandle,
+                _focusedPromptGroupId,
+                0
+            },
+            out object setGroupResult))
+        {
+            LogPromptErrorOnce(
+                "Could not attach the custom prompt to the target's prompt group.");
+            _focusedPromptGroupId = 0;
+            return;
+        }
+
+        Log("PROMPT ATTACHED TO TARGET GROUP: prompt=" +
+            _focusedPromptHandle +
+            "; target=" + targetHandle +
+            "; group=" + _focusedPromptGroupId +
+            "; result=" + FormatResult(setGroupResult));
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_ENABLED",
+            new object[] { _focusedPromptHandle, true },
+            out object enabledResult);
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_VISIBLE",
+            new object[] { _focusedPromptHandle, true },
+            out object visibleResult);
+
+        _promptWasPressed = false;
+
+        Log("FOCUSED PROMPT ENABLED: prompt=" +
+            _focusedPromptHandle +
+            "; enabledResult=" + FormatResult(enabledResult) +
+            "; visibleResult=" + FormatResult(visibleResult));
+
+        RDR2.UI.Screen.PrintSubtitle(
+            "G prompt attached to focused NPC.");
+    }
+
+    private void DetachFocusedPrompt()
+    {
+        if (_focusedPromptHandle <= 0)
+        {
+            _focusedPromptGroupId = 0;
+            _promptWasPressed = false;
+            return;
+        }
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_ENABLED",
+            new object[] { _focusedPromptHandle, false },
+            out object enabledResult);
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_VISIBLE",
+            new object[] { _focusedPromptHandle, false },
+            out object visibleResult);
+
+        if (_focusedPromptGroupId != 0)
+        {
+            bool removed = TryInvokeNative(
+                "UI_PROMPT_REMOVE_GROUP",
+                new object[]
+                {
+                    _focusedPromptHandle,
+                    _focusedPromptGroupId
+                },
+                out object removeResult);
+
+            Log("PROMPT GROUP DETACH: prompt=" +
+                _focusedPromptHandle +
+                "; group=" + _focusedPromptGroupId +
+                "; wrapperFound=" + removed +
+                "; result=" + FormatResult(removeResult));
+        }
+
+        Log("FOCUSED PROMPT DISABLED: prompt=" +
+            _focusedPromptHandle +
+            "; enabledResult=" + FormatResult(enabledResult) +
+            "; visibleResult=" + FormatResult(visibleResult));
+
+        _focusedPromptGroupId = 0;
+        _promptWasPressed = false;
+    }
+
+    private void DeleteFocusedPrompt()
+    {
+        if (_focusedPromptHandle <= 0)
+        {
+            return;
+        }
+
+        DetachFocusedPrompt();
+
+        bool deleted = TryInvokeNative(
+            "UI_PROMPT_DELETE",
+            new object[] { _focusedPromptHandle },
+            out object deleteResult);
+
+        Log("FOCUSED PROMPT DELETE: prompt=" +
+            _focusedPromptHandle +
+            "; wrapperFound=" + deleted +
+            "; result=" + FormatResult(deleteResult));
+
+        _focusedPromptHandle = 0;
+        _focusedPromptGroupId = 0;
+    }
+
     private void LogGControlAvailability(int targetHandle)
     {
         try
@@ -354,7 +638,7 @@ public class Test : Script
                 "; hash=0x" +
                 InputInteractOption1.ToString("X8") +
                 "; enabled=" + enabled +
-                "; note=reported G mapping; not bound by the ILO native");
+                "; note=reported G mapping");
         }
         catch (Exception exception)
         {
@@ -421,6 +705,7 @@ public class Test : Script
             Log("HUMAN TARGET END: target=" + _trackedTargetHandle);
         }
 
+        DetachFocusedPrompt();
         UnregisterIlo();
 
         _trackedTargetHandle = 0;
@@ -453,10 +738,7 @@ public class Test : Script
         {
             object result = _unregisterIloMethod.Invoke(
                 null,
-                new object[]
-                {
-                    targetHandle
-                });
+                new object[] { targetHandle });
 
             Log("ILO UNREGISTER RESULT: target=" + targetHandle +
                 "; returned=" + FormatResult(result));
@@ -473,9 +755,73 @@ public class Test : Script
         }
     }
 
-    private static MethodInfo FindNativeMethod(
-        string methodName,
-        Type[] parameterTypes)
+    private void OnAborted(object sender, EventArgs e)
+    {
+        try
+        {
+            ClearTrackedTarget();
+            DeleteFocusedPrompt();
+        }
+        catch (Exception exception)
+        {
+            Log("SCRIPT CLEANUP ERROR: " +
+                GetInnermostMessage(exception));
+        }
+    }
+
+    private bool TryInvokeNative(
+        string nativeName,
+        object[] arguments,
+        out object result)
+    {
+        result = null;
+
+        MethodInfo method = FindCompatibleNativeMethod(
+            nativeName,
+            arguments);
+
+        if (method == null)
+        {
+            Log("NATIVE WRAPPER NOT FOUND: " +
+                nativeName +
+                "; argumentCount=" + arguments.Length);
+            return false;
+        }
+
+        try
+        {
+            ParameterInfo[] parameters = method.GetParameters();
+            object[] convertedArguments = new object[arguments.Length];
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                if (!TryConvertArgument(
+                    arguments[i],
+                    parameters[i].ParameterType,
+                    out convertedArguments[i]))
+                {
+                    Log("NATIVE ARGUMENT CONVERSION FAILED: " +
+                        nativeName +
+                        "; parameter=" + i +
+                        "; type=" + parameters[i].ParameterType.FullName);
+                    return false;
+                }
+            }
+
+            result = method.Invoke(null, convertedArguments);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Log("NATIVE INVOKE ERROR: " + nativeName +
+                "; " + GetInnermostMessage(exception));
+            return false;
+        }
+    }
+
+    private MethodInfo FindCompatibleNativeMethod(
+        string nativeName,
+        object[] arguments)
     {
         Assembly apiAssembly = typeof(Game).Assembly;
         Type[] apiTypes;
@@ -503,6 +849,8 @@ public class Test : Script
             apiTypes = loadedTypes.ToArray();
         }
 
+        string normalizedWanted = NormalizeNativeName(nativeName);
+
         foreach (Type type in apiTypes)
         {
             if (type == null)
@@ -518,32 +866,34 @@ public class Test : Script
             foreach (MethodInfo method in methods)
             {
                 if (!string.Equals(
-                    method.Name,
-                    methodName,
-                    StringComparison.Ordinal))
+                    NormalizeNativeName(method.Name),
+                    normalizedWanted,
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
                 ParameterInfo[] parameters = method.GetParameters();
 
-                if (parameters.Length != parameterTypes.Length)
+                if (parameters.Length != arguments.Length)
                 {
                     continue;
                 }
 
-                bool matches = true;
+                bool compatible = true;
 
-                for (int i = 0; i < parameters.Length; i++)
+                for (int i = 0; i < arguments.Length; i++)
                 {
-                    if (parameters[i].ParameterType != parameterTypes[i])
+                    if (!CanConvertArgument(
+                        arguments[i],
+                        parameters[i].ParameterType))
                     {
-                        matches = false;
+                        compatible = false;
                         break;
                     }
                 }
 
-                if (matches)
+                if (compatible)
                 {
                     return method;
                 }
@@ -551,6 +901,159 @@ public class Test : Script
         }
 
         return null;
+    }
+
+    private static string NormalizeNativeName(string name)
+    {
+        return name.Replace("_", string.Empty);
+    }
+
+    private static bool CanConvertArgument(
+        object value,
+        Type targetType)
+    {
+        if (value == null)
+        {
+            return !targetType.IsValueType ||
+                Nullable.GetUnderlyingType(targetType) != null;
+        }
+
+        Type effectiveType =
+            Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+        if (effectiveType.IsAssignableFrom(value.GetType()))
+        {
+            return true;
+        }
+
+        if (effectiveType.IsEnum)
+        {
+            return IsNumericType(value.GetType());
+        }
+
+        if (IsNumericType(effectiveType) &&
+            IsNumericType(value.GetType()))
+        {
+            return true;
+        }
+
+        if (effectiveType == typeof(IntPtr) ||
+            effectiveType == typeof(UIntPtr))
+        {
+            return IsNumericType(value.GetType());
+        }
+
+        return effectiveType == typeof(string) &&
+            value is string;
+    }
+
+    private static bool TryConvertArgument(
+        object value,
+        Type targetType,
+        out object converted)
+    {
+        converted = null;
+
+        if (value == null)
+        {
+            if (!targetType.IsValueType ||
+                Nullable.GetUnderlyingType(targetType) != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        Type effectiveType =
+            Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+        try
+        {
+            if (effectiveType.IsAssignableFrom(value.GetType()))
+            {
+                converted = value;
+                return true;
+            }
+
+            if (effectiveType.IsEnum)
+            {
+                converted = Enum.ToObject(effectiveType, value);
+                return true;
+            }
+
+            if (effectiveType == typeof(IntPtr))
+            {
+                converted = new IntPtr(Convert.ToInt64(value));
+                return true;
+            }
+
+            if (effectiveType == typeof(UIntPtr))
+            {
+                converted = new UIntPtr(Convert.ToUInt64(value));
+                return true;
+            }
+
+            if (effectiveType == typeof(string) &&
+                value is string)
+            {
+                converted = value;
+                return true;
+            }
+
+            if (IsNumericType(effectiveType) &&
+                IsNumericType(value.GetType()))
+            {
+                converted = Convert.ChangeType(value, effectiveType);
+                return true;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+
+        return false;
+    }
+
+    private static bool IsNumericType(Type type)
+    {
+        Type effectiveType =
+            Nullable.GetUnderlyingType(type) ?? type;
+
+        return effectiveType == typeof(byte) ||
+            effectiveType == typeof(sbyte) ||
+            effectiveType == typeof(short) ||
+            effectiveType == typeof(ushort) ||
+            effectiveType == typeof(int) ||
+            effectiveType == typeof(uint) ||
+            effectiveType == typeof(long) ||
+            effectiveType == typeof(ulong) ||
+            effectiveType == typeof(float) ||
+            effectiveType == typeof(double) ||
+            effectiveType == typeof(decimal);
+    }
+
+    private static bool TryConvertToInt(
+        object value,
+        out int converted)
+    {
+        converted = 0;
+
+        try
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            converted = Convert.ToInt32(value);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void LogResolvedMethod(
@@ -564,7 +1067,8 @@ public class Test : Script
         }
 
         ParameterInfo[] parameters = method.GetParameters();
-        string signature = method.DeclaringType.FullName +
+        string signature =
+            method.DeclaringType.FullName +
             "." + method.Name + "(";
 
         for (int i = 0; i < parameters.Length; i++)
@@ -580,6 +1084,17 @@ public class Test : Script
         signature += ") -> " + method.ReturnType.FullName;
 
         Log("NATIVE WRAPPER " + nativeName + ": " + signature);
+    }
+
+    private void LogPromptErrorOnce(string message)
+    {
+        if (_promptErrorLogged)
+        {
+            return;
+        }
+
+        _promptErrorLogged = true;
+        Log("PROMPT SETUP/TEST ERROR: " + message);
     }
 
     private static string FormatResult(object result)

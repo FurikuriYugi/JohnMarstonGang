@@ -13,6 +13,7 @@ Record API and native patterns relevant to the NPC recruitment-prompt test. The 
 - Do not infer meanings for parameters named `p3`, `p5`, or similar.
 - Keep target selection, ILO registration, UI-prompt creation, prompt-group attachment, prompt-group activation, input detection, and recruitment execution as separate testable operations.
 - For diagnostics, optional native wrappers can be resolved by reflection. Log the resolved signature; wrapper presence and return value do not establish in-game effect.
+- Do not use `System.Text.Json`; use Newtonsoft.Json when JSON is needed.
 
 ## Target selection and nearby peds
 

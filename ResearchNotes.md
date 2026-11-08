@@ -13,42 +13,29 @@ Record findings about the project, its API, and in-game tests. Distinguish code/
 - **User-reported in game:** Reported by the user; no matching fresh log was supplied.
 - **Open:** Needs more investigation.
 
-## Current test: ILO approach prompt and focused NPC menu
+## Current test: ILO approach text and focused NPC prompt group
 
 ### Goal
 
-Test whether registering `REGISTER_INTERACTION_LOCKON_PROMPT` on a nearby human NPC before aiming at it makes the `Recruit` approach prompt visible. Separately observe whether the candidate control `INPUT_INTERACT_OPTION1` registers a press while that NPC is focused.
+Keep the `Recruit` ILO approach label and test a separate standard UI prompt on the focused NPC. The custom prompt is assigned to the target entity’s prompt group and uses `INPUT_INTERACT_OPTION1` as the test control.
 
-This is a diagnostic test only. It does not recruit an NPC, create a gang member, or alter saved data.
+This test uses the registered game text key `WARDROBE_INSPECT_PROMPT` as a baseline instead of custom `Recruit` text. It does not recruit an NPC, create a gang member, or alter saved data.
 
-### Why the test changed
+### Research that changed the test
 
-The previous test registered the ILO only after the NPC was already aimed at or focused. External prompt research describes the ILO’s text as the prompt shown while approaching. Therefore, the previous run did not establish whether registering before approach would display that prompt.
+External RDR2 prompt research distinguishes:
 
-The newer test registers on the nearest human NPC within 8 metres before focus, uses the same 2.5-metre radius and focus distance, and retains the `showApproachPrompt=true` argument. It tracks one target to reduce interference with nearby NPC prompts.
+- An ILO approach label, which is shown while approaching an entity.
+- The text shown when focusing a ped, such as “Stranger” or a role name.
+- Prompts attached to the entity’s prompt group, which are shown with the entity’s focused prompt options.
 
-### Important distinctions
+The documented native for obtaining the focused entity’s prompt group is `UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY`. A custom prompt can be assigned to that group with `UI_PROMPT_SET_GROUP`. This is a more targeted path than relying on an unrelated ambient or active prompt group.
 
-- The ILO native registers prompt text on an entity; it has no G/control argument.
-- `INPUT_INTERACT_OPTION1` is sampled as a candidate G input only. It is not bound to recruitment by this test.
-- A successful native return does not prove that the prompt rendered.
-- A G-candidate press does not prove that the game treated it as recruitment.
-- The test does not create a standard UI prompt, assign a prompt group, suppress a control, or perform recruitment.
-- An ILO approach label is separate from a custom action in the focused-entity prompt menu.
-- Seeing `Recruit` as an approach label does not establish that the focused-entity menu has gained a `G Recruit` option.
+The ScriptHookRDR2DotNet-V2 repository has an open issue reporting that custom prompt text created with `MISC.VAR_STRING` does not work with `_UI_PROMPT_SET_TEXT`; that issue says registered string-database entries work. The new test uses the documented registered key `WARDROBE_INSPECT_PROMPT` to test the focused-menu prompt plumbing independently from custom text.
 
-### Test behavior
+These are external findings, not proof that the native wrappers or UI behavior work in this project’s installed build.
 
-The current `Test.cs`:
-
-- Finds the nearest living human NPC within 8 metres, using `World.GetAllPeds()`.
-- Keeps the current target while it remains within 9 metres to avoid frequent target switching.
-- Registers ILO text `Recruit` before the NPC is aimed at, with a 2.5-metre radius and `showApproachPrompt=true`.
-- Logs target start/end, native wrapper signatures, ILO registration/unregistration results, focus transitions, and `INPUT_INTERACT_OPTION1` presses while the tracked target is focused.
-- Unregisters the ILO when the tracked target changes or ends.
-- Does not create or activate UI prompt groups, suppress controls, execute recruitment, or alter gang data.
-
-### Latest result
+### Latest user-reported in-game observation
 
 **User-reported in game; fresh log not supplied.**
 
@@ -60,21 +47,42 @@ The user reports that:
 
 Interpretation:
 
-- The result supports treating the outer-radius `Recruit` label as distinct from the focused NPC interaction menu.
-- The approach label appeared, but the attempt did not add a custom recruitment action to the focused menu.
-- This result does not show that G activated recruitment. The test does not bind G to recruitment or execute a recruitment action.
-- The user’s report that G was pressed in this run is not independently confirmed by a new log. The checked-in log contains a candidate-input press from an earlier recorded test; do not conflate that log event with this latest visual result.
-- The name/“Stranger” and action/options were observed while focusing the NPC; the current test does not create those menu entries.
-- No test date was recorded for this user-reported result.
+- The approach label and focused NPC prompt menu are distinct UI states.
+- The ILO approach label appeared, but it did not add a custom recruitment action to the focused menu.
+- Pressing G does not prove recruitment was bound or executed.
+- This observation is what prompted the new target-prompt-group test.
+- No new test log was supplied with this visual result.
+
+### New test behavior
+
+The replacement `Test.cs`:
+
+- Finds the nearest living human NPC within 8 metres, using `World.GetAllPeds()`.
+- Keeps the current target while it remains within 9 metres to reduce target switching.
+- Registers ILO text `Recruit` before the NPC is aimed at, with a 2.5-metre radius and `showApproachPrompt=true`.
+- Creates one standard UI prompt with the candidate control `INPUT_INTERACT_OPTION1`.
+- Uses the registered game text key `WARDROBE_INSPECT_PROMPT` as a baseline prompt label; it does not yet test custom `Recruit` UI text.
+- When the tracked NPC is focused, gets that NPC’s prompt group and attaches the standard prompt to it.
+- Enables and shows the custom prompt only while the tracked NPC is focused, then disables it and attempts to remove it from the group when focus ends.
+- Logs native wrapper resolution, target prompt-group ID, prompt attachment, focus transitions, and prompt-pressed events.
+- Does not execute recruitment or modify gang data.
+
+### What this test can tell us
+
+- If the G/Inspect prompt appears in the focused NPC menu, target-group attachment and the prompt lifecycle are working; custom `Recruit` text remains a separate issue.
+- If the wrapper lookup or invocation fails, the log identifies which native operation needs signature or API-wrapper investigation.
+- If group attachment succeeds but the prompt remains invisible, the log and in-game observation help isolate a remaining native behavior, control, or prompt-text issue.
+- A wrapper returning without an exception does not prove that the prompt rendered.
+- A prompt pressed event does not mean recruitment occurred; the test has no recruitment action.
 
 ### Test procedure
 
-1. Build and load the diagnostic `Test.cs` in RDR2 Story Mode.
-2. Test on foot, near a calm human NPC and outside combat.
-3. Approach without aiming first. Observe whether the literal `Recruit` label appears.
-4. Aim/focus the same NPC and note how the display changes.
-5. Press G only as an input observation. The test does not recruit the NPC or bind G.
-6. Save and provide the fresh `Test_Log.txt` alongside the visual result.
+1. Replace `Test.cs` with the complete file supplied alongside this update and build the test project.
+2. Start RDR2 in Story Mode, on foot, near a calm human NPC. Avoid combat or a mission interaction.
+3. Approach the NPC without aiming first. Observe whether the outer-radius `Recruit` label appears.
+4. Focus the same NPC. Look for the extra G prompt using the baseline Inspect label alongside the existing actions/options.
+5. Press G only to test the prompt. The code does not recruit the NPC.
+6. Save and provide the new `Test_Log.txt` and report what appeared while approaching and while focused.
 
 The test log is written to `Test_Log.txt` under the game’s base directory. To have the game write through to the repository copy on Windows, create a symbolic link in the game directory pointing to the repository’s `Test_Log.txt`. Remove or rename an existing regular file there first. The link must be created in the local checkout.
 
@@ -90,16 +98,16 @@ The test log is written to `Test_Log.txt` under the game’s base directory. To 
 - The project’s source file list includes `Test.cs`.
 - In test mode, do not modify `StoryBoard.md`.
 
-## Current native signatures and test values
+## ILO signatures and test values
 
 The installed v2.2.0 wrapper was resolved in the test log as:
 
 - `REGISTER_INTERACTION_LOCKON_PROMPT(int, string, float, float, int, float, float, int, bool, int) -> bool`
 - `UNREGISTER_INTERACTION_LOCKON_PROMPT(int) -> bool`
 
-The checked-in log records both ILO registration and unregistration returning `true`. That does not establish that the text appeared.
+The checked-in test log records both ILO registration and unregistration returning `true`. That does not establish that the text appeared.
 
-The test passes:
+The ILO test passes:
 
 - Text: `Recruit`
 - Radius: `2.5f`
@@ -110,21 +118,40 @@ The test passes:
 - Approach-prompt argument: `true`
 - Unknown integer: `-1`
 
-The native’s signature does not contain a G/control parameter. The meanings of unknown parameters remain unverified.
+The ILO native’s signature does not contain a G/control argument. The meanings of unknown parameters remain unverified.
 
-The current test samples:
+The test observes:
 
 - `INPUT_INTERACT_OPTION1` — `0x760A9C6F`
 
-The external control mapping reports this as G in a listed PC mapping. Treat the mapping as a candidate because bindings and control context can vary.
+An external control mapping reports this as G in a listed PC mapping. Treat the mapping as a candidate because bindings and control context can vary.
 
-## Earlier recorded test result
+## New focused-prompt test natives
 
-The checked-in `Test_Log.txt` records:
+The new test resolves the prompt wrappers reflectively from the installed API assembly. It searches by normalized native name and argument count, logs the resolved methods through its invocation diagnostics, and does not assume that a method exists merely because external native research lists it.
+
+The expected operations, based on external prompt research, are:
+
+- Begin a prompt registration.
+- Set the control action to `INPUT_INTERACT_OPTION1`.
+- Set prompt text using the registered string key `WARDROBE_INSPECT_PROMPT`.
+- End prompt registration.
+- Get the target entity’s prompt group.
+- Assign the prompt to that group.
+- Enable/show it while the tracked entity is focused.
+- Disable/hide and remove it from the group when focus ends.
+- Read whether the prompt was pressed.
+- Delete the prompt when the script stops.
+
+The exact wrapper namespace, overloads, parameter types, and return types must be taken from the installed v2.2.0 assembly and confirmed in the next test log. Reflection is used so the test can report missing wrappers instead of assuming a guessed signature.
+
+## Previous ILO timing test result
+
+The checked-in `Test_Log.txt` for the ILO timing test records:
 
 - Several nearby human NPC targets were tracked.
-- ILO registration returned `System.Boolean:True` for the logged targets.
-- ILO unregistration returned `System.Boolean:True` for the logged targets.
+- ILO registration returned true for the logged targets.
+- ILO unregistration returned true for the logged targets.
 - Focus transitions were logged for some tracked targets.
 - `INPUT_INTERACT_OPTION1` was reported enabled while focused on some targets.
 - A `G CANDIDATE JUST PRESSED` event was logged for target `186370`.
@@ -133,8 +160,8 @@ Interpretation:
 
 - The log confirms that the candidate input registered when G was pressed in that recorded test context.
 - It does not establish that G was bound to recruitment or that recruitment occurred.
-- The ILO registration return does not prove the text rendered.
-- The log does not capture the latest user-reported visual result unless a fresh log is supplied.
+- The ILO registration return does not prove that its text rendered.
+- The log belongs to an earlier run and does not verify the latest user-reported visual result.
 
 ## Earlier prompt and input findings
 
@@ -153,32 +180,32 @@ Interpretation:
 
 ## External prompt research
 
-External RDR2 prompt research describes ILO as allowing the player to focus an entity to access its prompts. It documents the ILO registration arguments as entity, text, radius, focus distance, flags, two unknown values, prompt handle, an approach-prompt boolean, and an unknown integer.
+External RDR2 prompt research describes:
 
-The research describes:
-
-- The text as the prompt shown when approaching the entity.
-- The radius as the distance at which the focusing prompt appears.
-- The next distance as a focus-distance value, commonly the same as the radius.
-- The approach-prompt boolean as controlling whether the ILO prompt appears while approaching; focus may still be possible when false.
-- The custom-prompt argument as not working with a custom prompt in that researcher’s tests and commonly being zero in Rockstar scripts.
-- Separate standard UI prompts and prompt groups, which may be attached to a target entity’s prompt group.
+- Prompt creation as a begin/configure/end lifecycle, using a control action and text.
+- Prompt groups as requiring activation each frame when using active or ambient group modes.
+- Entity-focused prompts as a distinct case: obtain the target entity’s prompt group and attach the prompt to that group.
+- ILO text as the approach prompt, distinct from the text shown for a focused ped.
+- `UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY` as the way to obtain an entity’s focused prompt group.
+- `UI_PROMPT_SET_GROUP` as the way to attach the custom prompt to that group.
+- A registered string-database key as a workaround to custom prompt text not working with `VAR_STRING` in a ScriptHookRDR2DotNet prompt.
 
 These are external observations, not proof of behavior or signatures in this project’s wrapper.
 
 ## Remaining questions
 
-- What supported mechanism adds a custom action to the focused-entity prompt menu?
-- Does the custom action require a specific prompt group, target entity setup, input context, or lifecycle?
-- Does prompt visibility depend on NPC type, distance, player state, mission state, or other conditions?
-- Does the user’s configured G mapping correspond to `INPUT_INTERACT_OPTION1` in the test context?
-- Can a custom focused-menu action be added without disrupting the game’s existing options?
+- Does the baseline G prompt appear in the tracked NPC’s focused prompt menu when assigned to that NPC’s prompt group?
+- Which exact prompt wrappers and signatures are available in the installed v2.2.0 assembly?
+- Does the registered key `WARDROBE_INSPECT_PROMPT` display correctly when passed through the installed UI prompt wrapper?
+- If the baseline prompt appears, what text mechanism reliably displays custom `Recruit` text?
+- Does the user’s configured G mapping correspond to `INPUT_INTERACT_OPTION1` in this test context?
+- Does prompt visibility depend on NPC type, distance, player state, mission state, or another condition?
 
 ## Interpretation rules
 
 - A native wrapper resolving successfully does not prove correct visible behavior.
 - A native returning true does not prove prompt display.
-- A visible approach label does not prove that a custom action was added to the focused menu.
-- A visible label does not prove that G activates it.
-- A G-candidate press does not prove recruitment was triggered.
+- A visible ILO approach label does not prove that a custom action was added to the focused menu.
+- A visible prompt does not prove G activates a recruitment action.
+- A prompt pressed event does not prove recruitment was triggered.
 - A change in fleeing, combat, health, or other NPC state does not identify the cause unless the test isolates that input and records its timing.
