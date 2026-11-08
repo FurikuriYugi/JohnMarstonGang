@@ -1,7 +1,16 @@
-2026-11-08 00:16:23.824 === Registered-string prompt rendering diagnostic ===
-2026-11-08 00:16:23.824 Prompt text key: CUTSCENE_SKIP
-2026-11-08 00:16:23.824 Prompt group-name key: CUTSCENE_SKIP
-2026-11-08 00:16:23.824 Prompt group ID: 4869447
-2026-11-08 00:16:23.824 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-08 00:16:23.825 G input only logs an event. It does not recruit.
-2026-11-08 00:16:23.835 PROMPT CREATED: handle=207618
+2026-11-08 00:25:12.631 === Entity-focus prompt diagnostic ===
+2026-11-08 00:25:12.631 Prompt text key: CUTSCENE_SKIP
+2026-11-08 00:25:12.631 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+2026-11-08 00:25:12.631 This test does not recruit. G is logged only.
+2026-11-08 00:25:12.631 Prompt is assigned to the focused entity's prompt group.
+2026-11-08 00:25:12.641 PROMPT CREATED: handle=214018
+2026-11-08 00:25:12.679 TARGET STATE: rawTarget=none; human=False; distance=unknown; inRange=False
+2026-11-08 00:25:12.680 PROMPT STATE: active=False
+2026-11-08 00:25:12.680 HEARTBEAT: rawTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; promptActive=False; rawG=False
+2026-11-08 00:25:14.690 HEARTBEAT: rawTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; promptActive=False; rawG=False
+2026-11-08 00:25:16.699 HEARTBEAT: rawTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; promptActive=False; rawG=False
+2026-11-08 00:25:18.708 HEARTBEAT: rawTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; promptActive=False; rawG=False
+2026-11-08 00:25:20.714 HEARTBEAT: rawTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; promptActive=False; rawG=False
+2026-11-08 00:25:22.724 HEARTBEAT: rawTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; promptActive=False; rawG=False
+2026-11-08 00:25:22.928 RAW G-CONTROL PRESS DETECTED; no action taken
+2026-11-08 00:25:24.731 HEARTBEAT: rawTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; promptActive=False; rawG=False
