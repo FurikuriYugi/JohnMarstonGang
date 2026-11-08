@@ -1,31 +1,48 @@
 # Native Reference Guide
 
-## Purpose
-
-Record API and native patterns relevant to the isolated NPC recruitment-prompt test. The installed ScriptHookRDR2DotNet-V2 v2.2.0 assembly and the repository’s API context files are the authority for wrapper availability and signatures.
-
 ## Project API and lifecycle
 
-- The mod’s entry class derives from `RDR2.Script`.
-- `Script.Tick` is an event. Subscribe to it; do not implement `public override void Tick()`.
-- Prefer generated `RDR2.Native` wrappers when the installed API exposes the required native.
-- Use the ASI and API DLL files from the same ScriptHookRDR2DotNet-V2 release archive.
-- Do not infer meanings for parameters named `p2`, `p3`, `p4`, or similar.
-- Keep target selection, prompt creation, group assignment, group activation, input detection, and recruitment execution as separate testable operations.
-- The v2.2.0 wrapper exposed by the compiler is `MISC.VAR_STRING(int, params InputArgument[])`, not a generic method. Do not call it with type arguments.
-- The prompt-text wrapper expects a `string`; pass the literal text directly rather than passing an `IntPtr` from `VAR_STRING`.
-- Wrapper presence, a successful invocation, or a native return value does not by itself establish an in-game visual effect.
-- Do not use `System.Text.Json`; use Newtonsoft.Json when JSON is needed.
+- The project targets ScriptHookRDR2DotNet-V2 API version 2.2.0.
+- Use generated native wrappers from `RDR2.Native`.
+- `Script.Tick` is an event. Subscribe to it; do not override it.
+- Use the API DLL and ASI from the same release archive.
+- The v2.2.0 release notes state that template natives such as `MISC.VAR_STRING` received proper support. Use the project's API context files to verify exact wrapper signatures before calling a native.
+- Do not use `System.Text.Json`; use Newtonsoft.Json if JSON is needed.
+- Do not treat a wrapper's managed parameter type as proof that the game accepts arbitrary strings in that native.
 
-## Target selection and nearby peds
+## Prompt lifecycle
 
-The focused test uses `Game.Player.IsFreeFocusing` and `PLAYER.GET_PLAYER_TARGET_ENTITY` to resolve the current human focus target, then falls back to `Game.Player.GetFreeAimEntity()`.
+The prompt research describes this general lifecycle:
 
-The v2.2.0 wrapper recorded for `GET_PLAYER_TARGET_ENTITY` is:
+1. Begin with `_UI_PROMPT_REGISTER_BEGIN`.
+2. Set the control and text.
+3. Register the prompt with `_UI_PROMPT_REGISTER_END`.
+4. Assign it to a prompt group if required.
+5. Enable and show it only in the intended situation.
+6. Delete it during script cleanup.
 
-```csharp
-public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
-    int player,
-    int* entity
-);
+Prompt text must follow the game's string/VarString requirements. The example key `CUTSCENE_SKIP` is a pre-existing game string key used as a diagnostic, not as the final recruitment label.
+
+## Custom prompt text limitation
+
+ScriptHookRDR2DotNet-V2 issue #4, “Prompt Text doesn't work with custom strings,” reports that `_UI_PROMPT_SET_TEXT` does not work with custom strings as expected. Its description says the prompt text works when the supplied string is already registered in the game's string database, but not reliably with text created from `MISC.VAR_STRING`.
+
+Consequently:
+
+- A test that passes `"Recruit"` directly to `_UI_PROMPT_SET_TEXT` is not a valid test of whether the prompt group is visible.
+- Passing `VAR_STRING` is required by the general RDR2 prompt research, but the API issue means that does not by itself guarantee custom text will render through this wrapper.
+- Use a known in-game string key to test prompt/group rendering separately from custom-label support.
+- Do not report the desired **G Recruit** label as implemented until a working custom-string route is established and tested.
+
+## Prompt groups
+
+RDR2 prompt research describes two group activation patterns:
+
+- **Active groups** are activated by `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` every frame they should be visible. Active groups are exclusive, so another script activating one may interfere.
+- **Ambient groups** are activated in relation to an entity or volume and can be active concurrently with other ambient groups.
+
+The active-group native's documented argument pattern is:
+
+```text
+group, name, tabAmount, tabDefaultIndex, p4, prompt
 ```

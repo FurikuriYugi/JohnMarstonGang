@@ -2,62 +2,41 @@
 
 ## NPC recruitment prompt test
 
-The current test is isolated to displaying a native prompt while the player focuses a nearby living human NPC. Pressing the prompt key only records input; it does not recruit the NPC, change gang membership, or trigger an animation.
+Testing currently concerns the visual display of a G prompt while the player focuses a nearby human NPC. Pressing G must only be logged during this test; it must not recruit the NPC or alter gang membership.
 
-## Previous test result
+## Latest in-game result
 
-The previous ambient-group test reported that no **G Recruit** prompt appeared after right-clicking an NPC.
+The dedicated active-group test ran, but no **G Recruit** prompt was visible.
 
-The committed `Test_Log.txt` for that run showed:
+This result does not establish that the active-group mechanism itself failed. The test assigned the custom text `"Recruit"` to the prompt, and that text was not a valid diagnostic for this API.
 
-- The prompt handle was created.
-- The prompt text was set to `"Recruit"`.
-- The prompt was attached to the target entity’s prompt group.
-- The prompt was enabled, and ambient-group activation was invoked while focused.
-- `UI_PROMPT_IS_ACTIVE` became true.
-- Both the prompt-level and raw-control input probes registered presses.
+## Corrected diagnosis: custom prompt text
 
-Those log entries establish that the prompt and input code ran, but they do **not** establish that the prompt was drawn. The in-game observation is the authoritative visual result. The visual failure points to prompt-group rendering or activation, rather than target focus or G input detection.
+RDR2 prompt research says prompt text must be supplied as a `VAR_STRING`. It gives `VAR_STRING`/`CreateVarString` examples for creating prompt text and for active-group labels.
 
-## Prompt text and input
+ScriptHookRDR2DotNet-V2 has an open issue documenting that `_UI_PROMPT_SET_TEXT` does not work reliably with custom strings. The issue reports that the prompt text works only when the supplied string is already present in the game's string database. Therefore, passing a C# string literal such as `"Recruit"` to the generated wrapper does not prove that the game can display that text.
 
-The test uses:
+The previous test incorrectly treated the wrapper's `string` parameter as proof that arbitrary text was supported. That conclusion was wrong. Its result cannot be used to reject the active-group approach.
 
-- Control: `INPUT_INTERACT_OPTION1` (`0x760A9C6F`).
-- Prompt text: `"Recruit"`, passed to the v2.2.0 prompt-text wrapper as a `string`.
-- Prompt-level probes: `UI_PROMPT_IS_ACTIVE`, `UI_PROMPT_IS_PRESSED`, and `UI_PROMPT_IS_JUST_PRESSED`.
-- Raw-control probes: `IS_CONTROL_ENABLED`, `IS_CONTROL_PRESSED`, and `IS_CONTROL_JUST_PRESSED`.
+## Current diagnostic
 
-The wrapper exposed by the project’s v2.2.0 build expects `System.String` for `_UI_PROMPT_SET_TEXT`. Do not pass an `IntPtr` from `VAR_STRING` to that wrapper.
+The revised test uses the registered game string key `CUTSCENE_SKIP` as a rendering probe, rather than a custom `"Recruit"` label. It continues to use:
 
-## Prompt-group research
+- `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) for the G control.
+- A dedicated prompt group (`0x4A4D47`).
+- `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` while a nearby human NPC is focused.
+- Both prompt-level and raw-control input logging.
 
-RDR2 prompt research describes two group activation patterns:
+This diagnostic tests whether a registered prompt label can render in the custom active group. It does **not** test the desired final `"Recruit"` label. The visible text for `CUTSCENE_SKIP` is whatever the current game localization associates with that key.
 
-- **Ambient groups** are associated with an entity or volume and activated with the ambient-group native each frame.
-- **Active groups** are explicitly activated each frame and are exclusive: only one active group can be active at a time.
+## Interpretation of the next result
 
-The failed test assigned the prompt to an NPC’s target group and tried to activate that ambient group. The replacement test assigns the prompt to a dedicated test group and activates that group with `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` on each focused tick. This isolates active-group rendering from the NPC’s ambient prompt group.
+- If the registered-string prompt appears, the active group can render; the blocker is custom prompt text.
+- If it still does not appear, check `Test_Log.txt` for target resolution, prompt creation, prompt active state, and runtime errors. The result then points to an additional group/visibility issue.
+- A raw G-control event without a visible prompt means input detection works but does not establish successful rendering.
 
-The active-group parameters used by the test are:
+Do not claim recruitment works until a separate test implements and verifies recruitment.
 
-- Dedicated group ID: `0x4A4D47`.
-- Group label: `"NPC"`.
-- Tab count: `0`.
-- Default tab: `0`.
-- Remaining parameters: `0`.
+## Storyboard
 
-The native research describes the group label as a `VAR_STRING` value. The test uses the generated wrapper’s declared parameter type and should be treated as an experiment until the build and in-game visual result confirm it works. A successful native invocation or active-state return alone is not proof that the UI rendered.
-
-Active groups are exclusive and may interfere with another script that also activates an active group. Run this isolated test without other custom prompt tests when possible.
-
-## Next test
-
-1. Replace `Test.cs` with the dedicated active-group version.
-2. Build against the project’s ScriptHookRDR2DotNet-V2 v2.2.0 API DLL.
-3. If the build succeeds, focus a nearby living human NPC.
-4. Record separately whether **G Recruit** is visible and whether pressing G logs prompt-level and raw-control input.
-5. Check `Test_Log.txt` for `ACTIVE GROUP ACTIVATION ERROR`, prompt state changes, and input events.
-6. Report the visual result and any build/runtime errors.
-
-Do not update `StoryBoard.md` during this testing phase.
+Do not edit `StoryBoard.md` while in test mode.
