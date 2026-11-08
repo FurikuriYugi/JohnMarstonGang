@@ -47,8 +47,8 @@ The replacement `Test.cs`:
 
 ### Test procedure
 
-1. Replace `Test.cs` with the full test file in this update and build the test project.
-2. Start RDR2 in Story Mode with the test mod loaded. Use a calm human NPC and approach within approximately 2.5 metres; the test should not be performed during combat.
+1. Replace `Test.cs` with the full test file supplied for the test and build the test project.
+2. Start RDR2 in Story Mode with the test mod loaded. Use a calm human NPC and approach within approximately 2.5 metres; do not perform the test during combat.
 3. Watch the NPC while aiming/focusing. Record whether the literal `Recruit` text appears, where it appears, and whether it appears before or during focus.
 4. If the UI visibly offers a G action, record the exact displayed label and whether the G press is logged. The test itself does not bind G or recruit the NPC.
 5. If no G action is visibly offered, do not press G expecting recruitment. The test only logs `INPUT_INTERACT_OPTION1`; it does not make that input a recruit action.
@@ -77,6 +77,25 @@ The test log is written to `Test_Log.txt` under the game’s base directory. To 
 - These wrapper signatures do not establish the meaning of undocumented parameters or guarantee in-game display.
 - The current sniffer log reported `_GET_CURRENT_CONTROL_CONTEXT` as unavailable. Do not rely on that wrapper unless the installed v2.2.0 assembly is checked again and a compatible method is found.
 - The replacement test resolves ILO wrappers by reflection at runtime and logs the exact signature it finds. A wrapper’s presence or native return value is not proof of visible behavior.
+
+## Latest test result: native ILO label and G-candidate input
+
+The latest checked-in test log records:
+
+- A focused human target, handle `203778`.
+- `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) was enabled for that target.
+- ILO registration returned `System.Boolean:True`.
+- A `G CANDIDATE JUST PRESSED` event was logged for that target after the user pressed G.
+- ILO unregistration returned `System.Boolean:True`.
+- The user reported that the visual result remained the same: the `Recruit` label/action was still not visible.
+
+Interpretation:
+
+- This test confirms that the candidate input was detected when G was pressed in that test context.
+- The result does **not** confirm that G is bound to recruitment or that the game handled the press as a recruitment action.
+- The native registration return does **not** confirm that the `Recruit` label rendered.
+- No recruitment action was executed and no gang data was changed.
+- The in-game observation has no date recorded in the supplied result.
 
 ## Candidate input research
 
@@ -113,9 +132,9 @@ The user previously tested custom action prompts assigned to target prompt group
 
 These results establish repeated visibility failures for the tested custom UI-prompt setups. They do not prove that every possible prompt/control combination fails.
 
-### Latest read-only sniffer log in the repository
+### Earlier read-only sniffer log
 
-The latest checked-in `Test_Log.txt` records a focused human target `202242` and these relevant observations:
+An earlier checked-in sniffer log recorded a focused human target `202242` and these relevant observations:
 
 - `INPUT_INTERACT_OPTION1` was enabled when the target was focused.
 - The log did not record a press of `INPUT_INTERACT_OPTION1` (the reported G candidate).
@@ -140,10 +159,9 @@ Therefore, the current test deliberately avoids conflating ILO registration with
 
 ## Open questions
 
-- Does the installed wrapper resolve both ILO natives at runtime in this test build?
-- Does the native `Recruit` ILO text appear before focus, during focus, or not at all?
-- Does the ILO native’s `true` return correlate with any visible UI in this setup?
-- Does the G candidate control register as pressed when the user presses G while the target is focused?
+- Does the native `Recruit` ILO text appear before focus, during focus, or not at all in this setup? Latest user report: it remained visually absent.
+- Does the ILO native’s `true` return correlate with any visible UI in this setup? Latest result: it returned true while the user reported no visible change.
+- Does the G candidate control register as pressed when the user presses G while the target is focused? Latest log: yes, `INPUT_INTERACT_OPTION1` registered a just-pressed event.
 - Does the user’s key mapping differ from the external PC mapping?
 - Which supported mechanism, if any, adds a new action to the focused-entity interaction menu?
 - Does the built-in menu change based on weapon state, distance, honor, NPC type, mission state, or other conditions?
