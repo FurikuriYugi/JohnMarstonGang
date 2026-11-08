@@ -14,6 +14,7 @@ Record ScriptHookRDR2DotNet-V2 API patterns and native declarations relevant to 
 - Do not assume a native's parameter meaning from a placeholder such as `p2`, `p3`, `p5`, or `p9`.
 - Keep target selection, ILO registration, action-prompt creation, prompt-group attachment, prompt-group activation, prompt input detection, and recruitment execution as separate testable steps.
 - The user reports that the only `Prompt`-named API type in the installed API is `RDR2.UI.PromptTimingEvent`. Do not use `RDR2.UI.Prompt.CreatePrompt` as an assumed prompt-construction API.
+- For diagnostic code, reflection may be used to resolve optional wrappers at runtime. Log the resolved method signature and do not treat a wrapper's presence or a native return value as proof of in-game behavior.
 
 ## Player interaction target
 
