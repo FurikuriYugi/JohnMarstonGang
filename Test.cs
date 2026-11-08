@@ -53,7 +53,7 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        _registerIloMethod = FindNativeMethod(
+        _registerIloMethod = FindCompatibleNativeMethod(
             "REGISTER_INTERACTION_LOCKON_PROMPT",
             new[]
             {
@@ -69,7 +69,7 @@ public class Test : Script
                 typeof(int)
             });
 
-        _unregisterIloMethod = FindNativeMethod(
+        _unregisterIloMethod = FindCompatibleNativeMethod(
             "UNREGISTER_INTERACTION_LOCKON_PROMPT",
             new[]
             {
