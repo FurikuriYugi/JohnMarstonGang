@@ -1,36 +1,15 @@
-2026-11-08 09:25:52.615 === Interaction-lock-on plus entity-group prompt diagnostic ===
-2026-11-08 09:25:52.615 Diagnostic label key: CUTSCENE_SKIP
-2026-11-08 09:25:52.615 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-08 09:25:52.616 ILO prompt: registered per nearby human NPC.
-2026-11-08 09:25:52.616 G prompt: assigned to the focused NPC's prompt group.
-2026-11-08 09:25:52.616 This test does not recruit or change gang membership.
-2026-11-08 09:25:52.623 UI PROMPT CREATED: handle=211458
-2026-11-08 09:25:52.724 ILO REGISTRATION ISSUED: entity=197378; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.724 ILO REGISTRATION ISSUED: entity=197634; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.725 ILO REGISTRATION ISSUED: entity=197890; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.726 ILO REGISTRATION ISSUED: entity=198146; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.726 ILO REGISTRATION ISSUED: entity=198402; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.726 ILO REGISTRATION ISSUED: entity=198914; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.727 ILO REGISTRATION ISSUED: entity=199682; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.727 ILO REGISTRATION ISSUED: entity=200706; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.727 ILO REGISTRATION ISSUED: entity=201218; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.727 ILO REGISTRATION ISSUED: entity=204546; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.728 ILO REGISTRATION ISSUED: entity=205314; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.728 ILO REGISTRATION ISSUED: entity=205826; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:25:52.730 TARGET STATE: focusedTarget=none; human=False; distance=unknown; inRange=False
-2026-11-08 09:25:52.731 UI PROMPT STATE: active=False
-2026-11-08 09:25:52.731 HEARTBEAT: focusedTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; registeredIloPeds=12; rawG=False
-2026-11-08 09:25:53.162 ILO UNREGISTERED: entity=197634
-2026-11-08 09:25:54.741 HEARTBEAT: focusedTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; registeredIloPeds=11; rawG=False
-2026-11-08 09:25:55.677 ILO UNREGISTERED: entity=204546
-2026-11-08 09:25:56.686 ILO UNREGISTERED: entity=200706
-2026-11-08 09:25:56.746 HEARTBEAT: focusedTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; registeredIloPeds=9; rawG=False
-2026-11-08 09:25:57.700 ILO UNREGISTERED: entity=205826
-2026-11-08 09:25:58.203 ILO UNREGISTERED: entity=205314
-2026-11-08 09:25:58.750 HEARTBEAT: focusedTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; registeredIloPeds=7; rawG=False
-2026-11-08 09:25:59.219 ILO REGISTRATION ISSUED: entity=205314; radius=10.00; focusDistance=12.00; approachLabel=true
-2026-11-08 09:26:00.729 ILO UNREGISTERED: entity=197378
-2026-11-08 09:26:00.753 HEARTBEAT: focusedTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; registeredIloPeds=7; rawG=False
-2026-11-08 09:26:02.758 HEARTBEAT: focusedTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; registeredIloPeds=7; rawG=False
-2026-11-08 09:26:03.859 RAW G-CONTROL PRESS DETECTED; no action taken
-2026-11-08 09:26:04.762 HEARTBEAT: focusedTarget=none; human=False; distance=unknown; inRange=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; registeredIloPeds=7; rawG=False
+2026-11-08 10:25:17.751 === Focused-target Recruit prompt diagnostic ===
+2026-11-08 10:25:17.751 Focused target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY
+2026-11-08 10:25:17.751 Prompt text: Recruit
+2026-11-08 10:25:17.751 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+2026-11-08 10:25:17.752 Prompt is assigned to the focused entity's prompt group.
+2026-11-08 10:25:17.752 This test does not recruit or change gang membership.
+2026-11-08 10:25:17.758 UI PROMPT CREATED: handle=207362
+2026-11-08 10:25:17.791 TARGET STATE: focusedTarget=none; human=False
+2026-11-08 10:25:17.792 UI PROMPT STATE: active=False
+2026-11-08 10:25:17.792 HEARTBEAT: focusedTarget=none; nativeFoundTarget=False; human=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; rawInputInteractOption1=False
+2026-11-08 10:25:19.794 HEARTBEAT: focusedTarget=none; nativeFoundTarget=False; human=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; rawInputInteractOption1=False
+2026-11-08 10:25:21.804 HEARTBEAT: focusedTarget=none; nativeFoundTarget=False; human=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; rawInputInteractOption1=False
+2026-11-08 10:25:23.810 HEARTBEAT: focusedTarget=none; nativeFoundTarget=False; human=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; rawInputInteractOption1=False
+2026-11-08 10:25:25.812 HEARTBEAT: focusedTarget=none; nativeFoundTarget=False; human=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; rawInputInteractOption1=False
+2026-11-08 10:25:27.813 HEARTBEAT: focusedTarget=none; nativeFoundTarget=False; human=False; eligible=False; group=-1; groupAssigned=False; uiPromptActive=False; rawInputInteractOption1=False
