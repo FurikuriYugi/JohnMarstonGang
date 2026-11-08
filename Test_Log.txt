@@ -1,89 +1,50 @@
-[19:42:15.979] === Read-only NPC interaction sniffer initialized ===
-[19:42:15.979] TEST ONLY: focus an NPC and perform one built-in interaction at a time.
-[19:42:15.980] The sniffer does not create prompts, register ILOs, or trigger actions.
-[19:42:15.980] It records focused-human target handles, candidate input-control states,
-[19:42:15.980] and available observable target-state changes.
-[19:42:15.980] It does not intercept Rockstar's internal script/native calls or menu payloads.
-[19:42:15.980] After focus ends, the last target is sampled for up to 4000 ms.
-[19:42:15.981] Use Test_Log.txt and your visual observations together.
-[19:42:15.981] CONTROL WRAPPER IS_CONTROL_JUST_PRESSED: RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(Int32, UInt32)
-[19:42:15.981] CONTROL WRAPPER IS_CONTROL_PRESSED: RDR2.Native.PAD.IS_CONTROL_PRESSED(Int32, UInt32)
-[19:42:15.982] CONTROL WRAPPER IS_CONTROL_ENABLED: RDR2.Native.PAD.IS_CONTROL_ENABLED(Int32, UInt32)
-[19:42:15.982] CONTROL WRAPPER _GET_CURRENT_CONTROL_CONTEXT: unavailable
-[19:42:15.982] STATE WRAPPER GET_ENTITY_HEALTH: RDR2.Native.ENTITY.GET_ENTITY_HEALTH(Int32)
-[19:42:15.982] STATE WRAPPER IS_PED_IN_COMBAT: RDR2.Native.PED.IS_PED_IN_COMBAT(Int32, Int32)
-[19:42:15.982] STATE WRAPPER IS_PED_FLEEING: RDR2.Native.PED.IS_PED_FLEEING(Int32)
-[19:42:15.983] STATE WRAPPER IS_PED_SHOOTING: RDR2.Native.PED.IS_PED_SHOOTING(Int32)
-[19:42:15.983] STATE WRAPPER IS_PED_RAGDOLL: RDR2.Native.PED.IS_PED_RAGDOLL(Int32)
-[19:42:32.024] FOCUS BEGIN: target=202242
-[19:42:32.026] CONTROL AVAILABLE: target=202242; name=INPUT_AIM; hash=0xF84FA74F; enabled=True; note=candidate
-[19:42:32.027] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; enabled=True; note=focus/lock-on
-[19:42:32.027] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; enabled=True; note=rob candidate
-[19:42:32.027] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; enabled=True; note=positive interaction candidate
-[19:42:32.027] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_NEG; hash=0x26A18F47; enabled=True; note=negative interaction candidate
-[19:42:32.027] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; enabled=True; note=G in the reported InteractionLockOn mapping
-[19:42:32.027] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_OPTION2; hash=0x84543902; enabled=True; note=H in the reported InteractionLockOn mapping
-[19:42:32.027] CONTROL AVAILABLE: target=202242; name=INPUT_EMOTE_GREET; hash=0x72BAD5AA; enabled=False; note=greet/emote candidate
-[19:42:32.028] CONTROL AVAILABLE: target=202242; name=INPUT_EMOTE_TAUNT; hash=0x470DC190; enabled=False; note=taunt/emote candidate
-[19:42:32.028] CONTROL AVAILABLE: target=202242; name=INPUT_EMOTE_ACTION; hash=0x13C42BB2; enabled=True; note=emote action candidate
-[19:42:32.028] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_Y; hash=0x09A92B8B; enabled=False; note=lock-on action candidate
-[19:42:32.028] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_A; hash=0xD10A3A36; enabled=False; note=lock-on action candidate
-[19:42:32.028] CONTROL AVAILABLE: target=202242; name=INPUT_CONTEXT_X; hash=0xE3BF959B; enabled=True; note=unverified candidate from the earlier test
-[19:42:32.030] TARGET STATE CHANGE: reason=focus-begin; target=202242; exists=True; human=True; health=75; inCombatWithAny=False; fleeing=False; shooting=False; ragdoll=False
-[19:42:32.031] CONTROL STATE: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressed=True; note=candidate
-[19:42:32.032] CONTROL JUST PRESSED: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressedNow=True; currentContext=wrapper-unavailable; note=candidate
-[19:42:32.032] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressed=True; note=focus/lock-on
-[19:42:32.032] CONTROL JUST PRESSED: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressedNow=True; currentContext=wrapper-unavailable; note=focus/lock-on
-[19:42:32.033] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; pressed=False; note=rob candidate
-[19:42:32.033] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; pressed=False; note=positive interaction candidate
-[19:42:32.033] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_NEG; hash=0x26A18F47; pressed=False; note=negative interaction candidate
-[19:42:32.033] CONTROL STATE: target=202242; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; pressed=False; note=G in the reported InteractionLockOn mapping
-[19:42:32.034] CONTROL STATE: target=202242; name=INPUT_INTERACT_OPTION2; hash=0x84543902; pressed=False; note=H in the reported InteractionLockOn mapping
-[19:42:32.034] CONTROL STATE: target=202242; name=INPUT_EMOTE_GREET; hash=0x72BAD5AA; pressed=False; note=greet/emote candidate
-[19:42:32.034] CONTROL STATE: target=202242; name=INPUT_EMOTE_TAUNT; hash=0x470DC190; pressed=False; note=taunt/emote candidate
-[19:42:32.034] CONTROL STATE: target=202242; name=INPUT_EMOTE_ACTION; hash=0x13C42BB2; pressed=False; note=emote action candidate
-[19:42:32.034] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_Y; hash=0x09A92B8B; pressed=False; note=lock-on action candidate
-[19:42:32.035] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_A; hash=0xD10A3A36; pressed=False; note=lock-on action candidate
-[19:42:32.035] CONTROL STATE: target=202242; name=INPUT_CONTEXT_X; hash=0xE3BF959B; pressed=False; note=unverified candidate from the earlier test
-[19:42:35.314] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; pressed=True; note=positive interaction candidate
-[19:42:35.314] CONTROL JUST PRESSED: target=202242; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; pressedNow=True; currentContext=wrapper-unavailable; note=positive interaction candidate
-[19:42:35.328] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; pressed=False; note=positive interaction candidate
-[19:42:39.217] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; pressed=True; note=rob candidate
-[19:42:39.218] CONTROL JUST PRESSED: target=202242; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; pressedNow=True; currentContext=wrapper-unavailable; note=rob candidate
-[19:42:39.231] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; pressed=False; note=rob candidate
-[19:42:42.849] TARGET STATE CHANGE: reason=periodic; target=202242; exists=True; human=True; health=75; inCombatWithAny=False; fleeing=True; shooting=False; ragdoll=False
-[19:42:48.717] TARGET STATE CHANGE: reason=periodic; target=202242; exists=True; human=True; health=75; inCombatWithAny=True; fleeing=True; shooting=False; ragdoll=False
-[19:42:49.569] FOCUS END: target=202242; continue sampling briefly for response changes.
-[19:42:49.570] FOCUSED HUMAN TARGET: none; previous target=202242; response sampling remains active briefly.
-[19:42:49.570] CONTROL STATE: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressed=False; note=candidate
-[19:42:49.570] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressed=False; note=focus/lock-on
-[19:42:50.542] CONTROL STATE: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressed=True; note=candidate
-[19:42:50.543] CONTROL JUST PRESSED: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressedNow=True; currentContext=wrapper-unavailable; note=candidate
-[19:42:50.543] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressed=True; note=focus/lock-on
-[19:42:50.543] CONTROL JUST PRESSED: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressedNow=True; currentContext=wrapper-unavailable; note=focus/lock-on
-[19:42:50.785] TARGET STATE CHANGE: reason=periodic; target=202242; exists=True; human=True; health=75; inCombatWithAny=False; fleeing=True; shooting=False; ragdoll=False
-[19:42:51.374] CONTROL STATE: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressed=False; note=candidate
-[19:42:51.374] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressed=False; note=focus/lock-on
-[19:42:51.764] CONTROL STATE: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressed=True; note=candidate
-[19:42:51.764] CONTROL JUST PRESSED: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressedNow=True; currentContext=wrapper-unavailable; note=candidate
-[19:42:51.764] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressed=True; note=focus/lock-on
-[19:42:51.764] CONTROL JUST PRESSED: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressedNow=True; currentContext=wrapper-unavailable; note=focus/lock-on
-[19:42:52.489] FOCUS BEGIN: target=202242
-[19:42:52.489] CONTROL AVAILABLE: target=202242; name=INPUT_AIM; hash=0xF84FA74F; enabled=True; note=candidate
-[19:42:52.490] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; enabled=True; note=focus/lock-on
-[19:42:52.490] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; enabled=True; note=rob candidate
-[19:42:52.490] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; enabled=True; note=positive interaction candidate
-[19:42:52.490] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_NEG; hash=0x26A18F47; enabled=True; note=negative interaction candidate
-[19:42:52.490] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; enabled=True; note=G in the reported InteractionLockOn mapping
-[19:42:52.491] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_OPTION2; hash=0x84543902; enabled=True; note=H in the reported InteractionLockOn mapping
-[19:42:52.491] CONTROL AVAILABLE: target=202242; name=INPUT_EMOTE_GREET; hash=0x72BAD5AA; enabled=True; note=greet/emote candidate
-[19:42:52.491] CONTROL AVAILABLE: target=202242; name=INPUT_EMOTE_TAUNT; hash=0x470DC190; enabled=True; note=taunt/emote candidate
-[19:42:52.491] CONTROL AVAILABLE: target=202242; name=INPUT_EMOTE_ACTION; hash=0x13C42BB2; enabled=False; note=emote action candidate
-[19:42:52.491] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_Y; hash=0x09A92B8B; enabled=True; note=lock-on action candidate
-[19:42:52.492] CONTROL AVAILABLE: target=202242; name=INPUT_INTERACT_LOCKON_A; hash=0xD10A3A36; enabled=True; note=lock-on action candidate
-[19:42:52.492] CONTROL AVAILABLE: target=202242; name=INPUT_CONTEXT_X; hash=0xE3BF959B; enabled=True; note=unverified candidate from the earlier test
-[19:42:52.492] TARGET STATE CHANGE: reason=focus-begin; target=202242; exists=True; human=True; health=75; inCombatWithAny=False; fleeing=True; shooting=False; ragdoll=False
-[19:42:53.632] FOCUS END: target=202242; continue sampling briefly for response changes.
-[19:42:53.633] FOCUSED HUMAN TARGET: none; previous target=202242; response sampling remains active briefly.
-[19:42:54.746] CONTROL STATE: target=202242; name=INPUT_AIM; hash=0xF84FA74F; pressed=False; note=candidate
-[19:42:54.747] CONTROL STATE: target=202242; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressed=False; note=focus/lock-on
+[20:17:08.481] === Read-only NPC interaction sniffer initialized ===
+[20:17:08.481] Focus an NPC and perform one visible built-in interaction at a time.
+[20:17:08.481] This tool does not create prompts, register ILOs, suppress controls, or trigger actions.
+[20:17:08.482] The current-control-context wrapper was unavailable in the prior API scan; this tool does not use it.
+[20:17:08.482] Use this log together with your notes about the visible option and NPC response.
+[20:17:17.009] FOCUS BEGIN: target=193794
+[20:17:17.011] CONTROL AVAILABLE: target=193794; name=INPUT_AIM; hash=0xF84FA74F; enabled=True; note=aim candidate
+[20:17:17.011] CONTROL AVAILABLE: target=193794; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; enabled=True; note=focus/lock-on
+[20:17:17.011] CONTROL AVAILABLE: target=193794; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; enabled=True; note=rob candidate
+[20:17:17.011] CONTROL AVAILABLE: target=193794; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; enabled=True; note=positive interaction candidate
+[20:17:17.011] CONTROL AVAILABLE: target=193794; name=INPUT_INTERACT_LOCKON_NEG; hash=0x26A18F47; enabled=True; note=negative interaction candidate
+[20:17:17.012] CONTROL AVAILABLE: target=193794; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; enabled=True; note=G in reported InteractionLockOn mapping
+[20:17:17.012] CONTROL AVAILABLE: target=193794; name=INPUT_INTERACT_OPTION2; hash=0x84543902; enabled=True; note=H in reported InteractionLockOn mapping
+[20:17:17.012] CONTROL AVAILABLE: target=193794; name=INPUT_EMOTE_GREET; hash=0x72BAD5AA; enabled=False; note=greet/emote candidate
+[20:17:17.012] CONTROL AVAILABLE: target=193794; name=INPUT_EMOTE_TAUNT; hash=0x470DC190; enabled=False; note=taunt/emote candidate
+[20:17:17.012] CONTROL AVAILABLE: target=193794; name=INPUT_EMOTE_ACTION; hash=0x13C42BB2; enabled=True; note=emote action candidate
+[20:17:17.012] CONTROL AVAILABLE: target=193794; name=INPUT_INTERACT_LOCKON_Y; hash=0x09A92B8B; enabled=False; note=lock-on action candidate
+[20:17:17.013] CONTROL AVAILABLE: target=193794; name=INPUT_INTERACT_LOCKON_A; hash=0xD10A3A36; enabled=False; note=lock-on action candidate
+[20:17:17.013] CONTROL AVAILABLE: target=193794; name=INPUT_CONTEXT_X; hash=0xE3BF959B; enabled=True; note=unverified earlier-test candidate
+[20:17:17.015] TARGET STATE CHANGE: reason=focus-begin; target=193794; exists=True; human=True; health=75; inCombatWithAny=False; fleeing=False; shooting=False; ragdoll=False
+[20:17:17.016] CONTROL STATE: target=193794; name=INPUT_AIM; hash=0xF84FA74F; pressed=True; note=aim candidate
+[20:17:17.017] CONTROL JUST PRESSED: target=193794; name=INPUT_AIM; hash=0xF84FA74F; note=aim candidate
+[20:17:17.017] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; pressed=True; note=focus/lock-on
+[20:17:17.017] CONTROL JUST PRESSED: target=193794; name=INPUT_INTERACT_LOCKON; hash=0xF8982F00; note=focus/lock-on
+[20:17:17.017] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; pressed=False; note=rob candidate
+[20:17:17.018] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; pressed=False; note=positive interaction candidate
+[20:17:17.018] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_NEG; hash=0x26A18F47; pressed=False; note=negative interaction candidate
+[20:17:17.018] CONTROL STATE: target=193794; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; pressed=False; note=G in reported InteractionLockOn mapping
+[20:17:17.018] CONTROL STATE: target=193794; name=INPUT_INTERACT_OPTION2; hash=0x84543902; pressed=False; note=H in reported InteractionLockOn mapping
+[20:17:17.018] CONTROL STATE: target=193794; name=INPUT_EMOTE_GREET; hash=0x72BAD5AA; pressed=False; note=greet/emote candidate
+[20:17:17.018] CONTROL STATE: target=193794; name=INPUT_EMOTE_TAUNT; hash=0x470DC190; pressed=False; note=taunt/emote candidate
+[20:17:17.019] CONTROL STATE: target=193794; name=INPUT_EMOTE_ACTION; hash=0x13C42BB2; pressed=False; note=emote action candidate
+[20:17:17.019] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_Y; hash=0x09A92B8B; pressed=False; note=lock-on action candidate
+[20:17:17.019] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_A; hash=0xD10A3A36; pressed=False; note=lock-on action candidate
+[20:17:17.019] CONTROL STATE: target=193794; name=INPUT_CONTEXT_X; hash=0xE3BF959B; pressed=False; note=unverified earlier-test candidate
+[20:17:19.654] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; pressed=True; note=positive interaction candidate
+[20:17:19.655] CONTROL JUST PRESSED: target=193794; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; note=positive interaction candidate
+[20:17:19.665] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_POS; hash=0xF63A17F9; pressed=False; note=positive interaction candidate
+[20:17:23.253] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_NEG; hash=0x26A18F47; pressed=True; note=negative interaction candidate
+[20:17:23.253] CONTROL JUST PRESSED: target=193794; name=INPUT_INTERACT_LOCKON_NEG; hash=0x26A18F47; note=negative interaction candidate
+[20:17:23.266] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_NEG; hash=0x26A18F47; pressed=False; note=negative interaction candidate
+[20:17:26.759] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; pressed=True; note=rob candidate
+[20:17:26.760] CONTROL JUST PRESSED: target=193794; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; note=rob candidate
+[20:17:26.771] CONTROL STATE: target=193794; name=INPUT_INTERACT_LOCKON_ROB; hash=0x9FA5AD07; pressed=False; note=rob candidate
+[20:17:32.008] TARGET STATE CHANGE: reason=periodic; target=193794; exists=True; human=True; health=75; inCombatWithAny=False; fleeing=True; shooting=False; ragdoll=False
+[20:17:33.153] FOCUS END: target=193794; sampling briefly for response changes.
+[20:17:33.153] FOCUSED HUMAN TARGET: none; previous target=193794; response sampling continues briefly.
+[20:17:33.177] CONTROL STATE: target=193794; name=INPUT_EMOTE_ACTION; hash=0x13C42BB2; pressed=True; note=emote action candidate
+[20:17:35.693] CONTROL STATE: target=193794; name=INPUT_EMOTE_ACTION; hash=0x13C42BB2; pressed=False; note=emote action candidate
+[20:17:37.153] CAPTURE END: target=193794
