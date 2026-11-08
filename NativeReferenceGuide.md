@@ -6,7 +6,7 @@
 - Use generated native wrappers from `RDR2.Native`.
 - `Script.Tick` is an event. Subscribe to it; do not override it.
 - Use the API DLL and ASI from the same release archive.
-- Verify exact wrapper signatures against the project's API context files or Visual Studio Object Browser when adding native calls.
+- Verify exact wrapper signatures against the project’s API context files or Visual Studio Object Browser when adding native calls.
 - Do not use `System.Text.Json`; use Newtonsoft.Json if JSON is needed.
 - API release notes state that implicit conversions exist between `int`, `PoolObject`-derived types such as `Entity` and `Ped`, and `Player`. Check generated declarations when using output parameters.
 

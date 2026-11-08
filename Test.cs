@@ -14,18 +14,14 @@ public class Test : Script
         "Test_Log.txt");
 
     private int _promptHandle;
-
     private bool _lastNativeFoundTarget;
     private int _lastTargetHandle = int.MinValue;
     private bool _lastTargetIsHuman;
     private bool _hasLoggedTargetState;
-
     private int _lastAssignedGroupId = int.MinValue;
     private int _lastGroupTargetHandle = int.MinValue;
-
     private bool _lastPromptActive;
     private bool _hasLoggedPromptState;
-
     private string _lastTargetError;
     private string _lastInputError;
     private string _lastGroupError;
@@ -38,6 +34,9 @@ public class Test : Script
         Log("=== Focused-target Recruit prompt test ===");
         Log("Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY");
         Log("Prompt text: " + PromptText);
+        Log(
+            "Prompt text builder: " +
+            "RDR2.Native.MISC.VAR_STRING(10, LITERAL_STRING, PromptText)");
         Log(
             "Prompt control: INPUT_INTERACT_OPTION1; hash=0x" +
             InputInteractOption1.ToString("X8"));
@@ -64,13 +63,19 @@ public class Test : Script
                 return;
             }
 
+            string formattedPromptText =
+                RDR2.Native.MISC.VAR_STRING(
+                    10,
+                    "LITERAL_STRING",
+                    PromptText);
+
             RDR2.Native.HUD._UI_PROMPT_SET_CONTROL_ACTION(
                 _promptHandle,
                 InputInteractOption1);
 
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 _promptHandle,
-                PromptText);
+                formattedPromptText);
 
             RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
                 _promptHandle,
