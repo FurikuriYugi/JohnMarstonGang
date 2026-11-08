@@ -1,60 +1,21 @@
-2026-11-07 23:37:57.952 === Focused NPC ambient Recruit prompt test initialized ===
-2026-11-07 23:37:57.952 Prompt text: "Recruit" (System.String).
-2026-11-07 23:37:57.952 Prompt group name: "NPC" (System.String).
-2026-11-07 23:37:57.952 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-07 23:37:57.952 Ambient group activation is attempted every focused tick.
-2026-11-07 23:37:57.953 This test does not recruit, change gang membership, or trigger an animation.
-2026-11-07 23:37:57.958 FOCUSED PROMPT HANDLE: 210690
-2026-11-07 23:37:57.960 PROMPT CONTROL ACTION SET: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-07 23:37:57.962 PROMPT TEXT SET: "Recruit"; argumentType=System.String
-2026-11-07 23:37:57.963 FOCUSED PROMPT CREATED: prompt=210690; text="Recruit"; initialEnabled=false; initialVisible=false
-2026-11-07 23:37:58.063 FOCUSED PROMPT DISABLED: prompt=210690
-2026-11-07 23:37:58.064 HUMAN TARGET BEGIN: target=201474; distance=1.560238
-2026-11-07 23:38:06.168 TRACKED TARGET FOCUS BEGIN: target=201474
-2026-11-07 23:38:06.169 TARGET PROMPT GROUP: target=201474; group=268566612
-2026-11-07 23:38:06.169 PROMPT ATTACHED TO TARGET GROUP: prompt=210690; target=201474; group=268566612
-2026-11-07 23:38:06.170 FOCUSED PROMPT ENABLED: prompt=210690
-2026-11-07 23:38:06.171 AMBIENT GROUP ACTIVATION INVOKED: target=201474; radius=8; p2=2; tabCount=0; group=268566612; groupName="NPC"; flags=0
-2026-11-07 23:38:06.172 INPUT STATE: UI_PROMPT_IS_ACTIVE=False; target=201474; prompt=210690
-2026-11-07 23:38:06.173 INPUT STATE: UI_PROMPT_IS_PRESSED=False; target=201474; prompt=210690
-2026-11-07 23:38:06.173 INPUT STATE: IS_CONTROL_ENABLED=True; target=201474; prompt=210690
-2026-11-07 23:38:06.174 INPUT STATE: IS_CONTROL_PRESSED=False; target=201474; prompt=210690
-2026-11-07 23:38:06.174 INPUT HEARTBEAT: promptActive=False; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:06.186 INPUT STATE: UI_PROMPT_IS_ACTIVE=True; target=201474; prompt=210690
-2026-11-07 23:38:08.176 INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:10.182 INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:12.191 INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:13.918 INPUT STATE: IS_CONTROL_PRESSED=True; target=201474; prompt=210690
-2026-11-07 23:38:13.919 INPUT EVENT: IS_CONTROL_JUST_PRESSED=true; target=201474; prompt=210690
-2026-11-07 23:38:14.071 INPUT STATE: UI_PROMPT_IS_PRESSED=True; target=201474; prompt=210690
-2026-11-07 23:38:14.072 INPUT EVENT: UI_PROMPT_IS_JUST_PRESSED=true; target=201474; prompt=210690
-2026-11-07 23:38:14.072 INPUT STATE: IS_CONTROL_PRESSED=False; target=201474; prompt=210690
-2026-11-07 23:38:14.083 INPUT STATE: UI_PROMPT_IS_PRESSED=False; target=201474; prompt=210690
-2026-11-07 23:38:14.200 INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:16.202 INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:17.558 TRACKED TARGET FOCUS END: target=201474
-2026-11-07 23:38:17.559 PROMPT GROUP DETACH: prompt=210690; group=268566612
-2026-11-07 23:38:17.560 FOCUSED PROMPT DISABLED: prompt=210690
-2026-11-07 23:38:21.541 TRACKED TARGET FOCUS BEGIN: target=201474
-2026-11-07 23:38:21.542 TARGET PROMPT GROUP: target=201474; group=268566612
-2026-11-07 23:38:21.542 PROMPT ATTACHED TO TARGET GROUP: prompt=210690; target=201474; group=268566612
-2026-11-07 23:38:21.542 FOCUSED PROMPT ENABLED: prompt=210690
-2026-11-07 23:38:21.542 AMBIENT GROUP ACTIVATION INVOKED: target=201474; radius=8; p2=2; tabCount=0; group=268566612; groupName="NPC"; flags=0
-2026-11-07 23:38:21.543 INPUT STATE: UI_PROMPT_IS_ACTIVE=False; target=201474; prompt=210690
-2026-11-07 23:38:21.543 INPUT STATE: UI_PROMPT_IS_PRESSED=False; target=201474; prompt=210690
-2026-11-07 23:38:21.543 INPUT STATE: IS_CONTROL_ENABLED=True; target=201474; prompt=210690
-2026-11-07 23:38:21.543 INPUT STATE: IS_CONTROL_PRESSED=False; target=201474; prompt=210690
-2026-11-07 23:38:21.543 INPUT HEARTBEAT: promptActive=False; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:21.554 INPUT STATE: UI_PROMPT_IS_ACTIVE=True; target=201474; prompt=210690
-2026-11-07 23:38:23.554 INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:23.755 INPUT STATE: IS_CONTROL_PRESSED=True; target=201474; prompt=210690
-2026-11-07 23:38:23.755 INPUT EVENT: IS_CONTROL_JUST_PRESSED=true; target=201474; prompt=210690
-2026-11-07 23:38:23.861 INPUT STATE: UI_PROMPT_IS_PRESSED=True; target=201474; prompt=210690
-2026-11-07 23:38:23.862 INPUT EVENT: UI_PROMPT_IS_JUST_PRESSED=true; target=201474; prompt=210690
-2026-11-07 23:38:23.862 INPUT STATE: IS_CONTROL_PRESSED=False; target=201474; prompt=210690
-2026-11-07 23:38:23.873 INPUT STATE: UI_PROMPT_IS_PRESSED=False; target=201474; prompt=210690
-2026-11-07 23:38:25.562 INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:27.573 INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
-2026-11-07 23:38:27.747 TRACKED TARGET FOCUS END: target=201474
-2026-11-07 23:38:27.748 PROMPT GROUP DETACH: prompt=210690; group=268566612
-2026-11-07 23:38:27.748 FOCUSED PROMPT DISABLED: prompt=210690
+2026-11-07 23:55:55.873 === Dedicated active-group Recruit prompt test initialized ===
+2026-11-07 23:55:55.873 Prompt text: "Recruit".
+2026-11-07 23:55:55.873 Prompt group name: "NPC".
+2026-11-07 23:55:55.873 Dedicated prompt group ID: 4869447
+2026-11-07 23:55:55.873 Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+2026-11-07 23:55:55.873 Active prompt group is activated every focused tick.
+2026-11-07 23:55:55.874 This test does not recruit, change gang membership, or trigger an animation.
+2026-11-07 23:55:55.882 PROMPT CREATED: prompt=213250; text="Recruit"
+2026-11-07 23:56:04.922 FOCUSED HUMAN TARGET BEGIN: target=204034
+2026-11-07 23:56:04.923 PROMPT ATTACHED TO DEDICATED GROUP: prompt=213250; target=204034; group=4869447
+2026-11-07 23:56:04.927 INPUT STATE: UI_PROMPT_IS_ACTIVE=False; target=204034; prompt=213250
+2026-11-07 23:56:04.927 INPUT STATE: UI_PROMPT_IS_PRESSED=False; target=204034; prompt=213250
+2026-11-07 23:56:04.927 INPUT STATE: IS_CONTROL_ENABLED=True; target=204034; prompt=213250
+2026-11-07 23:56:04.927 INPUT STATE: IS_CONTROL_PRESSED=False; target=204034; prompt=213250
+2026-11-07 23:56:04.927 INPUT HEARTBEAT: promptActive=False; promptPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
+2026-11-07 23:56:06.937 INPUT HEARTBEAT: promptActive=False; promptPressed=False; controlEnabled=True; controlPressed=False; controlJustPressed=False
+2026-11-07 23:56:07.468 INPUT STATE: IS_CONTROL_PRESSED=True; target=204034; prompt=213250
+2026-11-07 23:56:07.469 INPUT EVENT: IS_CONTROL_JUST_PRESSED=true; target=204034; prompt=213250
+2026-11-07 23:56:07.645 INPUT STATE: IS_CONTROL_PRESSED=False; target=204034; prompt=213250
+2026-11-07 23:56:08.721 FOCUSED TARGET END: target=204034
+2026-11-07 23:56:08.723 PROMPT DETACHED AND DISABLED: prompt=213250; group=4869447
