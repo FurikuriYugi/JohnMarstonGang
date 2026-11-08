@@ -124,5 +124,6 @@ The observed **Recruit** outer-radius label is not proof that the G action promp
 
 A proposed test of passing the registered G prompt handle as the ILO registration prompt argument, instead of `0`, is only a hypothesis until verified against the current source and tested in-game. Do not record it as a confirmed native behavior before testing.
 
+# Mode: Testing mode
 ## 7. Current Task
-Testing mode
+Keep using our database and research to find a way to add custom string to unarmed lock on menu and then building new test files updating the documents and testing.

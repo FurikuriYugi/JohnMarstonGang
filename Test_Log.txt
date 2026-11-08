@@ -1,21 +1,22 @@
-2026-11-08 16:15:14.457 === Focused NPC prompt-name and G prompt test ===
-2026-11-08 16:15:14.457 Focused ped prompt name: Recruit
-2026-11-08 16:15:14.458 ILO approach prompt text: Recruit; radius=8; focusDistance=8; prompt argument=0
-2026-11-08 16:15:14.458 G prompt uses registered label: CUTSCENE_SKIP; expected action text: G Skip.
-2026-11-08 16:15:14.458 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.
-2026-11-08 16:15:14.458 This test changes the focused human ped's prompt name. It does not restore the prior name because the original name is not available through the current test.
-2026-11-08 16:15:14.458 G only logs a test press; no recruitment is performed.
-2026-11-08 16:15:14.469 G PROMPT CREATED: handle=213506; label=CUTSCENE_SKIP
-2026-11-08 16:15:14.507 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 16:15:14.509 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
-2026-11-08 16:15:23.591 TARGET: nativeFound=True; handle=201986; human=True
-2026-11-08 16:15:23.592 PED FOCUS PROMPT NAME SET: target=201986; name=Recruit
-2026-11-08 16:15:23.593 ILO REGISTRATION: target=201986; text=Recruit; succeeded=True
-2026-11-08 16:15:23.594 G PROMPT GROUP ASSIGNED: target=201986; group=268566626
-2026-11-08 16:15:23.595 PROMPT GROUP ACTIVE PAGE: group=268566626; page=-1; active=False
-2026-11-08 16:15:23.606 PROMPT GROUP ACTIVE PAGE: group=268566626; page=0; active=True
-2026-11-08 16:15:23.606 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
-2026-11-08 16:15:28.614 RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED
-2026-11-08 16:15:28.749 G PROMPT PRESSED: label=CUTSCENE_SKIP; no recruitment performed.
-2026-11-08 16:15:30.582 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 16:15:30.583 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 17:05:22.828 === Focused NPC prompt-name and G prompt handle test ===
+2026-11-08 17:05:22.828 Focused ped prompt name: Recruit
+2026-11-08 17:05:22.829 ILO approach prompt text: Recruit; radius=8; focusDistance=8; prompt argument=created G prompt handle.
+2026-11-08 17:05:22.829 G prompt uses registered label: CUTSCENE_SKIP; expected action text: G Skip.
+2026-11-08 17:05:22.829 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.
+2026-11-08 17:05:22.829 The ILO prompt argument will be the runtime handle returned when the G prompt is created.
+2026-11-08 17:05:22.829 This test changes the focused human ped's prompt name. It does not restore the prior name because the original name is not available through the current test.
+2026-11-08 17:05:22.829 G only logs a test press; no recruitment is performed.
+2026-11-08 17:05:22.840 G PROMPT CREATED: handle=189442; label=CUTSCENE_SKIP
+2026-11-08 17:05:22.877 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 17:05:22.878 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 17:05:35.995 TARGET: nativeFound=True; handle=184322; human=True
+2026-11-08 17:05:35.996 PED FOCUS PROMPT NAME SET: target=184322; name=Recruit
+2026-11-08 17:05:35.997 ILO REGISTRATION: target=184322; text=Recruit; promptHandle=189442; succeeded=True
+2026-11-08 17:05:35.998 G PROMPT GROUP ASSIGNED: target=184322; group=268566577
+2026-11-08 17:05:35.999 PROMPT GROUP ACTIVE PAGE: group=268566577; page=-1; active=False
+2026-11-08 17:05:36.011 PROMPT GROUP ACTIVE PAGE: group=268566577; page=0; active=True
+2026-11-08 17:05:36.011 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
+2026-11-08 17:05:39.743 RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED
+2026-11-08 17:05:39.907 G PROMPT PRESSED: label=CUTSCENE_SKIP; no recruitment performed.
+2026-11-08 17:05:40.893 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 17:05:40.894 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False

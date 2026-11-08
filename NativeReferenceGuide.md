@@ -48,11 +48,12 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 
 - **Native hash:** `0x4A48B6E03BABB4AC`.
 - **Purpose reported by prompt research:** Changes the text shown for a ped when the player focuses on it. The focused-ped text is distinct from the ILO approach prompt text.
-- **Wrapper signature:** Not yet verified against the project’s `Context/` mapping or Visual Studio Object Browser. The test currently calls it with a ped handle and a string.
-- **Runtime status:** Not yet tested in this project.
-- **Current test:** Set the focused human ped’s prompt name to `Recruit`; see `ResearchNotes.md`.
-- **Caveat:** Reset/restore behavior was not established by the available research. The test does not restore the NPC’s original name. Use a disposable ambient NPC and check whether the changed name remains after focus is lost.
-- **Source status:** The name and behavior are reported in external RDR2 prompt research; do not treat them as locally verified until the project test succeeds.
+- **Wrapper signature:** Not yet verified against the project’s `Context/` mapping or Visual Studio Object Browser. The test calls it with a ped handle and a string.
+- **Runtime status:** User-tested; the user reports that the focused NPC’s name displayed as `Recruit` in the focused-ped-name test.
+- **Evidence:** The source calls the native for the focused human target, and `Test_Log.txt` dated `2026-11-08 16:15` records `PED FOCUS PROMPT NAME SET`. The user separately confirms the visible focused-name result.
+- **Conditions/caveat:** This is a result from the tested setup, not a claim about all peds or game states. The test does not restore the NPC’s original name. Use a disposable ambient NPC and check whether the changed name remains after focus is lost.
+- **Source status:** The behavior is reported in external RDR2 prompt research and now has a local user-observed result. The exact wrapper signature remains unverified.
+- **Project test record:** See “Focused-ped prompt-name test” in `ResearchNotes.md`.
 
 ## Prompt text creation
 
@@ -71,7 +72,7 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 - **Custom-text test usage:** Passes the string returned by `VAR_STRING(10, "LITERAL_STRING", "Recruit")` to this native.
 - **Local runtime status:** The user reports that custom `Recruit` did not appear in the prompt menu.
 - **Upstream-reported behavior:** Issue #4 says custom `VAR_STRING` strings do not work with this native, while already-registered string-database labels can work.
-- **Registered-label test result:** The `CUTSCENE_SKIP` prompt reported active and registered G input produced a prompt-pressed log event. The user nevertheless reported that **G Skip** did not appear in the unarmed focus menu.
+- **Registered-label test result:** In the static registered-label test and the focused-ped-name test, the prompt reported active and registered G input produced a prompt-pressed log event. The user nevertheless reported that **G Skip** did not appear in the unarmed focus menu.
 - **Caveat:** Prompt active state and input detection do not prove that the prompt was visibly rendered.
 - **Project test record:** See `ResearchNotes.md`.
 
@@ -106,6 +107,16 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 - **Caveat:** An active page is not proof that the prompt text or glyph was rendered.
 - **Evidence:** Earlier `Test.cs` and `Test_Log.txt` dated `2026-11-08`.
 
+### `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT`
+
+- **Signature:** Not recorded here; verify the exact wrapper declaration and argument meanings against the API context or Visual Studio Object Browser.
+- **Test usage:** The previous focused-ped-name test called this native with ten arguments and passed `0` as the prompt argument.
+- **Runtime status with argument `0`:** The `2026-11-08 16:15` log records successful registration for focused target `201986`.
+- **User-observed result with argument `0`:** The outer-radius label and focused NPC name displayed as `Recruit`; the G action prompt did not visibly change.
+- **Caveat:** A successful return does not establish that the action prompt was rendered. The meaning of the prompt argument is not yet verified.
+- **Next test:** The current test source passes the runtime handle returned by `_UI_PROMPT_REGISTER_BEGIN` in place of `0`. This is an unrun hypothesis test; it must not be documented as a verified fix until the user reports the visual result.
+- **Project test record:** See “Focused-ped prompt-name test” in `ResearchNotes.md`.
+
 ## Prompt controls and state
 
 ### `INPUT_INTERACT_OPTION1`
@@ -113,7 +124,7 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 - **Hash used by test:** `0x760A9C6F`.
 - **Test mapping:** G.
 - **Runtime status:** Configured for the test prompt.
-- **Instrumented result:** `Test_Log.txt` dated `2026-11-08 15:45` records a raw G press and a `G PROMPT PRESSED` event.
+- **Instrumented result:** `Test_Log.txt` dated `2026-11-08 15:45` and `2026-11-08 16:15` records a raw G press and a `G PROMPT PRESSED` event.
 - **Caveat:** That confirms input and prompt-state processing, not visible rendering.
 
 ### `INPUT_INTERACT_OPTION2`
@@ -137,8 +148,8 @@ The focused-target prompt test uses:
 - `_UI_PROMPT_IS_JUST_PRESSED`
 - `_UI_PROMPT_DELETE`
 - **Signatures:** Not recorded here; verify in the API context or Object Browser before documenting them.
-- **Runtime status:** Prompt creation and active state were logged in an earlier focused-target run.
-- **Unverified:** Visible rendering of the current prompt and whether the focused-ped name appears as `Recruit`.
+- **Runtime status:** Prompt creation and active state were logged in earlier focused-target runs.
+- **Unverified:** Visible rendering of the current G action prompt.
 - **Caveat:** Prompt creation or active state alone is not proof of visible output.
 
 ## Prompt-group activation context

@@ -15,7 +15,6 @@ public class Test : Script
     private const int LockOnFlags = 0;
     private const float LockOnParameter5 = 0.0f;
     private const float LockOnParameter6 = 0.0f;
-    private const int LockOnPromptHandle = 0;
     private const bool ShowLockOnPromptWhenApproaching = true;
     private const int LockOnParameter9 = -1;
 
@@ -27,22 +26,17 @@ public class Test : Script
     private int _lockOnTargetHandle;
     private bool _lockOnRegistrationSucceeded;
     private int _pedPromptNameTargetHandle = int.MinValue;
-
     private bool _hasLoggedTargetState;
     private bool _lastNativeFoundTarget;
     private int _lastTargetHandle = int.MinValue;
     private bool _lastTargetIsHuman;
-
     private bool _hasLoggedGroupActivePage;
     private int _lastActivePageGroupId = int.MinValue;
     private int _lastGroupActivePage = int.MinValue;
-
     private bool _hasLoggedPromptActiveState;
     private bool _lastPromptActiveState;
-
     private int _lastAssignedTargetHandle = int.MinValue;
     private int _lastAssignedGroupId = int.MinValue;
-
     private string _lastTargetError;
     private string _lastInputError;
     private string _lastGroupError;
@@ -55,7 +49,7 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Focused NPC prompt-name and G prompt test ===");
+        Log("=== Focused NPC prompt-name and G prompt handle test ===");
         Log(
             "Focused ped prompt name: " +
             FocusedPedPromptName);
@@ -66,14 +60,16 @@ public class Test : Script
             LockOnRadius +
             "; focusDistance=" +
             LockOnFocusDistance +
-            "; prompt argument=" +
-            LockOnPromptHandle);
+            "; prompt argument=created G prompt handle.");
         Log(
             "G prompt uses registered label: " +
             RegisteredPromptLabel +
             "; expected action text: G Skip.");
         Log(
             "Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.");
+        Log(
+            "The ILO prompt argument will be the runtime handle returned " +
+            "when the G prompt is created.");
         Log(
             "This test changes the focused human ped's prompt name. " +
             "It does not restore the prior name because the original name " +
@@ -175,6 +171,7 @@ public class Test : Script
         RegisterLockOnPromptForTarget(targetHandle);
 
         int targetGroupId;
+
         if (!TryGetTargetPromptGroup(targetHandle, out targetGroupId))
         {
             UpdatePrompt(false);
@@ -182,6 +179,7 @@ public class Test : Script
         }
 
         bool promptAssigned;
+
         AssignPromptToTargetGroup(
             targetHandle,
             targetGroupId,
@@ -291,7 +289,7 @@ public class Test : Script
                     LockOnFlags,
                     LockOnParameter5,
                     LockOnParameter6,
-                    LockOnPromptHandle,
+                    _promptHandle,
                     ShowLockOnPromptWhenApproaching,
                     LockOnParameter9);
 
@@ -304,6 +302,8 @@ public class Test : Script
                 targetHandle +
                 "; text=" +
                 LockOnPromptText +
+                "; promptHandle=" +
+                _promptHandle +
                 "; succeeded=" +
                 registered);
         }
@@ -370,8 +370,8 @@ public class Test : Script
         try
         {
             if (RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
-                    0,
-                    InputInteractOption1))
+                0,
+                InputInteractOption1))
             {
                 Log("RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED");
             }
