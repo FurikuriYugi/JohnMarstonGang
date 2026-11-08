@@ -107,21 +107,32 @@ The user tested while unarmed and right-mouse focusing a human NPC.
 
 **Conclusion:** This is a visibility failure for the typed G prompt setup: target detection, prompt registration, and target-group assignment succeeded, but the user did not see the action. The missing completion wrapper does not explain the missing display.
 
-### In-game findings — latest ILO-enabled G prompt attempt
+### In-game findings — latest ILO-enabled G prompt group-order test
 
-The user tested while unarmed and right-mouse focusing a human NPC. The supplied log does not include a calendar date.
+The supplied log has no calendar date. The user tested while unarmed and right-mouse focusing a human NPC.
 
-- The harness found focused human target `206338`.
+- The harness found focused human target `204546`.
 - `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true`.
-- Prompt handle `325890` was registered and assigned to target group `268566628`.
+- Prompt handle `242690` was registered and assigned to target group `268566627`.
 - The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
 - The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
 - The user did not see **G Recruit** in the focused NPC's lock-on menu.
-- The ILO was unregistered when focus changed; unregistration returned `true`.
+- Group assignment was performed after `_UI_PROMPT_REGISTER_END`; this did not make the prompt visible.
 - The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
+- `UNREGISTER_INTERACTION_LOCKON_PROMPT` returned `true` when focus changed.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** ILO registration returned `true`, but this did not make the action visible. The prompt's registration and group assignment calls completed, but their success does not prove that the menu rendered the prompt.
+**Conclusion:** The group-order hypothesis did not resolve the visibility failure. Target detection, ILO registration, prompt registration, and group assignment all completed without a logged setup error, but none proves that the game rendered the action.
+
+### `PP_GREET` research note
+
+External prompt-type research lists `PP_GREET` as prompt type ID `3`, separately from `PP_INTERACTION_LOCKON` and `PP_INTERACTION_LOCKON_GROUP`. This identifies it as a prompt-type label in that list; it does not establish a keyboard glyph, a control-action hash, or a supported way to assign that type to a custom UI prompt. Keep the R-glyph interpretation as a hypothesis unless a native/API declaration or in-game test confirms it.
+
+### Current test hypothesis and next research step
+
+The latest test rules out “assign the target group after prompt registration” as a sufficient fix. Do not repeat that ordering change or treat a successful ILO return as display confirmation.
+
+Before changing `Test.cs`, investigate whether the game's `PP_GREET` prompt type is connected to a native/API mechanism that can be used for a custom interaction. Confirm the exact native or wrapper contract first. If no such mechanism is found, choose the next test from a documented, independently testable prompt setting and change only that setting.
 
 ### External prompt research
 

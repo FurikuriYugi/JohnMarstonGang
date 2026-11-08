@@ -33,3 +33,9 @@ public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
     int* entity
 );
 ```
+
+## Prompt type labels and latest test result
+
+External prompt-type research lists `PP_GREET` as ID `3`, with `PP_INTERACTION_LOCKON` and `PP_INTERACTION_LOCKON_GROUP` as separate entries. This list does not define input glyphs or prove that a custom native UI prompt can be assigned one of these types. Do not use `PP_GREET` as a substitute for a verified control-action hash.
+
+In the latest in-game test, `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true`, the UI prompt registered, and `_UI_PROMPT_SET_GROUP` completed after `_UI_PROMPT_REGISTER_END`. The user still did not see **G Recruit**. These successful calls do not establish that the prompt rendered.
