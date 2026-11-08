@@ -1,43 +1,21 @@
-# Research Notes
+# Native Reference Guide
 
-## Current mode
+## Project API and lifecycle
 
-The project is in test mode. Do not edit `StoryBoard.md` during this phase. Record test findings in this file and native/API findings in `NativeReferenceGuide.md`.
+- The project targets ScriptHookRDR2DotNet-V2 API version 2.2.0.
+- Use generated native wrappers from `RDR2.Native`.
+- `Script.Tick` is an event. Subscribe to it; do not override it.
+- Use the API DLL and ASI from the same release archive.
+- Verify exact wrapper signatures against the project’s API context files or Visual Studio Object Browser when adding native calls.
+- Do not use `System.Text.Json`; use Newtonsoft.Json if JSON is needed.
+- API release notes state that implicit conversions exist between `int`, `PoolObject`-derived types such as `Entity` and `Ped`, and `Player`. Check generated declarations when using output parameters.
 
-## Current test objective
+## Focused interaction target
 
-Test only these steps:
-
-1. Get the focused interaction target.
-2. Determine whether it is a human NPC.
-3. Add a G-controlled “Recruit” prompt to that NPC’s existing prompt group.
-4. Log whether the prompt becomes active and whether it is pressed.
-
-The test must not recruit the NPC or change gang membership.
-
-## Evidence collected
-
-### Test log
-
-The recorded `Test_Log.txt` shows:
-
-- The UI prompt was created with handle `207362`.
-- Each recorded focused-target lookup returned `nativeFoundTarget=False` and `focusedTarget=none`.
-- No target group was retrieved or assigned.
-- No target-specific prompt display was verified.
-
-These log entries establish that prompt creation ran, but they do not establish that target detection or adding the prompt to an NPC’s menu works.
-
-### In-game visual report
-
-The user reported that right-clicking an NPC caused the game to crash with a Script Hook RDR2 CORE exception, id 33. This is a reported observation. The available log does not establish which native or operation caused the crash.
-
-### API signature
-
-The user checked the Object Browser and provided this declaration:
+The user verified this Object Browser declaration:
 
 ```csharp
-public unsafe static bool GET_PLAYER_INTERACTION_TARGET_ENTITY(
+public unsafe static bool GET\_PLAYER\_INTERACTION\_TARGET\_ENTITY(
     int player,
     int* outEntity,
     bool p2,

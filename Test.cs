@@ -14,14 +14,20 @@ public class Test : Script
         "Test_Log.txt");
 
     private int _promptHandle;
+
+    private bool _lastNativeFoundTarget;
     private int _lastTargetHandle = int.MinValue;
     private bool _lastTargetIsHuman;
+    private bool _hasLoggedTargetState;
+
     private int _lastAssignedGroupId = int.MinValue;
     private int _lastGroupTargetHandle = int.MinValue;
+
     private bool _lastPromptActive;
     private bool _hasLoggedPromptState;
 
     private string _lastTargetError;
+    private string _lastInputError;
     private string _lastGroupError;
     private string _lastPromptError;
 
@@ -92,22 +98,36 @@ public class Test : Script
 
     private void OnTick(object sender, EventArgs e)
     {
+        bool nativeFoundTarget;
         int targetHandle;
         bool targetIsHuman;
 
-        bool hasFocusedTarget = TryGetFocusedTarget(
+        ReadFocusedTarget(
+            out nativeFoundTarget,
             out targetHandle,
             out targetIsHuman);
 
         LogTargetStateIfChanged(
+            nativeFoundTarget,
             targetHandle,
             targetIsHuman);
+
+        bool rawGPressed = ReadGPress();
+
+        if (rawGPressed)
+        {
+            Log("RAW INPUT_INTERACT_OPTION1 PRESS DETECTED");
+        }
 
         int targetGroupId = -1;
         bool groupAssignedForCurrentTarget = false;
 
+        bool hasValidTarget =
+            nativeFoundTarget &&
+            targetHandle > 0;
+
         if (_promptHandle > 0 &&
-            hasFocusedTarget &&
+            hasValidTarget &&
             targetIsHuman)
         {
             TryAssignPromptToTargetGroup(
@@ -117,7 +137,7 @@ public class Test : Script
         }
 
         bool showPrompt =
-            hasFocusedTarget &&
+            hasValidTarget &&
             targetIsHuman &&
             targetGroupId >= 0 &&
             groupAssignedForCurrentTarget;
@@ -125,17 +145,18 @@ public class Test : Script
         UpdatePrompt(showPrompt);
     }
 
-    private bool TryGetFocusedTarget(
+    private void ReadFocusedTarget(
+        out bool nativeFoundTarget,
         out int targetHandle,
         out bool targetIsHuman)
     {
+        nativeFoundTarget = false;
         targetHandle = 0;
         targetIsHuman = false;
 
         try
         {
             int focusedTargetHandle = 0;
-            bool nativeFoundTarget;
 
             unsafe
             {
@@ -148,27 +169,55 @@ public class Test : Script
                             true);
             }
 
-            if (!nativeFoundTarget || focusedTargetHandle <= 0)
+            if (!nativeFoundTarget)
             {
                 _lastTargetError = null;
-                return false;
+                return;
+            }
+
+            targetHandle = focusedTargetHandle;
+
+            if (targetHandle <= 0)
+            {
+                _lastTargetError = null;
+                return;
             }
 
             targetIsHuman =
-                RDR2.Native.PED.IS_PED_HUMAN(focusedTargetHandle);
+                RDR2.Native.PED.IS_PED_HUMAN(targetHandle);
 
-            targetHandle = focusedTargetHandle;
             _lastTargetError = null;
-            return true;
         }
         catch (Exception exception)
         {
+            nativeFoundTarget = false;
             targetHandle = 0;
             targetIsHuman = false;
 
             LogErrorOnce(
                 ref _lastTargetError,
                 "TARGET LOOKUP ERROR: " +
+                InnermostMessage(exception));
+        }
+    }
+
+    private bool ReadGPress()
+    {
+        try
+        {
+            bool pressed =
+                RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
+                    0,
+                    InputInteractOption1);
+
+            _lastInputError = null;
+            return pressed;
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                ref _lastInputError,
+                "INPUT READ ERROR: " +
                 InnermostMessage(exception));
 
             return false;
@@ -266,7 +315,9 @@ public class Test : Script
                 RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(
                     _promptHandle))
             {
-                Log("RECRUIT PROMPT PRESSED; no recruitment performed.");
+                Log(
+                    "RECRUIT PROMPT PRESSED; " +
+                    "no recruitment performed.");
             }
 
             _lastPromptError = null;
@@ -281,20 +332,27 @@ public class Test : Script
     }
 
     private void LogTargetStateIfChanged(
+        bool nativeFoundTarget,
         int targetHandle,
         bool targetIsHuman)
     {
-        if (targetHandle == _lastTargetHandle &&
+        if (_hasLoggedTargetState &&
+            nativeFoundTarget == _lastNativeFoundTarget &&
+            targetHandle == _lastTargetHandle &&
             targetIsHuman == _lastTargetIsHuman)
         {
             return;
         }
 
+        _hasLoggedTargetState = true;
+        _lastNativeFoundTarget = nativeFoundTarget;
         _lastTargetHandle = targetHandle;
         _lastTargetIsHuman = targetIsHuman;
 
         Log(
-            "TARGET: handle=" +
+            "TARGET: nativeFound=" +
+            nativeFoundTarget +
+            "; handle=" +
             (targetHandle > 0 ? targetHandle.ToString() : "none") +
             "; human=" +
             targetIsHuman);
