@@ -123,3 +123,6 @@ We are testing a native right-mouse lock-on prompt for recruiting an NPC. **G** 
 The observed **Recruit** outer-radius label is not proof that the G action prompt appears in the focused lock-on menu. Inspect the latest `Test.cs` and logs before changing anything; they may already contain additional diagnostics or newer results. Keep test changes focused on isolating the prompt-display problem, and do not implement actual recruitment as part of this prompt test unless explicitly requested.
 
 A proposed test of passing the registered G prompt handle as the ILO registration prompt argument, instead of `0`, is only a hypothesis until verified against the current source and tested in-game. Do not record it as a confirmed native behavior before testing.
+
+## 7. Current Task
+Testing mode
