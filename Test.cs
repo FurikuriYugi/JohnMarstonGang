@@ -42,8 +42,8 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== VAR_STRING display comparison test: Recruit/G ===");
-        Log("Goal: compare VAR_STRING in UI._DISPLAY_TEXT and _UI_PROMPT_SET_TEXT.");
+        Log("=== HUD VAR_STRING display comparison test: Recruit/G ===");
+        Log("Goal: compare VAR_STRING in HUD._DISPLAY_TEXT and _UI_PROMPT_SET_TEXT.");
         Log("Screen diagnostic appears while a focused human target is present.");
         Log("Recruit/G prompt remains assigned to the focused target's prompt group.");
         Log("No recruitment or gang membership changes are performed.");
@@ -93,13 +93,15 @@ public class Test : Script
                 _promptHandle,
                 false);
 
-            Log("PROMPT CREATED: name=Recruit/G; handle=" +
+            Log(
+                "PROMPT CREATED: name=Recruit/G; handle=" +
                 _promptHandle +
                 "; textSource=direct VAR_STRING result");
         }
         catch (Exception exception)
         {
-            Log("PROMPT CREATION ERROR: " +
+            Log(
+                "PROMPT CREATION ERROR: " +
                 InnermostMessage(exception));
         }
     }
@@ -169,14 +171,14 @@ public class Test : Script
     {
         try
         {
-            RDR2.Native.UI.SET_TEXT_SCALE(
+            RDR2.Native.HUD.SET_TEXT_SCALE(
                 0.35f,
                 0.35f);
 
-            RDR2.Native.UI.SET_TEXT_CENTRE(
+            RDR2.Native.HUD.SET_TEXT_CENTRE(
                 true);
 
-            RDR2.Native.UI._DISPLAY_TEXT(
+            RDR2.Native.HUD._DISPLAY_TEXT(
                 RDR2.Native.MISC.VAR_STRING(
                     10,
                     "LITERAL_STRING",
@@ -187,8 +189,9 @@ public class Test : Script
             if (!_hasLoggedScreenTextAttempt)
             {
                 _hasLoggedScreenTextAttempt = true;
-                Log("VAR_STRING SCREEN DISPLAY CALLED: " +
-                    "direct result passed to UI._DISPLAY_TEXT");
+                Log(
+                    "VAR_STRING SCREEN DISPLAY CALLED: " +
+                    "direct result passed to HUD._DISPLAY_TEXT");
             }
 
             _lastScreenTextError = null;
@@ -226,8 +229,7 @@ public class Test : Script
                             true);
             }
 
-            if (!nativeFoundTarget ||
-                focusedTargetHandle <= 0)
+            if (!nativeFoundTarget || focusedTargetHandle <= 0)
             {
                 _lastTargetError = null;
                 return;
@@ -331,7 +333,8 @@ public class Test : Script
                 _lastAssignedTargetHandle = targetHandle;
                 _lastAssignedGroupId = targetGroupId;
 
-                Log("PROMPT GROUP ASSIGNED: target=" +
+                Log(
+                    "PROMPT GROUP ASSIGNED: target=" +
                     targetHandle +
                     "; group=" +
                     targetGroupId);
@@ -367,7 +370,8 @@ public class Test : Script
                 _lastActivePageGroupId = groupId;
                 _lastGroupActivePage = activePage;
 
-                Log("PROMPT GROUP ACTIVE PAGE: group=" +
+                Log(
+                    "PROMPT GROUP ACTIVE PAGE: group=" +
                     groupId +
                     "; page=" +
                     activePage +
@@ -413,7 +417,8 @@ public class Test : Script
                 _hasLoggedPromptActiveState = true;
                 _lastPromptActiveState = promptActive;
 
-                Log("PROMPT ACTIVE: name=Recruit/G; active=" +
+                Log(
+                    "PROMPT ACTIVE: name=Recruit/G; active=" +
                     promptActive);
             }
 
@@ -421,7 +426,8 @@ public class Test : Script
                 RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(
                     _promptHandle))
             {
-                Log("PROMPT PRESSED: name=Recruit/G; " +
+                Log(
+                    "PROMPT PRESSED: name=Recruit/G; " +
                     "no recruitment performed.");
             }
 
@@ -454,7 +460,8 @@ public class Test : Script
         _lastTargetHandle = targetHandle;
         _lastTargetIsHuman = targetIsHuman;
 
-        Log("TARGET: nativeFound=" +
+        Log(
+            "TARGET: nativeFound=" +
             nativeFoundTarget +
             "; handle=" +
             (targetHandle > 0
@@ -507,7 +514,8 @@ public class Test : Script
         }
         catch (Exception exception)
         {
-            Log("PROMPT CLEANUP ERROR: " +
+            Log(
+                "PROMPT CLEANUP ERROR: " +
                 InnermostMessage(exception));
         }
     }
