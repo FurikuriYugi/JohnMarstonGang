@@ -42,6 +42,18 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 - **Evidence:** Test source calls the native; earlier `Test_Log.txt` records `human=True`.
 - **Conditions/caveat:** This confirms the tested NPC classification result, not every possible ped type.
 
+## Focused ped prompt name
+
+### `RDR2.Native.PED._SET_PED_PROMPT_NAME`
+
+- **Native hash:** `0x4A48B6E03BABB4AC`.
+- **Purpose reported by prompt research:** Changes the text shown for a ped when the player focuses on it. The focused-ped text is distinct from the ILO approach prompt text.
+- **Wrapper signature:** Not yet verified against the project’s `Context/` mapping or Visual Studio Object Browser. The test currently calls it with a ped handle and a string.
+- **Runtime status:** Not yet tested in this project.
+- **Current test:** Set the focused human ped’s prompt name to `Recruit`; see `ResearchNotes.md`.
+- **Caveat:** Reset/restore behavior was not established by the available research. The test does not restore the NPC’s original name. Use a disposable ambient NPC and check whether the changed name remains after focus is lost.
+- **Source status:** The name and behavior are reported in external RDR2 prompt research; do not treat them as locally verified until the project test succeeds.
+
 ## Prompt text creation
 
 ### `RDR2.Native.MISC.VAR_STRING`
@@ -50,7 +62,6 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 - **Custom prompt test usage:** `VAR_STRING(10, "LITERAL_STRING", "Recruit")`.
 - **User-observed result:** `Recruit` appeared in the screen diagnostic drawn through `UI._DISPLAY_TEXT`, but did not appear in the focused-target prompt menu.
 - **Upstream-reported limitation:** ScriptHookRDR2DotNet-V2 issue #4 reports that strings created with `VAR_STRING` do not work when passed to `_UI_PROMPT_SET_TEXT`; it cites registered labels such as `CUTSCENE_SKIP` as working examples.
-- **Current diagnostic:** A static registered-label prompt is being tested. It sets `VAR_STRING(10, "CUTSCENE_SKIP")` once before registration.
 - **Caveat:** The upstream issue is not a runtime verification of every installed 2.2.0 setup.
 - **Project test record:** See `ResearchNotes.md`.
 
@@ -58,10 +69,10 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 
 - **Signature:** Not recorded here; verify in the API context or Object Browser before adding it.
 - **Custom-text test usage:** Passes the string returned by `VAR_STRING(10, "LITERAL_STRING", "Recruit")` to this native.
-- **Local runtime status:** The user reports that custom `Recruit` did not appear. In a later phase test that alternated custom `Recruit` and registered `CUTSCENE_SKIP`, the user reports seeing no prompt and pressing G; the log for that run has not been provided.
+- **Local runtime status:** The user reports that custom `Recruit` did not appear in the prompt menu.
 - **Upstream-reported behavior:** Issue #4 says custom `VAR_STRING` strings do not work with this native, while already-registered string-database labels can work.
-- **Current follow-up test:** Sets `CUTSCENE_SKIP` before prompt registration, then tests it in the focused-target group.
-- **Caveat:** The static registered-label test has not yet been reported. The upstream issue does not establish the result for every local API/runtime setup.
+- **Registered-label test result:** The `CUTSCENE_SKIP` prompt reported active and registered G input produced a prompt-pressed log event. The user nevertheless reported that **G Skip** did not appear in the unarmed focus menu.
+- **Caveat:** Prompt active state and input detection do not prove that the prompt was visibly rendered.
 - **Project test record:** See `ResearchNotes.md`.
 
 ### `RDR2.Native.UI._DISPLAY_TEXT`
@@ -85,7 +96,7 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 - **Signature:** Not recorded here; verify in the API context or Object Browser before documenting it.
 - **Runtime status:** Prompt assignment was logged for the focused target; the prompt subsequently reported active in the earlier logged run.
 - **Caveat:** Assignment and active state do not prove that text or a glyph was visibly rendered.
-- **User observations:** The user reports that custom `Recruit` did not appear and that the later alternating-label test showed no prompt.
+- **User observations:** The user reports that custom `Recruit` did not appear and that the static registered-label test’s **G Skip** did not appear in the unarmed focus menu.
 
 ### `RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ACTIVE_PAGE`
 
@@ -101,9 +112,9 @@ This file is the project’s growing database of ScriptHookRDR2DotNet-V2 API fin
 
 - **Hash used by test:** `0x760A9C6F`.
 - **Test mapping:** G.
-- **Runtime status:** Configured for the `Recruit` prompt and the new static-label prompt.
-- **User observation:** The user reports pressing G during the recent run.
-- **Caveat:** No log for that run has been supplied, so it is unknown whether raw G input or a prompt-pressed event was detected.
+- **Runtime status:** Configured for the test prompt.
+- **Instrumented result:** `Test_Log.txt` dated `2026-11-08 15:45` records a raw G press and a `G PROMPT PRESSED` event.
+- **Caveat:** That confirms input and prompt-state processing, not visible rendering.
 
 ### `INPUT_INTERACT_OPTION2`
 
@@ -127,7 +138,7 @@ The focused-target prompt test uses:
 - `_UI_PROMPT_DELETE`
 - **Signatures:** Not recorded here; verify in the API context or Object Browser before documenting them.
 - **Runtime status:** Prompt creation and active state were logged in an earlier focused-target run.
-- **Unverified:** Visible rendering of the current static registered-label prompt and successful G activation.
+- **Unverified:** Visible rendering of the current prompt and whether the focused-ped name appears as `Recruit`.
 - **Caveat:** Prompt creation or active state alone is not proof of visible output.
 
 ## Prompt-group activation context

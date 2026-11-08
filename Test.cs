@@ -9,7 +9,7 @@ public class Test : Script
     private const int PromptGroupTab = 0;
     private const string RegisteredPromptLabel = "CUTSCENE_SKIP";
     private const string LockOnPromptText = "Recruit";
-
+    private const string FocusedPedPromptName = "Recruit";
     private const float LockOnRadius = 8.0f;
     private const float LockOnFocusDistance = 8.0f;
     private const int LockOnFlags = 0;
@@ -24,9 +24,9 @@ public class Test : Script
         "Test_Log.txt");
 
     private int _promptHandle;
-
     private int _lockOnTargetHandle;
     private bool _lockOnRegistrationSucceeded;
+    private int _pedPromptNameTargetHandle = int.MinValue;
 
     private bool _hasLoggedTargetState;
     private bool _lastNativeFoundTarget;
@@ -49,14 +49,18 @@ public class Test : Script
     private string _lastGroupActivePageError;
     private string _lastPromptError;
     private string _lastLockOnError;
+    private string _lastPedPromptNameError;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== ILO registration plus focused-target G prompt test ===");
+        Log("=== Focused NPC prompt-name and G prompt test ===");
         Log(
-            "ILO registration text: " +
+            "Focused ped prompt name: " +
+            FocusedPedPromptName);
+        Log(
+            "ILO approach prompt text: " +
             LockOnPromptText +
             "; radius=" +
             LockOnRadius +
@@ -67,12 +71,13 @@ public class Test : Script
         Log(
             "G prompt uses registered label: " +
             RegisteredPromptLabel +
-            "; expected button text: G Skip.");
+            "; expected action text: G Skip.");
         Log(
             "Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.");
         Log(
-            "The ILO registration is made for a focused human target and retained " +
-            "until another target is focused or the script ends.");
+            "This test changes the focused human ped's prompt name. " +
+            "It does not restore the prior name because the original name " +
+            "is not available through the current test.");
         Log("G only logs a test press; no recruitment is performed.");
 
         CreatePrompt();
@@ -98,9 +103,10 @@ public class Test : Script
                 _promptHandle,
                 InputInteractOption1);
 
-            string promptText = RDR2.Native.MISC.VAR_STRING(
-                10,
-                RegisteredPromptLabel);
+            string promptText =
+                RDR2.Native.MISC.VAR_STRING(
+                    10,
+                    RegisteredPromptLabel);
 
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 _promptHandle,
@@ -165,6 +171,7 @@ public class Test : Script
             return;
         }
 
+        ApplyFocusedPedPromptName(targetHandle);
         RegisterLockOnPromptForTarget(targetHandle);
 
         int targetGroupId;
@@ -229,6 +236,37 @@ public class Test : Script
             LogErrorOnce(
                 ref _lastTargetError,
                 "TARGET LOOKUP ERROR: " +
+                InnermostMessage(exception));
+        }
+    }
+
+    private void ApplyFocusedPedPromptName(int targetHandle)
+    {
+        if (_pedPromptNameTargetHandle == targetHandle)
+        {
+            return;
+        }
+
+        try
+        {
+            RDR2.Native.PED._SET_PED_PROMPT_NAME(
+                targetHandle,
+                FocusedPedPromptName);
+
+            _pedPromptNameTargetHandle = targetHandle;
+            _lastPedPromptNameError = null;
+
+            Log(
+                "PED FOCUS PROMPT NAME SET: target=" +
+                targetHandle +
+                "; name=" +
+                FocusedPedPromptName);
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                ref _lastPedPromptNameError,
+                "PED FOCUS PROMPT NAME ERROR: " +
                 InnermostMessage(exception));
         }
     }
@@ -306,8 +344,9 @@ public class Test : Script
         try
         {
             bool unregistered =
-                RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(
-                    targetToUnregister);
+                RDR2.Native.MISC
+                    .UNREGISTER_INTERACTION_LOCKON_PROMPT(
+                        targetToUnregister);
 
             Log(
                 "ILO UNREGISTER: target=" +
@@ -331,8 +370,8 @@ public class Test : Script
         try
         {
             if (RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
-                0,
-                InputInteractOption1))
+                    0,
+                    InputInteractOption1))
             {
                 Log("RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED");
             }
@@ -367,7 +406,6 @@ public class Test : Script
                     ref _lastGroupError,
                     "GROUP LOOKUP RETURNED INVALID VALUE: " +
                     targetGroupId);
-
                 return false;
             }
 
@@ -380,7 +418,6 @@ public class Test : Script
                 ref _lastGroupError,
                 "GROUP LOOKUP ERROR: " +
                 InnermostMessage(exception));
-
             return false;
         }
     }
@@ -593,7 +630,10 @@ public class Test : Script
             RDR2.Native.HUD._UI_PROMPT_DELETE(
                 _promptHandle);
 
-            Log("G PROMPT DELETED: label=" + RegisteredPromptLabel);
+            Log(
+                "G PROMPT DELETED: label=" +
+                RegisteredPromptLabel);
+
             _promptHandle = 0;
         }
         catch (Exception exception)
