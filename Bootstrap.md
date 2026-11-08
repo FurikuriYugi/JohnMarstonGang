@@ -126,4 +126,4 @@ A proposed test of passing the registered G prompt handle as the ILO registratio
 
 # Mode: Testing mode
 ## 7. Current Task
-Keep using our database and research to find a way to add custom string to unarmed lock on menu and then building new test files updating the documents and testing.
+Keep using our database and research to find a way to add custom string to unarmed lock on menu and then building new test files updating the documents and testing. we learned about the outer label and now the npc name when focused so we can remove those from the tests. We need to focus on the unarmed lock on menu (figure out what it is called in the api, find how to add custom item G Recruit) and remember to log useful information and update the documents as we go and learn.
