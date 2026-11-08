@@ -1,10 +1,9 @@
-﻿<!-- Test lines 1-250 of 1292 -->
+﻿<!-- Test lines 1-250 of 738 -->
 ```csharp
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using RDR2;
 
 public class Test : Script
@@ -32,14 +31,8 @@ public class Test : Script
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
 
-    private readonly Dictionary<string, MethodInfo> _nativeMethods =
-        new Dictionary<string, MethodInfo>();
-
     private readonly HashSet<string> _loggedErrors =
         new HashSet<string>();
-
-    private readonly Dictionary<string, MethodInfo> _probeMethods =
-        new Dictionary<string, MethodInfo>();
 
     private readonly Dictionary<string, bool> _lastProbeValues =
         new Dictionary<string, bool>();
@@ -66,7 +59,7 @@ public class Test : Script
         File.WriteAllText(_logPath, string.Empty);
 
         Log("=== Focused NPC ambient Recruit prompt test initialized ===");
-        Log("Prompt text: VAR_STRING(" +
+        Log("Prompt text: VAR_STRING<string>(" +
             VarStringType + ", \"" + VarStringFormat +
             "\", \"" + PromptText + "\").");
         Log("Prompt group name: \"" + PromptGroupName + "\".");
@@ -74,39 +67,6 @@ public class Test : Script
             InputInteractOption1.ToString("X8"));
         Log("Ambient group activation is attempted every focused tick.");
         Log("This test does not recruit, change gang membership, or trigger an animation.");
-
-        ResolveProbe("UI_PROMPT_IS_ACTIVE", new object[] { 0 });
-        ResolveProbe("UI_PROMPT_IS_PRESSED", new object[] { 0 });
-        ResolveProbe("UI_PROMPT_IS_JUST_PRESSED", new object[] { 0 });
-
-        ResolveProbe(
-            "IS_CONTROL_ENABLED",
-            new object[] { ControlPadIndex, InputInteractOption1 });
-
-        ResolveProbe(
-            "IS_CONTROL_PRESSED",
-            new object[] { ControlPadIndex, InputInteractOption1 });
-
-        ResolveProbe(
-            "IS_CONTROL_JUST_PRESSED",
-            new object[] { ControlPadIndex, InputInteractOption1 });
-
-        ResolveNative(
-            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
-            new object[]
-            {
-                0,
-                AmbientGroupRadius,
-                AmbientGroupParameter2,
-                AmbientGroupTabCount,
-                0,
-                0UL,
-                AmbientGroupFlags
-            });
-
-        ResolveNative(
-            "UI_PROMPT_SET_STANDARD_MODE",
-            new object[] { 0, true });
 
         CreateFocusedPrompt();
 
@@ -135,45 +95,6 @@ public class Test : Script
                     "Recruit prompt test error. Check Test_Log.txt.");
             }
         }
-    }
-
-    private void ResolveProbe(string nativeName, object[] sampleArguments)
-    {
-        MethodInfo method = ResolveNative(nativeName, sampleArguments);
-        _probeMethods[nativeName] = method;
-
-        if (method == null)
-        {
-            Log("PROBE WRAPPER NOT FOUND: " + nativeName +
-                "; argumentCount=" + sampleArguments.Length);
-            return;
-        }
-
-        Log("PROBE WRAPPER: " + nativeName +
-            "; signature=" + FormatMethodSignature(method));
-    }
-
-    private MethodInfo ResolveNative(string nativeName, object[] sampleArguments)
-    {
-        MethodInfo existingMethod;
-        if (_nativeMethods.TryGetValue(nativeName, out existingMethod))
-        {
-            return existingMethod;
-        }
-
-        MethodInfo method = FindCompatibleNativeMethod(
-            nativeName,
-            sampleArguments);
-
-        _nativeMethods[nativeName] = method;
-
-        if (method != null)
-        {
-            Log("NATIVE WRAPPER: " + nativeName +
-                "; signature=" + FormatMethodSignature(method));
-        }
-
-        return method;
     }
 
     private void UpdateNearbyTargetIfNeeded()
@@ -250,4 +171,83 @@ public class Test : Script
             {
                 continue;
             }
+
+            float distance = ped.Position.DistanceTo(playerPed.Position);
+
+            if (ped.Handle == _trackedTargetHandle &&
+                distance <= TargetRetentionDistance)
+            {
+                retainedPed = ped;
+                continue;
+            }
+
+            if (distance <= TargetSelectionDistance &&
+                distance < nearestDistance)
+            {
+                nearestPed = ped;
+                nearestDistance = distance;
+            }
+        }
+
+        return retainedPed ?? nearestPed;
+    }
+
+    private bool IsHumanEntity(int entityHandle)
+    {
+        if (entityHandle <= 0 ||
+            !RDR2.Native.ENTITY.DOES_ENTITY_EXIST(entityHandle))
+        {
+            return false;
+        }
+
+        return RDR2.Native.PED.IS_PED_HUMAN(entityHandle);
+    }
+
+    private void SampleFocusAndInput()
+    {
+        if (_trackedTargetHandle <= 0)
+        {
+            return;
+        }
+
+        if (!RDR2.Native.ENTITY.DOES_ENTITY_EXIST(_trackedTargetHandle))
+        {
+            Log("TARGET NO LONGER EXISTS: target=" +
+                _trackedTargetHandle);
+
+            ClearTrackedTarget();
+            return;
+        }
+
+        int focusedTargetHandle = GetCurrentHumanTargetHandle();
+        bool targetIsFocused =
+            focusedTargetHandle == _trackedTargetHandle;
+
+        if (targetIsFocused != _targetWasFocused)
+        {
+            _targetWasFocused = targetIsFocused;
+
+            if (targetIsFocused)
+            {
+                Log("TRACKED TARGET FOCUS BEGIN: target=" +
+                    _trackedTargetHandle);
+
+                AttachFocusedPrompt(_trackedTargetHandle);
+            }
+            else
+            {
+                Log("TRACKED TARGET FOCUS END: target=" +
+                    _trackedTargetHandle);
+
+                DetachFocusedPrompt();
+            }
+        }
+
+        if (!targetIsFocused ||
+            _focusedPromptHandle <= 0 ||
+            _focusedPromptGroupId == 0)
+        {
+            return;
+        }
+
 ```

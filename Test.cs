@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using RDR2;
 
 public class Test : Script
@@ -30,14 +29,8 @@ public class Test : Script
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
 
-    private readonly Dictionary<string, MethodInfo> _nativeMethods =
-        new Dictionary<string, MethodInfo>();
-
     private readonly HashSet<string> _loggedErrors =
         new HashSet<string>();
-
-    private readonly Dictionary<string, MethodInfo> _probeMethods =
-        new Dictionary<string, MethodInfo>();
 
     private readonly Dictionary<string, bool> _lastProbeValues =
         new Dictionary<string, bool>();
@@ -64,7 +57,7 @@ public class Test : Script
         File.WriteAllText(_logPath, string.Empty);
 
         Log("=== Focused NPC ambient Recruit prompt test initialized ===");
-        Log("Prompt text: VAR_STRING(" +
+        Log("Prompt text: VAR_STRING<string>(" +
             VarStringType + ", \"" + VarStringFormat +
             "\", \"" + PromptText + "\").");
         Log("Prompt group name: \"" + PromptGroupName + "\".");
@@ -72,39 +65,6 @@ public class Test : Script
             InputInteractOption1.ToString("X8"));
         Log("Ambient group activation is attempted every focused tick.");
         Log("This test does not recruit, change gang membership, or trigger an animation.");
-
-        ResolveProbe("UI_PROMPT_IS_ACTIVE", new object[] { 0 });
-        ResolveProbe("UI_PROMPT_IS_PRESSED", new object[] { 0 });
-        ResolveProbe("UI_PROMPT_IS_JUST_PRESSED", new object[] { 0 });
-
-        ResolveProbe(
-            "IS_CONTROL_ENABLED",
-            new object[] { ControlPadIndex, InputInteractOption1 });
-
-        ResolveProbe(
-            "IS_CONTROL_PRESSED",
-            new object[] { ControlPadIndex, InputInteractOption1 });
-
-        ResolveProbe(
-            "IS_CONTROL_JUST_PRESSED",
-            new object[] { ControlPadIndex, InputInteractOption1 });
-
-        ResolveNative(
-            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
-            new object[]
-            {
-                0,
-                AmbientGroupRadius,
-                AmbientGroupParameter2,
-                AmbientGroupTabCount,
-                0,
-                0UL,
-                AmbientGroupFlags
-            });
-
-        ResolveNative(
-            "UI_PROMPT_SET_STANDARD_MODE",
-            new object[] { 0, true });
 
         CreateFocusedPrompt();
 
@@ -133,45 +93,6 @@ public class Test : Script
                     "Recruit prompt test error. Check Test_Log.txt.");
             }
         }
-    }
-
-    private void ResolveProbe(string nativeName, object[] sampleArguments)
-    {
-        MethodInfo method = ResolveNative(nativeName, sampleArguments);
-        _probeMethods[nativeName] = method;
-
-        if (method == null)
-        {
-            Log("PROBE WRAPPER NOT FOUND: " + nativeName +
-                "; argumentCount=" + sampleArguments.Length);
-            return;
-        }
-
-        Log("PROBE WRAPPER: " + nativeName +
-            "; signature=" + FormatMethodSignature(method));
-    }
-
-    private MethodInfo ResolveNative(string nativeName, object[] sampleArguments)
-    {
-        MethodInfo existingMethod;
-        if (_nativeMethods.TryGetValue(nativeName, out existingMethod))
-        {
-            return existingMethod;
-        }
-
-        MethodInfo method = FindCompatibleNativeMethod(
-            nativeName,
-            sampleArguments);
-
-        _nativeMethods[nativeName] = method;
-
-        if (method != null)
-        {
-            Log("NATIVE WRAPPER: " + nativeName +
-                "; signature=" + FormatMethodSignature(method));
-        }
-
-        return method;
     }
 
     private void UpdateNearbyTargetIfNeeded()
@@ -249,8 +170,7 @@ public class Test : Script
                 continue;
             }
 
-            float distance = ped.Position.DistanceTo(
-                playerPed.Position);
+            float distance = ped.Position.DistanceTo(playerPed.Position);
 
             if (ped.Handle == _trackedTargetHandle &&
                 distance <= TargetRetentionDistance)
@@ -383,133 +303,74 @@ public class Test : Script
 
     private void CreateFocusedPrompt()
     {
-        if (!TryInvokeNative(
-            "UI_PROMPT_REGISTER_BEGIN",
-            new object[0],
-            out object promptResult))
+        try
         {
-            LogPromptErrorOnce(
-                "Could not find or invoke UI_PROMPT_REGISTER_BEGIN.");
-            return;
-        }
+            _focusedPromptHandle =
+                RDR2.Native.HUD._UI_PROMPT_REGISTER_BEGIN();
 
-        if (!TryConvertToInt(promptResult, out _focusedPromptHandle) ||
-            _focusedPromptHandle <= 0)
-        {
-            LogPromptErrorOnce(
-                "UI_PROMPT_REGISTER_BEGIN returned an invalid handle: " +
-                FormatResult(promptResult));
-
-            _focusedPromptHandle = 0;
-            return;
-        }
-
-        Log("FOCUSED PROMPT HANDLE: " + _focusedPromptHandle);
-
-        if (!TryInvokeNative(
-            "UI_PROMPT_SET_CONTROL_ACTION",
-            new object[]
+            if (_focusedPromptHandle <= 0)
             {
+                LogPromptErrorOnce(
+                    "UI_PROMPT_REGISTER_BEGIN returned an invalid handle: " +
+                    _focusedPromptHandle);
+
+                _focusedPromptHandle = 0;
+                return;
+            }
+
+            Log("FOCUSED PROMPT HANDLE: " + _focusedPromptHandle);
+
+            RDR2.Native.HUD._UI_PROMPT_SET_CONTROL_ACTION(
                 _focusedPromptHandle,
-                InputInteractOption1
-            },
-            out object controlResult))
-        {
-            LogPromptErrorOnce(
-                "Could not set INPUT_INTERACT_OPTION1 on the prompt.");
+                InputInteractOption1);
 
-            DeleteFocusedPrompt();
-            return;
-        }
+            Log("PROMPT CONTROL ACTION SET: INPUT_INTERACT_OPTION1; hash=0x" +
+                InputInteractOption1.ToString("X8"));
 
-        Log("PROMPT CONTROL ACTION SET: INPUT_INTERACT_OPTION1; hash=0x" +
-            InputInteractOption1.ToString("X8") +
-            "; result=" + FormatResult(controlResult));
+            IntPtr textResult =
+                RDR2.Native.MISC.VAR_STRING<string>(
+                    VarStringType,
+                    VarStringFormat,
+                    PromptText);
 
-        if (!TryInvokeNative(
-            "VAR_STRING",
-            new object[]
-            {
-                VarStringType,
-                VarStringFormat,
-                PromptText
-            },
-            out object textResult))
-        {
-            LogPromptErrorOnce(
-                "Could not create literal prompt text with VAR_STRING.");
+            Log("VAR_STRING RESULT: type=" +
+                textResult.GetType().FullName +
+                "; value=" + textResult);
 
-            DeleteFocusedPrompt();
-            return;
-        }
-
-        Log("VAR_STRING RESULT: type=" +
-            (textResult == null
-                ? "null"
-                : textResult.GetType().FullName) +
-            "; value=" + FormatResult(textResult));
-
-        if (!TryInvokeNative(
-            "UI_PROMPT_SET_TEXT",
-            new object[]
-            {
+            RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 _focusedPromptHandle,
-                textResult
-            },
-            out object setTextResult))
-        {
-            LogPromptErrorOnce(
-                "Could not set the prompt text from the VAR_STRING result.");
+                textResult);
 
-            DeleteFocusedPrompt();
-            return;
-        }
+            Log("PROMPT TEXT SET: literal=\"" + PromptText + "\"");
 
-        Log("PROMPT TEXT SET: literal=\"" + PromptText +
-            "\"; result=" + FormatResult(setTextResult));
-
-        bool standardModeSet = TryInvokeNative(
-            "UI_PROMPT_SET_STANDARD_MODE",
-            new object[]
-            {
+            RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
                 _focusedPromptHandle,
-                true
-            },
-            out object standardModeResult);
+                true);
 
-        Log("PROMPT STANDARD MODE: wrapperInvoked=" +
-            standardModeSet +
-            "; result=" + FormatResult(standardModeResult));
+            RDR2.Native.HUD._UI_PROMPT_REGISTER_END(
+                _focusedPromptHandle);
 
-        if (!TryInvokeNative(
-            "UI_PROMPT_REGISTER_END",
-            new object[] { _focusedPromptHandle },
-            out object registerEndResult))
+            RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
+                _focusedPromptHandle,
+                false);
+
+            RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
+                _focusedPromptHandle,
+                false);
+
+            Log("FOCUSED PROMPT CREATED: prompt=" +
+                _focusedPromptHandle +
+                "; text=\"" + PromptText +
+                "\"; initialEnabled=false; initialVisible=false");
+        }
+        catch (Exception exception)
         {
             LogPromptErrorOnce(
-                "Could not finish UI_PROMPT_REGISTER_END.");
+                "Prompt creation failed: " +
+                GetInnermostMessage(exception));
 
             DeleteFocusedPrompt();
-            return;
         }
-
-        Log("PROMPT REGISTER END: result=" +
-            FormatResult(registerEndResult));
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_ENABLED",
-            new object[] { _focusedPromptHandle, false },
-            out object enabledResult);
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_VISIBLE",
-            new object[] { _focusedPromptHandle, false },
-            out object visibleResult);
-
-        Log("FOCUSED PROMPT CREATED: prompt=" +
-            _focusedPromptHandle +
-            "; text=\"" + PromptText +
-            "\"; initialEnabled=false; initialVisible=false");
     }
 
     private void AttachFocusedPrompt(int targetHandle)
@@ -523,75 +384,62 @@ public class Test : Script
             return;
         }
 
-        if (!TryInvokeNative(
-            "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY",
-            new object[] { targetHandle },
-            out object groupResult))
+        try
         {
-            LogPromptErrorOnce(
-                "Could not find or invoke " +
-                "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY.");
-            return;
-        }
+            int groupId = Convert.ToInt32(
+                RDR2.Native.HUD
+                    ._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
+                        targetHandle),
+                CultureInfo.InvariantCulture);
 
-        if (!TryConvertToInt(groupResult, out int groupId) ||
-            groupId == 0)
-        {
-            LogPromptErrorOnce(
-                "Target prompt-group native returned an invalid value: " +
-                FormatResult(groupResult));
-            return;
-        }
-
-        _focusedPromptGroupId = groupId;
-
-        Log("TARGET PROMPT GROUP: target=" + targetHandle +
-            "; group=" + _focusedPromptGroupId);
-
-        if (!TryInvokeNative(
-            "UI_PROMPT_SET_GROUP",
-            new object[]
+            if (groupId == 0)
             {
+                LogPromptErrorOnce(
+                    "Target prompt-group native returned an invalid value: " +
+                    groupId);
+                return;
+            }
+
+            _focusedPromptGroupId = groupId;
+
+            Log("TARGET PROMPT GROUP: target=" + targetHandle +
+                "; group=" + _focusedPromptGroupId);
+
+            RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 _focusedPromptHandle,
                 _focusedPromptGroupId,
-                0
-            },
-            out object setGroupResult))
+                0);
+
+            RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
+                _focusedPromptHandle,
+                true);
+
+            RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
+                _focusedPromptHandle,
+                true);
+
+            _lastProbeValues.Clear();
+            _currentProbeValues.Clear();
+            _lastInputHeartbeatUtc = DateTime.MinValue;
+
+            Log("PROMPT ATTACHED TO TARGET GROUP: prompt=" +
+                _focusedPromptHandle +
+                "; target=" + targetHandle +
+                "; group=" + _focusedPromptGroupId);
+
+            Log("FOCUSED PROMPT ENABLED: prompt=" +
+                _focusedPromptHandle);
+
+            RDR2.UI.Screen.PrintSubtitle(
+                "Recruit prompt attached. Check for G Recruit.");
+        }
+        catch (Exception exception)
         {
             LogPromptErrorOnce(
-                "Could not attach the prompt to the target's prompt group.");
-
+                "Prompt attachment failed: " +
+                GetInnermostMessage(exception));
             _focusedPromptGroupId = 0;
-            return;
         }
-
-        Log("PROMPT ATTACHED TO TARGET GROUP: prompt=" +
-            _focusedPromptHandle +
-            "; target=" + targetHandle +
-            "; group=" + _focusedPromptGroupId +
-            "; result=" + FormatResult(setGroupResult));
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_ENABLED",
-            new object[] { _focusedPromptHandle, true },
-            out object enabledResult);
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_VISIBLE",
-            new object[] { _focusedPromptHandle, true },
-            out object visibleResult);
-
-        _lastProbeValues.Clear();
-        _currentProbeValues.Clear();
-        _lastInputHeartbeatUtc = DateTime.MinValue;
-
-        Log("FOCUSED PROMPT ENABLED: prompt=" +
-            _focusedPromptHandle +
-            "; enabledResult=" + FormatResult(enabledResult) +
-            "; visibleResult=" + FormatResult(visibleResult));
-
-        RDR2.UI.Screen.PrintSubtitle(
-            "Recruit prompt attached. Check for G Recruit.");
     }
 
     private void ActivateAmbientPromptGroupThisFrame()
@@ -602,150 +450,80 @@ public class Test : Script
             return;
         }
 
-        if (!_nativeMethods.ContainsKey(
-            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME"))
+        try
         {
-            ResolveNative(
-                "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
-                new object[]
-                {
+            RDR2.Native.HUD
+                ._UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME(
                     _trackedTargetHandle,
                     AmbientGroupRadius,
                     AmbientGroupParameter2,
                     AmbientGroupTabCount,
-                    _focusedPromptGroupId,
-                    0UL,
-                    AmbientGroupFlags
-                });
-        }
+                    (uint)_focusedPromptGroupId,
+                    PromptGroupName,
+                    AmbientGroupFlags);
 
-        if (!TryInvokeNative(
-            "VAR_STRING",
-            new object[]
+            if (!_ambientActivationLoggedForTarget)
             {
-                VarStringType,
-                VarStringFormat,
-                PromptGroupName
-            },
-            out object groupNameResult))
-        {
-            LogPromptErrorOnce(
-                "Could not create the ambient prompt-group name.");
-            return;
+                _ambientActivationLoggedForTarget = true;
+
+                Log("AMBIENT GROUP ACTIVATION INVOKED: target=" +
+                    _trackedTargetHandle +
+                    "; radius=" + AmbientGroupRadius +
+                    "; p2=" + AmbientGroupParameter2 +
+                    "; tabCount=" + AmbientGroupTabCount +
+                    "; group=" + _focusedPromptGroupId +
+                    "; groupName=\"" + PromptGroupName +
+                    "\"; flags=" + AmbientGroupFlags);
+            }
         }
-
-        bool invoked = TryInvokeNative(
-            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
-            new object[]
-            {
-                _trackedTargetHandle,
-                AmbientGroupRadius,
-                AmbientGroupParameter2,
-                AmbientGroupTabCount,
-                _focusedPromptGroupId,
-                groupNameResult,
-                AmbientGroupFlags
-            },
-            out object activationResult);
-
-        if (!invoked)
+        catch (Exception exception)
         {
-            return;
+            LogErrorOnce(
+                "ambient_group_activation",
+                "AMBIENT GROUP ACTIVATION ERROR: " +
+                GetInnermostMessage(exception));
         }
-
-        if (!_ambientActivationLoggedForTarget)
-        {
-            _ambientActivationLoggedForTarget = true;
-
-            Log("AMBIENT GROUP ACTIVATION INVOKED: target=" +
-                _trackedTargetHandle +
-                "; radius=" + AmbientGroupRadius +
-                "; p2=" + AmbientGroupParameter2 +
-                "; tabCount=" + AmbientGroupTabCount +
-                "; group=" + _focusedPromptGroupId +
-                "; flags=" + AmbientGroupFlags +
-                "; result=" + FormatResult(activationResult));
-        }
-    }
-
-    private void DetachFocusedPrompt()
-    {
-        _ambientActivationLoggedForTarget = false;
-
-        if (_focusedPromptHandle <= 0)
-        {
-            _focusedPromptGroupId = 0;
-            return;
-        }
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_ENABLED",
-            new object[] { _focusedPromptHandle, false },
-            out object enabledResult);
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_VISIBLE",
-            new object[] { _focusedPromptHandle, false },
-            out object visibleResult);
-
-        if (_focusedPromptGroupId != 0)
-        {
-            bool removed = TryInvokeNative(
-                "UI_PROMPT_REMOVE_GROUP",
-                new object[]
-                {
-                    _focusedPromptHandle,
-                    _focusedPromptGroupId
-                },
-                out object removeResult);
-
-            Log("PROMPT GROUP DETACH: prompt=" +
-                _focusedPromptHandle +
-                "; group=" + _focusedPromptGroupId +
-                "; wrapperInvoked=" + removed +
-                "; result=" + FormatResult(removeResult));
-
-            Log("FOCUSED PROMPT DISABLED: prompt=" +
-                _focusedPromptHandle +
-                "; enabledResult=" + FormatResult(enabledResult) +
-                "; visibleResult=" + FormatResult(visibleResult));
-        }
-
-        _focusedPromptGroupId = 0;
-        _lastProbeValues.Clear();
-        _currentProbeValues.Clear();
     }
 
     private void SampleInputProbes()
     {
         SampleProbe(
             "UI_PROMPT_IS_ACTIVE",
-            new object[] { _focusedPromptHandle },
+            RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(
+                _focusedPromptHandle),
             false);
 
         SampleProbe(
             "UI_PROMPT_IS_PRESSED",
-            new object[] { _focusedPromptHandle },
+            RDR2.Native.HUD._UI_PROMPT_IS_PRESSED(
+                _focusedPromptHandle),
             false);
 
         SampleProbe(
             "UI_PROMPT_IS_JUST_PRESSED",
-            new object[] { _focusedPromptHandle },
+            RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(
+                _focusedPromptHandle),
             true);
 
         SampleProbe(
             "IS_CONTROL_ENABLED",
-            new object[] { ControlPadIndex, InputInteractOption1 },
+            RDR2.Native.PAD.IS_CONTROL_ENABLED(
+                ControlPadIndex,
+                InputInteractOption1),
             false);
 
         SampleProbe(
             "IS_CONTROL_PRESSED",
-            new object[] { ControlPadIndex, InputInteractOption1 },
+            RDR2.Native.PAD.IS_CONTROL_PRESSED(
+                ControlPadIndex,
+                InputInteractOption1),
             false);
 
         SampleProbe(
             "IS_CONTROL_JUST_PRESSED",
-            new object[] { ControlPadIndex, InputInteractOption1 },
+            RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
+                ControlPadIndex,
+                InputInteractOption1),
             true);
 
         DateTime now = DateTime.UtcNow;
@@ -771,62 +549,11 @@ public class Test : Script
         }
     }
 
-    private void ResolveProbeMethodIfNeeded(
-        string nativeName,
-        object[] arguments)
-    {
-        if (_probeMethods.ContainsKey(nativeName))
-        {
-            return;
-        }
-
-        MethodInfo method = ResolveNative(nativeName, arguments);
-        _probeMethods[nativeName] = method;
-
-        if (method == null)
-        {
-            Log("PROBE WRAPPER NOT FOUND: " + nativeName +
-                "; argumentCount=" + arguments.Length);
-        }
-    }
-
     private void SampleProbe(
         string nativeName,
-        object[] arguments,
+        bool value,
         bool isPulse)
     {
-        ResolveProbeMethodIfNeeded(nativeName, arguments);
-
-        if (!_probeMethods.TryGetValue(
-            nativeName,
-            out MethodInfo method) ||
-            method == null)
-        {
-            return;
-        }
-
-        if (!TryInvokeMethod(method, arguments, out object result))
-        {
-            return;
-        }
-
-        bool value;
-
-        try
-        {
-            value = Convert.ToBoolean(
-                result,
-                CultureInfo.InvariantCulture);
-        }
-        catch
-        {
-            LogErrorOnce(
-                "probe_" + nativeName,
-                "Probe returned an unexpected value: " +
-                FormatResult(result));
-            return;
-        }
-
         _currentProbeValues[nativeName] = value;
 
         if (isPulse)
@@ -859,20 +586,61 @@ public class Test : Script
 
     private string GetProbeValue(string nativeName)
     {
-        if (_currentProbeValues.TryGetValue(
-            nativeName,
-            out bool value))
+        bool value;
+
+        if (_currentProbeValues.TryGetValue(nativeName, out value))
         {
             return value.ToString();
         }
 
-        if (!_probeMethods.ContainsKey(nativeName) ||
-            _probeMethods[nativeName] == null)
+        return "not-sampled";
+    }
+
+    private void DetachFocusedPrompt()
+    {
+        _ambientActivationLoggedForTarget = false;
+
+        if (_focusedPromptHandle <= 0)
         {
-            return "wrapper-unavailable";
+            _focusedPromptGroupId = 0;
+            return;
         }
 
-        return "not-sampled";
+        try
+        {
+            RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
+                _focusedPromptHandle,
+                false);
+
+            RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
+                _focusedPromptHandle,
+                false);
+
+            if (_focusedPromptGroupId != 0)
+            {
+                RDR2.Native.HUD._UI_PROMPT_REMOVE_GROUP(
+                    _focusedPromptHandle,
+                    (ulong)_focusedPromptGroupId);
+
+                Log("PROMPT GROUP DETACH: prompt=" +
+                    _focusedPromptHandle +
+                    "; group=" + _focusedPromptGroupId);
+            }
+
+            Log("FOCUSED PROMPT DISABLED: prompt=" +
+                _focusedPromptHandle);
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                "prompt_detach",
+                "PROMPT DETACH ERROR: " +
+                GetInnermostMessage(exception));
+        }
+
+        _focusedPromptGroupId = 0;
+        _lastProbeValues.Clear();
+        _currentProbeValues.Clear();
     }
 
     private void ClearTrackedTarget()
@@ -895,17 +663,23 @@ public class Test : Script
             return;
         }
 
-        DetachFocusedPrompt();
+        try
+        {
+            DetachFocusedPrompt();
 
-        bool deleted = TryInvokeNative(
-            "UI_PROMPT_DELETE",
-            new object[] { _focusedPromptHandle },
-            out object deleteResult);
+            RDR2.Native.HUD._UI_PROMPT_DELETE(
+                _focusedPromptHandle);
 
-        Log("FOCUSED PROMPT DELETE: prompt=" +
-            _focusedPromptHandle +
-            "; wrapperInvoked=" + deleted +
-            "; result=" + FormatResult(deleteResult));
+            Log("FOCUSED PROMPT DELETE: prompt=" +
+                _focusedPromptHandle);
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                "prompt_delete",
+                "PROMPT DELETE ERROR: " +
+                GetInnermostMessage(exception));
+        }
 
         _focusedPromptHandle = 0;
         _focusedPromptGroupId = 0;
@@ -925,337 +699,9 @@ public class Test : Script
         }
     }
 
-    private bool TryInvokeNative(
-        string nativeName,
-        object[] arguments,
-        out object result)
-    {
-        MethodInfo method = ResolveNative(nativeName, arguments);
-
-        if (method == null)
-        {
-            LogErrorOnce(
-                "native_missing_" + nativeName,
-                "NATIVE WRAPPER NOT FOUND: " + nativeName +
-                "; argumentCount=" + arguments.Length);
-
-            result = null;
-            return false;
-        }
-
-        return TryInvokeMethod(method, arguments, out result);
-    }
-
-    private bool TryInvokeMethod(
-        MethodInfo method,
-        object[] arguments,
-        out object result)
-    {
-        result = null;
-
-        try
-        {
-            ParameterInfo[] parameters = method.GetParameters();
-
-            if (parameters.Length != arguments.Length)
-            {
-                LogErrorOnce(
-                    "native_count_" + method.Name,
-                    "NATIVE ARGUMENT COUNT MISMATCH: " +
-                    FormatMethodSignature(method));
-                return false;
-            }
-
-            object[] invokeArguments =
-                new object[arguments.Length];
-
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                if (!TryConvertArgument(
-                    arguments[i],
-                    parameters[i].ParameterType,
-                    out invokeArguments[i]))
-                {
-                    LogErrorOnce(
-                        "native_conversion_" + method.Name + "_" + i,
-                        "NATIVE ARGUMENT CONVERSION FAILED: " +
-                        method.Name +
-                        "; parameter=" + i +
-                        "; signature=" +
-                        FormatMethodSignature(method));
-                    return false;
-                }
-            }
-
-            result = method.Invoke(null, invokeArguments);
-            return true;
-        }
-        catch (Exception exception)
-        {
-            LogErrorOnce(
-                "native_invoke_" + method.Name,
-                "NATIVE INVOKE ERROR: " +
-                FormatMethodSignature(method) +
-                "; " + GetInnermostMessage(exception));
-            return false;
-        }
-    }
-
-    private MethodInfo FindCompatibleNativeMethod(
-        string nativeName,
-        object[] arguments)
-    {
-        Assembly apiAssembly = typeof(Game).Assembly;
-        Type[] apiTypes;
-
-        try
-        {
-            apiTypes = apiAssembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException exception)
-        {
-            List<Type> loadedTypes = new List<Type>();
-
-            if (exception.Types != null)
-            {
-                foreach (Type type in exception.Types)
-                {
-                    if (type != null)
-                    {
-                        loadedTypes.Add(type);
-                    }
-                }
-            }
-
-            apiTypes = loadedTypes.ToArray();
-        }
-
-        string normalizedWanted = NormalizeNativeName(nativeName);
-
-        foreach (Type type in apiTypes)
-        {
-            if (type == null)
-            {
-                continue;
-            }
-
-            MethodInfo[] methods = type.GetMethods(
-                BindingFlags.Public |
-                BindingFlags.NonPublic |
-                BindingFlags.Static);
-
-            foreach (MethodInfo method in methods)
-            {
-                if (method.ContainsGenericParameters ||
-                    !string.Equals(
-                        NormalizeNativeName(method.Name),
-                        normalizedWanted,
-                        StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                ParameterInfo[] parameters = method.GetParameters();
-
-                if (parameters.Length != arguments.Length)
-                {
-                    continue;
-                }
-
-                bool compatible = true;
-
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    if (!CanConvertArgument(
-                        arguments[i],
-                        parameters[i].ParameterType))
-                    {
-                        compatible = false;
-                        break;
-                    }
-                }
-
-                if (compatible)
-                {
-                    return method;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private bool CanConvertArgument(
-        object value,
-        Type targetType)
-    {
-        object convertedValue;
-
-        return TryConvertArgument(
-            value,
-            targetType,
-            out convertedValue);
-    }
-
-    private bool TryConvertArgument(
-        object value,
-        Type targetType,
-        out object convertedValue)
-    {
-        convertedValue = null;
-
-        if (targetType == null)
-        {
-            return false;
-        }
-
-        if (targetType.IsByRef)
-        {
-            targetType = targetType.GetElementType();
-        }
-
-        if (value == null)
-        {
-            return !targetType.IsValueType ||
-                Nullable.GetUnderlyingType(targetType) != null;
-        }
-
-        Type nullableType =
-            Nullable.GetUnderlyingType(targetType);
-
-        if (nullableType != null)
-        {
-            targetType = nullableType;
-        }
-
-        try
-        {
-            if (targetType.IsInstanceOfType(value))
-            {
-                convertedValue = value;
-                return true;
-            }
-
-            if (targetType.IsEnum)
-            {
-                convertedValue = Enum.ToObject(
-                    targetType,
-                    Convert.ToInt64(
-                        value,
-                        CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType == typeof(IntPtr))
-            {
-                convertedValue = new IntPtr(
-                    Convert.ToInt64(
-                        value,
-                        CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            if (targetType == typeof(UIntPtr))
-            {
-                convertedValue = new UIntPtr(
-                    Convert.ToUInt64(
-                        value,
-                        CultureInfo.InvariantCulture));
-                return true;
-            }
-
-            convertedValue = Convert.ChangeType(
-                value,
-                targetType,
-                CultureInfo.InvariantCulture);
-
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private bool TryConvertToInt(object value, out int result)
-    {
-        result = 0;
-
-        if (value == null)
-        {
-            return false;
-        }
-
-        try
-        {
-            result = Convert.ToInt32(
-                value,
-                CultureInfo.InvariantCulture);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private string NormalizeNativeName(string name)
-    {
-        if (string.IsNullOrEmpty(name))
-        {
-            return string.Empty;
-        }
-
-        return name
-            .Replace("_", string.Empty)
-            .Replace(" ", string.Empty)
-            .ToUpperInvariant();
-    }
-
-    private string FormatMethodSignature(MethodInfo method)
-    {
-        ParameterInfo[] parameters = method.GetParameters();
-        List<string> parameterNames = new List<string>();
-
-        foreach (ParameterInfo parameter in parameters)
-        {
-            parameterNames.Add(
-                parameter.ParameterType.FullName);
-        }
-
-        return method.DeclaringType.FullName +
-            "." + method.Name +
-            "(" + string.Join(", ", parameterNames.ToArray()) + ")";
-    }
-
-    private string FormatResult(object value)
-    {
-        if (value == null)
-        {
-            return "null";
-        }
-
-        try
-        {
-            return Convert.ToString(
-                value,
-                CultureInfo.InvariantCulture);
-        }
-        catch
-        {
-            return value.ToString();
-        }
-    }
-
     private void LogPromptErrorOnce(string message)
     {
-        if (_promptErrorLogged)
-        {
-            return;
-        }
-
-        _promptErrorLogged = true;
-        Log("PROMPT ERROR: " + message);
+        LogErrorOnce("prompt_error", "PROMPT ERROR: " + message);
     }
 
     private void LogErrorOnce(string key, string message)
