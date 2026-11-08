@@ -1,28 +1,18 @@
-2026-11-08 12:45:48.328 === Focused-target prompt text comparison test ===
-2026-11-08 12:45:48.329 Goal: compare custom Recruit/G text with a database-label/H prompt.
-2026-11-08 12:45:48.329 Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY
-2026-11-08 12:45:48.329 Recruit text source: MISC.VAR_STRING(10, LITERAL_STRING, Recruit)
-2026-11-08 12:45:48.329 Database-label test token: CUTSCENE_SKIP
-2026-11-08 12:45:48.329 G control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
-2026-11-08 12:45:48.330 H control: INPUT_INTERACT_OPTION2; hash=0x84543902
-2026-11-08 12:45:48.330 Both test prompts are assigned to the focused target's prompt group.
-2026-11-08 12:45:48.330 No recruitment or gang membership changes are performed.
-2026-11-08 12:45:48.341 PROMPT CREATED: name=Recruit/G; handle=211202; textSource=VAR_STRING literal
-2026-11-08 12:45:48.341 PROMPT CREATED: name=Database-label/H; handle=211458; textSource=database token
-2026-11-08 12:45:48.379 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 12:45:48.381 PROMPT ACTIVE: name=Recruit/G; active=False
-2026-11-08 12:45:48.381 PROMPT ACTIVE: name=Database-label/H; active=False
-2026-11-08 12:45:58.372 TARGET: nativeFound=True; handle=206594; human=True
-2026-11-08 12:45:58.374 PROMPT GROUP ASSIGNED: name=Recruit/G; target=206594; group=268566629
-2026-11-08 12:45:58.374 PROMPT GROUP ASSIGNED: name=Database-label/H; target=206594; group=268566629
-2026-11-08 12:45:58.375 PROMPT GROUP ACTIVE PAGE: group=268566629; page=-1; active=False
-2026-11-08 12:45:58.387 PROMPT GROUP ACTIVE PAGE: group=268566629; page=0; active=True
-2026-11-08 12:45:58.387 PROMPT ACTIVE: name=Recruit/G; active=True
-2026-11-08 12:45:58.388 PROMPT ACTIVE: name=Database-label/H; active=True
-2026-11-08 12:46:02.369 RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED
-2026-11-08 12:46:02.531 PROMPT PRESSED: name=Recruit/G; no recruitment performed.
-2026-11-08 12:46:04.168 RAW H / INPUT_INTERACT_OPTION2 PRESS DETECTED
-2026-11-08 12:46:04.470 PROMPT PRESSED: name=Database-label/H; no recruitment performed.
-2026-11-08 12:46:05.810 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 12:46:05.810 PROMPT ACTIVE: name=Recruit/G; active=False
-2026-11-08 12:46:05.811 PROMPT ACTIVE: name=Database-label/H; active=False
+2026-11-08 13:16:10.185 === VAR_STRING sequencing test: Recruit/G ===
+2026-11-08 13:16:10.185 Goal: test Recruit text using VAR_STRING directly in _UI_PROMPT_SET_TEXT.
+2026-11-08 13:16:10.185 Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY
+2026-11-08 13:16:10.185 Recruit text: MISC.VAR_STRING(10, LITERAL_STRING, Recruit)
+2026-11-08 13:16:10.185 G control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+2026-11-08 13:16:10.186 Prompt is assigned to the focused target's prompt group.
+2026-11-08 13:16:10.186 No recruitment or gang membership changes are performed.
+2026-11-08 13:16:10.190 VAR_STRING CALL: immediately before _UI_PROMPT_SET_TEXT
+2026-11-08 13:16:10.194 PROMPT CREATED: name=Recruit/G; handle=207874; textSource=direct VAR_STRING result
+2026-11-08 13:16:10.228 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 13:16:10.229 PROMPT ACTIVE: name=Recruit/G; active=False
+2026-11-08 13:16:20.125 TARGET: nativeFound=True; handle=201218; human=True
+2026-11-08 13:16:20.127 PROMPT GROUP ASSIGNED: target=201218; group=268566621
+2026-11-08 13:16:20.127 PROMPT GROUP ACTIVE PAGE: group=268566621; page=-1; active=False
+2026-11-08 13:16:20.138 PROMPT GROUP ACTIVE PAGE: group=268566621; page=0; active=True
+2026-11-08 13:16:20.138 PROMPT ACTIVE: name=Recruit/G; active=True
+2026-11-08 13:16:25.147 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 13:16:25.147 PROMPT ACTIVE: name=Recruit/G; active=False

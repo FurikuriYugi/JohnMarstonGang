@@ -1,6 +1,7 @@
 # Research Notes
 
 ## Read this first: purpose and preservation rules
+
 This file tracks the project’s investigations: goals, test status, instrumented results, user observations, conclusions, and next steps. It should be understandable without prior chat context.
 
 - Preserve existing findings by default. Do not delete or overwrite a finding for formatting, brevity, or reorganization.
@@ -15,78 +16,93 @@ This file tracks the project’s investigations: goals, test status, instrumente
 ## Current test: focused-target prompt in the unarmed focus menu
 
 ### Goal
+
 Add the G glyph and the string `Recruit` to the unarmed focus menu for a focused human NPC. This prompt is a test only; pressing it must not recruit the NPC or change gang membership.
 
 ### Status
-**In progress.** Target detection and adding a prompt to the focused target’s prompt group have been demonstrated. The user reports that `Recruit` did not appear. The next test compares a custom `VAR_STRING` prompt with a database-label diagnostic prompt.
+
+**In progress.** Focused-target detection, assignment to the focused target’s prompt group, and an active-page transition have been demonstrated. The user reports that `Recruit` did not appear. The user has also confirmed that a prompt configured with G and the known `CUTSCENE_SKIP` text displays **G Skip**. The current test now isolates the `VAR_STRING` call sequence for `Recruit`; it has not yet been run.
 
 ### Established from prior user testing
+
 The user has confirmed:
+
 - An approach label can be added.
 - The focused target can be detected.
 - Items can be added to the menu.
+- A prompt using G with the known `CUTSCENE_SKIP` text displays **G Skip**.
 
 These are settled project findings. Do not repeat those tests absent a specific reason to do so.
 
-### Established by the current test source and log
+### Established by the focused-target test source and log
+
 - The test gets the focused target using `PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY`.
 - The test checks human status using `PED.IS_PED_HUMAN`.
 - The test obtains the target’s prompt group using `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY`.
 - The test assigns its prompt with `_UI_PROMPT_SET_GROUP`.
-- The configured test control `INPUT_INTERACT_OPTION1` has hash `0x760A9C6F` and is the G control in the current test.
-- The test builds `Recruit` with `MISC.VAR_STRING(10, "LITERAL_STRING", "Recruit")` and passes the resulting string to `_UI_PROMPT_SET_TEXT`.
-- `VAR_STRING` wrapper declaration recorded from the API research: `public static string VAR_STRING(int flags, params RDR2.Native.InputArgument[] args)`.
-- `Test_Log.txt` dated `2026-11-08 12:05` records a focused human target, prompt-group assignment, the group active page changing from `-1` to `0`, and the prompt becoming active.
+- The configured test control `INPUT_INTERACT_OPTION1` has hash `0x760A9C6F` and is the G control used by the test.
+- The test builds `Recruit` with `MISC.VAR_STRING(10, "LITERAL_STRING", "Recruit")` and passes the result to `_UI_PROMPT_SET_TEXT`.
+- The `VAR_STRING` wrapper declaration recorded from API research is `public static string VAR_STRING(int flags, params RDR2.Native.InputArgument[] args)`.
 - The test does not call `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME`.
 - An active prompt/group does not prove the prompt was visibly rendered or that its text or glyph was correct.
 
-### Latest test record
+### Latest comparison-test log
 
-**Instrumented/logged results from `Test_Log.txt`:**
-- Prompt creation was logged.
+`Test_Log.txt` dated `2026-11-08 12:45` records:
+
+- Both comparison prompts were created.
 - The target changed from none to a focused human NPC.
-- The prompt was assigned to the target’s prompt group.
+- Both prompts were assigned to the focused target’s prompt group.
 - The group active-page query changed from `-1` to `0`.
-- The prompt reported active while the target was focused and inactive after focus was lost.
-- The log has no `RAW INPUT_INTERACT_OPTION1 PRESS DETECTED` or `RECRUIT PROMPT PRESSED` entry. Therefore this log does not establish that G was pressed or the prompt was activated by input.
+- Both prompts reported active while the target was focused and inactive after focus was lost.
+- The log records raw G and H input detections and corresponding prompt-pressed entries.
 
-**User observations:**
+These log entries establish input detection and reported prompt-active state. They do **not** establish what text or glyph was visible.
+
+### User observations
+
 - The user reports that `Recruit` did not appear in the unarmed focus menu.
-- The user has not reported that the G glyph appeared.
+- The user confirms that the known `CUTSCENE_SKIP` label with the G control appears as **G Skip**.
+- The user has not reported that the `Recruit` text appeared in the menu.
 
-**Correction to an earlier note:**
-An earlier note said the log showed a detected prompt press and did not establish whether the group was active. The current `Test_Log.txt` contradicts those statements: it contains no prompt-press entry, and it records the group active page changing to `0`. The note is corrected here based on the current log.
+Keep these as user observations; do not represent them as logged results from the latest comparison-test log.
 
 ### Prompt-group research retained with scope
+
 - General prompt-group research says active or ambient groups are activated each frame to display them.
 - Active groups are exclusive and may interfere with other active groups; ambient groups are another activation mechanism.
 - Interaction Lock-On (ILO) guidance uses a separate process: get the focused entity’s group with `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY`, then assign a prompt with `_UI_PROMPT_SET_GROUP`.
-- In this test, the focused entity’s group became active without a call to `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME`. This is an observed result for the tested ILO case; it does not replace or disprove the general active/ambient-group guidance.
+- In the focused-target test, the entity’s group became active without a call to `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME`. This is an observed result for the tested ILO case; it does not replace or disprove the general active/ambient-group guidance.
 - Avoid repeating group-activation experiments unless a later result shows the ILO group is no longer active or the test conditions change.
 
-### New research lead
-An upstream ScriptHookRDR2DotNet-V2 report titled “Prompt Text doesn't work with custom strings” says custom text made with `VAR_STRING` does not work with `_UI_PROMPT_SET_TEXT` in the reported setup; it names database-registered strings such as `CUTSCENE_SKIP` as a working alternative. This is an upstream report, not yet verified with this project’s installed API version. The current test compares the `Recruit` `VAR_STRING` prompt with a direct `CUTSCENE_SKIP` token diagnostic before treating that as the cause. <citation src="21"></citation>
+### Upstream research lead
 
-### Do not repeat without a specific reason
+An upstream ScriptHookRDR2DotNet-V2 report titled “Prompt Text doesn't work with custom strings” says custom text made with `VAR_STRING` does not work with `_UI_PROMPT_SET_TEXT` in the reported setup; it names database-registered strings such as `CUTSCENE_SKIP` as a working alternative. This is an upstream report, not verified behavior for this project’s installed API version.
+
+### Current test: direct `VAR_STRING` result
+
+- **Question/goal:** Does passing the `VAR_STRING` result directly to `_UI_PROMPT_SET_TEXT`, after setting the G control and with no intervening native call, make `Recruit` display?
+- **Status:** In progress; test source prepared, not yet run.
+- **Test conditions:** One `Recruit` prompt using G, assigned to the focused human target’s prompt group. The test sets the control action first and calls `VAR_STRING(10, "LITERAL_STRING", "Recruit")` directly as the `_UI_PROMPT_SET_TEXT` argument.
+- **Instrumented results:** None yet for this test.
+- **User observations:** Prior `Recruit` text was not visible. User confirms the known `CUTSCENE_SKIP` label displays as **G Skip** when assigned to G.
+- **Conclusion:** G display with a known label is already confirmed by the user. The remaining question is whether the custom text path or the method of passing its result is responsible for the missing `Recruit` text.
+- **Do not repeat:** Adding an approach label, focused-target detection, adding a prompt to the target’s group, the observed active-page transition, or the known G Skip test.
+- **Next test:** Run the current `Test.cs`. Report separately whether the `Recruit` text is visible, whether the G glyph is visible, whether G input is logged, whether the prompt reports active, and whether the prompt-pressed entry is logged.
+- **API references:** `RDR2.Native.MISC.VAR_STRING`, `RDR2.Native.HUD._UI_PROMPT_SET_TEXT`, focused-target prompt-group natives; see `NativeReferenceGuide.md`.
+
+## Do not repeat without a specific reason
+
 - Adding an approach label.
 - Focused-target detection.
 - Adding a prompt to the focused target’s group.
-- The observed active-group-page transition in the logged ILO test.
-
-### Next result to record
-For the comparison test, separately record:
-1. Whether the `Recruit`/G prompt is visible.
-2. Whether the `CUTSCENE_SKIP`/H diagnostic prompt is visible.
-3. Whether each prompt’s glyph is shown.
-4. Whether G or H input is detected in the log.
-5. Whether either prompt reports active.
-
-Do not treat one of these results as proof of the others.
+- The observed active-page transition in the logged ILO test.
+- The known G Skip display test.
 
 ## Template for future test entries
+
 For each new or materially changed test, add an entry with:
 
-### [Short test name]
 - **Question/goal:**
 - **Status:** Not tested / In progress / Confirmed / Failed / Inconclusive
 - **Test conditions:** Test source version, relevant setup, and log/date.

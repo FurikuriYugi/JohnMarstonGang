@@ -6,30 +6,15 @@ using RDR2;
 public class Test : Script
 {
     private const uint InputInteractOption1 = 0x760A9C6Fu;
-    private const uint InputInteractOption2 = 0x84543902u;
-
     private const int PromptGroupTab = 0;
 
     private const string RecruitPromptText = "Recruit";
-
-    // Diagnostic only: this is a database label cited in the upstream prompt-text report.
-    // This test passes the token directly to _UI_PROMPT_SET_TEXT; that usage is not
-    // yet verified in this project.
-    private const string DatabaseLabelToken = "CUTSCENE_SKIP";
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
 
-    private readonly PromptProbe _recruitPrompt = new PromptProbe(
-        "Recruit/G",
-        InputInteractOption1,
-        true);
-
-    private readonly PromptProbe _databaseLabelPrompt = new PromptProbe(
-        "Database-label/H",
-        InputInteractOption2,
-        false);
+    private int _promptHandle;
 
     private bool _hasLoggedTargetState;
     private bool _lastNativeFoundTarget;
@@ -44,92 +29,76 @@ public class Test : Script
     private string _lastGroupActivePageError;
 
     private string _lastInputError;
+    private string _lastPromptError;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Focused-target prompt text comparison test ===");
-        Log("Goal: compare custom Recruit/G text with a database-label/H prompt.");
+        Log("=== VAR_STRING sequencing test: Recruit/G ===");
+        Log("Goal: test Recruit text using VAR_STRING directly in _UI_PROMPT_SET_TEXT.");
         Log("Target native: PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY");
-        Log("Recruit text source: MISC.VAR_STRING(10, LITERAL_STRING, Recruit)");
-        Log("Database-label test token: " + DatabaseLabelToken);
+        Log("Recruit text: MISC.VAR_STRING(10, LITERAL_STRING, Recruit)");
         Log("G control: INPUT_INTERACT_OPTION1; hash=0x" +
             InputInteractOption1.ToString("X8"));
-        Log("H control: INPUT_INTERACT_OPTION2; hash=0x" +
-            InputInteractOption2.ToString("X8"));
-        Log("Both test prompts are assigned to the focused target's prompt group.");
+        Log("Prompt is assigned to the focused target's prompt group.");
         Log("No recruitment or gang membership changes are performed.");
 
-        CreatePrompt(_recruitPrompt);
-        CreatePrompt(_databaseLabelPrompt);
+        CreatePrompt();
 
         Tick += OnTick;
         Aborted += OnAborted;
     }
 
-    private void CreatePrompt(PromptProbe probe)
+    private void CreatePrompt()
     {
         try
         {
-            probe.Handle =
+            _promptHandle =
                 RDR2.Native.HUD._UI_PROMPT_REGISTER_BEGIN();
 
-            if (probe.Handle <= 0)
+            if (_promptHandle <= 0)
             {
-                Log("PROMPT CREATION FAILED: name=" + probe.Name +
-                    "; handle=" + probe.Handle);
+                Log("PROMPT CREATION FAILED: handle=" + _promptHandle);
                 return;
             }
 
-            string promptText;
-
-            if (probe.UsesVarString)
-            {
-                promptText = RDR2.Native.MISC.VAR_STRING(
-                    10,
-                    "LITERAL_STRING",
-                    RecruitPromptText);
-            }
-            else
-            {
-                // Diagnostic test for a database-backed label.
-                // Whether a direct token works through this API wrapper remains unverified.
-                promptText = DatabaseLabelToken;
-            }
-
             RDR2.Native.HUD._UI_PROMPT_SET_CONTROL_ACTION(
-                probe.Handle,
-                probe.ControlAction);
+                _promptHandle,
+                InputInteractOption1);
+
+            Log("VAR_STRING CALL: immediately before _UI_PROMPT_SET_TEXT");
 
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
-                probe.Handle,
-                promptText);
+                _promptHandle,
+                RDR2.Native.MISC.VAR_STRING(
+                    10,
+                    "LITERAL_STRING",
+                    RecruitPromptText));
 
             RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
-                probe.Handle,
+                _promptHandle,
                 true);
 
             RDR2.Native.HUD._UI_PROMPT_REGISTER_END(
-                probe.Handle);
+                _promptHandle);
 
             RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
-                probe.Handle,
+                _promptHandle,
                 false);
 
             RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
-                probe.Handle,
+                _promptHandle,
                 false);
 
-            Log("PROMPT CREATED: name=" + probe.Name +
-                "; handle=" + probe.Handle +
-                "; textSource=" +
-                (probe.UsesVarString ? "VAR_STRING literal" : "database token"));
+            Log("PROMPT CREATED: name=Recruit/G; handle=" +
+                _promptHandle +
+                "; textSource=direct VAR_STRING result");
         }
         catch (Exception exception)
         {
-            Log("PROMPT CREATION ERROR: name=" + probe.Name +
-                "; " + InnermostMessage(exception));
+            Log("PROMPT CREATION ERROR: " +
+                InnermostMessage(exception));
         }
     }
 
@@ -158,32 +127,21 @@ public class Test : Script
 
         int targetGroupId = -1;
         bool groupFound = false;
+        bool promptAssigned = false;
 
-        if (hasValidHumanTarget &&
-            _recruitPrompt.Handle > 0 &&
-            _databaseLabelPrompt.Handle > 0)
+        if (hasValidHumanTarget && _promptHandle > 0)
         {
             groupFound = TryGetTargetPromptGroup(
                 targetHandle,
                 out targetGroupId);
         }
 
-        bool recruitPromptAssigned = false;
-        bool databasePromptAssigned = false;
-
         if (groupFound && targetGroupId >= 0)
         {
             AssignPromptToTargetGroup(
-                _recruitPrompt,
                 targetHandle,
                 targetGroupId,
-                out recruitPromptAssigned);
-
-            AssignPromptToTargetGroup(
-                _databaseLabelPrompt,
-                targetHandle,
-                targetGroupId,
-                out databasePromptAssigned);
+                out promptAssigned);
 
             LogGroupActivePageIfChanged(targetGroupId);
         }
@@ -192,18 +150,12 @@ public class Test : Script
             _hasLoggedGroupActivePage = false;
         }
 
-        bool showRecruitPrompt =
+        bool shouldShowPrompt =
             hasValidHumanTarget &&
             groupFound &&
-            recruitPromptAssigned;
+            promptAssigned;
 
-        bool showDatabaseLabelPrompt =
-            hasValidHumanTarget &&
-            groupFound &&
-            databasePromptAssigned;
-
-        UpdatePrompt(_recruitPrompt, showRecruitPrompt);
-        UpdatePrompt(_databaseLabelPrompt, showDatabaseLabelPrompt);
+        UpdatePrompt(shouldShowPrompt);
     }
 
     private void ReadFocusedTarget(
@@ -266,13 +218,6 @@ public class Test : Script
                 Log("RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED");
             }
 
-            if (RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
-                0,
-                InputInteractOption2))
-            {
-                Log("RAW H / INPUT_INTERACT_OPTION2 PRESS DETECTED");
-            }
-
             _lastInputError = null;
         }
         catch (Exception exception)
@@ -322,7 +267,6 @@ public class Test : Script
     }
 
     private void AssignPromptToTargetGroup(
-        PromptProbe probe,
         int targetHandle,
         int targetGroupId,
         out bool assignedForCurrentTarget)
@@ -331,34 +275,38 @@ public class Test : Script
 
         try
         {
-            if (probe.LastTargetHandle != targetHandle ||
-                probe.LastAssignedGroupId != targetGroupId)
+            if (_lastAssignedTargetHandle != targetHandle ||
+                _lastAssignedGroupId != targetGroupId)
             {
                 RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
-                    probe.Handle,
+                    _promptHandle,
                     targetGroupId,
                     PromptGroupTab);
 
-                probe.LastTargetHandle = targetHandle;
-                probe.LastAssignedGroupId = targetGroupId;
+                _lastAssignedTargetHandle = targetHandle;
+                _lastAssignedGroupId = targetGroupId;
 
-                Log("PROMPT GROUP ASSIGNED: name=" + probe.Name +
-                    "; target=" + targetHandle +
-                    "; group=" + targetGroupId);
+                Log("PROMPT GROUP ASSIGNED: target=" +
+                    targetHandle +
+                    "; group=" +
+                    targetGroupId);
             }
 
             assignedForCurrentTarget =
-                probe.LastTargetHandle == targetHandle &&
-                probe.LastAssignedGroupId == targetGroupId;
+                _lastAssignedTargetHandle == targetHandle &&
+                _lastAssignedGroupId == targetGroupId;
         }
         catch (Exception exception)
         {
             LogErrorOnce(
-                ref probe.LastGroupError,
-                "GROUP ASSIGNMENT ERROR: name=" + probe.Name +
-                "; " + InnermostMessage(exception));
+                ref _lastPromptError,
+                "GROUP ASSIGNMENT ERROR: " +
+                InnermostMessage(exception));
         }
     }
+
+    private int _lastAssignedTargetHandle = int.MinValue;
+    private int _lastAssignedGroupId = int.MinValue;
 
     private void LogGroupActivePageIfChanged(int groupId)
     {
@@ -396,11 +344,9 @@ public class Test : Script
         }
     }
 
-    private void UpdatePrompt(
-        PromptProbe probe,
-        bool shouldShow)
+    private void UpdatePrompt(bool shouldShow)
     {
-        if (probe.Handle <= 0)
+        if (_promptHandle <= 0)
         {
             return;
         }
@@ -408,45 +354,48 @@ public class Test : Script
         try
         {
             RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
-                probe.Handle,
+                _promptHandle,
                 shouldShow);
 
             RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
-                probe.Handle,
+                _promptHandle,
                 shouldShow);
 
             bool promptActive =
                 RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(
-                    probe.Handle);
+                    _promptHandle);
 
-            if (!probe.HasLoggedActiveState ||
-                promptActive != probe.LastActiveState)
+            if (!_hasLoggedPromptActiveState ||
+                promptActive != _lastPromptActiveState)
             {
-                probe.HasLoggedActiveState = true;
-                probe.LastActiveState = promptActive;
+                _hasLoggedPromptActiveState = true;
+                _lastPromptActiveState = promptActive;
 
-                Log("PROMPT ACTIVE: name=" + probe.Name +
-                    "; active=" + promptActive);
+                Log("PROMPT ACTIVE: name=Recruit/G; active=" +
+                    promptActive);
             }
 
             if (promptActive &&
                 RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(
-                    probe.Handle))
+                    _promptHandle))
             {
-                Log("PROMPT PRESSED: name=" + probe.Name +
-                    "; no recruitment performed.");
+                Log("PROMPT PRESSED: name=Recruit/G; " +
+                    "no recruitment performed.");
             }
 
-            probe.LastPromptError = null;
+            _lastPromptError = null;
         }
         catch (Exception exception)
         {
             LogErrorOnce(
-                ref probe.LastPromptError,
-                "PROMPT UPDATE ERROR: name=" + probe.Name +
-                "; " + InnermostMessage(exception));
+                ref _lastPromptError,
+                "PROMPT UPDATE ERROR: " +
+                InnermostMessage(exception));
         }
     }
+
+    private bool _hasLoggedPromptActiveState;
+    private bool _lastPromptActiveState;
 
     private void LogTargetStateIfChanged(
         bool nativeFoundTarget,
@@ -491,13 +440,12 @@ public class Test : Script
 
     private void OnAborted(object sender, EventArgs e)
     {
-        DeletePrompt(_recruitPrompt);
-        DeletePrompt(_databaseLabelPrompt);
+        DeletePrompt();
     }
 
-    private void DeletePrompt(PromptProbe probe)
+    private void DeletePrompt()
     {
-        if (probe.Handle <= 0)
+        if (_promptHandle <= 0)
         {
             return;
         }
@@ -505,23 +453,23 @@ public class Test : Script
         try
         {
             RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
-                probe.Handle,
+                _promptHandle,
                 false);
 
             RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
-                probe.Handle,
+                _promptHandle,
                 false);
 
             RDR2.Native.HUD._UI_PROMPT_DELETE(
-                probe.Handle);
+                _promptHandle);
 
-            Log("PROMPT DELETED: name=" + probe.Name);
-            probe.Handle = 0;
+            Log("PROMPT DELETED: name=Recruit/G");
+            _promptHandle = 0;
         }
         catch (Exception exception)
         {
-            Log("PROMPT CLEANUP ERROR: name=" + probe.Name +
-                "; " + InnermostMessage(exception));
+            Log("PROMPT CLEANUP ERROR: " +
+                InnermostMessage(exception));
         }
     }
 
@@ -547,31 +495,5 @@ public class Test : Script
             " " +
             message +
             Environment.NewLine);
-    }
-
-    private sealed class PromptProbe
-    {
-        public readonly string Name;
-        public readonly uint ControlAction;
-        public readonly bool UsesVarString;
-
-        public int Handle;
-        public int LastTargetHandle = int.MinValue;
-        public int LastAssignedGroupId = int.MinValue;
-        public bool LastActiveState;
-        public bool HasLoggedActiveState;
-
-        public string LastGroupError;
-        public string LastPromptError;
-
-        public PromptProbe(
-            string name,
-            uint controlAction,
-            bool usesVarString)
-        {
-            Name = name;
-            ControlAction = controlAction;
-            UsesVarString = usesVarString;
-        }
     }
 }
