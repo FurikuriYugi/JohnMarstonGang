@@ -1,26 +1,87 @@
-[21:39:49.626] === Focused NPC prompt-group baseline test initialized ===
-[21:39:49.626] This test registers the ILO on the nearest human NPC within 8 metres before focus.
-[21:39:49.626] The ILO approach text is "Recruit".
-[21:39:49.627] While the NPC is focused, the test tries to attach a G prompt using the target entity's prompt group.
-[21:39:49.627] The focused prompt uses the registered text key "WARDROBE_INSPECT_PROMPT", not custom Recruit text.
-[21:39:49.627] No recruitment action is executed and no gang data is changed.
-[21:39:49.627] ILO arguments: radius=2.5; focusDistance=2.5; flags=0; unknownFloat1=0; unknownFloat2=0; customPromptHandle=0; showApproachPrompt=True; unknownInt=-1
-[21:39:49.628] NATIVE WRAPPER REGISTER_INTERACTION_LOCKON_PROMPT: not found
-[21:39:49.628] NATIVE WRAPPER UNREGISTER_INTERACTION_LOCKON_PROMPT: not found
-[21:39:49.628] ILO SETUP UNAVAILABLE: no compatible register wrapper was found.
-[21:39:49.628] ILO CLEANUP UNAVAILABLE: no compatible unregister wrapper was found.
-[21:39:49.633] FOCUSED PROMPT HANDLE: 217346
-[21:39:49.636] PROMPT CONTROL ACTION SET: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; result=System.UInt64:0
-[21:39:49.638] PROMPT TEXT SET: key="WARDROBE_INSPECT_PROMPT"; result=null
-[21:39:49.639] PROMPT REGISTER END: result=null
-[21:39:49.643] FOCUSED PROMPT CREATED: prompt=217346; initialEnabled=false; initialVisible=false
-[21:39:49.739] FOCUSED PROMPT DISABLED: prompt=217346; enabledResult=null; visibleResult=null
-[21:39:49.740] HUMAN TARGET BEGIN: target=208642; distance=1.560238; freeFocusing=False; registeredBeforeFocus=true
-[21:39:57.457] TRACKED TARGET FOCUS BEGIN: target=208642
-[21:39:57.458] G CANDIDATE CONTROL: target=208642; name=INPUT_INTERACT_OPTION1; hash=0x760A9C6F; enabled=True; note=reported G mapping
-[21:39:57.460] TARGET PROMPT GROUP: target=208642; group=268566635
-[21:39:57.461] PROMPT ATTACHED TO TARGET GROUP: prompt=217346; target=208642; group=268566635; result=null
-[21:39:57.462] FOCUSED PROMPT ENABLED: prompt=217346; enabledResult=null; visibleResult=null
-[21:40:06.905] TRACKED TARGET FOCUS END: target=208642
-[21:40:06.908] PROMPT GROUP DETACH: prompt=217346; group=268566635; wrapperFound=True; result=null
-[21:40:06.908] FOCUSED PROMPT DISABLED: prompt=217346; enabledResult=null; visibleResult=null
+[22:03:47.994] === Focused NPC prompt input-diagnostic test initialized ===
+[22:03:47.995] The registered prompt text remains "WARDROBE_INSPECT_PROMPT".
+[22:03:47.995] The prompt is assigned to the focused NPC target's prompt group.
+[22:03:47.995] This test logs prompt-state and raw-control input separately.
+[22:03:47.995] No recruitment action, gang change, or animation is executed.
+[22:03:47.995] Input control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F
+[22:03:48.008] PROBE WRAPPER: UI_PROMPT_IS_ACTIVE; signature=RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(System.Int32) : System.Boolean
+[22:03:48.009] PROBE WRAPPER: UI_PROMPT_IS_PRESSED; signature=RDR2.Native.HUD._UI_PROMPT_IS_PRESSED(System.Int32) : System.Boolean
+[22:03:48.009] PROBE WRAPPER: UI_PROMPT_IS_JUST_PRESSED; signature=RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(System.Int32) : System.Boolean
+[22:03:48.012] PROBE WRAPPER NOT FOUND: UI_PROMPT_HAS_STANDARD_MODE_COMPLETED; argumentCount=1
+[22:03:48.013] PROBE WRAPPER: IS_CONTROL_ENABLED; signature=RDR2.Native.PAD.IS_CONTROL_ENABLED(System.Int32, System.UInt32) : System.Boolean
+[22:03:48.014] PROBE WRAPPER: IS_CONTROL_PRESSED; signature=RDR2.Native.PAD.IS_CONTROL_PRESSED(System.Int32, System.UInt32) : System.Boolean
+[22:03:48.015] PROBE WRAPPER: IS_CONTROL_JUST_PRESSED; signature=RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(System.Int32, System.UInt32) : System.Boolean
+[22:03:48.022] FOCUSED PROMPT HANDLE: 215810
+[22:03:48.025] PROMPT CONTROL ACTION SET: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; result=System.UInt64:0
+[22:03:48.027] PROMPT TEXT SET: key="WARDROBE_INSPECT_PROMPT"; result=null
+[22:03:48.028] PROMPT REGISTER END: result=null
+[22:03:48.029] FOCUSED PROMPT CREATED: prompt=215810; initialEnabled=false; initialVisible=false
+[22:03:48.126] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:48.127] HUMAN TARGET BEGIN: target=203266; distance=1.560238
+[22:03:52.123] HUMAN TARGET END: target=203266
+[22:03:52.125] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.126] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.139] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.152] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.164] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.174] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.187] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.199] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.210] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.221] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.232] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.243] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.254] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.265] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.276] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.288] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.300] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.311] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.323] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.334] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.344] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.357] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.367] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.379] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.391] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.402] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.414] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.426] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.438] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.449] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.461] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.472] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.484] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.496] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.508] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.520] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.532] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.543] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.555] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.567] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.579] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.592] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.605] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.616] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.628] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:52.628] HUMAN TARGET BEGIN: target=203266; distance=1.824029
+[22:03:55.690] TRACKED TARGET FOCUS BEGIN: target=203266
+[22:03:55.692] TARGET PROMPT GROUP: target=203266; group=268566629
+[22:03:55.693] PROMPT ATTACHED TO TARGET GROUP: prompt=215810; target=203266; group=268566629; result=null
+[22:03:55.694] FOCUSED PROMPT ENABLED: prompt=215810; enabledResult=null; visibleResult=null
+[22:03:55.696] INPUT STATE: UI_PROMPT_IS_ACTIVE=False; target=203266; prompt=215810
+[22:03:55.698] INPUT STATE: UI_PROMPT_IS_PRESSED=False; target=203266; prompt=215810
+[22:03:55.700] INPUT STATE: IS_CONTROL_ENABLED=True; target=203266; prompt=215810
+[22:03:55.700] INPUT STATE: IS_CONTROL_PRESSED=False; target=203266; prompt=215810
+[22:03:55.700] INPUT HEARTBEAT: promptActive=False; promptPressed=False; promptJustPressed=False; standardModeCompleted=wrapper-unavailable; controlEnabled=True; controlPressed=False; controlJustPressed=False
+[22:03:55.712] INPUT STATE: UI_PROMPT_IS_ACTIVE=True; target=203266; prompt=215810
+[22:03:57.660] INPUT STATE: IS_CONTROL_PRESSED=True; target=203266; prompt=215810
+[22:03:57.660] INPUT EVENT: IS_CONTROL_JUST_PRESSED=true; target=203266; prompt=215810
+[22:03:57.706] INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; standardModeCompleted=wrapper-unavailable; controlEnabled=True; controlPressed=True; controlJustPressed=False
+[22:03:57.836] INPUT STATE: IS_CONTROL_PRESSED=False; target=203266; prompt=215810
+[22:03:59.717] INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; standardModeCompleted=wrapper-unavailable; controlEnabled=True; controlPressed=False; controlJustPressed=False
+[22:04:01.719] INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; standardModeCompleted=wrapper-unavailable; controlEnabled=True; controlPressed=False; controlJustPressed=False
+[22:04:03.719] INPUT HEARTBEAT: promptActive=True; promptPressed=False; promptJustPressed=False; standardModeCompleted=wrapper-unavailable; controlEnabled=True; controlPressed=False; controlJustPressed=False
+[22:04:04.343] TRACKED TARGET FOCUS END: target=203266
+[22:04:04.349] PROMPT GROUP DETACH: prompt=215810; group=268566629; wrapperFound=True; result=null
+[22:04:04.349] FOCUSED PROMPT DISABLED: prompt=215810; enabledResult=null; visibleResult=null
