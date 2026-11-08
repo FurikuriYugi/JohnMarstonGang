@@ -10,13 +10,14 @@ Record findings about the project, its API, and in-game tests. Distinguish code/
 - **Documented in local reference:** Listed in the project’s API/native documentation; not necessarily verified in game.
 - **Documented externally:** Reported by external research; not necessarily verified against this project’s wrapper or in game.
 - **Tested in game:** Confirmed by an in-game test and its log.
+- **User-reported in game:** Reported by the user; no matching fresh log was supplied.
 - **Open:** Needs more investigation.
 
-## Current test: ILO approach-prompt timing
+## Current test: ILO approach prompt and focused NPC menu
 
 ### Goal
 
-Test whether registering `REGISTER_INTERACTION_LOCKON_PROMPT` on a nearby human NPC **before aiming at it** makes the `Recruit` approach prompt visible. Separately observe whether the candidate control `INPUT_INTERACT_OPTION1` registers a press while that NPC is focused.
+Test whether registering `REGISTER_INTERACTION_LOCKON_PROMPT` on a nearby human NPC before aiming at it makes the `Recruit` approach prompt visible. Separately observe whether the candidate control `INPUT_INTERACT_OPTION1` registers a press while that NPC is focused.
 
 This is a diagnostic test only. It does not recruit an NPC, create a gang member, or alter saved data.
 
@@ -24,7 +25,7 @@ This is a diagnostic test only. It does not recruit an NPC, create a gang member
 
 The previous test registered the ILO only after the NPC was already aimed at or focused. External prompt research describes the ILO’s text as the prompt shown while approaching. Therefore, the previous run did not establish whether registering before approach would display that prompt.
 
-The new test changes registration timing: it registers on the nearest human NPC within 8 metres before focus, uses the same 2.5-metre radius and focus distance, and retains the `showApproachPrompt=true` argument. It tracks one target to reduce interference with nearby NPC prompts.
+The newer test registers on the nearest human NPC within 8 metres before focus, uses the same 2.5-metre radius and focus distance, and retains the `showApproachPrompt=true` argument. It tracks one target to reduce interference with nearby NPC prompts.
 
 ### Important distinctions
 
@@ -32,12 +33,13 @@ The new test changes registration timing: it registers on the nearest human NPC 
 - `INPUT_INTERACT_OPTION1` is sampled as a candidate G input only. It is not bound to recruitment by this test.
 - A successful native return does not prove that the prompt rendered.
 - A G-candidate press does not prove that the game treated it as recruitment.
-- This test does not create a standard UI prompt, assign a prompt group, suppress an input, or perform recruitment.
+- The test does not create a standard UI prompt, assign a prompt group, suppress a control, or perform recruitment.
 - An ILO approach label is separate from a custom action in the focused-entity prompt menu.
+- Seeing `Recruit` as an approach label does not establish that the focused-entity menu has gained a `G Recruit` option.
 
 ### Test behavior
 
-The replacement `Test.cs`:
+The current `Test.cs`:
 
 - Finds the nearest living human NPC within 8 metres, using `World.GetAllPeds()`.
 - Keeps the current target while it remains within 9 metres to avoid frequent target switching.
@@ -46,14 +48,33 @@ The replacement `Test.cs`:
 - Unregisters the ILO when the tracked target changes or ends.
 - Does not create or activate UI prompt groups, suppress controls, execute recruitment, or alter gang data.
 
+### Latest result
+
+**User-reported in game; fresh log not supplied.**
+
+The user reports that:
+
+- `Recruit` appears as the outer-radius/approach label.
+- Moving closer and holding right mouse button to focus the NPC changes the display to the NPC’s name or “Stranger” and shows the existing actions/options.
+- Pressing G did not make a `G Recruit` glyph/action appear in that focused menu.
+
+Interpretation:
+
+- The result supports treating the outer-radius `Recruit` label as distinct from the focused NPC interaction menu.
+- The approach label appeared, but the attempt did not add a custom recruitment action to the focused menu.
+- This result does not show that G activated recruitment. The test does not bind G to recruitment or execute a recruitment action.
+- The user’s report that G was pressed in this run is not independently confirmed by a new log. The checked-in log contains a candidate-input press from an earlier recorded test; do not conflate that log event with this latest visual result.
+- The name/“Stranger” and action/options were observed while focusing the NPC; the current test does not create those menu entries.
+- No test date was recorded for this user-reported result.
+
 ### Test procedure
 
-1. Replace `Test.cs` with the complete test file provided in this update and build the test project.
-2. Start RDR2 in Story Mode with the test mod loaded. Test on foot, with a calm human NPC and no combat.
-3. Approach the nearest human NPC without aiming first. Watch for the literal `Recruit` prompt within approximately 2.5 metres.
-4. Then aim/focus that same NPC. Record whether the `Recruit` text appears, changes, or disappears.
+1. Build and load the diagnostic `Test.cs` in RDR2 Story Mode.
+2. Test on foot, near a calm human NPC and outside combat.
+3. Approach without aiming first. Observe whether the literal `Recruit` label appears.
+4. Aim/focus the same NPC and note how the display changes.
 5. Press G only as an input observation. The test does not recruit the NPC or bind G.
-6. Provide the new `Test_Log.txt` and describe what was visible before aiming and while focused.
+6. Save and provide the fresh `Test_Log.txt` alongside the visual result.
 
 The test log is written to `Test_Log.txt` under the game’s base directory. To have the game write through to the repository copy on Windows, create a symbolic link in the game directory pointing to the repository’s `Test_Log.txt`. Remove or rename an existing regular file there first. The link must be created in the local checkout.
 
@@ -65,20 +86,20 @@ The test log is written to `Test_Log.txt` under the game’s base directory. To 
 - The isolated test uses `PLAYER.GET_PLAYER_TARGET_ENTITY` and `Game.Player.GetFreeAimEntity()` to identify a focused/aimed human NPC.
 - F9 remains the separate companion-follow toggle.
 - The recruitment interaction is not implemented in the production path.
-- The API release page identifies v2.2.0 as the latest listed release in the fetched release results. The project bootstrap specifies `ScriptHookRDRNetAPI.dll` version 2.2.0. Use the installed project assembly as the final authority for exact signatures. <citation src="1"></citation>
+- The API release page identifies v2.2.0 as the latest listed release in the fetched release results. The project bootstrap specifies `ScriptHookRDRNetAPI.dll` version 2.2.0. Use the installed project assembly as the final authority for exact signatures.
 - The project’s source file list includes `Test.cs`.
 - In test mode, do not modify `StoryBoard.md`.
 
 ## Current native signatures and test values
 
-The installed v2.2.0 wrapper was resolved in the prior test log as:
+The installed v2.2.0 wrapper was resolved in the test log as:
 
 - `REGISTER_INTERACTION_LOCKON_PROMPT(int, string, float, float, int, float, float, int, bool, int) -> bool`
 - `UNREGISTER_INTERACTION_LOCKON_PROMPT(int) -> bool`
 
-The latest checked-in log records both ILO registration and unregistration returning `true`. That does not establish that the text appeared.
+The checked-in log records both ILO registration and unregistration returning `true`. That does not establish that the text appeared.
 
-The current test passes:
+The test passes:
 
 - Text: `Recruit`
 - Radius: `2.5f`
@@ -97,24 +118,23 @@ The current test samples:
 
 The external control mapping reports this as G in a listed PC mapping. Treat the mapping as a candidate because bindings and control context can vary.
 
-## Latest previous test result
+## Earlier recorded test result
 
-The latest checked-in `Test_Log.txt` records:
+The checked-in `Test_Log.txt` records:
 
-- Focused human target handle `203778`.
-- `INPUT_INTERACT_OPTION1` was enabled for the target.
-- ILO registration returned `System.Boolean:True`.
-- The user pressed G and the test logged `G CANDIDATE JUST PRESSED`.
-- ILO unregistration returned `System.Boolean:True`.
-- The user reported that the visual result remained unchanged and no `Recruit` action appeared.
+- Several nearby human NPC targets were tracked.
+- ILO registration returned `System.Boolean:True` for the logged targets.
+- ILO unregistration returned `System.Boolean:True` for the logged targets.
+- Focus transitions were logged for some tracked targets.
+- `INPUT_INTERACT_OPTION1` was reported enabled while focused on some targets.
+- A `G CANDIDATE JUST PRESSED` event was logged for target `186370`.
 
 Interpretation:
 
-- The log confirms that the candidate input registered when G was pressed in that test context.
+- The log confirms that the candidate input registered when G was pressed in that recorded test context.
 - It does not establish that G was bound to recruitment or that recruitment occurred.
 - The ILO registration return does not prove the text rendered.
-- Because registration happened after target acquisition, the previous run did not test registration before approach. The new test specifically addresses that gap.
-- No test date was recorded in the supplied result.
+- The log does not capture the latest user-reported visual result unless a fresh log is supplied.
 
 ## Earlier prompt and input findings
 
@@ -144,20 +164,21 @@ The research describes:
 - The custom-prompt argument as not working with a custom prompt in that researcher’s tests and commonly being zero in Rockstar scripts.
 - Separate standard UI prompts and prompt groups, which may be attached to a target entity’s prompt group.
 
-These are external observations, not proof of behavior or signatures in this project’s wrapper. <citation src="11"></citation>
+These are external observations, not proof of behavior or signatures in this project’s wrapper.
 
 ## Remaining questions
 
-- Does `Recruit` appear when registered on a nearby NPC before the player aims at it?
-- Does the label appear only while approaching, only while focused, or not at all?
-- Does the user’s configured G mapping correspond to `INPUT_INTERACT_OPTION1` in the test context?
-- What supported mechanism adds an action to the focused-entity prompt menu?
+- What supported mechanism adds a custom action to the focused-entity prompt menu?
+- Does the custom action require a specific prompt group, target entity setup, input context, or lifecycle?
 - Does prompt visibility depend on NPC type, distance, player state, mission state, or other conditions?
+- Does the user’s configured G mapping correspond to `INPUT_INTERACT_OPTION1` in the test context?
+- Can a custom focused-menu action be added without disrupting the game’s existing options?
 
 ## Interpretation rules
 
 - A native wrapper resolving successfully does not prove correct visible behavior.
 - A native returning true does not prove prompt display.
+- A visible approach label does not prove that a custom action was added to the focused menu.
 - A visible label does not prove that G activates it.
 - A G-candidate press does not prove recruitment was triggered.
 - A change in fleeing, combat, health, or other NPC state does not identify the cause unless the test isolates that input and records its timing.
