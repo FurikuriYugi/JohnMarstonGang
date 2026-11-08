@@ -18,11 +18,10 @@ If the repository cannot be accessed, wait a moment and try again, if not, try a
 - Project: JohnMorstonGang
 - Game: Red Dead Redemption 2
 - Source of Truth repository:
-  - https://github.com/FurikuriYugi/JohnMarstonGang/tree/main
-  - https://github.com/FurikuriYugi/JohnMarstonGang/blob/main/
+  - https://github.com/FurikuriYugi/JohnMarstonGang
 - Environment: Visual Studio, C#
 - API: `ScriptHookRDRNetAPI.dll`, version 2.2.0
-  - Source: https://github.com/Halen84/ScriptHookRDR2DotNet-V2/tree/master
+  - Source: https://github.com/Halen84/ScriptHookRDR2DotNet-V2
   - API mapping is available in the repository’s `Context/` folder.
 
 ## 3. Modes and Documentation Rules
