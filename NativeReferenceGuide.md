@@ -13,6 +13,7 @@ Record ScriptHookRDR2DotNet-V2 API patterns and native declarations relevant to 
 - Use the ASI and API DLL files from the same ScriptHookRDR2DotNet-V2 release archive.
 - Do not assume a native's parameter meaning from a placeholder such as `p2`, `p3`, `p5`, or `p9`.
 - Keep target selection, ILO registration, action-prompt creation, prompt-group attachment, prompt-group activation, prompt input detection, and recruitment execution as separate testable steps.
+- The user reports that the only `Prompt`-named API type in the installed API is `RDR2.UI.PromptTimingEvent`. Do not use `RDR2.UI.Prompt.CreatePrompt` as an assumed prompt-construction API.
 
 ## Player interaction target
 
@@ -31,3 +32,4 @@ public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
     int player,
     int* entity
 );
+```

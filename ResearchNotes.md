@@ -37,7 +37,7 @@ Log only information relevant to:
 - The isolated test harness uses `PLAYER.GET_PLAYER_TARGET_ENTITY`; do not confuse it with `Main.cs` target selection.
 - F9 remains the separate companion-follow toggle.
 - The native right-mouse interaction-lock-on recruitment prompt is not implemented in the production path.
-- `Main.cs` references `RDR2.UI.Prompt.CreatePrompt(...)`. The project bootstrap reports `RDR2.UI.Prompt` is internal, so that API accessibility issue must be resolved before relying on it in production.
+- The user checked the installed API and reports the only `Prompt`-named API type is `RDR2.UI.PromptTimingEvent`. Do not rely on `RDR2.UI.Prompt.CreatePrompt`; it is not the prompt-construction API available in this project.
 - G is the temporary prompt input in this test. The test input must never call the production recruitment path.
 - The current project file explicitly lists source files; the updated project file includes `Test.cs` for this isolated test.
 
@@ -105,40 +105,53 @@ The user tested while unarmed and right-mouse focusing a human NPC.
 - The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
 - No recruitment or gang-data changes were performed.
 
-**Conclusion:** This is a valid visibility failure for the typed G prompt setup: target detection, prompt registration, and target-group assignment succeeded, but the user did not see the action. The missing completion wrapper does not explain the missing display.
+**Conclusion:** This is a visibility failure for the typed G prompt setup: target detection, prompt registration, and target-group assignment succeeded, but the user did not see the action. The missing completion wrapper does not explain the missing display.
+
+### In-game findings — latest ILO-enabled G prompt attempt
+
+The user tested while unarmed and right-mouse focusing a human NPC. The supplied log does not include a calendar date.
+
+- The harness found focused human target `206338`.
+- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true`.
+- Prompt handle `325890` was registered and assigned to target group `268566628`.
+- The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
+- The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
+- The user did not see **G Recruit** in the focused NPC's lock-on menu.
+- The ILO was unregistered when focus changed; unregistration returned `true`.
+- The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
+- No recruitment or gang-data changes were performed.
+
+**Conclusion:** ILO registration returned `true`, but this did not make the action visible. The prompt's registration and group assignment calls completed, but their success does not prove that the menu rendered the prompt.
 
 ### External prompt research
 
 External RDR2 prompt research describes these as separate operations:
 
 1. Create and configure a native UI prompt with a control action and text.
-2. Get the prompt group for the target entity and assign the custom prompt to that group.
-3. Register an interaction-lock-on prompt on an entity when needed for its focus/approach interaction.
+2. Finish registering that prompt.
+3. Get the prompt group for the target entity and assign the created prompt to that group.
+4. Register an interaction-lock-on prompt on an entity when needed for its focus/approach interaction.
 
-The research reports that peds can be focused by default and that custom action prompts should be added to the entity's prompt group to show while focused. It does not establish that ambient- or active-group activation is required for a focused entity's target group. It describes the `prompt` parameter of `REGISTER_INTERACTION_LOCKON_PROMPT` as not working with a custom prompt in that research setup. Some ILO parameter meanings remain unknown.
+The research reports that peds can be focused by default. It describes the ILO `prompt` parameter as not working with a custom prompt in that research setup, and says peds' focused action prompts are shown by assigning a UI prompt to the entity's prompt group. Its examples demonstrate group assignment as a separate operation on a registered prompt. The research does not prove that assigning the group before `_UI_PROMPT_REGISTER_END` is invalid in this project's wrapper/runtime.
 
-Treat these as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or game setup.
+Treat these as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or game behavior.
 
 ### Current test hypothesis and next run
 
-The latest G test successfully created and assigned a prompt but did not display it. Earlier testing did not isolate ILO registration while keeping the G action setup unchanged.
-
-For the next run:
+The latest ILO-enabled run did not display **G Recruit**. The next test changes only the order of group assignment relative to prompt registration:
 
 - Keep the test's `INPUT_INTERACT_OPTION1` control (`0x760A9C6F`) and its reported default G mapping.
-- Keep focused-human target selection, the target prompt group, prompt text, and prompt setup sequence.
-- Add ILO registration for the focused human target before creating the custom action prompt.
-- Log the Boolean result of ILO registration and unregistration.
-- Use the ILO's non-approach-prompt setting so this experiment does not intentionally add a separate focus/approach label.
+- Keep focused-human target selection, ILO parameters, target prompt group, prompt text, and prompt configuration.
+- Call `_UI_PROMPT_REGISTER_END` before `_UI_PROMPT_SET_GROUP`.
 - Do not add ambient-group or active-group activation, another prompt control, or recruitment behavior.
-- Record whether ILO registration returns `true`, whether setup reaches `PROMPT REGISTERED`, whether **G Recruit** is visible, and whether the optional standard-mode completion check reports completion.
+- Record whether ILO registration returns `true`, whether prompt registration ends, whether group assignment completes, whether **G Recruit** is visible, and whether the optional standard-mode completion check reports completion.
 
-This is a test of whether adding ILO registration changes the display result; a successful ILO return still does not prove that the action rendered.
+This tests whether assigning the target group only after prompt registration changes rendering. A successful native call still does not prove that the action rendered.
 
 ### Open questions
 
+- Does assigning the target entity group after `_UI_PROMPT_REGISTER_END` make the custom action visible?
 - Does ILO registration affect display of a custom action prompt for an already-focusable ped when the G action and target-group assignment are held constant?
-- Does `Prompt.CreatePrompt` in the installed v2.2.0 API produce a prompt accepted by `_UI_PROMPT_SET_GROUP`?
 - Does the action prompt text render consistently with the installed API/runtime DLL pairing?
 - Can the same interaction be implemented through a supported public prompt API rather than reflection?
 - Which `REGISTER_INTERACTION_LOCKON_PROMPT` parameters are required for an NPC already focusable by the base game?

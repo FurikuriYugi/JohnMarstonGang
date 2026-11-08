@@ -8,7 +8,6 @@ public class Test : Script
     // INPUT_INTERACT_OPTION1 in the InteractionLockOn context.
     // The test uses its reported default keyboard mapping: G.
     private const uint RecruitInputActionHash = 0x760A9C6F;
-
     private const int PromptTextLiteralString = 10;
 
     // ILO setup parameters for this diagnostic test.
@@ -42,11 +41,12 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Native lock-on G Recruit prompt test initialized ===");
+        Log("=== Native lock-on G Recruit prompt group-order test initialized ===");
         Log("TEST ONLY: create a temporary G Recruit action prompt for the focused human NPC.");
         Log("INPUT ACTION: INPUT_INTERACT_OPTION1 (0x760A9C6F; InteractionLockOn context; default G).");
         Log("PROMPT TEXT: direct VAR_STRING wrapper call using an explicit InputArgument array.");
         Log("PROMPT GROUP: assign the native prompt to the focused entity's target prompt group.");
+        Log("GROUP-ORDER TEST: call UI_PROMPT_SET_GROUP after UI_PROMPT_REGISTER_END.");
         Log("ILO TEST: register an ILO for the already-focused human target; log its Boolean result.");
         Log("ILO APPROACH PROMPT: disabled for this test; no separate approach text is intended.");
         Log("No ambient-group or active-group activation is performed.");
@@ -74,7 +74,6 @@ public class Test : Script
             {
                 _errorLogged = true;
                 Log("ERROR: " + GetExceptionMessage(exception));
-
                 RDR2.UI.Screen.PrintSubtitle(
                     "Prompt test error. Check Test_Log.txt.");
             }
@@ -231,16 +230,22 @@ public class Test : Script
                 _promptHandle,
                 true);
 
+            // Finish registering the prompt before assigning it to the
+            // focused entity's target prompt group.
+            RDR2.Native.HUD._UI_PROMPT_REGISTER_END(
+                _promptHandle);
+
+            Log(
+                "PROMPT REGISTER END: target=" + targetHandle +
+                "; handle=" + _promptHandle);
+
             RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 _promptHandle,
                 _promptGroup,
                 0);
 
-            RDR2.Native.HUD._UI_PROMPT_REGISTER_END(
-                _promptHandle);
-
             Log(
-                "PROMPT REGISTERED: target=" + targetHandle +
+                "PROMPT GROUP ASSIGNED: target=" + targetHandle +
                 "; handle=" + _promptHandle +
                 "; targetGroup=" + _promptGroup);
 
