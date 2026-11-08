@@ -1,68 +1,6 @@
-﻿<!-- Test lines 501-750 of 1130 -->
+﻿<!-- Test lines 501-750 of 1124 -->
 ```csharp
-
-        if (!TryConvertToInt(groupResult, out int groupId))
-        {
-            LogPromptErrorOnce(
-                "Target prompt-group native returned an unexpected value: " +
-                FormatResult(groupResult));
-            return;
-        }
-
-        _focusedPromptGroupId = groupId;
-
-        Log("TARGET PROMPT GROUP: target=" + targetHandle +
-            "; group=" + _focusedPromptGroupId);
-
-        if (!TryInvokeNative(
-            "UI_PROMPT_SET_GROUP",
-            new object[]
-            {
-                _focusedPromptHandle,
-                _focusedPromptGroupId,
-                0
-            },
-            out object setGroupResult))
-        {
-            LogPromptErrorOnce(
-                "Could not attach the custom prompt to the target's prompt group.");
             _focusedPromptGroupId = 0;
-            return;
-        }
-
-        Log("PROMPT ATTACHED TO TARGET GROUP: prompt=" +
-            _focusedPromptHandle +
-            "; target=" + targetHandle +
-            "; group=" + _focusedPromptGroupId +
-            "; result=" + FormatResult(setGroupResult));
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_ENABLED",
-            new object[] { _focusedPromptHandle, true },
-            out object enabledResult);
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_VISIBLE",
-            new object[] { _focusedPromptHandle, true },
-            out object visibleResult);
-
-        _promptWasPressed = false;
-
-        Log("FOCUSED PROMPT ENABLED: prompt=" +
-            _focusedPromptHandle +
-            "; enabledResult=" + FormatResult(enabledResult) +
-            "; visibleResult=" + FormatResult(visibleResult));
-
-        RDR2.UI.Screen.PrintSubtitle(
-            "G prompt attached to focused NPC.");
-    }
-
-    private void DetachFocusedPrompt()
-    {
-        if (_focusedPromptHandle <= 0)
-        {
-            _focusedPromptGroupId = 0;
-            _promptWasPressed = false;
             return;
         }
 
@@ -100,7 +38,151 @@
             "; visibleResult=" + FormatResult(visibleResult));
 
         _focusedPromptGroupId = 0;
-        _promptWasPressed = false;
+        _lastProbeValues.Clear();
+        _currentProbeValues.Clear();
+    }
+
+    private void SampleInputProbes()
+    {
+        SampleProbe(
+            "UI_PROMPT_IS_ACTIVE",
+            new object[] { _focusedPromptHandle },
+            false);
+
+        SampleProbe(
+            "UI_PROMPT_IS_PRESSED",
+            new object[] { _focusedPromptHandle },
+            false);
+
+        SampleProbe(
+            "UI_PROMPT_IS_JUST_PRESSED",
+            new object[] { _focusedPromptHandle },
+            true);
+
+        SampleProbe(
+            "UI_PROMPT_HAS_STANDARD_MODE_COMPLETED",
+            new object[] { _focusedPromptHandle },
+            false);
+
+        SampleProbe(
+            "IS_CONTROL_ENABLED",
+            new object[] { ControlPadIndex, InputInteractOption1 },
+            false);
+
+        SampleProbe(
+            "IS_CONTROL_PRESSED",
+            new object[] { ControlPadIndex, InputInteractOption1 },
+            false);
+
+        SampleProbe(
+            "IS_CONTROL_JUST_PRESSED",
+            new object[] { ControlPadIndex, InputInteractOption1 },
+            true);
+
+        DateTime now = DateTime.UtcNow;
+
+        if (_lastInputHeartbeatUtc == DateTime.MinValue ||
+            (now - _lastInputHeartbeatUtc).TotalMilliseconds >=
+            InputHeartbeatIntervalMilliseconds)
+        {
+            _lastInputHeartbeatUtc = now;
+
+            Log("INPUT HEARTBEAT: promptActive=" +
+                GetProbeValue("UI_PROMPT_IS_ACTIVE") +
+                "; promptPressed=" +
+                GetProbeValue("UI_PROMPT_IS_PRESSED") +
+                "; promptJustPressed=" +
+                GetProbeValue("UI_PROMPT_IS_JUST_PRESSED") +
+                "; standardModeCompleted=" +
+                GetProbeValue("UI_PROMPT_HAS_STANDARD_MODE_COMPLETED") +
+                "; controlEnabled=" +
+                GetProbeValue("IS_CONTROL_ENABLED") +
+                "; controlPressed=" +
+                GetProbeValue("IS_CONTROL_PRESSED") +
+                "; controlJustPressed=" +
+                GetProbeValue("IS_CONTROL_JUST_PRESSED"));
+        }
+    }
+
+    private void SampleProbe(
+        string nativeName,
+        object[] arguments,
+        bool isPulse)
+    {
+        if (!_probeMethods.TryGetValue(
+            nativeName,
+            out MethodInfo method) ||
+            method == null)
+        {
+            return;
+        }
+
+        if (!TryInvokeMethod(method, arguments, out object result))
+        {
+            return;
+        }
+
+        bool value;
+
+        try
+        {
+            value = Convert.ToBoolean(result);
+        }
+        catch
+        {
+            LogProbeErrorOnce(
+                nativeName,
+                "Probe returned an unexpected value: " +
+                FormatResult(result));
+            return;
+        }
+
+        _currentProbeValues[nativeName] = value;
+
+        if (isPulse)
+        {
+            if (value)
+            {
+                Log("INPUT EVENT: " + nativeName +
+                    "=true; target=" + _trackedTargetHandle +
+                    "; prompt=" + _focusedPromptHandle);
+            }
+
+            return;
+        }
+
+        bool previousValue;
+
+        if (!_lastProbeValues.TryGetValue(
+            nativeName,
+            out previousValue) ||
+            previousValue != value)
+        {
+            Log("INPUT STATE: " + nativeName +
+                "=" + value +
+                "; target=" + _trackedTargetHandle +
+                "; prompt=" + _focusedPromptHandle);
+
+            _lastProbeValues[nativeName] = value;
+        }
+    }
+
+    private string GetProbeValue(string nativeName)
+    {
+        bool value;
+
+        if (_currentProbeValues.TryGetValue(nativeName, out value))
+        {
+            return value.ToString();
+        }
+
+        if (!_probeMethods.ContainsKey(nativeName) ||
+            _probeMethods[nativeName] == null)
+        {
+            return "wrapper-unavailable";
+        }
+
+        return "not-sampled";
     }
 
     private void DeleteFocusedPrompt()
@@ -126,80 +208,6 @@
         _focusedPromptGroupId = 0;
     }
 
-    private void LogGControlAvailability(int targetHandle)
-    {
-        try
-        {
-            bool enabled =
-                RDR2.Native.PAD.IS_CONTROL_ENABLED(
-                    ControlPadIndex,
-                    InputInteractOption1);
-
-            Log("G CANDIDATE CONTROL: target=" + targetHandle +
-                "; name=INPUT_INTERACT_OPTION1" +
-                "; hash=0x" +
-                InputInteractOption1.ToString("X8") +
-                "; enabled=" + enabled +
-                "; note=reported G mapping");
-        }
-        catch (Exception exception)
-        {
-            Log("G CONTROL AVAILABILITY ERROR: " +
-                GetInnermostMessage(exception));
-        }
-    }
-
-    private void RegisterIloForTarget(int targetHandle)
-    {
-        if (_registerIloMethod == null)
-        {
-            return;
-        }
-
-        try
-        {
-            object result = _registerIloMethod.Invoke(
-                null,
-                new object[]
-                {
-                    targetHandle,
-                    IloPromptText,
-                    IloRadius,
-                    IloFocusDistance,
-                    IloFlags,
-                    IloUnknownFloat1,
-                    IloUnknownFloat2,
-                    IloCustomPromptHandle,
-                    IloShowApproachPrompt,
-                    IloUnknownInt
-                });
-
-            bool registered = result is bool && (bool)result;
-
-            Log("ILO REGISTER RESULT: target=" + targetHandle +
-                "; returned=" + FormatResult(result));
-
-            _iloRegisteredTargetHandle = targetHandle;
-            _iloRegistrationReturnedTrue = registered;
-
-            if (registered)
-            {
-                Log("ILO REGISTERED: target=" + targetHandle +
-                    "; text=\"" + IloPromptText + "\"" +
-                    "; registeredBeforeFocus=true" +
-                    "; note=true return does not prove the prompt rendered");
-            }
-        }
-        catch (Exception exception)
-        {
-            _iloRegisteredTargetHandle = 0;
-            _iloRegistrationReturnedTrue = false;
-
-            Log("ILO REGISTER ERROR: target=" + targetHandle +
-                "; " + GetInnermostMessage(exception));
-        }
-    }
-
     private void ClearTrackedTarget()
     {
         if (_trackedTargetHandle > 0)
@@ -208,46 +216,38 @@
         }
 
         DetachFocusedPrompt();
-        UnregisterIlo();
-
         _trackedTargetHandle = 0;
         _targetWasFocused = false;
     }
 
-    private void UnregisterIlo()
+    private void OnAborted(object sender, EventArgs e)
     {
-        if (_iloRegisteredTargetHandle <= 0 ||
-            !_iloRegistrationReturnedTrue)
-        {
-            _iloRegisteredTargetHandle = 0;
-            _iloRegistrationReturnedTrue = false;
-            return;
-        }
-
-        if (_unregisterIloMethod == null)
-        {
-            Log("ILO CLEANUP SKIPPED: no compatible unregister wrapper; target=" +
-                _iloRegisteredTargetHandle);
-
-            _iloRegisteredTargetHandle = 0;
-            _iloRegistrationReturnedTrue = false;
-            return;
-        }
-
-        int targetHandle = _iloRegisteredTargetHandle;
-
         try
         {
-            object result = _unregisterIloMethod.Invoke(
-                null,
-                new object[] { targetHandle });
-
-            Log("ILO UNREGISTER RESULT: target=" + targetHandle +
-                "; returned=" + FormatResult(result));
+            ClearTrackedTarget();
+            DeleteFocusedPrompt();
         }
         catch (Exception exception)
         {
-            Log("ILO UNREGISTER ERROR: target=" + targetHandle +
-                "; " + GetInnermostMessage(exception));
+            Log("SCRIPT CLEANUP ERROR: " +
+                GetInnermostMessage(exception));
         }
+    }
+
+    private bool TryInvokeNative(
+        string nativeName,
+        object[] arguments,
+        out object result)
+    {
+        MethodInfo method = FindCompatibleNativeMethod(
+            nativeName,
+            arguments);
+
+        if (method == null)
+        {
+            LogNativeErrorOnce(
+                nativeName,
+                "NATIVE WRAPPER NOT FOUND: " + nativeName +
+                "; argumentCount=" + arguments.Length);
+            result = null;
 ```

@@ -1,102 +1,62 @@
-﻿<!-- Test lines 1001-1130 of 1130 -->
+﻿<!-- Test lines 1001-1124 of 1124 -->
 ```csharp
-                return true;
-            }
-
-            if (IsNumericType(effectiveType) &&
-                IsNumericType(value.GetType()))
-            {
-                converted = Convert.ChangeType(value, effectiveType);
-                return true;
-            }
-        }
-        catch
-        {
-            return false;
-        }
-
-        return false;
     }
 
     private static bool IsNumericType(Type type)
     {
-        Type effectiveType =
-            Nullable.GetUnderlyingType(type) ?? type;
+        switch (Type.GetTypeCode(type))
+        {
+            case TypeCode.Byte:
+            case TypeCode.SByte:
+            case TypeCode.Int16:
+            case TypeCode.UInt16:
+            case TypeCode.Int32:
+            case TypeCode.UInt32:
+            case TypeCode.Int64:
+            case TypeCode.UInt64:
+            case TypeCode.Single:
+            case TypeCode.Double:
+            case TypeCode.Decimal:
+                return true;
 
-        return effectiveType == typeof(byte) ||
-            effectiveType == typeof(sbyte) ||
-            effectiveType == typeof(short) ||
-            effectiveType == typeof(ushort) ||
-            effectiveType == typeof(int) ||
-            effectiveType == typeof(uint) ||
-            effectiveType == typeof(long) ||
-            effectiveType == typeof(ulong) ||
-            effectiveType == typeof(float) ||
-            effectiveType == typeof(double) ||
-            effectiveType == typeof(decimal);
+            default:
+                return false;
+        }
     }
 
     private static bool TryConvertToInt(
         object value,
         out int converted)
     {
-        converted = 0;
-
         try
         {
-            if (value == null)
-            {
-                return false;
-            }
-
             converted = Convert.ToInt32(value);
             return true;
         }
         catch
         {
+            converted = 0;
             return false;
         }
     }
 
-    private void LogResolvedMethod(
-        string nativeName,
-        MethodInfo method)
+    private static string FormatMethodSignature(MethodInfo method)
     {
-        if (method == null)
-        {
-            Log("NATIVE WRAPPER " + nativeName + ": not found");
-            return;
-        }
-
         ParameterInfo[] parameters = method.GetParameters();
-        string signature =
-            method.DeclaringType.FullName +
-            "." + method.Name + "(";
+        List<string> parameterTypes = new List<string>();
 
-        for (int i = 0; i < parameters.Length; i++)
+        foreach (ParameterInfo parameter in parameters)
         {
-            if (i > 0)
-            {
-                signature += ", ";
-            }
-
-            signature += parameters[i].ParameterType.FullName;
+            parameterTypes.Add(parameter.ParameterType.FullName);
         }
 
-        signature += ") -> " + method.ReturnType.FullName;
+        string declaringType = method.DeclaringType == null
+            ? "<unknown type>"
+            : method.DeclaringType.FullName;
 
-        Log("NATIVE WRAPPER " + nativeName + ": " + signature);
-    }
-
-    private void LogPromptErrorOnce(string message)
-    {
-        if (_promptErrorLogged)
-        {
-            return;
-        }
-
-        _promptErrorLogged = true;
-        Log("PROMPT SETUP/TEST ERROR: " + message);
+        return declaringType + "." + method.Name +
+            "(" + string.Join(", ", parameterTypes.ToArray()) + ")" +
+            " : " + method.ReturnType.FullName;
     }
 
     private static string FormatResult(object result)
@@ -121,13 +81,47 @@
         return current.GetType().FullName + ": " + current.Message;
     }
 
+    private void LogPromptErrorOnce(string message)
+    {
+        if (_promptErrorLogged)
+        {
+            return;
+        }
+
+        _promptErrorLogged = true;
+        Log("PROMPT ERROR: " + message);
+    }
+
+    private void LogProbeErrorOnce(
+        string key,
+        string message)
+    {
+        if (!_probeErrorsLogged.Add(key))
+        {
+            return;
+        }
+
+        Log("PROBE ERROR: " + message);
+    }
+
+    private void LogNativeErrorOnce(
+        string key,
+        string message)
+    {
+        if (!_nativeErrorsLogged.Add(key))
+        {
+            return;
+        }
+
+        Log(message);
+    }
+
     private void Log(string message)
     {
         File.AppendAllText(
             _logPath,
             "[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] " +
-            message +
-            Environment.NewLine);
+            message + Environment.NewLine);
     }
 }
 ```

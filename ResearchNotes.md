@@ -1,25 +1,49 @@
-### Latest user-reported in-game result: focused G prompt
+# Research Notes
 
-**User-reported in game; the matching updated log is not present in the repository copy reviewed.**
+## Current test objective
 
-The user reports that focusing an NPC showed a new `G View` option. Pressing G appeared to trigger an animation.
+Testing the focused NPC prompt path in Red Dead Redemption 2. The immediate goal is to determine which input-query path detects a press on the displayed G prompt. No recruitment behavior is enabled in the test.
 
-The current baseline test uses `WARDROBE_INSPECT_PROMPT` as its prompt text. The observation is consistent with the focused prompt rendering and the configured control responding. However, the test’s prompt-pressed handler only logs the press; it does not explicitly invoke an animation or recruitment action. Do not attribute the animation to the test code until a log or controlled comparison establishes the cause.
+## Confirmed in-game result
 
-The `Test_Log.txt` currently available for review is the earlier ILO timing log. It contains a `G CANDIDATE JUST PRESSED` entry but no focused prompt-group, `View`, or animation entry. Treat the new visual result as user-reported until the updated log is available.
+The user reports that, while right-click focusing an NPC, a `G View` option appeared. Pressing G produced an animation.
 
-### Research update: prompt text and control
+This is a user-reported visual/gameplay observation. The test code does not explicitly start an animation or recruit the NPC.
 
-External prompt research describes assigning a prompt to a group with `UI_PROMPT_SET_GROUP`. The latest user observation is consistent with the focused-target-group path working, but the matching updated log is needed to confirm the exact runtime path.
+## Latest checked-in test log
 
-ScriptHookRDR2DotNet-V2 issue #4 reports that custom strings created with `VAR_STRING` do not work with `_UI_PROMPT_SET_TEXT` in that framework, while registered string-database keys such as `WARDROBE_INSPECT_PROMPT` do. Therefore, the working `View` baseline does not yet establish that custom `Recruit` text can be displayed.
+`Test_Log.txt` is the focused prompt-group baseline run, not an older unrelated test. It records:
 
-External control data maps `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) to G for QWERTY PC and D-pad Up for Xbox. Treat this as reference data; the user’s in-game result is the relevant confirmation for their setup.
+- Prompt handle `217346` created.
+- Control action set to `INPUT_INTERACT_OPTION1`, hash `0x760A9C6F`.
+- Registered text key `WARDROBE_INSPECT_PROMPT` set.
+- Target `208642` selected at distance `1.560238` metres.
+- Target focus began at `21:39:57.457`.
+- Target prompt group `268566635` obtained and assigned to the test prompt.
+- Prompt enabled while focused and detached/disabled after focus ended.
+- The direct control availability query reported `enabled=True`.
+- Register and unregister wrappers for the interaction lock-on prompt were not found.
+- No `FOCUSED PROMPT PRESSED` event appears in this run.
 
-### Next test
+The log confirms the prompt setup and target-group attachment. The user’s report confirms that `G View` was visible and that pressing G produced an animation. The missing pressed event means the test did not record the press through its existing `UI_PROMPT_IS_PRESSED` check; it does not invalidate the user’s observation.
 
-- Preserve the working baseline.
-- Capture the updated `Test_Log.txt`, including prompt creation, target group, prompt press, and any animation observation.
-- Compare pressing G with the test prompt enabled and disabled to isolate other game interactions on that control.
-- Test a custom `Recruit` label separately from prompt visibility and input handling.
-- Keep recruitment execution disabled until the prompt and input behavior are isolated.
+## Research findings
+
+- A common prompt lifecycle is register-begin, configure a control and text, register-end, then enable/disable and delete as needed.
+- Prompt libraries distinguish prompt-level states such as pressed, just-pressed, and standard-mode completion. They poll these states every frame while the prompt is enabled.
+- Raw control checks are a separate observation channel from prompt-state checks. The next test samples both channels to identify which one detects the G press.
+- Prompt groups have different activation patterns. Ordinary active groups may require per-frame activation, while entity-associated/ambient prompt groups are managed differently. Keep the currently visible target-group method unchanged during the input-diagnostic test.
+- The installed v2.2.0 API assembly is authoritative for native wrapper availability and signatures. The previous log did not print resolved signatures for the prompt-state probes.
+- The ScriptHookRDR2DotNet-V2 issue tracker records an unresolved custom-prompt-string issue. The registered `WARDROBE_INSPECT_PROMPT` baseline is therefore retained; custom `Recruit` text is not part of this test.
+- The current log could not resolve `REGISTER_INTERACTION_LOCKON_PROMPT` or `UNREGISTER_INTERACTION_LOCKON_PROMPT` wrappers. Do not treat the ILO approach prompt as working.
+
+## Next test
+
+Use the new `Test.cs` input-diagnostic version.
+
+1. Build and run with the registered `View` prompt unchanged.
+2. Focus one human NPC and tap G once while the prompt is visible.
+3. Check `Test_Log.txt` for `INPUT EVENT` and `INPUT STATE` entries from both the prompt and raw-control probes.
+4. Compare the heartbeat values to determine whether the prompt was active when the key was pressed.
+5. Report whether the animation occurred, separately from the diagnostic log.
+6. Do not enable recruitment or animation calls until the input path is understood.

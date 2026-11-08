@@ -1,49 +1,33 @@
-﻿<!-- Test lines 751-1000 of 1130 -->
+﻿<!-- Test lines 751-1000 of 1124 -->
 ```csharp
-        finally
-        {
-            _iloRegisteredTargetHandle = 0;
-            _iloRegistrationReturnedTrue = false;
+            return false;
         }
+
+        return TryInvokeMethod(method, arguments, out result);
     }
 
-    private void OnAborted(object sender, EventArgs e)
-    {
-        try
-        {
-            ClearTrackedTarget();
-            DeleteFocusedPrompt();
-        }
-        catch (Exception exception)
-        {
-            Log("SCRIPT CLEANUP ERROR: " +
-                GetInnermostMessage(exception));
-        }
-    }
-
-    private bool TryInvokeNative(
-        string nativeName,
+    private bool TryInvokeMethod(
+        MethodInfo method,
         object[] arguments,
         out object result)
     {
         result = null;
 
-        MethodInfo method = FindCompatibleNativeMethod(
-            nativeName,
-            arguments);
-
-        if (method == null)
-        {
-            Log("NATIVE WRAPPER NOT FOUND: " +
-                nativeName +
-                "; argumentCount=" + arguments.Length);
-            return false;
-        }
-
         try
         {
             ParameterInfo[] parameters = method.GetParameters();
-            object[] convertedArguments = new object[arguments.Length];
+
+            if (parameters.Length != arguments.Length)
+            {
+                LogNativeErrorOnce(
+                    method.Name,
+                    "NATIVE ARGUMENT COUNT MISMATCH: " +
+                    FormatMethodSignature(method));
+                return false;
+            }
+
+            object[] convertedArguments =
+                new object[arguments.Length];
 
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -52,10 +36,13 @@
                     parameters[i].ParameterType,
                     out convertedArguments[i]))
                 {
-                    Log("NATIVE ARGUMENT CONVERSION FAILED: " +
-                        nativeName +
+                    LogNativeErrorOnce(
+                        method.Name + "_parameter_" + i,
+                        "NATIVE ARGUMENT CONVERSION FAILED: " +
+                        method.Name +
                         "; parameter=" + i +
-                        "; type=" + parameters[i].ParameterType.FullName);
+                        "; type=" +
+                        parameters[i].ParameterType.FullName);
                     return false;
                 }
             }
@@ -65,7 +52,10 @@
         }
         catch (Exception exception)
         {
-            Log("NATIVE INVOKE ERROR: " + nativeName +
+            LogNativeErrorOnce(
+                method.Name,
+                "NATIVE INVOKE ERROR: " +
+                FormatMethodSignature(method) +
                 "; " + GetInnermostMessage(exception));
             return false;
         }
@@ -84,8 +74,7 @@
         }
         catch (ReflectionTypeLoadException exception)
         {
-            System.Collections.Generic.List<Type> loadedTypes =
-                new System.Collections.Generic.List<Type>();
+            List<Type> loadedTypes = new List<Type>();
 
             if (exception.Types != null)
             {
@@ -208,13 +197,8 @@
 
         if (value == null)
         {
-            if (!targetType.IsValueType ||
-                Nullable.GetUnderlyingType(targetType) != null)
-            {
-                return true;
-            }
-
-            return false;
+            return !targetType.IsValueType ||
+                Nullable.GetUnderlyingType(targetType) != null;
         }
 
         Type effectiveType =
@@ -250,4 +234,20 @@
                 value is string)
             {
                 converted = value;
+                return true;
+            }
+
+            if (IsNumericType(effectiveType) &&
+                IsNumericType(value.GetType()))
+            {
+                converted = Convert.ChangeType(value, effectiveType);
+                return true;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+
+        return false;
 ```

@@ -1,6 +1,7 @@
-﻿<!-- Test lines 1-250 of 1130 -->
+﻿<!-- Test lines 1-250 of 1124 -->
 ```csharp
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using RDR2;
@@ -9,116 +10,78 @@ public class Test : Script
 {
     private const int ControlPadIndex = 0;
     private const uint InputInteractOption1 = 0x760A9C6Fu;
-
-    private const string IloPromptText = "Recruit";
-    private const float IloRadius = 2.5f;
-    private const float IloFocusDistance = 2.5f;
-    private const int IloFlags = 0;
-    private const float IloUnknownFloat1 = 0.0f;
-    private const float IloUnknownFloat2 = 0.0f;
-    private const int IloCustomPromptHandle = 0;
-    private const bool IloShowApproachPrompt = true;
-    private const int IloUnknownInt = -1;
-
-    // This registered game string is a baseline, not the final "Recruit" label.
-    // The API has a known issue with custom prompt text created through VAR_STRING.
     private const string FocusedPromptTextKey = "WARDROBE_INSPECT_PROMPT";
 
     private const float TargetSelectionDistance = 8.0f;
     private const float TargetRetentionDistance = 9.0f;
     private const int TargetScanIntervalMilliseconds = 500;
+    private const int InputHeartbeatIntervalMilliseconds = 2000;
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
 
-    private readonly MethodInfo _registerIloMethod;
-    private readonly MethodInfo _unregisterIloMethod;
+    private readonly Dictionary<string, MethodInfo> _probeMethods =
+        new Dictionary<string, MethodInfo>();
+
+    private readonly Dictionary<string, bool> _lastProbeValues =
+        new Dictionary<string, bool>();
+
+    private readonly Dictionary<string, bool> _currentProbeValues =
+        new Dictionary<string, bool>();
+
+    private readonly HashSet<string> _probeErrorsLogged =
+        new HashSet<string>();
+
+    private readonly HashSet<string> _nativeErrorsLogged =
+        new HashSet<string>();
 
     private int _trackedTargetHandle;
-    private int _iloRegisteredTargetHandle;
-    private bool _iloRegistrationReturnedTrue;
-
     private int _focusedPromptHandle;
     private int _focusedPromptGroupId;
-    private bool _promptWasPressed;
+
     private bool _targetWasFocused;
-
     private bool _hasScannedForTarget;
-    private DateTime _lastTargetScanUtc;
-
     private bool _generalErrorLogged;
     private bool _targetResolutionErrorLogged;
     private bool _promptErrorLogged;
+
+    private DateTime _lastTargetScanUtc;
+    private DateTime _lastInputHeartbeatUtc;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        _registerIloMethod = FindNativeMethod(
-            "REGISTER_INTERACTION_LOCKON_PROMPT",
-            new[]
-            {
-                typeof(int),
-                typeof(string),
-                typeof(float),
-                typeof(float),
-                typeof(int),
-                typeof(float),
-                typeof(float),
-                typeof(int),
-                typeof(bool),
-                typeof(int)
-            });
+        Log("=== Focused NPC prompt input-diagnostic test initialized ===");
+        Log("The registered prompt text remains \"" +
+            FocusedPromptTextKey + "\".");
+        Log("The prompt is assigned to the focused NPC target's prompt group.");
+        Log("This test logs prompt-state and raw-control input separately.");
+        Log("No recruitment action, gang change, or animation is executed.");
+        Log("Input control: INPUT_INTERACT_OPTION1; hash=0x" +
+            InputInteractOption1.ToString("X8"));
 
-        _unregisterIloMethod = FindNativeMethod(
-            "UNREGISTER_INTERACTION_LOCKON_PROMPT",
-            new[]
-            {
-                typeof(int)
-            });
+        ResolveProbe("UI_PROMPT_IS_ACTIVE",
+            new object[] { 0 });
+        ResolveProbe("UI_PROMPT_IS_PRESSED",
+            new object[] { 0 });
+        ResolveProbe("UI_PROMPT_IS_JUST_PRESSED",
+            new object[] { 0 });
+        ResolveProbe("UI_PROMPT_HAS_STANDARD_MODE_COMPLETED",
+            new object[] { 0 });
 
-        Log("=== Focused NPC prompt-group baseline test initialized ===");
-        Log("This test registers the ILO on the nearest human NPC within " +
-            TargetSelectionDistance + " metres before focus.");
-        Log("The ILO approach text is \"" + IloPromptText + "\".");
-        Log("While the NPC is focused, the test tries to attach a G prompt " +
-            "using the target entity's prompt group.");
-        Log("The focused prompt uses the registered text key \"" +
-            FocusedPromptTextKey + "\", not custom Recruit text.");
-        Log("No recruitment action is executed and no gang data is changed.");
-
-        Log("ILO arguments: radius=" + IloRadius +
-            "; focusDistance=" + IloFocusDistance +
-            "; flags=" + IloFlags +
-            "; unknownFloat1=" + IloUnknownFloat1 +
-            "; unknownFloat2=" + IloUnknownFloat2 +
-            "; customPromptHandle=" + IloCustomPromptHandle +
-            "; showApproachPrompt=" + IloShowApproachPrompt +
-            "; unknownInt=" + IloUnknownInt);
-
-        LogResolvedMethod(
-            "REGISTER_INTERACTION_LOCKON_PROMPT",
-            _registerIloMethod);
-
-        LogResolvedMethod(
-            "UNREGISTER_INTERACTION_LOCKON_PROMPT",
-            _unregisterIloMethod);
-
-        if (_registerIloMethod == null)
-        {
-            Log("ILO SETUP UNAVAILABLE: no compatible register wrapper was found.");
-        }
-
-        if (_unregisterIloMethod == null)
-        {
-            Log("ILO CLEANUP UNAVAILABLE: no compatible unregister wrapper was found.");
-        }
+        ResolveProbe("IS_CONTROL_ENABLED",
+            new object[] { ControlPadIndex, InputInteractOption1 });
+        ResolveProbe("IS_CONTROL_PRESSED",
+            new object[] { ControlPadIndex, InputInteractOption1 });
+        ResolveProbe("IS_CONTROL_JUST_PRESSED",
+            new object[] { ControlPadIndex, InputInteractOption1 });
 
         CreateFocusedPrompt();
 
         RDR2.UI.Screen.PrintSubtitle(
-            "Prompt test ready. Focus a human NPC.");
+            "Focus a human NPC and tap G once. Check Test_Log.txt.");
 
         Tick += OnTick;
         Aborted += OnAborted;
@@ -129,7 +92,7 @@ public class Test : Script
         try
         {
             UpdateNearbyTargetIfNeeded();
-            SampleFocusAndPrompt();
+            SampleFocusAndInput();
         }
         catch (Exception exception)
         {
@@ -137,11 +100,29 @@ public class Test : Script
             {
                 _generalErrorLogged = true;
                 Log("TEST ERROR: " + GetInnermostMessage(exception));
-
                 RDR2.UI.Screen.PrintSubtitle(
                     "Prompt test error. Check Test_Log.txt.");
             }
         }
+    }
+
+    private void ResolveProbe(string nativeName, object[] sampleArguments)
+    {
+        MethodInfo method = FindCompatibleNativeMethod(
+            nativeName,
+            sampleArguments);
+
+        _probeMethods[nativeName] = method;
+
+        if (method == null)
+        {
+            Log("PROBE WRAPPER NOT FOUND: " + nativeName +
+                "; argumentCount=" + sampleArguments.Length);
+            return;
+        }
+
+        Log("PROBE WRAPPER: " + nativeName +
+            "; signature=" + FormatMethodSignature(method));
     }
 
     private void UpdateNearbyTargetIfNeeded()
@@ -184,11 +165,7 @@ public class Test : Script
             Game.Player.Character.Position);
 
         Log("HUMAN TARGET BEGIN: target=" + _trackedTargetHandle +
-            "; distance=" + distance +
-            "; freeFocusing=" + Game.Player.IsFreeFocusing +
-            "; registeredBeforeFocus=true");
-
-        RegisterIloForTarget(_trackedTargetHandle);
+            "; distance=" + distance);
     }
 
     private Ped FindNearbyHumanTarget()
@@ -239,15 +216,38 @@ public class Test : Script
             }
         }
 
-        if (retainedPed != null)
-        {
-            return retainedPed;
-        }
-
-        return nearestPed;
+        return retainedPed ?? nearestPed;
     }
 
     private bool IsHumanEntity(int entityHandle)
     {
         if (entityHandle <= 0 ||
+            !RDR2.Native.ENTITY.DOES_ENTITY_EXIST(entityHandle))
+        {
+            return false;
+        }
+
+        return RDR2.Native.PED.IS_PED_HUMAN(entityHandle);
+    }
+
+    private void SampleFocusAndInput()
+    {
+        if (_trackedTargetHandle <= 0)
+        {
+            DetachFocusedPrompt();
+            return;
+        }
+
+        if (!RDR2.Native.ENTITY.DOES_ENTITY_EXIST(_trackedTargetHandle))
+        {
+            Log("TARGET NO LONGER EXISTS: target=" +
+                _trackedTargetHandle);
+            ClearTrackedTarget();
+            return;
+        }
+
+        int focusedTargetHandle = GetCurrentHumanTargetHandle();
+        bool targetIsFocused =
+            focusedTargetHandle == _trackedTargetHandle;
+
 ```

@@ -1,32 +1,5 @@
-﻿<!-- Test lines 251-500 of 1130 -->
+﻿<!-- Test lines 251-500 of 1124 -->
 ```csharp
-            !RDR2.Native.ENTITY.DOES_ENTITY_EXIST(entityHandle))
-        {
-            return false;
-        }
-
-        return RDR2.Native.PED.IS_PED_HUMAN(entityHandle);
-    }
-
-    private void SampleFocusAndPrompt()
-    {
-        if (_trackedTargetHandle <= 0)
-        {
-            DetachFocusedPrompt();
-            return;
-        }
-
-        if (!RDR2.Native.ENTITY.DOES_ENTITY_EXIST(_trackedTargetHandle))
-        {
-            Log("TARGET NO LONGER EXISTS: target=" + _trackedTargetHandle);
-            ClearTrackedTarget();
-            return;
-        }
-
-        int focusedTargetHandle = GetCurrentHumanTargetHandle();
-        bool targetIsFocused =
-            focusedTargetHandle == _trackedTargetHandle;
-
         if (targetIsFocused != _targetWasFocused)
         {
             _targetWasFocused = targetIsFocused;
@@ -35,59 +8,24 @@
             {
                 Log("TRACKED TARGET FOCUS BEGIN: target=" +
                     _trackedTargetHandle);
-
-                LogGControlAvailability(_trackedTargetHandle);
                 AttachFocusedPrompt(_trackedTargetHandle);
             }
             else
             {
                 Log("TRACKED TARGET FOCUS END: target=" +
                     _trackedTargetHandle);
-
                 DetachFocusedPrompt();
             }
         }
 
         if (!targetIsFocused ||
-            _focusedPromptHandle <= 0)
+            _focusedPromptHandle <= 0 ||
+            _focusedPromptGroupId == 0)
         {
             return;
         }
 
-        bool promptPressed;
-
-        if (!TryInvokeNative(
-            "UI_PROMPT_IS_PRESSED",
-            new object[] { _focusedPromptHandle },
-            out object pressedResult))
-        {
-            return;
-        }
-
-        try
-        {
-            promptPressed = Convert.ToBoolean(pressedResult);
-        }
-        catch
-        {
-            LogPromptErrorOnce(
-                "UI_PROMPT_IS_PRESSED returned an unexpected value: " +
-                FormatResult(pressedResult));
-            return;
-        }
-
-        if (promptPressed && !_promptWasPressed)
-        {
-            Log("FOCUSED PROMPT PRESSED: target=" +
-                _trackedTargetHandle +
-                "; prompt=" + _focusedPromptHandle +
-                "; control=INPUT_INTERACT_OPTION1" +
-                "; hash=0x" +
-                InputInteractOption1.ToString("X8") +
-                "; note=baseline prompt only; no recruitment action executed");
-        }
-
-        _promptWasPressed = promptPressed;
+        SampleInputProbes();
     }
 
     private int GetCurrentHumanTargetHandle()
@@ -193,8 +131,7 @@
             out object textResult))
         {
             LogPromptErrorOnce(
-                "Could not set prompt text using the registered game string key. " +
-                "Check the resolved UI_PROMPT_SET_TEXT wrapper signature.");
+                "Could not set prompt text using the registered game string key.");
             DeleteFocusedPrompt();
             return;
         }
@@ -250,4 +187,67 @@
                 "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY wrapper.");
             return;
         }
+
+        if (!TryConvertToInt(groupResult, out int groupId))
+        {
+            LogPromptErrorOnce(
+                "Target prompt-group native returned an unexpected value: " +
+                FormatResult(groupResult));
+            return;
+        }
+
+        _focusedPromptGroupId = groupId;
+
+        Log("TARGET PROMPT GROUP: target=" + targetHandle +
+            "; group=" + _focusedPromptGroupId);
+
+        if (!TryInvokeNative(
+            "UI_PROMPT_SET_GROUP",
+            new object[]
+            {
+                _focusedPromptHandle,
+                _focusedPromptGroupId,
+                0
+            },
+            out object setGroupResult))
+        {
+            LogPromptErrorOnce(
+                "Could not attach the prompt to the target's prompt group.");
+            _focusedPromptGroupId = 0;
+            return;
+        }
+
+        Log("PROMPT ATTACHED TO TARGET GROUP: prompt=" +
+            _focusedPromptHandle +
+            "; target=" + targetHandle +
+            "; group=" + _focusedPromptGroupId +
+            "; result=" + FormatResult(setGroupResult));
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_ENABLED",
+            new object[] { _focusedPromptHandle, true },
+            out object enabledResult);
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_VISIBLE",
+            new object[] { _focusedPromptHandle, true },
+            out object visibleResult);
+
+        _lastProbeValues.Clear();
+        _currentProbeValues.Clear();
+        _lastInputHeartbeatUtc = DateTime.MinValue;
+
+        Log("FOCUSED PROMPT ENABLED: prompt=" +
+            _focusedPromptHandle +
+            "; enabledResult=" + FormatResult(enabledResult) +
+            "; visibleResult=" + FormatResult(visibleResult));
+
+        RDR2.UI.Screen.PrintSubtitle(
+            "G prompt attached. Tap G once for input diagnostics.");
+    }
+
+    private void DetachFocusedPrompt()
+    {
+        if (_focusedPromptHandle <= 0)
+        {
 ```
