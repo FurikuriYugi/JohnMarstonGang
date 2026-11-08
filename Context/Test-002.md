@@ -1,15 +1,74 @@
-﻿<!-- Test lines 251-500 of 1246 -->
+﻿<!-- Test lines 251-500 of 1292 -->
 ```csharp
+
+            float distance = ped.Position.DistanceTo(
+                playerPed.Position);
+
+            if (ped.Handle == _trackedTargetHandle &&
+                distance <= TargetRetentionDistance)
+            {
+                retainedPed = ped;
+                continue;
+            }
+
+            if (distance <= TargetSelectionDistance &&
+                distance < nearestDistance)
+            {
+                nearestPed = ped;
+                nearestDistance = distance;
+            }
+        }
+
+        return retainedPed ?? nearestPed;
+    }
+
+    private bool IsHumanEntity(int entityHandle)
+    {
+        if (entityHandle <= 0 ||
+            !RDR2.Native.ENTITY.DOES_ENTITY_EXIST(entityHandle))
+        {
+            return false;
+        }
+
+        return RDR2.Native.PED.IS_PED_HUMAN(entityHandle);
+    }
+
+    private void SampleFocusAndInput()
+    {
+        if (_trackedTargetHandle <= 0)
+        {
+            return;
+        }
+
+        if (!RDR2.Native.ENTITY.DOES_ENTITY_EXIST(_trackedTargetHandle))
+        {
+            Log("TARGET NO LONGER EXISTS: target=" +
+                _trackedTargetHandle);
+
+            ClearTrackedTarget();
+            return;
+        }
+
+        int focusedTargetHandle = GetCurrentHumanTargetHandle();
+        bool targetIsFocused =
+            focusedTargetHandle == _trackedTargetHandle;
+
+        if (targetIsFocused != _targetWasFocused)
+        {
+            _targetWasFocused = targetIsFocused;
+
             if (targetIsFocused)
             {
                 Log("TRACKED TARGET FOCUS BEGIN: target=" +
                     _trackedTargetHandle);
+
                 AttachFocusedPrompt(_trackedTargetHandle);
             }
             else
             {
                 Log("TRACKED TARGET FOCUS END: target=" +
                     _trackedTargetHandle);
+
                 DetachFocusedPrompt();
             }
         }
@@ -21,6 +80,7 @@
             return;
         }
 
+        ActivateAmbientPromptGroupThisFrame();
         SampleInputProbes();
     }
 
@@ -81,7 +141,7 @@
             out object promptResult))
         {
             LogPromptErrorOnce(
-                "Could not find a compatible UI_PROMPT_REGISTER_BEGIN wrapper.");
+                "Could not find or invoke UI_PROMPT_REGISTER_BEGIN.");
             return;
         }
 
@@ -91,6 +151,7 @@
             LogPromptErrorOnce(
                 "UI_PROMPT_REGISTER_BEGIN returned an invalid handle: " +
                 FormatResult(promptResult));
+
             _focusedPromptHandle = 0;
             return;
         }
@@ -107,7 +168,8 @@
             out object controlResult))
         {
             LogPromptErrorOnce(
-                "Could not set the focused prompt control action.");
+                "Could not set INPUT_INTERACT_OPTION1 on the prompt.");
+
             DeleteFocusedPrompt();
             return;
         }
@@ -127,13 +189,16 @@
             out object textResult))
         {
             LogPromptErrorOnce(
-                "Could not create the literal prompt text with VAR_STRING.");
+                "Could not create literal prompt text with VAR_STRING.");
+
             DeleteFocusedPrompt();
             return;
         }
 
         Log("VAR_STRING RESULT: type=" +
-            (textResult == null ? "null" : textResult.GetType().FullName) +
+            (textResult == null
+                ? "null"
+                : textResult.GetType().FullName) +
             "; value=" + FormatResult(textResult));
 
         if (!TryInvokeNative(
@@ -147,12 +212,26 @@
         {
             LogPromptErrorOnce(
                 "Could not set the prompt text from the VAR_STRING result.");
+
             DeleteFocusedPrompt();
             return;
         }
 
         Log("PROMPT TEXT SET: literal=\"" + PromptText +
             "\"; result=" + FormatResult(setTextResult));
+
+        bool standardModeSet = TryInvokeNative(
+            "UI_PROMPT_SET_STANDARD_MODE",
+            new object[]
+            {
+                _focusedPromptHandle,
+                true
+            },
+            out object standardModeResult);
+
+        Log("PROMPT STANDARD MODE: wrapperInvoked=" +
+            standardModeSet +
+            "; result=" + FormatResult(standardModeResult));
 
         if (!TryInvokeNative(
             "UI_PROMPT_REGISTER_END",
@@ -161,6 +240,7 @@
         {
             LogPromptErrorOnce(
                 "Could not finish UI_PROMPT_REGISTER_END.");
+
             DeleteFocusedPrompt();
             return;
         }
@@ -170,84 +250,4 @@
 
         TryInvokeNative(
             "UI_PROMPT_SET_ENABLED",
-            new object[] { _focusedPromptHandle, false },
-            out object enabledResult);
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_VISIBLE",
-            new object[] { _focusedPromptHandle, false },
-            out object visibleResult);
-
-        Log("FOCUSED PROMPT CREATED: prompt=" +
-            _focusedPromptHandle +
-            "; text=\"" + PromptText +
-            "\"; initialEnabled=false; initialVisible=false");
-    }
-
-    private void AttachFocusedPrompt(int targetHandle)
-    {
-        if (_focusedPromptHandle <= 0)
-        {
-            LogPromptErrorOnce(
-                "Cannot attach prompt because prompt creation failed.");
-            return;
-        }
-
-        if (!TryInvokeNative(
-            "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY",
-            new object[] { targetHandle },
-            out object groupResult))
-        {
-            LogPromptErrorOnce(
-                "Could not find a compatible " +
-                "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY wrapper.");
-            return;
-        }
-
-        if (!TryConvertToInt(groupResult, out int groupId))
-        {
-            LogPromptErrorOnce(
-                "Target prompt-group native returned an unexpected value: " +
-                FormatResult(groupResult));
-            return;
-        }
-
-        _focusedPromptGroupId = groupId;
-
-        Log("TARGET PROMPT GROUP: target=" + targetHandle +
-            "; group=" + _focusedPromptGroupId);
-
-        if (!TryInvokeNative(
-            "UI_PROMPT_SET_GROUP",
-            new object[]
-            {
-                _focusedPromptHandle,
-                _focusedPromptGroupId,
-                0
-            },
-            out object setGroupResult))
-        {
-            LogPromptErrorOnce(
-                "Could not attach the prompt to the target's prompt group.");
-            _focusedPromptGroupId = 0;
-            return;
-        }
-
-        Log("PROMPT ATTACHED TO TARGET GROUP: prompt=" +
-            _focusedPromptHandle +
-            "; target=" + targetHandle +
-            "; group=" + _focusedPromptGroupId +
-            "; result=" + FormatResult(setGroupResult));
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_ENABLED",
-            new object[] { _focusedPromptHandle, true },
-            out object enabledResult);
-
-        TryInvokeNative(
-            "UI_PROMPT_SET_VISIBLE",
-            new object[] { _focusedPromptHandle, true },
-            out object visibleResult);
-
-        _lastProbeValues.Clear();
 ```

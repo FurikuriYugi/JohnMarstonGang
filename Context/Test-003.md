@@ -1,5 +1,89 @@
-﻿<!-- Test lines 501-750 of 1246 -->
+﻿<!-- Test lines 501-750 of 1292 -->
 ```csharp
+            new object[] { _focusedPromptHandle, false },
+            out object enabledResult);
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_VISIBLE",
+            new object[] { _focusedPromptHandle, false },
+            out object visibleResult);
+
+        Log("FOCUSED PROMPT CREATED: prompt=" +
+            _focusedPromptHandle +
+            "; text=\"" + PromptText +
+            "\"; initialEnabled=false; initialVisible=false");
+    }
+
+    private void AttachFocusedPrompt(int targetHandle)
+    {
+        _ambientActivationLoggedForTarget = false;
+
+        if (_focusedPromptHandle <= 0)
+        {
+            LogPromptErrorOnce(
+                "Cannot attach prompt because prompt creation failed.");
+            return;
+        }
+
+        if (!TryInvokeNative(
+            "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY",
+            new object[] { targetHandle },
+            out object groupResult))
+        {
+            LogPromptErrorOnce(
+                "Could not find or invoke " +
+                "UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY.");
+            return;
+        }
+
+        if (!TryConvertToInt(groupResult, out int groupId) ||
+            groupId == 0)
+        {
+            LogPromptErrorOnce(
+                "Target prompt-group native returned an invalid value: " +
+                FormatResult(groupResult));
+            return;
+        }
+
+        _focusedPromptGroupId = groupId;
+
+        Log("TARGET PROMPT GROUP: target=" + targetHandle +
+            "; group=" + _focusedPromptGroupId);
+
+        if (!TryInvokeNative(
+            "UI_PROMPT_SET_GROUP",
+            new object[]
+            {
+                _focusedPromptHandle,
+                _focusedPromptGroupId,
+                0
+            },
+            out object setGroupResult))
+        {
+            LogPromptErrorOnce(
+                "Could not attach the prompt to the target's prompt group.");
+
+            _focusedPromptGroupId = 0;
+            return;
+        }
+
+        Log("PROMPT ATTACHED TO TARGET GROUP: prompt=" +
+            _focusedPromptHandle +
+            "; target=" + targetHandle +
+            "; group=" + _focusedPromptGroupId +
+            "; result=" + FormatResult(setGroupResult));
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_ENABLED",
+            new object[] { _focusedPromptHandle, true },
+            out object enabledResult);
+
+        TryInvokeNative(
+            "UI_PROMPT_SET_VISIBLE",
+            new object[] { _focusedPromptHandle, true },
+            out object visibleResult);
+
+        _lastProbeValues.Clear();
         _currentProbeValues.Clear();
         _lastInputHeartbeatUtc = DateTime.MinValue;
 
@@ -9,11 +93,87 @@
             "; visibleResult=" + FormatResult(visibleResult));
 
         RDR2.UI.Screen.PrintSubtitle(
-            "G Recruit prompt attached. Tap G once.");
+            "Recruit prompt attached. Check for G Recruit.");
+    }
+
+    private void ActivateAmbientPromptGroupThisFrame()
+    {
+        if (_trackedTargetHandle <= 0 ||
+            _focusedPromptGroupId == 0)
+        {
+            return;
+        }
+
+        if (!_nativeMethods.ContainsKey(
+            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME"))
+        {
+            ResolveNative(
+                "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
+                new object[]
+                {
+                    _trackedTargetHandle,
+                    AmbientGroupRadius,
+                    AmbientGroupParameter2,
+                    AmbientGroupTabCount,
+                    _focusedPromptGroupId,
+                    0UL,
+                    AmbientGroupFlags
+                });
+        }
+
+        if (!TryInvokeNative(
+            "VAR_STRING",
+            new object[]
+            {
+                VarStringType,
+                VarStringFormat,
+                PromptGroupName
+            },
+            out object groupNameResult))
+        {
+            LogPromptErrorOnce(
+                "Could not create the ambient prompt-group name.");
+            return;
+        }
+
+        bool invoked = TryInvokeNative(
+            "UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME",
+            new object[]
+            {
+                _trackedTargetHandle,
+                AmbientGroupRadius,
+                AmbientGroupParameter2,
+                AmbientGroupTabCount,
+                _focusedPromptGroupId,
+                groupNameResult,
+                AmbientGroupFlags
+            },
+            out object activationResult);
+
+        if (!invoked)
+        {
+            return;
+        }
+
+        if (!_ambientActivationLoggedForTarget)
+        {
+            _ambientActivationLoggedForTarget = true;
+
+            Log("AMBIENT GROUP ACTIVATION INVOKED: target=" +
+                _trackedTargetHandle +
+                "; radius=" + AmbientGroupRadius +
+                "; p2=" + AmbientGroupParameter2 +
+                "; tabCount=" + AmbientGroupTabCount +
+                "; group=" + _focusedPromptGroupId +
+                "; flags=" + AmbientGroupFlags +
+                "; result=" + FormatResult(activationResult));
+        }
     }
 
     private void DetachFocusedPrompt()
     {
+        _ambientActivationLoggedForTarget = false;
+
         if (_focusedPromptHandle <= 0)
         {
             _focusedPromptGroupId = 0;
@@ -44,12 +204,9 @@
             Log("PROMPT GROUP DETACH: prompt=" +
                 _focusedPromptHandle +
                 "; group=" + _focusedPromptGroupId +
-                "; wrapperFound=" + removed +
+                "; wrapperInvoked=" + removed +
                 "; result=" + FormatResult(removeResult));
-        }
 
-        if (_focusedPromptGroupId != 0)
-        {
             Log("FOCUSED PROMPT DISABLED: prompt=" +
                 _focusedPromptHandle +
                 "; enabledResult=" + FormatResult(enabledResult) +
@@ -93,161 +250,4 @@
             new object[] { ControlPadIndex, InputInteractOption1 },
             true);
 
-        DateTime now = DateTime.UtcNow;
-
-        if (_lastInputHeartbeatUtc == DateTime.MinValue ||
-            (now - _lastInputHeartbeatUtc).TotalMilliseconds >=
-            InputHeartbeatIntervalMilliseconds)
-        {
-            _lastInputHeartbeatUtc = now;
-
-            Log("INPUT HEARTBEAT: promptActive=" +
-                GetProbeValue("UI_PROMPT_IS_ACTIVE") +
-                "; promptPressed=" +
-                GetProbeValue("UI_PROMPT_IS_PRESSED") +
-                "; promptJustPressed=" +
-                GetProbeValue("UI_PROMPT_IS_JUST_PRESSED") +
-                "; controlEnabled=" +
-                GetProbeValue("IS_CONTROL_ENABLED") +
-                "; controlPressed=" +
-                GetProbeValue("IS_CONTROL_PRESSED") +
-                "; controlJustPressed=" +
-                GetProbeValue("IS_CONTROL_JUST_PRESSED"));
-        }
-    }
-
-    private void SampleProbe(
-        string nativeName,
-        object[] arguments,
-        bool isPulse)
-    {
-        if (!_probeMethods.TryGetValue(
-            nativeName,
-            out MethodInfo method) ||
-            method == null)
-        {
-            return;
-        }
-
-        if (!TryInvokeMethod(method, arguments, out object result))
-        {
-            return;
-        }
-
-        bool value;
-
-        try
-        {
-            value = Convert.ToBoolean(result);
-        }
-        catch
-        {
-            LogErrorOnce(
-                "probe_" + nativeName,
-                "Probe returned an unexpected value: " +
-                FormatResult(result));
-            return;
-        }
-
-        _currentProbeValues[nativeName] = value;
-
-        if (isPulse)
-        {
-            if (value)
-            {
-                Log("INPUT EVENT: " + nativeName +
-                    "=true; target=" + _trackedTargetHandle +
-                    "; prompt=" + _focusedPromptHandle);
-            }
-
-            return;
-        }
-
-        bool previousValue;
-
-        if (!_lastProbeValues.TryGetValue(
-            nativeName,
-            out previousValue) ||
-            previousValue != value)
-        {
-            Log("INPUT STATE: " + nativeName +
-                "=" + value +
-                "; target=" + _trackedTargetHandle +
-                "; prompt=" + _focusedPromptHandle);
-
-            _lastProbeValues[nativeName] = value;
-        }
-    }
-
-    private string GetProbeValue(string nativeName)
-    {
-        if (_currentProbeValues.TryGetValue(
-            nativeName,
-            out bool value))
-        {
-            return value.ToString();
-        }
-
-        if (!_probeMethods.ContainsKey(nativeName) ||
-            _probeMethods[nativeName] == null)
-        {
-            return "wrapper-unavailable";
-        }
-
-        return "not-sampled";
-    }
-
-    private void ClearTrackedTarget()
-    {
-        if (_trackedTargetHandle > 0)
-        {
-            Log("HUMAN TARGET END: target=" +
-                _trackedTargetHandle);
-        }
-
-        DetachFocusedPrompt();
-        _trackedTargetHandle = 0;
-        _targetWasFocused = false;
-    }
-
-    private void DeleteFocusedPrompt()
-    {
-        if (_focusedPromptHandle <= 0)
-        {
-            return;
-        }
-
-        DetachFocusedPrompt();
-
-        bool deleted = TryInvokeNative(
-            "UI_PROMPT_DELETE",
-            new object[] { _focusedPromptHandle },
-            out object deleteResult);
-
-        Log("FOCUSED PROMPT DELETE: prompt=" +
-            _focusedPromptHandle +
-            "; wrapperFound=" + deleted +
-            "; result=" + FormatResult(deleteResult));
-
-        _focusedPromptHandle = 0;
-        _focusedPromptGroupId = 0;
-    }
-
-    private void OnAborted(object sender, EventArgs e)
-    {
-        try
-        {
-            ClearTrackedTarget();
-            DeleteFocusedPrompt();
-        }
-        catch (Exception exception)
-        {
-            Log("SCRIPT CLEANUP ERROR: " +
-                GetInnermostMessage(exception));
-        }
-    }
-
-    private bool TryInvokeNative(
-        string nativeName,
-        object[] arguments,
 ```

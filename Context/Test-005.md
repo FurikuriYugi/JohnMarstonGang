@@ -1,14 +1,79 @@
-﻿<!-- Test lines 1001-1246 of 1246 -->
+﻿<!-- Test lines 1001-1250 of 1292 -->
 ```csharp
-                        i++)
+        }
+    }
+
+    private MethodInfo FindCompatibleNativeMethod(
+        string nativeName,
+        object[] arguments)
+    {
+        Assembly apiAssembly = typeof(Game).Assembly;
+        Type[] apiTypes;
+
+        try
+        {
+            apiTypes = apiAssembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException exception)
+        {
+            List<Type> loadedTypes = new List<Type>();
+
+            if (exception.Types != null)
+            {
+                foreach (Type type in exception.Types)
+                {
+                    if (type != null)
                     {
-                        if (!CanConvertArgument(
-                            arguments[i],
-                            elementType))
-                        {
-                            compatible = false;
-                            break;
-                        }
+                        loadedTypes.Add(type);
+                    }
+                }
+            }
+
+            apiTypes = loadedTypes.ToArray();
+        }
+
+        string normalizedWanted = NormalizeNativeName(nativeName);
+
+        foreach (Type type in apiTypes)
+        {
+            if (type == null)
+            {
+                continue;
+            }
+
+            MethodInfo[] methods = type.GetMethods(
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Static);
+
+            foreach (MethodInfo method in methods)
+            {
+                if (method.ContainsGenericParameters ||
+                    !string.Equals(
+                        NormalizeNativeName(method.Name),
+                        normalizedWanted,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                ParameterInfo[] parameters = method.GetParameters();
+
+                if (parameters.Length != arguments.Length)
+                {
+                    continue;
+                }
+
+                bool compatible = true;
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (!CanConvertArgument(
+                        arguments[i],
+                        parameters[i].ParameterType))
+                    {
+                        compatible = false;
+                        break;
                     }
                 }
 
@@ -22,55 +87,34 @@
         return null;
     }
 
-    private static string NormalizeNativeName(string name)
-    {
-        return name.Replace("_", string.Empty);
-    }
-
-    private static bool CanConvertArgument(
+    private bool CanConvertArgument(
         object value,
         Type targetType)
     {
-        if (value == null)
-        {
-            return !targetType.IsValueType ||
-                Nullable.GetUnderlyingType(targetType) != null;
-        }
+        object convertedValue;
 
-        Type effectiveType =
-            Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-        if (effectiveType.IsAssignableFrom(value.GetType()))
-        {
-            return true;
-        }
-
-        if (effectiveType.IsEnum)
-        {
-            return IsNumericType(value.GetType());
-        }
-
-        if (IsNumericType(effectiveType) &&
-            IsNumericType(value.GetType()))
-        {
-            return true;
-        }
-
-        if (effectiveType == typeof(IntPtr) ||
-            effectiveType == typeof(UIntPtr))
-        {
-            return IsNumericType(value.GetType());
-        }
-
-        return false;
+        return TryConvertArgument(
+            value,
+            targetType,
+            out convertedValue);
     }
 
-    private static bool TryConvertArgument(
+    private bool TryConvertArgument(
         object value,
         Type targetType,
-        out object converted)
+        out object convertedValue)
     {
-        converted = null;
+        convertedValue = null;
+
+        if (targetType == null)
+        {
+            return false;
+        }
+
+        if (targetType.IsByRef)
+        {
+            targetType = targetType.GetElementType();
+        }
 
         if (value == null)
         {
@@ -78,101 +122,55 @@
                 Nullable.GetUnderlyingType(targetType) != null;
         }
 
-        Type effectiveType =
-            Nullable.GetUnderlyingType(targetType) ?? targetType;
+        Type nullableType =
+            Nullable.GetUnderlyingType(targetType);
 
-        try
+        if (nullableType != null)
         {
-            if (effectiveType.IsAssignableFrom(value.GetType()))
-            {
-                converted = value;
-                return true;
-            }
-
-            if (effectiveType.IsEnum)
-            {
-                converted = Enum.ToObject(effectiveType, value);
-                return true;
-            }
-
-            if (effectiveType == typeof(IntPtr))
-            {
-                converted = new IntPtr(Convert.ToInt64(value));
-                return true;
-            }
-
-            if (effectiveType == typeof(UIntPtr))
-            {
-                converted = new UIntPtr(Convert.ToUInt64(value));
-                return true;
-            }
-
-            if (IsNumericType(effectiveType) &&
-                IsNumericType(value.GetType()))
-            {
-                converted = Convert.ChangeType(value, effectiveType);
-                return true;
-            }
-        }
-        catch
-        {
-            return false;
-        }
-
-        return false;
-    }
-
-    private static bool IsNumericType(Type type)
-    {
-        Type effectiveType =
-            Nullable.GetUnderlyingType(type) ?? type;
-
-        switch (Type.GetTypeCode(effectiveType))
-        {
-            case TypeCode.Byte:
-            case TypeCode.SByte:
-            case TypeCode.UInt16:
-            case TypeCode.UInt32:
-            case TypeCode.UInt64:
-            case TypeCode.Int16:
-            case TypeCode.Int32:
-            case TypeCode.Int64:
-            case TypeCode.Single:
-            case TypeCode.Double:
-            case TypeCode.Decimal:
-                return true;
-
-            default:
-                return false;
-        }
-    }
-
-    private static bool TryConvertToInt(
-        object value,
-        out int converted)
-    {
-        converted = 0;
-
-        if (value == null)
-        {
-            return false;
+            targetType = nullableType;
         }
 
         try
         {
-            if (value is IntPtr intPtr)
+            if (targetType.IsInstanceOfType(value))
             {
-                converted = intPtr.ToInt32();
+                convertedValue = value;
                 return true;
             }
 
-            if (value is UIntPtr uintPtr)
+            if (targetType.IsEnum)
             {
-                converted = unchecked((int)uintPtr.ToUInt32());
+                convertedValue = Enum.ToObject(
+                    targetType,
+                    Convert.ToInt64(
+                        value,
+                        CultureInfo.InvariantCulture));
                 return true;
             }
 
-            converted = Convert.ToInt32(value);
+            if (targetType == typeof(IntPtr))
+            {
+                convertedValue = new IntPtr(
+                    Convert.ToInt64(
+                        value,
+                        CultureInfo.InvariantCulture));
+                return true;
+            }
+
+            if (targetType == typeof(UIntPtr))
+            {
+                convertedValue = new UIntPtr(
+                    Convert.ToUInt64(
+                        value,
+                        CultureInfo.InvariantCulture));
+                return true;
+            }
+
+            convertedValue = Convert.ChangeType(
+                value,
+                targetType,
+                CultureInfo.InvariantCulture);
+
             return true;
         }
         catch
@@ -181,69 +179,75 @@
         }
     }
 
-    private void LogPromptErrorOnce(string message)
+    private bool TryConvertToInt(object value, out int result)
     {
-        if (_promptErrorLogged)
+        result = 0;
+
+        if (value == null)
         {
-            return;
+            return false;
         }
 
-        _promptErrorLogged = true;
-        Log("PROMPT ERROR: " + message);
-    }
-
-    private void LogErrorOnce(string key, string message)
-    {
-        if (_loggedErrors.Add(key))
+        try
         {
-            Log(message);
+            result = Convert.ToInt32(
+                value,
+                CultureInfo.InvariantCulture);
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 
-    private void Log(string message)
+    private string NormalizeNativeName(string name)
     {
-        string line = "[" +
-            DateTime.Now.ToString("HH:mm:ss.fff") +
-            "] " + message + Environment.NewLine;
-
-        File.AppendAllText(_logPath, line);
-    }
-
-    private static string FormatResult(object result)
-    {
-        if (result == null)
+        if (string.IsNullOrEmpty(name))
         {
-            return "null";
+            return string.Empty;
         }
 
-        return result.GetType().FullName + ":" + result;
+        return name
+            .Replace("_", string.Empty)
+            .Replace(" ", string.Empty)
+            .ToUpperInvariant();
     }
 
-    private static string FormatMethodSignature(MethodInfo method)
+    private string FormatMethodSignature(MethodInfo method)
     {
-        List<string> parameterTypes = new List<string>();
+        ParameterInfo[] parameters = method.GetParameters();
+        List<string> parameterNames = new List<string>();
 
-        foreach (ParameterInfo parameter in method.GetParameters())
+        foreach (ParameterInfo parameter in parameters)
         {
-            parameterTypes.Add(parameter.ParameterType.FullName);
+            parameterNames.Add(
+                parameter.ParameterType.FullName);
         }
 
         return method.DeclaringType.FullName +
             "." + method.Name +
-            "(" + string.Join(", ", parameterTypes.ToArray()) +
-            ") : " + method.ReturnType.FullName;
+            "(" + string.Join(", ", parameterNames.ToArray()) + ")";
     }
 
-    private static string GetInnermostMessage(Exception exception)
+    private string FormatResult(object value)
     {
-        Exception current = exception;
-
-        while (current.InnerException != null)
+        if (value == null)
         {
-            current = current.InnerException;
+            return "null";
         }
 
-        return current.Message;
+        try
+        {
+            return Convert.ToString(
+                value,
+                CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return value.ToString();
+        }
     }
-}
+
+    private void LogPromptErrorOnce(string message)
 ```
