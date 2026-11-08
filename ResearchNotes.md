@@ -2,195 +2,85 @@
 
 ## Purpose
 
-Record what has been checked about the repository, ScriptHookRDR2DotNet-V2, RDR2 natives, and in-game behavior. Distinguish verified facts from hypotheses and test plans so uncertain API details do not become assumed contracts.
+Record what has been checked about the repository, ScriptHookRDR2DotNet-V2, RDR2 natives, and in-game behavior. Keep verified repository/API facts distinct from external research, hypotheses, and in-game observations.
 
 ## Status labels
 
 - **Verified in repository:** Confirmed in current project files.
-- **Documented in local reference:** Listed in a project note, Object Browser, or installed API documentation, but not necessarily confirmed in game.
-- **Documented in external research:** Reported by external native/control research; not yet confirmed against this project's installed wrapper or in game.
-- **Hypothesis:** Plausible usage or interpretation; do not depend on it in production code.
-- **Tested in game:** Confirmed in game; record the environment and steps.
+- **Documented in local reference:** Listed in project notes, Object Browser, or installed API documentation; not necessarily confirmed in game.
+- **Documented in external research:** Reported by external native/control research; not necessarily confirmed against the installed wrapper or in game.
+- **Hypothesis:** Plausible interpretation that must not be treated as an API contract.
+- **Tested in game:** Confirmed in game, with environment and steps recorded.
 - **Open:** Needs further investigation.
 
-## Current focus: trace built-in NPC lock-on interactions
+## Current test: native interaction-lock-on prompt
 
 ### Goal
 
-Observe the inputs and visible target-state changes associated with the built-in NPC interaction actions, including Aim at, Rob, Greet, and Antagonize. The user will focus a target and perform one action at a time.
+Test the native `REGISTER_INTERACTION_LOCKON_PROMPT` path on a human NPC and observe whether its text, `Recruit`, appears in the game’s approach/focus interaction UI. Also observe the candidate `INPUT_INTERACT_OPTION1` input, externally reported as G in the PC `InteractionLockOn` mapping.
 
-This is a diagnostic test only. It must not add prompts, register ILOs, trigger interactions, recruit NPCs, or change gang data.
+This is a diagnostic test only. It does not recruit an NPC, create a gang member, or change saved data.
 
-### Scope and interpretation
+### Important distinction
 
-The new `Test.cs` is a read-only sniffer. It samples:
+The ILO registration native accepts an entity, display text, distances, flags, and other parameters. Its documented signature has **no G/control argument**. Therefore:
 
-- Focused human target handles.
-- Candidate control-action states and just-pressed events.
-- The current control context when a candidate control is pressed, if the installed wrapper exposes that native.
-- Available, observable target properties: existence, human status, health, combat, fleeing, shooting, and ragdoll state.
-- Target-state changes during focus and briefly after focus ends.
+- The test registers the native label `Recruit`.
+- The test separately samples `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) and logs just-pressed events.
+- A successful native return does not prove the label rendered.
+- A logged G candidate press does not prove that G is bound to recruitment.
+- The test never executes a recruitment action.
 
-It does **not** hook or intercept Rockstar's internal script/native calls, menu payloads, text rendering, dialogue events, or animation requests. It cannot prove the exact internal action event that the game handled. The user's visual observation of the NPC's response remains part of the test result.
+The ILO text is not the same thing as adding a new G action to a focused entity’s built-in action menu. The test isolates the native ILO registration path; it does not claim to solve the separate action-prompt/control-binding problem.
+
+### Test implementation behavior
+
+The replacement `Test.cs`:
+
+- Resolves `REGISTER_INTERACTION_LOCKON_PROMPT` and `UNREGISTER_INTERACTION_LOCKON_PROMPT` by reflection in the loaded API assembly, matching the signatures recorded in the local reference.
+- Tracks a human NPC found through the focused-target native or `Game.Player.GetFreeAimEntity()`.
+- Registers the ILO text `Recruit` on the tracked human target.
+- Samples `INPUT_INTERACT_OPTION1` while a human target is tracked.
+- Logs registration/unregistration results, wrapper signatures, target transitions, and G-candidate presses.
+- Unregisters an ILO after a successful registration when the tracked target changes or ends.
+- Does not create a UI prompt, assign or activate a prompt group, suppress an input, call the recruitment method, or change gang data.
 
 ### Test procedure
 
-1. Load the replacement `Test.cs` in the project's test setup.
-2. Start the game in Story Mode with the mod loaded.
-3. Focus a human NPC.
-4. Note the currently visible built-in lock-on options.
-5. Perform one action only: Aim at, Rob, Greet, or Antagonize.
-6. Wait briefly for the NPC's response before trying another action.
-7. Repeat with the same NPC when practical; record any weapon, distance, or other condition that changes.
-8. Send `Test_Log.txt` and a short note for each action describing what appeared and what the NPC did.
+1. Replace `Test.cs` with the full test file in this update and build the test project.
+2. Start RDR2 in Story Mode with the test mod loaded. Use a calm human NPC and approach within approximately 2.5 metres; the test should not be performed during combat.
+3. Watch the NPC while aiming/focusing. Record whether the literal `Recruit` text appears, where it appears, and whether it appears before or during focus.
+4. If the UI visibly offers a G action, record the exact displayed label and whether the G press is logged. The test itself does not bind G or recruit the NPC.
+5. If no G action is visibly offered, do not press G expecting recruitment. The test only logs `INPUT_INTERACT_OPTION1`; it does not make that input a recruit action.
+6. Send `Test_Log.txt` and a short description of the visible UI and NPC response. Record whether the player was on foot, unarmed, and within close range.
 
-Do not use a second diagnostic prompt during this run. The sniffer does not modify inputs or suppress the game's controls.
+The test log is written to `Test_Log.txt` under the game’s base directory. To have the game write through to the repository copy on Windows, create a symbolic link in the game directory pointing to the repository’s `Test_Log.txt`. Remove or rename an existing regular file there first. The link must be created in the local checkout; it is not created by this chat.
 
 ## Findings from the repository
 
-- The mod's entry class derives from `RDR2.Script` and subscribes to the Script `Tick` event. Do not implement `public override void Tick()`.
+- The mod’s entry class derives from `RDR2.Script` and subscribes to the `Script.Tick` event. Do not implement `public override void Tick()`.
 - The production target-selection path in `Main.cs` uses `PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY` and falls back to `Game.Player.GetFreeAimEntity()`.
-- The isolated test harness uses `PLAYER.GET_PLAYER_TARGET_ENTITY`; do not confuse it with `Main.cs` target selection.
+- The isolated test harness previously used `PLAYER.GET_PLAYER_TARGET_ENTITY`; do not confuse that with the production target-selection path.
 - F9 remains the separate companion-follow toggle.
-- The native right-mouse interaction-lock-on recruitment prompt is not implemented in the production path.
-- The user checked the installed API and reports the only `Prompt`-named API type is `RDR2.UI.PromptTimingEvent`. Do not rely on `RDR2.UI.Prompt.CreatePrompt`; it is not the prompt-construction API available in this project.
+- The native right-mouse interaction-lock-on recruitment action is not implemented in the production path.
+- The user reports that the only `Prompt`-named API type in the installed API is `RDR2.UI.PromptTimingEvent`. Do not assume `RDR2.UI.Prompt.CreatePrompt` is an available prompt-construction API.
 - The project file explicitly lists source files and includes `Test.cs` for the isolated test.
-- The previous `Test.cs` was a custom action-prompt visibility test. The replacement is a read-only control/target-state sniffer and does not create a prompt or register an ILO.
+- In test mode, do not modify `StoryBoard.md`.
 
 ## Verified runtime/API observations
 
-- The installed v2.2.0 wrapper resolved `PLAYER.GET_PLAYER_TARGET_ENTITY` as `bool(int, int*)`. Passing it using `out` previously failed with CS1615; use the unsafe pointer call already validated by the previous test.
-- While `IsFreeFocusing=True`, the player-target native returned the focused NPC handle in earlier test cycles. After focus ended, it returned no target.
+- The installed v2.2.0 wrapper resolved `PLAYER.GET_PLAYER_TARGET_ENTITY` as `bool(int, int*)`. Passing it using `out` previously failed with CS1615; use the unsafe pointer form already validated in the previous test.
+- While `Game.Player.IsFreeFocusing` was true, the player-target native returned the focused NPC handle in earlier test cycles. After focus ended, it returned no target.
 - The v2.2.0 wrapper resolved `REGISTER_INTERACTION_LOCKON_PROMPT` with ten parameters: `int, string, float, float, int, float, float, int, bool, int`.
-- The v2.2.0 wrapper resolved `_UI_PROMPT_SET_AMBIENT_GROUP_THIS_FRAME` as `UInt64(int, float, int, int, uint, string, int)`.
-- The v2.2.0 wrapper resolved `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` as `UInt64(uint, string, int, int, int, int)`.
-- The v2.2.0 wrapper exposes `MISC.VAR_STRING` as `string(int, InputArgument[])`.
-- Runtime reflection reported `REGISTER_INTERACTION_LOCKON_PROMPT` and `UNREGISTER_INTERACTION_LOCKON_PROMPT` as returning `System.Boolean`.
-- Those wrapper signatures do not establish parameter meanings or in-game behavior.
-- The replacement sniffer resolves PAD and target-state methods by reflection. Its startup log records which compatible methods were found in the installed API assembly.
+- The v2.2.0 wrapper resolved `UNREGISTER_INTERACTION_LOCKON_PROMPT` as returning `System.Boolean`.
+- Runtime reflection previously reported both ILO registration and unregistration methods as returning `System.Boolean`.
+- These wrapper signatures do not establish the meaning of undocumented parameters or guarantee in-game display.
+- The current sniffer log reported `_GET_CURRENT_CONTROL_CONTEXT` as unavailable. Do not rely on that wrapper unless the installed v2.2.0 assembly is checked again and a compatible method is found.
+- The replacement test resolves ILO wrappers by reflection at runtime and logs the exact signature it finds. A wrapper’s presence or native return value is not proof of visible behavior.
 
-## Previous in-game prompt findings
+## Candidate input research
 
-### Earlier prompt tests — 2026-11-07
-
-- Earlier target-detection tests found focused NPC handles.
-- Earlier prompt tests assigned custom action prompts to target prompt groups.
-- Earlier prompt properties reported `Enabled=True`, `Visible=True`, and `HasCompleted=False`; those properties do not prove that the prompt rendered.
-- Ambient-group activation did not make **G Recruit** visible.
-- Explicit active-group activation also did not make **G Recruit** visible.
-- An earlier ILO-registration test found focused human targets `202754` and `202498`.
-- That log reported created prompt handles `252162`, `300802`, and `314114`, assigned to target groups `268566617` and `268566616`.
-- The user did not see **G Recruit** in that menu; other menu options continued to work.
-- That test did not log the Boolean returns from ILO registration and unregistration, so whether those calls returned `true` is unknown.
-- No recruitment or gang-data changes were performed.
-
-### Diagnostic `INPUT_CONTEXT_X` run — 2026-11-07
-
-- The harness identified focused human targets `203010` and `201730`.
-- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true` for the focused targets.
-- `UNREGISTER_INTERACTION_LOCKON_PROMPT` returned `true` for the targets when the diagnostic prompt was cleared.
-- The harness created prompt handles `275970`, `302594`, `321282`, and `329730`, and assigned them to target groups `268566622` and `268566617`.
-- The diagnostic prompt used `INPUT_CONTEXT_X` (`0xE3BF959B`), reported in that test as commonly mapped to keyboard R.
-- The user did not see the Recruit prompt. The existing R “Greet” option disappeared while this diagnostic action was used; other menu options remained usable.
-- No recruitment or gang-data changes were performed.
-
-**Conclusion:** Focus detection, ILO calls, prompt creation, and target-group assignment ran without a logged setup error, but the custom prompt was not visibly rendered. The `true` native returns do not prove display. Using `INPUT_CONTEXT_X` interfered with the existing R “Greet” option in that test setup.
-
-### Failed reflective `VAR_STRING` attempt — 2026-11-07
-
-- The test found focused human target `198914`.
-- The log resolved `MISC.VAR_STRING` as `RDR2.Native.MISC.VAR_STRING(System.Int32, RDR2.Native.InputArgument[]) -> System.String`.
-- The test's reflective resolver reported that it could not find a compatible `VAR_STRING` wrapper.
-- Prompt setup stopped with `PROMPT SETUP FAILED: No compatible VAR_STRING wrapper was resolved.`
-- This happened before prompt registration began. No action prompt was created or assigned to the target group.
-- No recruitment or gang-data changes were performed.
-
-**Conclusion:** This was not a prompt-visibility result. The reflection check rejected the observed wrapper signature. The next test bypassed that resolver and called the typed wrapper with an explicit `InputArgument[]`.
-
-### Typed G prompt setup attempt — 2026-11-07
-
-- The user tested while unarmed and right-mouse focusing a human NPC.
-- The test found focused human target `201218`.
-- Prompt handle `267010` was registered and assigned to target group `268566621`.
-- The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
-- The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
-- The user did not see **G Recruit** in the focused NPC's lock-on menu.
-- The test did not register an ILO and did not activate ambient or active prompt groups.
-- The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
-- No recruitment or gang-data changes were performed.
-
-**Conclusion:** This was a visibility failure for the typed G prompt setup. Target detection, prompt registration, and target-group assignment succeeded, but the user did not see the action. The missing completion wrapper does not explain the missing display.
-
-### ILO-enabled G prompt attempt — date not supplied
-
-- The user tested while unarmed and right-mouse focusing a human NPC.
-- The harness found focused human target `206338`.
-- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true`.
-- Prompt handle `325890` was registered and assigned to target group `268566628`.
-- The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
-- The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
-- The user did not see **G Recruit** in the focused NPC's lock-on menu.
-- The ILO was unregistered when focus changed; unregistration returned `true`.
-- The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
-- No recruitment or gang-data changes were performed.
-
-**Conclusion:** ILO registration returned `true`, but this did not make the action visible. The prompt's registration and group assignment calls completed, but their success does not prove that the menu rendered the prompt.
-
-### Group-order test — date not supplied
-
-- The user tested while unarmed and right-mouse focusing a human NPC.
-- The harness found focused human target `204546`.
-- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true`.
-- Prompt handle `242690` was registered and assigned to target group `268566627`.
-- The test called `_UI_PROMPT_SET_GROUP` after `_UI_PROMPT_REGISTER_END`.
-- The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
-- The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
-- The user did not see **G Recruit** in the focused NPC's lock-on menu.
-- The ILO was unregistered when focus changed; unregistration returned `true`.
-- The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
-- No recruitment or gang-data changes were performed.
-
-**Conclusion:** Assigning the target group after prompt registration did not make the action visible. ILO registration, prompt registration, and group assignment returning successfully still do not prove that the menu rendered the prompt.
-
-### Ordered, ILO-enabled G prompt attempt — date not supplied
-
-The supplied log reported:
-
-- Focused human target `204290`.
-- `REGISTER_INTERACTION_LOCKON_PROMPT` returned `true`.
-- Prompt handles `261122` and `268034` were registered in two focus cycles.
-- The prompt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`), reported as G in the `InteractionLockOn` context.
-- `_UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE` resolved as `RDR2.Native.HUD._UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE(Int32, UInt64)`.
-- The ordering call ran during prompt registration and returned `void`.
-- The prompt text used the typed `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })` call.
-- The prompt was assigned to the focused entity's target prompt group after registration.
-- The user did not see **G Recruit** in the focused NPC's lock-on menu.
-- ILO unregistration returned `true` when focus changed.
-- The optional standard-mode completion wrapper was not resolved. The prompt remained active until focus changed and was then deleted.
-- No recruitment or gang-data changes were performed.
-
-**Conclusion:** The ordering wrapper was found and invoked, but the action still did not display. This remains a prompt-visibility failure, not evidence that the control was registered as a usable menu action.
-
-## Documented external prompt research
-
-External RDR2 prompt research describes these as separate operations:
-
-1. Create and configure a native UI prompt with a control action and text.
-2. Finish registering that prompt.
-3. Get the prompt group for the target entity and assign the created prompt to that group.
-4. Register an interaction-lock-on prompt on an entity when needed for its focus/approach interaction.
-
-The research reports that peds can be focused by default. It describes the ILO `prompt` parameter as not working with a custom prompt in that research setup, and says peds' focused action prompts are shown by assigning a UI prompt to the entity's prompt group. Its examples demonstrate group assignment as a separate operation on a registered prompt.
-
-External research also documents `_UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE` (`0x2F385ECC5200938D`). It describes this native as choosing the control used for prompt ordering and says to call it during registration or immediately afterward. The documented ordering examples do not establish that `INPUT_INTERACT_OPTION1` is supported for this use.
-
-The test discussion raised `PP_GREET` as a possible clue to the built-in Greet interaction. The reviewed native/prompt research does not establish that `PP_GREET` is a keyboard glyph, a control-action hash, or a supported way to assign a type to a custom UI prompt. Keep that interpretation unverified.
-
-Treat these findings as **documented in external research**, not proof about this project's installed v2.2.0 wrapper or in-game behavior.
-
-## Documented external control research
-
-External RDR2 control research lists these candidate hashes in or around the `InteractionLockOn` context:
+External control research lists these candidate hashes in or around the `InteractionLockOn` context:
 
 - `INPUT_INTERACT_LOCKON_ROB` — `0x9FA5AD07`
 - `INPUT_INTERACT_LOCKON_POS` — `0xF63A17F9`
@@ -202,43 +92,66 @@ External RDR2 control research lists these candidate hashes in or around the `In
 - `INPUT_EMOTE_TAUNT` — `0x470DC190`
 - `INPUT_EMOTE_ACTION` — `0x13C42BB2`
 
-The external list reports `INPUT_INTERACT_OPTION1` as G and `INPUT_INTERACT_OPTION2` as H in its listed PC mapping. Bindings and behavior may vary with context and user settings. These values are diagnostic candidates only; the sniffer log and in-game observations must establish what happens in this setup.
+The external list reports `INPUT_INTERACT_OPTION1` as G and `INPUT_INTERACT_OPTION2` as H in its listed PC mapping. Bindings and behavior can depend on context and user settings. Treat these as diagnostic candidates, not confirmed bindings for this test setup.
 
-## Current sniffer test plan
+## Previous in-game prompt findings
 
-- Replace the previous prompt test with the read-only sniffer in `Test.cs`.
-- At startup, record which PAD and target-state wrappers were resolved by reflection.
-- While focused on a human NPC, sample the candidate controls and log their pressed-state changes and just-pressed events.
-- Sample target existence, human status, health, combat, fleeing, shooting, and ragdoll state when the wrappers are available.
-- Continue target-state sampling briefly after focus ends to capture immediate response changes.
-- Do not create prompts, register ILOs, activate prompt groups, suppress controls, or invoke the built-in actions from script.
-- Perform one visible menu action at a time. Send the log plus a description of the displayed option and the NPC's visible response.
+### Earlier custom action-prompt attempts
 
-A successful control-state read only reports what the control wrapper observed. A target-state change is evidence of an observable response, but absence of a logged state change does not mean the action failed; dialogue, animation, suspicion, or other internal effects may not be represented by the sampled state values.
+The user previously tested custom action prompts assigned to target prompt groups:
+
+- Earlier prompt properties reported `Enabled=True`, `Visible=True`, and `HasCompleted=False`; those properties do not prove that the prompt rendered.
+- Ambient-group activation did not make **G Recruit** visible.
+- Explicit active-group activation also did not make **G Recruit** visible.
+- An ILO-registration test focused human targets `202754` and `202498`. It created prompt handles `252162`, `300802`, and `314114`, assigned to target groups `268566617` and `268566616`, but **G Recruit** remained absent. That test did not log the native Boolean returns.
+- A diagnostic `INPUT_CONTEXT_X` run focused targets `203010` and `201730`; ILO registration and unregistration returned `true`. The custom prompt was not visible, and the existing R “Greet” option disappeared during that setup.
+- A reflective `VAR_STRING` attempt stopped before prompt registration because its resolver rejected the wrapper signature. This was not a prompt-visibility result.
+- A typed G-prompt attempt used `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) and `VAR_STRING(10, InputArgument[] { "LITERAL_STRING", "Recruit" })`; the prompt was not visible.
+- Another typed G-prompt attempt registered an ILO and assigned the prompt group; the prompt was still not visible.
+- A group-order test called `_UI_PROMPT_SET_GROUP` after registration; **G Recruit** remained absent.
+- An ordered ILO-enabled G-prompt attempt found `_UI_PROMPT_SET_ORDERING_AS_INPUT_TYPE`; invoking it did not make the prompt visible.
+
+These results establish repeated visibility failures for the tested custom UI-prompt setups. They do not prove that every possible prompt/control combination fails.
+
+### Latest read-only sniffer log in the repository
+
+The latest checked-in `Test_Log.txt` records a focused human target `202242` and these relevant observations:
+
+- `INPUT_INTERACT_OPTION1` was enabled when the target was focused.
+- The log did not record a press of `INPUT_INTERACT_OPTION1` (the reported G candidate).
+- `INPUT_INTERACT_LOCKON_POS` and `INPUT_INTERACT_LOCKON_ROB` were pressed.
+- The target later changed from not fleeing/not in combat to fleeing, and then to fleeing/in combat.
+- The log does not establish which particular input caused the response, nor does it establish the internal action the game handled.
+
+The user reported that the built-in options tested individually included Rob, Threaten, and Aim At, and that the NPC fled or became hostile. The target did not show a recruitment option, so G was not pressed. That run did not test recruitment or confirm a G binding.
+
+## External prompt research
+
+External RDR2 prompt research describes these as separate operations:
+
+1. Register an interaction-lock-on prompt on the target entity.
+2. Create/configure a UI prompt if a separate action prompt is needed.
+3. Obtain the target entity’s prompt group and assign a UI prompt to that group when appropriate.
+4. Activate the appropriate prompt group if the selected prompt type requires per-frame activation.
+
+The external research says the ILO’s text is shown on the prompt when approaching an entity, while a focused ped may show a separate label such as “Stranger” or a role name. It also reports the ILO native’s custom-prompt parameter did not work with a custom prompt in that research setup and is commonly zero in Rockstar scripts.
+
+Therefore, the current test deliberately avoids conflating ILO registration with a G action prompt. The native ILO text is tested directly; `INPUT_INTERACT_OPTION1` is only sampled.
 
 ## Open questions
 
-- Which candidate control edges correspond to Aim at, Rob, Greet, and Antagonize in this installed game/control configuration?
-- Does the sniffer resolve the PAD wrappers in the installed v2.2.0 API assembly?
-- Which target-state wrappers are available in the installed API and which return useful data in this context?
-- What visible NPC response follows each action, and how quickly does it occur?
-- Do Greet and Antagonize require a follow-up emote selection after their initial input?
-- Can any supported public API expose the built-in menu entries or internal interaction result directly?
-- Does the interaction menu change its available controls based on weapon state, distance, honor, NPC type, mission state, or other conditions?
-- Which supported public prompt API, if any, can add a new action to the focused-entity interaction menu?
+- Does the installed wrapper resolve both ILO natives at runtime in this test build?
+- Does the native `Recruit` ILO text appear before focus, during focus, or not at all?
+- Does the ILO native’s `true` return correlate with any visible UI in this setup?
+- Does the G candidate control register as pressed when the user presses G while the target is focused?
+- Does the user’s key mapping differ from the external PC mapping?
+- Which supported mechanism, if any, adds a new action to the focused-entity interaction menu?
+- Does the built-in menu change based on weapon state, distance, honor, NPC type, mission state, or other conditions?
 
-## Clarification from the native-option test
+## Rules for interpreting results
 
-The user confirmed that the built-in interaction options were pressed one at a time. The user observed that Rob, Threaten, and Aim At caused the NPC to flee or become hostile.
-
-The tested NPC did not show a recruitment option. The user therefore did not press G. This run does not test recruitment, does not confirm the G binding, and does not show that a custom recruitment prompt works.
-
-The current `Test_Log.txt` records presses for `INPUT_INTERACT_LOCKON_POS` and `INPUT_INTERACT_LOCKON_ROB`, among other focus/aim input states. It does not record a press of `INPUT_INTERACT_OPTION1` or `INPUT_INTERACT_LOCKON_NEG`. Do not infer that Threaten maps to the negative-interaction hash, or that Aim At maps to a particular candidate hash, from the visible behavior alone.
-
-The user’s visual report supplements the sniffer log. The sniffer observes candidate control states and selected ped properties; it does not intercept the game’s internal interaction result or prove which input caused a state change.
-
-## Current next-test procedure
-
-Use the read-only sniffer. In Story Mode, focus one human NPC and test only an option that is visibly present. Record the exact visible label and the NPC’s response separately for each action. Do not test G when no G option is displayed. Send the generated `Test_Log.txt` with those observations.
-
-The sniffer writes `Test_Log.txt` under the game’s base directory. To have the game write through to the repository copy on Windows, create a symbolic link in the game directory pointing to the repository’s `Test_Log.txt`; remove or rename any existing regular file of that name first. The link must be created in the local checkout and is not created by this chat.
+- A native Boolean return is not proof of visible UI.
+- A visible `Recruit` label is not proof that G is bound to it.
+- A G candidate press is not proof that the game treated it as recruitment.
+- A change in fleeing/combat/health state is not proof of which input caused it unless the test isolates the input and records the timing.
+- Do not claim recruitment occurred unless an explicit recruitment action and its resulting state are tested.

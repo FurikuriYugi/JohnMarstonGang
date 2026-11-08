@@ -1,3 +1,4 @@
+TEST
 [20:17:08.481] === Read-only NPC interaction sniffer initialized ===
 [20:17:08.481] Focus an NPC and perform one visible built-in interaction at a time.
 [20:17:08.481] This tool does not create prompts, register ILOs, suppress controls, or trigger actions.
