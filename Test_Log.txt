@@ -1,19 +1,43 @@
-2026-11-08 15:20:24.943 === Static registered-label focused-target prompt test ===
-2026-11-08 15:20:24.943 Prompt label: CUTSCENE_SKIP; expected prompt text: G Skip.
-2026-11-08 15:20:24.944 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.
-2026-11-08 15:20:24.944 The label is set once before prompt registration.
-2026-11-08 15:20:24.944 The prompt is assigned to a focused human target's prompt group.
-2026-11-08 15:20:24.944 No recruitment or gang membership changes are performed.
-2026-11-08 15:20:24.953 PROMPT TEXT SET BEFORE REGISTRATION: label=CUTSCENE_SKIP
-2026-11-08 15:20:24.954 PROMPT CREATED: handle=205314; label=CUTSCENE_SKIP
-2026-11-08 15:20:24.991 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 15:20:24.993 PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
-2026-11-08 15:20:31.701 TARGET: nativeFound=True; handle=197634; human=True
-2026-11-08 15:20:31.703 PROMPT GROUP ASSIGNED: target=197634; group=268566610
-2026-11-08 15:20:31.703 PROMPT GROUP ACTIVE PAGE: group=268566610; page=-1; active=False
-2026-11-08 15:20:31.715 PROMPT GROUP ACTIVE PAGE: group=268566610; page=0; active=True
-2026-11-08 15:20:31.715 PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
-2026-11-08 15:20:40.207 RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED
-2026-11-08 15:20:40.352 PROMPT PRESSED: label=CUTSCENE_SKIP; no recruitment performed.
-2026-11-08 15:20:41.742 TARGET: nativeFound=False; handle=none; human=False
-2026-11-08 15:20:41.743 PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 15:45:36.861 === ILO registration plus focused-target G prompt test ===
+2026-11-08 15:45:36.861 ILO registration text: Recruit; radius=8; focusDistance=8; prompt argument=0
+2026-11-08 15:45:36.861 G prompt uses registered label: CUTSCENE_SKIP; expected button text: G Skip.
+2026-11-08 15:45:36.862 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.
+2026-11-08 15:45:36.862 The ILO registration is made for a focused human target and retained until another target is focused or the script ends.
+2026-11-08 15:45:36.862 G only logs a test press; no recruitment is performed.
+2026-11-08 15:45:36.871 G PROMPT CREATED: handle=205570; label=CUTSCENE_SKIP
+2026-11-08 15:45:36.907 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 15:45:36.908 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 15:45:48.748 TARGET: nativeFound=True; handle=197634; human=True
+2026-11-08 15:45:48.749 ILO REGISTRATION: target=197634; text=Recruit; succeeded=True
+2026-11-08 15:45:48.751 G PROMPT GROUP ASSIGNED: target=197634; group=268566606
+2026-11-08 15:45:48.751 PROMPT GROUP ACTIVE PAGE: group=268566606; page=-1; active=False
+2026-11-08 15:45:48.763 PROMPT GROUP ACTIVE PAGE: group=268566606; page=0; active=True
+2026-11-08 15:45:48.763 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
+2026-11-08 15:45:51.467 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 15:45:51.468 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 15:45:52.319 TARGET: nativeFound=True; handle=197634; human=True
+2026-11-08 15:45:52.320 PROMPT GROUP ACTIVE PAGE: group=268566606; page=-1; active=False
+2026-11-08 15:45:52.332 PROMPT GROUP ACTIVE PAGE: group=268566606; page=0; active=True
+2026-11-08 15:45:52.333 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
+2026-11-08 15:45:53.887 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 15:45:53.888 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 15:45:54.416 TARGET: nativeFound=True; handle=197634; human=True
+2026-11-08 15:45:54.417 PROMPT GROUP ACTIVE PAGE: group=268566606; page=-1; active=False
+2026-11-08 15:45:54.430 PROMPT GROUP ACTIVE PAGE: group=268566606; page=0; active=True
+2026-11-08 15:45:54.430 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
+2026-11-08 15:45:56.139 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 15:45:56.140 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 15:45:56.653 TARGET: nativeFound=True; handle=197634; human=True
+2026-11-08 15:45:56.653 PROMPT GROUP ACTIVE PAGE: group=268566606; page=-1; active=False
+2026-11-08 15:45:56.665 PROMPT GROUP ACTIVE PAGE: group=268566606; page=0; active=True
+2026-11-08 15:45:56.666 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
+2026-11-08 15:45:57.733 RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED
+2026-11-08 15:45:57.904 G PROMPT PRESSED: label=CUTSCENE_SKIP; no recruitment performed.
+2026-11-08 15:45:58.407 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 15:45:58.408 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
+2026-11-08 15:45:58.896 TARGET: nativeFound=True; handle=197634; human=True
+2026-11-08 15:45:58.897 PROMPT GROUP ACTIVE PAGE: group=268566606; page=-1; active=False
+2026-11-08 15:45:58.908 PROMPT GROUP ACTIVE PAGE: group=268566606; page=0; active=True
+2026-11-08 15:45:58.908 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=True
+2026-11-08 15:45:59.926 TARGET: nativeFound=False; handle=none; human=False
+2026-11-08 15:45:59.926 G PROMPT ACTIVE: label=CUTSCENE_SKIP; active=False
