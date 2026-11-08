@@ -12,7 +12,8 @@ Record API and native patterns relevant to the NPC recruitment-prompt test. The 
 - Use the ASI and API DLL files from the same ScriptHookRDR2DotNet-V2 release archive.
 - Do not infer meanings for parameters named `p3`, `p5`, or similar.
 - Keep target selection, prompt creation, prompt-group attachment, group activation, input detection, and recruitment execution as separate testable operations.
-- Reflection can diagnose non-generic wrapper signatures, but a resolver that skips methods with `ContainsGenericParameters` cannot resolve template natives such as `MISC.VAR_STRING`. Call the template wrapper directly with an explicit type argument.
+- The v2.2.0 wrapper exposed by the compiler is `MISC.VAR_STRING(int, params InputArgument[])`, not a generic method. Do not call it with type arguments.
+- The prompt-text wrapper expects a `string`; pass the literal text directly rather than passing an `IntPtr` from `VAR_STRING`.
 - Wrapper presence, a successful invocation, or a native return value does not by itself establish an in-game visual effect.
 - Do not use `System.Text.Json`; use Newtonsoft.Json when JSON is needed.
 

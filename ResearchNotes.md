@@ -6,19 +6,23 @@ The test is isolated to finding a nearby living human NPC, detecting when the pl
 
 The existing `Test_Log.txt` shows that the prompt handle was created and the control action was set, but the test then failed to resolve `VAR_STRING` and deleted the prompt. The target-focus event occurred afterward, so there was no prompt left to attach or display. The issue is the reflection lookup—not evidence that NPC selection or focus detection failed.
 
-The test’s native resolver skips methods that still have generic parameters. `MISC.VAR_STRING` is a template native, so it cannot be found by that non-generic reflection lookup. The replacement calls `RDR2.Native.MISC.VAR_STRING<string>` directly.
+Build errors from the attempted generic call clarified the v2.2.0 wrapper contracts:
+
+- `MISC.VAR_STRING` is a non-generic method with signature `VAR_STRING(int, params InputArgument[])`; it cannot be called with `<string>`.
+- The prompt text wrapper expects a `System.String`; it does not accept the `IntPtr` returned by a `VAR_STRING` call.
+- The test now avoids `VAR_STRING` and passes `"Recruit"` directly to `_UI_PROMPT_SET_TEXT`.
 
 ## Prompt text and input
 
 The prompt control and text are configured separately:
 
 - Control: `INPUT_INTERACT_OPTION1` (`0x760A9C6F`).
-- Prompt text: `VAR_STRING<string>(10, "LITERAL_STRING", "Recruit")`.
-- Ambient group label: `"NPC"`, passed as the `string` argument expected by the resolved ambient-group wrapper.
+- Prompt text: `"Recruit"` passed as a `string`.
+- Ambient group label: `"NPC"` passed as the `string` argument expected by the ambient-group wrapper.
 
 The test records prompt-level state (`UI_PROMPT_IS_ACTIVE`, `UI_PROMPT_IS_PRESSED`, and `UI_PROMPT_IS_JUST_PRESSED`) separately from raw control state (`IS_CONTROL_ENABLED`, `IS_CONTROL_PRESSED`, and `IS_CONTROL_JUST_PRESSED`).
 
-A native invocation or an active-state result does not prove the prompt was drawn. The in-game visual observation is still required. The existing log’s ambient-group wrapper signature ends in `System.String`; therefore, this test passes the group label directly rather than passing a `VAR_STRING` result.
+A native invocation or an active-state result does not prove the prompt was drawn. The in-game visual observation is still required. The existing ambient-group wrapper signature ends in `System.String`; therefore, the test passes the group label directly as a string.
 
 ## Target prompt group activation
 
