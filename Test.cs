@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using RDR2;
@@ -19,6 +18,10 @@ public class Test : Script
     private const bool IloShowApproachPrompt = true;
     private const int IloUnknownInt = -1;
 
+    private const float TargetSelectionDistance = 8.0f;
+    private const float TargetRetentionDistance = 9.0f;
+    private const int TargetScanIntervalMilliseconds = 500;
+
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
@@ -29,7 +32,9 @@ public class Test : Script
     private int _trackedTargetHandle;
     private int _iloRegisteredTargetHandle;
     private bool _iloRegistrationReturnedTrue;
-    private bool _gControlEnabled;
+    private bool _targetWasFocused;
+    private bool _hasScannedForTarget;
+    private DateTime _lastTargetScanUtc;
     private bool _generalErrorLogged;
     private bool _targetResolutionErrorLogged;
 
@@ -60,11 +65,14 @@ public class Test : Script
                 typeof(int)
             });
 
-        Log("=== Native ILO recruitment-label test initialized ===");
-        Log("This test registers the native ILO prompt text \"Recruit\" on the currently aimed/focused human NPC.");
-        Log("This test does not create a UI prompt, assign a prompt group, suppress controls, recruit an NPC, or change gang data.");
-        Log("The ILO native does not take a G/control argument. INPUT_INTERACT_OPTION1 is observed as a candidate input only.");
-        Log("ILO registration arguments: radius=" + IloRadius +
+        Log("=== ILO approach-prompt timing test initialized ===");
+        Log("This test registers the ILO on the nearest human NPC within " +
+            TargetSelectionDistance + " metres, before the NPC is aimed at.");
+        Log("The ILO radius is " + IloRadius +
+            " metres and its approach-prompt argument is true.");
+        Log("The test observes focus and INPUT_INTERACT_OPTION1, but does not " +
+            "create a UI prompt, bind a control, recruit an NPC, or change gang data.");
+        Log("Registration arguments: radius=" + IloRadius +
             "; focusDistance=" + IloFocusDistance +
             "; flags=" + IloFlags +
             "; unknownFloat1=" + IloUnknownFloat1 +
@@ -76,22 +84,23 @@ public class Test : Script
         LogResolvedMethod(
             "REGISTER_INTERACTION_LOCKON_PROMPT",
             _registerIloMethod);
+
         LogResolvedMethod(
             "UNREGISTER_INTERACTION_LOCKON_PROMPT",
             _unregisterIloMethod);
 
         if (_registerIloMethod == null)
         {
-            Log("ILO SETUP UNAVAILABLE: no compatible register wrapper was found in the loaded RDR2 API assembly.");
+            Log("ILO SETUP UNAVAILABLE: no compatible register wrapper was found.");
         }
 
         if (_unregisterIloMethod == null)
         {
-            Log("ILO CLEANUP UNAVAILABLE: no compatible unregister wrapper was found in the loaded RDR2 API assembly.");
+            Log("ILO CLEANUP UNAVAILABLE: no compatible unregister wrapper was found.");
         }
 
         RDR2.UI.Screen.PrintSubtitle(
-            "Native ILO test ready. Aim at a human NPC.");
+            "ILO test ready. Walk near a human NPC.");
 
         Tick += OnTick;
     }
@@ -100,8 +109,8 @@ public class Test : Script
     {
         try
         {
-            UpdateTrackedTarget();
-            SampleGControl();
+            UpdateNearbyTargetIfNeeded();
+            SampleFocusAndGControl();
         }
         catch (Exception exception)
         {
@@ -110,40 +119,180 @@ public class Test : Script
                 _generalErrorLogged = true;
                 Log("TEST ERROR: " + GetInnermostMessage(exception));
                 RDR2.UI.Screen.PrintSubtitle(
-                    "Native ILO test error. Check Test_Log.txt.");
+                    "ILO test error. Check Test_Log.txt.");
             }
         }
     }
 
-    private void UpdateTrackedTarget()
+    private void UpdateNearbyTargetIfNeeded()
     {
-        int targetHandle = GetCurrentHumanTargetHandle();
+        DateTime now = DateTime.UtcNow;
 
-        if (targetHandle == _trackedTargetHandle)
+        if (_hasScannedForTarget &&
+            (now - _lastTargetScanUtc).TotalMilliseconds <
+            TargetScanIntervalMilliseconds)
+        {
+            return;
+        }
+
+        _hasScannedForTarget = true;
+        _lastTargetScanUtc = now;
+
+        Ped selectedPed = FindNearbyHumanTarget();
+
+        int selectedHandle = 0;
+        if (selectedPed != null && selectedPed.Exists())
+        {
+            selectedHandle = selectedPed.Handle;
+        }
+
+        if (selectedHandle == _trackedTargetHandle)
         {
             return;
         }
 
         ClearTrackedTarget();
 
-        _trackedTargetHandle = targetHandle;
+        if (selectedHandle <= 0)
+        {
+            return;
+        }
 
+        _trackedTargetHandle = selectedHandle;
+
+        float distance = selectedPed.Position.DistanceTo(
+            Game.Player.Character.Position);
+
+        Log("HUMAN TARGET BEGIN: target=" + _trackedTargetHandle +
+            "; distance=" + distance +
+            "; freeFocusing=" + Game.Player.IsFreeFocusing +
+            "; registeredBeforeFocus=true");
+
+        RegisterIloForTarget(_trackedTargetHandle);
+    }
+
+    private Ped FindNearbyHumanTarget()
+    {
+        Ped playerPed = Game.Player.Character;
+
+        if (playerPed == null || !playerPed.Exists())
+        {
+            return null;
+        }
+
+        Ped[] worldPeds = World.GetAllPeds();
+
+        if (worldPeds == null)
+        {
+            return null;
+        }
+
+        Ped retainedPed = null;
+        Ped nearestPed = null;
+        float nearestDistance = TargetSelectionDistance + 1.0f;
+
+        foreach (Ped ped in worldPeds)
+        {
+            if (ped == null ||
+                !ped.Exists() ||
+                ped.Handle == playerPed.Handle ||
+                ped.IsDeadOrDying ||
+                !IsHumanEntity(ped.Handle))
+            {
+                continue;
+            }
+
+            float distance = ped.Position.DistanceTo(playerPed.Position);
+
+            if (ped.Handle == _trackedTargetHandle &&
+                distance <= TargetRetentionDistance)
+            {
+                retainedPed = ped;
+                continue;
+            }
+
+            if (distance <= TargetSelectionDistance &&
+                distance < nearestDistance)
+            {
+                nearestPed = ped;
+                nearestDistance = distance;
+            }
+        }
+
+        if (retainedPed != null)
+        {
+            return retainedPed;
+        }
+
+        return nearestPed;
+    }
+
+    private bool IsHumanEntity(int entityHandle)
+    {
+        if (entityHandle <= 0 ||
+            !RDR2.Native.ENTITY.DOES_ENTITY_EXIST(entityHandle))
+        {
+            return false;
+        }
+
+        return RDR2.Native.PED.IS_PED_HUMAN(entityHandle);
+    }
+
+    private void SampleFocusAndGControl()
+    {
         if (_trackedTargetHandle <= 0)
         {
             return;
         }
 
-        Log("HUMAN TARGET BEGIN: target=" + _trackedTargetHandle +
-            "; freeFocusing=" + Game.Player.IsFreeFocusing);
+        if (!RDR2.Native.ENTITY.DOES_ENTITY_EXIST(_trackedTargetHandle))
+        {
+            Log("TARGET NO LONGER EXISTS: target=" + _trackedTargetHandle);
+            ClearTrackedTarget();
+            return;
+        }
 
-        LogGControlAvailability(_trackedTargetHandle);
-        RegisterIloForTarget(_trackedTargetHandle);
+        int focusedTargetHandle = GetCurrentHumanTargetHandle();
+        bool targetIsFocused =
+            focusedTargetHandle == _trackedTargetHandle;
+
+        if (targetIsFocused != _targetWasFocused)
+        {
+            _targetWasFocused = targetIsFocused;
+
+            Log(targetIsFocused
+                ? "TRACKED TARGET FOCUS BEGIN: target=" + _trackedTargetHandle
+                : "TRACKED TARGET FOCUS END: target=" + _trackedTargetHandle);
+
+            if (targetIsFocused)
+            {
+                LogGControlAvailability(_trackedTargetHandle);
+            }
+        }
+
+        if (!targetIsFocused)
+        {
+            return;
+        }
+
+        bool pressed =
+            RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
+                ControlPadIndex,
+                InputInteractOption1);
+
+        if (pressed)
+        {
+            Log("G CANDIDATE JUST PRESSED: target=" +
+                _trackedTargetHandle +
+                "; name=INPUT_INTERACT_OPTION1" +
+                "; hash=0x" +
+                InputInteractOption1.ToString("X8") +
+                "; note=observed only; no recruitment action was executed");
+        }
     }
 
     private int GetCurrentHumanTargetHandle()
     {
-        int targetHandle = 0;
-
         try
         {
             if (Game.Player.IsFreeFocusing)
@@ -159,7 +308,8 @@ public class Test : Script
                             &focusedHandle);
                 }
 
-                if (foundFocusedTarget && IsHumanEntity(focusedHandle))
+                if (foundFocusedTarget &&
+                    IsHumanEntity(focusedHandle))
                 {
                     return focusedHandle;
                 }
@@ -169,11 +319,11 @@ public class Test : Script
 
             if (aimedEntity != null && aimedEntity.Exists())
             {
-                targetHandle = aimedEntity.Handle;
+                int aimedHandle = aimedEntity.Handle;
 
-                if (IsHumanEntity(targetHandle))
+                if (IsHumanEntity(aimedHandle))
                 {
-                    return targetHandle;
+                    return aimedHandle;
                 }
             }
         }
@@ -190,31 +340,11 @@ public class Test : Script
         return 0;
     }
 
-    private bool IsHumanEntity(int entityHandle)
-    {
-        if (entityHandle <= 0 ||
-            !RDR2.Native.ENTITY.DOES_ENTITY_EXIST(entityHandle))
-        {
-            return false;
-        }
-
-        Ped playerPed = Game.Player.Character;
-
-        if (playerPed != null &&
-            playerPed.Exists() &&
-            playerPed.Handle == entityHandle)
-        {
-            return false;
-        }
-
-        return RDR2.Native.PED.IS_PED_HUMAN(entityHandle);
-    }
-
     private void LogGControlAvailability(int targetHandle)
     {
         try
         {
-            _gControlEnabled =
+            bool enabled =
                 RDR2.Native.PAD.IS_CONTROL_ENABLED(
                     ControlPadIndex,
                     InputInteractOption1);
@@ -223,46 +353,13 @@ public class Test : Script
                 "; name=INPUT_INTERACT_OPTION1" +
                 "; hash=0x" +
                 InputInteractOption1.ToString("X8") +
-                "; enabled=" + _gControlEnabled +
+                "; enabled=" + enabled +
                 "; note=reported G mapping; not bound by the ILO native");
         }
         catch (Exception exception)
         {
-            _gControlEnabled = false;
-
             Log("G CONTROL AVAILABILITY ERROR: " +
                 GetInnermostMessage(exception));
-        }
-    }
-
-    private void SampleGControl()
-    {
-        if (_trackedTargetHandle <= 0)
-        {
-            return;
-        }
-
-        if (!RDR2.Native.ENTITY.DOES_ENTITY_EXIST(_trackedTargetHandle))
-        {
-            Log("TARGET NO LONGER EXISTS: target=" + _trackedTargetHandle);
-            ClearTrackedTarget();
-            return;
-        }
-
-        bool pressed =
-            RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
-                ControlPadIndex,
-                InputInteractOption1);
-
-        if (pressed)
-        {
-            Log("G CANDIDATE JUST PRESSED: target=" +
-                _trackedTargetHandle +
-                "; name=INPUT_INTERACT_OPTION1" +
-                "; hash=0x" +
-                InputInteractOption1.ToString("X8") +
-                "; controlEnabled=" + _gControlEnabled +
-                "; note=observed only; no recruitment action was executed");
         }
     }
 
@@ -303,6 +400,7 @@ public class Test : Script
             {
                 Log("ILO REGISTERED: target=" + targetHandle +
                     "; text=\"" + IloPromptText + "\"" +
+                    "; registeredBeforeFocus=true" +
                     "; note=true return does not prove the prompt rendered");
             }
         }
@@ -326,7 +424,7 @@ public class Test : Script
         UnregisterIlo();
 
         _trackedTargetHandle = 0;
-        _gControlEnabled = false;
+        _targetWasFocused = false;
     }
 
     private void UnregisterIlo()
@@ -388,15 +486,16 @@ public class Test : Script
         }
         catch (ReflectionTypeLoadException exception)
         {
-            List<Type> loadedTypes = new List<Type>();
+            System.Collections.Generic.List<Type> loadedTypes =
+                new System.Collections.Generic.List<Type>();
 
             if (exception.Types != null)
             {
-                for (int i = 0; i < exception.Types.Length; i++)
+                foreach (Type type in exception.Types)
                 {
-                    if (exception.Types[i] != null)
+                    if (type != null)
                     {
-                        loadedTypes.Add(exception.Types[i]);
+                        loadedTypes.Add(type);
                     }
                 }
             }
@@ -404,12 +503,8 @@ public class Test : Script
             apiTypes = loadedTypes.ToArray();
         }
 
-        for (int typeIndex = 0;
-            typeIndex < apiTypes.Length;
-            typeIndex++)
+        foreach (Type type in apiTypes)
         {
-            Type type = apiTypes[typeIndex];
-
             if (type == null)
             {
                 continue;
@@ -420,12 +515,8 @@ public class Test : Script
                 BindingFlags.NonPublic |
                 BindingFlags.Static);
 
-            for (int methodIndex = 0;
-                methodIndex < methods.Length;
-                methodIndex++)
+            foreach (MethodInfo method in methods)
             {
-                MethodInfo method = methods[methodIndex];
-
                 if (!string.Equals(
                     method.Name,
                     methodName,
@@ -443,12 +534,9 @@ public class Test : Script
 
                 bool matches = true;
 
-                for (int parameterIndex = 0;
-                    parameterIndex < parameters.Length;
-                    parameterIndex++)
+                for (int i = 0; i < parameters.Length; i++)
                 {
-                    if (parameters[parameterIndex].ParameterType !=
-                        parameterTypes[parameterIndex])
+                    if (parameters[i].ParameterType != parameterTypes[i])
                     {
                         matches = false;
                         break;
@@ -466,21 +554,15 @@ public class Test : Script
     }
 
     private void LogResolvedMethod(
-        string label,
+        string nativeName,
         MethodInfo method)
     {
         if (method == null)
         {
-            Log("NATIVE WRAPPER " + label + ": unavailable");
+            Log("NATIVE WRAPPER " + nativeName + ": not found");
             return;
         }
 
-        Log("NATIVE WRAPPER " + label + ": " +
-            FormatMethodSignature(method));
-    }
-
-    private static string FormatMethodSignature(MethodInfo method)
-    {
         ParameterInfo[] parameters = method.GetParameters();
         string signature = method.DeclaringType.FullName +
             "." + method.Name + "(";
@@ -496,15 +578,30 @@ public class Test : Script
         }
 
         signature += ") -> " + method.ReturnType.FullName;
-        return signature;
+
+        Log("NATIVE WRAPPER " + nativeName + ": " + signature);
     }
 
     private static string FormatResult(object result)
     {
-        return result == null
-            ? "null"
-            : result.GetType().FullName + ":" +
-              Convert.ToString(result);
+        if (result == null)
+        {
+            return "null";
+        }
+
+        return result.GetType().FullName + ":" + result;
+    }
+
+    private static string GetInnermostMessage(Exception exception)
+    {
+        Exception current = exception;
+
+        while (current.InnerException != null)
+        {
+            current = current.InnerException;
+        }
+
+        return current.GetType().FullName + ": " + current.Message;
     }
 
     private void Log(string message)
@@ -514,22 +611,5 @@ public class Test : Script
             "[" + DateTime.Now.ToString("HH:mm:ss.fff") + "] " +
             message +
             Environment.NewLine);
-    }
-
-    private static string GetInnermostMessage(Exception exception)
-    {
-        if (exception == null)
-        {
-            return "Unknown error.";
-        }
-
-        Exception current = exception;
-
-        while (current.InnerException != null)
-        {
-            current = current.InnerException;
-        }
-
-        return current.GetType().FullName + ": " + current.Message;
     }
 }
