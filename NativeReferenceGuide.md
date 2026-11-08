@@ -27,3 +27,15 @@ public unsafe static bool GET\_PLAYER\_TARGET\_ENTITY(
     int* entity
 );
 ```
+
+## Focused NPC prompt test: current evidence
+
+The user reports that the focused NPC showed a `G View` option and that pressing G appeared to trigger an animation. This is user-reported in-game evidence; the currently accessible `Test_Log.txt` is an earlier ILO timing log and does not record this prompt or animation.
+
+The test baseline uses `WARDROBE_INSPECT_PROMPT`. A visible `View` option supports the conclusion that a registered prompt-text key can render in the focused prompt UI. It does not prove that arbitrary custom text such as `Recruit` will render.
+
+External research describes `_UI_PROMPT_SET_GROUP` as the operation for assigning a prompt to a group. The project’s installed v2.2.0 wrapper signatures must still be confirmed from the updated test log or the local API reference.
+
+`INPUT_INTERACT_OPTION1` (`0x760A9C6F`) is listed as G on QWERTY PC and D-pad Up on Xbox. Confirm behavior in the active game control context.
+
+The current test’s press handler logs the prompt press and does not explicitly invoke an animation or recruitment action. Record the observed animation separately until a controlled test identifies its cause.
