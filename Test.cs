@@ -66,7 +66,7 @@ public class Test : Script
             string formattedPromptText =
                 RDR2.Native.MISC.VAR_STRING(
                     10,
-                    "LITERAL_STRING",
+                    "G",
                     PromptText);
 
             RDR2.Native.HUD._UI_PROMPT_SET_CONTROL_ACTION(
