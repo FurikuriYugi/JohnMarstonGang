@@ -1,17 +1,12 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using RDR2;
 
 public class Test : Script
 {
     private const uint InputInteractOption1 = 0x760A9C6Fu;
-    private const int PromptGroupId = 0x4A4D47;
-
-    // Existing game string key used only to test prompt rendering.
-    // This diagnostic intentionally does not use a custom "Recruit" string.
     private const string PromptTextKey = "CUTSCENE_SKIP";
-    private const string PromptGroupNameKey = "CUTSCENE_SKIP";
-
     private const float MaximumTargetDistance = 8.0f;
     private const int HeartbeatMilliseconds = 2000;
 
@@ -20,27 +15,34 @@ public class Test : Script
         "Test_Log.txt");
 
     private int _promptHandle;
-    private int _lastTargetHandle;
+    private int _lastObservedTargetHandle = int.MinValue;
+    private bool _lastObservedTargetIsHuman;
+    private bool _lastObservedTargetInRange;
+    private int _lastAssignedGroupId = int.MinValue;
+    private int _lastGroupTargetHandle = int.MinValue;
     private DateTime _lastHeartbeatUtc;
     private bool _lastPromptActive;
     private bool _hasLoggedPromptState;
+    private string _lastTargetError;
+    private string _lastGroupError;
+    private string _lastInputError;
+    private string _lastPromptError;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Registered-string prompt rendering diagnostic ===");
+        Log("=== Entity-focus prompt diagnostic ===");
         Log("Prompt text key: " + PromptTextKey);
-        Log("Prompt group-name key: " + PromptGroupNameKey);
-        Log("Prompt group ID: " + PromptGroupId);
         Log("Input control: INPUT_INTERACT_OPTION1; hash=0x" +
             InputInteractOption1.ToString("X8"));
-        Log("G input only logs an event. It does not recruit.");
+        Log("This test does not recruit. G is logged only.");
+        Log("Prompt is assigned to the focused entity's prompt group.");
 
         CreatePrompt();
 
         RDR2.UI.Screen.PrintSubtitle(
-            "Focus a nearby human NPC; check for the G prompt.");
+            "Focus a nearby human NPC; look for the diagnostic G prompt.");
 
         Tick += OnTick;
         Aborted += OnAborted;
@@ -75,11 +77,6 @@ public class Test : Script
             RDR2.Native.HUD._UI_PROMPT_REGISTER_END(
                 _promptHandle);
 
-            RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
-                _promptHandle,
-                PromptGroupId,
-                0);
-
             RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
                 _promptHandle,
                 false);
@@ -92,144 +89,290 @@ public class Test : Script
         }
         catch (Exception exception)
         {
-            Log("PROMPT CREATION ERROR: " + InnermostMessage(exception));
+            Log("PROMPT CREATION ERROR: " +
+                InnermostMessage(exception));
         }
     }
 
     private void OnTick(object sender, EventArgs e)
     {
+        bool rawControlJustPressed = false;
+
         try
         {
-            if (_promptHandle <= 0)
-            {
-                return;
-            }
-
-            int targetHandle = GetFocusedHumanTargetHandle();
-
-            if (targetHandle != _lastTargetHandle)
-            {
-                _lastTargetHandle = targetHandle;
-
-                if (targetHandle > 0)
-                {
-                    Log("FOCUSED HUMAN TARGET: " + targetHandle);
-                }
-                else
-                {
-                    Log("NO QUALIFYING FOCUSED HUMAN TARGET");
-                }
-            }
-
-            bool hasTarget = targetHandle > 0;
-
-            RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
-                _promptHandle,
-                hasTarget);
-
-            RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
-                _promptHandle,
-                hasTarget);
-
-            if (!hasTarget)
-            {
-                return;
-            }
-
-            // Active groups must be activated every frame they should display.
-            RDR2.Native.HUD._UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME(
-                PromptGroupId,
-                PromptGroupNameKey,
-                0,
-                0,
-                0,
-                0);
-
-            bool promptActive =
-                RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(_promptHandle);
-
-            if (!_hasLoggedPromptState ||
-                promptActive != _lastPromptActive)
-            {
-                _hasLoggedPromptState = true;
-                _lastPromptActive = promptActive;
-                Log("PROMPT STATE: active=" + promptActive);
-            }
-
-            bool controlJustPressed =
+            rawControlJustPressed =
                 RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
                     0,
                     InputInteractOption1);
 
-            bool promptJustPressed =
-                RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(
-                    _promptHandle);
-
-            if (controlJustPressed)
-            {
-                Log("RAW G-CONTROL PRESS DETECTED");
-            }
-
-            if (promptJustPressed)
-            {
-                Log("PROMPT PRESS DETECTED");
-            }
-
-            DateTime now = DateTime.UtcNow;
-            if (_lastHeartbeatUtc == DateTime.MinValue ||
-                (now - _lastHeartbeatUtc).TotalMilliseconds >=
-                    HeartbeatMilliseconds)
-            {
-                _lastHeartbeatUtc = now;
-
-                Log("HEARTBEAT: target=" + targetHandle +
-                    "; promptActive=" + promptActive +
-                    "; controlJustPressed=" + controlJustPressed +
-                    "; promptJustPressed=" + promptJustPressed);
-            }
+            _lastInputError = null;
         }
         catch (Exception exception)
         {
-            Log("TICK ERROR: " + InnermostMessage(exception));
+            LogErrorOnce(
+                ref _lastInputError,
+                "INPUT READ ERROR: " + InnermostMessage(exception));
+        }
+
+        Entity target;
+        int targetHandle;
+        bool targetIsHuman;
+        float targetDistance;
+
+        bool hasRawTarget = TryGetFocusedTarget(
+            out target,
+            out targetHandle,
+            out targetIsHuman,
+            out targetDistance);
+
+        bool targetInRange =
+            hasRawTarget &&
+            targetDistance >= 0.0f &&
+            targetDistance <= MaximumTargetDistance;
+
+        bool eligibleTarget =
+            hasRawTarget &&
+            targetIsHuman &&
+            targetInRange;
+
+        LogTargetStateIfChanged(
+            targetHandle,
+            targetIsHuman,
+            targetInRange,
+            targetDistance);
+
+        if (rawControlJustPressed)
+        {
+            Log("RAW G-CONTROL PRESS DETECTED; no action taken");
+        }
+
+        int targetGroupId = -1;
+        bool groupAssignedForCurrentTarget = false;
+
+        if (_promptHandle > 0 && eligibleTarget)
+        {
+            try
+            {
+                targetGroupId =
+                    RDR2.Native.HUD
+                        ._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
+                            targetHandle);
+
+                _lastGroupError = null;
+
+                if (targetGroupId >= 0)
+                {
+                    if (_lastGroupTargetHandle != targetHandle ||
+                        _lastAssignedGroupId != targetGroupId)
+                    {
+                        RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
+                            _promptHandle,
+                            targetGroupId,
+                            0);
+
+                        _lastGroupTargetHandle = targetHandle;
+                        _lastAssignedGroupId = targetGroupId;
+
+                        Log("PROMPT ASSIGNED TO ENTITY GROUP: target=" +
+                            targetHandle +
+                            "; group=" + targetGroupId);
+                    }
+
+                    groupAssignedForCurrentTarget =
+                        _lastGroupTargetHandle == targetHandle &&
+                        _lastAssignedGroupId == targetGroupId;
+                }
+                else
+                {
+                    LogErrorOnce(
+                        ref _lastGroupError,
+                        "GROUP LOOKUP RETURNED INVALID VALUE: " +
+                        targetGroupId);
+                }
+            }
+            catch (Exception exception)
+            {
+                LogErrorOnce(
+                    ref _lastGroupError,
+                    "GROUP LOOKUP/ASSIGNMENT ERROR: " +
+                    InnermostMessage(exception));
+            }
+        }
+
+        bool showPrompt =
+            _promptHandle > 0 &&
+            eligibleTarget &&
+            targetGroupId >= 0 &&
+            groupAssignedForCurrentTarget;
+
+        if (_promptHandle > 0)
+        {
+            try
+            {
+                RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
+                    _promptHandle,
+                    showPrompt);
+
+                RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
+                    _promptHandle,
+                    showPrompt);
+
+                bool promptActive =
+                    RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(
+                        _promptHandle);
+
+                bool promptJustPressed =
+                    RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(
+                        _promptHandle);
+
+                if (!_hasLoggedPromptState ||
+                    promptActive != _lastPromptActive)
+                {
+                    _hasLoggedPromptState = true;
+                    _lastPromptActive = promptActive;
+
+                    Log("PROMPT STATE: active=" + promptActive);
+                }
+
+                if (promptJustPressed)
+                {
+                    Log("PROMPT PRESS DETECTED; no action taken");
+                }
+
+                _lastPromptError = null;
+            }
+            catch (Exception exception)
+            {
+                LogErrorOnce(
+                    ref _lastPromptError,
+                    "PROMPT UPDATE ERROR: " +
+                    InnermostMessage(exception));
+            }
+        }
+
+        DateTime now = DateTime.UtcNow;
+
+        if (_lastHeartbeatUtc == DateTime.MinValue ||
+            (now - _lastHeartbeatUtc).TotalMilliseconds >=
+                HeartbeatMilliseconds)
+        {
+            _lastHeartbeatUtc = now;
+
+            Log(
+                "HEARTBEAT: rawTarget=" +
+                FormatTargetHandle(targetHandle) +
+                "; human=" + targetIsHuman +
+                "; distance=" + FormatDistance(targetDistance) +
+                "; inRange=" + targetInRange +
+                "; eligible=" + eligibleTarget +
+                "; group=" + targetGroupId +
+                "; groupAssigned=" + groupAssignedForCurrentTarget +
+                "; promptActive=" + _lastPromptActive +
+                "; rawG=" + rawControlJustPressed);
         }
     }
 
-    private int GetFocusedHumanTargetHandle()
+    private bool TryGetFocusedTarget(
+        out Entity target,
+        out int targetHandle,
+        out bool targetIsHuman,
+        out float targetDistance)
     {
+        target = null;
+        targetHandle = 0;
+        targetIsHuman = false;
+        targetDistance = -1.0f;
+
         try
         {
-            Entity target =
-                Game.Player.GetInteractionLockonTargetEntity();
+            target = Game.Player.GetInteractionLockonTargetEntity();
 
-            if (target == null ||
-                !target.Exists() ||
-                !RDR2.Native.PED.IS_PED_HUMAN(target.Handle))
+            if (target == null || !target.Exists())
             {
-                return 0;
+                _lastTargetError = null;
+                return false;
             }
+
+            targetHandle = target.Handle;
+
+            targetIsHuman =
+                RDR2.Native.PED.IS_PED_HUMAN(targetHandle);
 
             Ped playerPed = Game.Player.Character;
-            if (playerPed == null || !playerPed.Exists())
+
+            if (playerPed != null && playerPed.Exists())
             {
-                return 0;
+                targetDistance =
+                    target.Position.DistanceTo(playerPed.Position);
             }
 
-            float distance =
-                target.Position.DistanceTo(playerPed.Position);
-
-            if (distance > MaximumTargetDistance)
-            {
-                return 0;
-            }
-
-            return target.Handle;
+            _lastTargetError = null;
+            return true;
         }
         catch (Exception exception)
         {
-            Log("TARGET RESOLUTION ERROR: " +
+            target = null;
+            targetHandle = 0;
+            targetIsHuman = false;
+            targetDistance = -1.0f;
+
+            LogErrorOnce(
+                ref _lastTargetError,
+                "TARGET RESOLUTION ERROR: " +
                 InnermostMessage(exception));
-            return 0;
+
+            return false;
         }
+    }
+
+    private void LogTargetStateIfChanged(
+        int targetHandle,
+        bool targetIsHuman,
+        bool targetInRange,
+        float targetDistance)
+    {
+        if (targetHandle == _lastObservedTargetHandle &&
+            targetIsHuman == _lastObservedTargetIsHuman &&
+            targetInRange == _lastObservedTargetInRange)
+        {
+            return;
+        }
+
+        _lastObservedTargetHandle = targetHandle;
+        _lastObservedTargetIsHuman = targetIsHuman;
+        _lastObservedTargetInRange = targetInRange;
+
+        Log(
+            "TARGET STATE: rawTarget=" +
+            FormatTargetHandle(targetHandle) +
+            "; human=" + targetIsHuman +
+            "; distance=" + FormatDistance(targetDistance) +
+            "; inRange=" + targetInRange);
+    }
+
+    private string FormatTargetHandle(int targetHandle)
+    {
+        return targetHandle > 0
+            ? targetHandle.ToString()
+            : "none";
+    }
+
+    private string FormatDistance(float distance)
+    {
+        return distance >= 0.0f
+            ? distance.ToString("0.00", CultureInfo.InvariantCulture)
+            : "unknown";
+    }
+
+    private void LogErrorOnce(ref string lastError, string message)
+    {
+        if (lastError == message)
+        {
+            return;
+        }
+
+        lastError = message;
+        Log(message);
     }
 
     private void OnAborted(object sender, EventArgs e)
@@ -250,12 +393,14 @@ public class Test : Script
                 false);
 
             RDR2.Native.HUD._UI_PROMPT_DELETE(_promptHandle);
+
             Log("PROMPT DELETED");
             _promptHandle = 0;
         }
         catch (Exception exception)
         {
-            Log("CLEANUP ERROR: " + InnermostMessage(exception));
+            Log("CLEANUP ERROR: " +
+                InnermostMessage(exception));
         }
     }
 
@@ -275,7 +420,9 @@ public class Test : Script
     {
         File.AppendAllText(
             _logPath,
-            DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") +
+            DateTime.Now.ToString(
+                "yyyy-MM-dd HH:mm:ss.fff",
+                CultureInfo.InvariantCulture) +
             " " + message + Environment.NewLine);
     }
 }

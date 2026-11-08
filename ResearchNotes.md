@@ -2,40 +2,59 @@
 
 ## NPC recruitment prompt test
 
-Testing currently concerns the visual display of a G prompt while the player focuses a nearby human NPC. Pressing G must only be logged during this test; it must not recruit the NPC or alter gang membership.
+Testing currently concerns a native G-button prompt shown while the player focuses a nearby human NPC. Pressing G must only be logged during this test; it must not recruit the NPC or change gang membership.
 
-## Latest in-game result
+The present diagnostic uses the existing game string key `CUTSCENE_SKIP`. Its visible text is whatever the game associates with that key in the current localization. It is a prompt-rendering probe, not the desired final “Recruit” label.
 
-The dedicated active-group test ran, but no **G Recruit** prompt was visible.
+## Latest in-game report
 
-This result does not establish that the active-group mechanism itself failed. The test assigned the custom text `"Recruit"` to the prompt, and that text was not a valid diagnostic for this API.
+The player locked onto an NPC and pressed G; no “Recruit” option appeared. That is not a successful recruitment-prompt test: the current test deliberately does not display “Recruit” and does not implement recruitment.
 
-## Corrected diagnosis: custom prompt text
+The checked-in log previously recorded prompt creation but did not record target or input activity after startup. The prior test only checked G after it had accepted a target and returned early when no qualifying target was found. This made it impossible to tell from the log whether target resolution, input detection, or prompt rendering was failing.
 
-RDR2 prompt research says prompt text must be supplied as a `VAR_STRING`. It gives `VAR_STRING`/`CreateVarString` examples for creating prompt text and for active-group labels.
+## Prompt text limitation
 
-ScriptHookRDR2DotNet-V2 has an open issue documenting that `_UI_PROMPT_SET_TEXT` does not work reliably with custom strings. The issue reports that the prompt text works only when the supplied string is already present in the game's string database. Therefore, passing a C# string literal such as `"Recruit"` to the generated wrapper does not prove that the game can display that text.
+RDR2 prompt research describes prompt text as a game `VAR_STRING`. However, the ScriptHookRDR2DotNet-V2 issue about custom prompt text reports that `_UI_PROMPT_SET_TEXT` accepts text reliably only when the string is already present in the game's string database. Passing a C# literal such as `"Recruit"` is therefore not a reliable way to test whether a prompt group is visible.
 
-The previous test incorrectly treated the wrapper's `string` parameter as proof that arbitrary text was supported. That conclusion was wrong. Its result cannot be used to reject the active-group approach.
+Use a known game string key to test prompt rendering separately from support for a custom recruitment label. Do not claim the final “G Recruit” label works until a custom-string route has been established and tested.
 
-## Current diagnostic
+## Correct group mechanism for a focused entity
 
-The revised test uses the registered game string key `CUTSCENE_SKIP` as a rendering probe, rather than a custom `"Recruit"` label. It continues to use:
+For a prompt that should appear when an entity is focused, assign the prompt to that entity's prompt group:
 
-- `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) for the G control.
-- A dedicated prompt group (`0x4A4D47`).
-- `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` while a nearby human NPC is focused.
-- Both prompt-level and raw-control input logging.
+1. Get the focused entity's group with `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY`.
+2. Assign the prompt to that group with `_UI_PROMPT_SET_GROUP`.
+3. Enable and show the prompt while the eligible entity is focused.
+4. Hide or disable the prompt when there is no eligible focused entity.
 
-This diagnostic tests whether a registered prompt label can render in the custom active group. It does **not** test the desired final `"Recruit"` label. The visible text for `CUTSCENE_SKIP` is whatever the current game localization associates with that key.
+The earlier diagnostic called `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` for a manually chosen group. That active-group approach is not the entity-specific focus-group pattern described in the prompt research, so the new test uses the focused entity's group instead.
 
-## Interpretation of the next result
+## Current diagnostic behavior
 
-- If the registered-string prompt appears, the active group can render; the blocker is custom prompt text.
-- If it still does not appear, check `Test_Log.txt` for target resolution, prompt creation, prompt active state, and runtime errors. The result then points to an additional group/visibility issue.
-- A raw G-control event without a visible prompt means input detection works but does not establish successful rendering.
+The current `Test.cs`:
 
-Do not claim recruitment works until a separate test implements and verifies recruitment.
+- Registers one prompt using the existing game key `CUTSCENE_SKIP`.
+- Uses `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) as the prompt control.
+- Reads the interaction-lock-on target every tick and logs changes, including no-target state.
+- Logs G control presses independently of target detection and prompt visibility.
+- Checks for a human target within 8.0 game units before showing the diagnostic prompt.
+- Gets the target's prompt group and assigns the prompt to it.
+- Logs prompt active state, group assignment, target properties, and a heartbeat every two seconds.
+- Does not recruit the target or modify gang state.
+
+The control is a game control, not a hard-coded keyboard key. The displayed key depends on the player's current control mapping and input device.
+
+## Interpreting the next test
+
+- `TARGET STATE: rawTarget=none` throughout the lock-on attempt means the ScriptHook interaction-lock-on target getter is not returning a target in that situation.
+- A target handle with `human=false` or `inRange=false` means the candidate is being rejected by the diagnostic's eligibility checks.
+- `GROUP LOOKUP/ASSIGNMENT ERROR` indicates a group-native or wrapper problem.
+- `groupAssigned=true` with `promptActive=false` means a target and group were found, but the game did not activate the prompt.
+- `promptActive=true` means the game considers the prompt active; check whether the known game label is visible.
+- `RAW G-CONTROL PRESS DETECTED` confirms the selected control was detected. It does not mean the prompt was visible or recruitment succeeded.
+- The absence of “Recruit” is expected in this test. The diagnostic is not a recruitment implementation.
+
+Do not claim recruitment works until a separate test displays the intended label and verifies the recruitment action.
 
 ## Storyboard
 
