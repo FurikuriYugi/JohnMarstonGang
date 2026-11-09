@@ -805,4 +805,15 @@ void FUN_180019634(longlong param_1){
                     /* WARNING: Subroutine does not return */
   _CxxThrowException(local_28,(ThrowInfo *)&DAT_180062300);
 }
+
+void FUN_180014a30(uint *param_1){
+  *(undefined1 *)((longlong)param_1 + 5) = 1;
+  FUN_180014a40(param_1);
+  return;
+}
+
+uint * FUN_180014510(uint *param_1,__uint64 param_2,uint param_3){
+  FUN_180014530(param_1,param_2,param_3,0);
+  return param_1;
+}
 ```
