@@ -10,9 +10,17 @@ public class Test : Script
     private const int PromptAttribute = 0x12;
     private const string PromptText = "Recruit";
 
-    // Next run: use the VAR_STRING result as the text input to the
-    // same _UI_PROMPT_SET_TEXT wrapper used by the direct-string run.
-    private const bool UseVarStringResult = true;
+    // Run once with true, then set false and repeat with the same test conditions.
+    private const bool UsePromptHandleForIlo = true;
+
+    // Controlled test values; keep identical between the true/false runs.
+    private const float IloRadius = 3.0f;
+    private const float IloFocusDistance = 3.0f;
+    private const int IloFlag = 0;
+    private const float IloP5 = 0.0f;
+    private const float IloP6 = 0.0f;
+    private const bool ShowIloApproachPrompt = false;
+    private const int IloP9 = -1;
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -21,6 +29,8 @@ public class Test : Script
     private int _promptHandle;
     private int _targetHandle;
     private int _targetGroupId = -1;
+    private bool _iloRegistrationAttempted;
+    private bool _iloRegistered;
     private bool _hasLoggedActiveState;
     private bool _lastActiveState;
 
@@ -28,12 +38,19 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== G Recruit VAR_STRING prompt-text test ===");
-        Log("Prompt label input: " + PromptText);
-        Log("UseVarStringResult: " + UseVarStringResult);
+        Log("=== G Recruit ILO prompt-argument test ===");
+        Log("Prompt label: " + PromptText);
         Log("Control: INPUT_INTERACT_OPTION1 (G).");
+        Log("UsePromptHandleForIlo: " + UsePromptHandleForIlo);
+        Log(
+            "ILO settings: radius=" + IloRadius +
+            "; focusDistance=" + IloFocusDistance +
+            "; flag=" + IloFlag +
+            "; p5=" + IloP5 +
+            "; p6=" + IloP6 +
+            "; showApproachPrompt=" + ShowIloApproachPrompt +
+            "; p9=" + IloP9);
         Log("Prompt-display test only; no recruitment or gang changes.");
-        Log("No ILO registration or ped prompt-name changes.");
 
         Tick += OnTick;
         Aborted += OnAborted;
@@ -88,29 +105,20 @@ public class Test : Script
             _promptHandle = promptHandle;
             _targetHandle = targetHandle;
             _targetGroupId = -1;
+            _iloRegistrationAttempted = false;
+            _iloRegistered = false;
             _hasLoggedActiveState = false;
 
             RDR2.Native.HUD._UI_PROMPT_SET_CONTROL_ACTION(
                 promptHandle,
                 InputInteractOption1);
 
-            string textToSet;
+            string textToSet = RDR2.Native.MISC.VAR_STRING(
+                10,
+                "LITERAL_STRING",
+                PromptText);
 
-            if (UseVarStringResult)
-            {
-                textToSet =
-                    RDR2.Native.MISC.VAR_STRING(
-                        10,
-                        "LITERAL_STRING",
-                        PromptText);
-
-                Log("VAR_STRING RESULT: " + textToSet);
-            }
-            else
-            {
-                textToSet = PromptText;
-                Log("DIRECT MANAGED TEXT: " + textToSet);
-            }
+            Log("VAR_STRING RESULT: " + textToSet);
 
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 promptHandle,
@@ -176,11 +184,54 @@ public class Test : Script
                 true);
 
             Log("PROMPT VISIBLE, THEN ENABLED.");
+
+            RegisterIloForTarget(
+                targetHandle,
+                promptHandle);
         }
         catch (Exception exception)
         {
             Log("PROMPT SETUP ERROR: " + InnermostMessage(exception));
             DeleteCurrentPrompt();
+        }
+    }
+
+    private void RegisterIloForTarget(
+        int targetHandle,
+        int promptHandle)
+    {
+        int promptArgument = UsePromptHandleForIlo
+            ? promptHandle
+            : 0;
+
+        try
+        {
+            _iloRegistrationAttempted = true;
+
+            _iloRegistered =
+                RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                    targetHandle,
+                    PromptText,
+                    IloRadius,
+                    IloFocusDistance,
+                    IloFlag,
+                    IloP5,
+                    IloP6,
+                    promptArgument,
+                    ShowIloApproachPrompt,
+                    IloP9);
+
+            Log(
+                "ILO REGISTER RESULT: target=" +
+                targetHandle +
+                "; promptArgument=" +
+                promptArgument +
+                "; returned=" +
+                _iloRegistered);
+        }
+        catch (Exception exception)
+        {
+            Log("ILO REGISTER ERROR: " + InnermostMessage(exception));
         }
     }
 
@@ -234,8 +285,9 @@ public class Test : Script
         try
         {
             groupId =
-                RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
-                    targetHandle);
+                RDR2.Native.HUD
+                    ._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
+                        targetHandle);
 
             Log(
                 "TARGET GROUP LOOKUP AFTER REGISTRATION: target=" +
@@ -312,10 +364,33 @@ public class Test : Script
         {
             _targetHandle = 0;
             _targetGroupId = -1;
+            _iloRegistrationAttempted = false;
+            _iloRegistered = false;
             return;
         }
 
         int promptHandle = _promptHandle;
+        int targetHandle = _targetHandle;
+
+        if (_iloRegistrationAttempted && targetHandle > 0)
+        {
+            try
+            {
+                bool unregistered =
+                    RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(
+                        targetHandle);
+
+                Log(
+                    "ILO UNREGISTER RESULT: target=" +
+                    targetHandle +
+                    "; returned=" +
+                    unregistered);
+            }
+            catch (Exception exception)
+            {
+                Log("ILO UNREGISTER ERROR: " + InnermostMessage(exception));
+            }
+        }
 
         try
         {
@@ -357,6 +432,8 @@ public class Test : Script
         _promptHandle = 0;
         _targetHandle = 0;
         _targetGroupId = -1;
+        _iloRegistrationAttempted = false;
+        _iloRegistered = false;
         _hasLoggedActiveState = false;
     }
 
