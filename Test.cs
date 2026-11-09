@@ -11,7 +11,7 @@ public class Test : Script
     private const string PromptText = "Recruit";
 
     // Run once with true, then set false and repeat with the same test conditions.
-    private const bool UsePromptHandleForIlo = false;
+    private const bool UsePromptHandleForIlo = true;
 
     // Controlled test values; keep identical between the true/false runs.
     private const float IloRadius = 3.0f;
@@ -19,7 +19,7 @@ public class Test : Script
     private const int IloFlag = 0;
     private const float IloP5 = 0.0f;
     private const float IloP6 = 0.0f;
-    private const bool ShowIloApproachPrompt = false;
+    private const bool ShowIloApproachPrompt = true;
     private const int IloP9 = -1;
 
     private readonly string _logPath = Path.Combine(
