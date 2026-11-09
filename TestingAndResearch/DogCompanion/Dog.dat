@@ -1,0 +1,10 @@
+bonding_level=1
+fetch_range_max=70
+fetch_range_min=20
+health_core=75
+max_health=400
+model=626176009
+name=Koon
+preset_index=1
+whistling_range=220
+will_attack_predators=1
