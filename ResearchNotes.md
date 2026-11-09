@@ -1,92 +1,89 @@
 # Research Notes
 
-This file tracks goals, tests, instrumented results, user observations, conclusions, and next steps. Keep log evidence separate from visual user observations. Do not repeat a test under unchanged conditions.
+This file tracks the objective, reverse-engineering evidence, tests, runtime logs, user observations, conclusions, and next steps. Keep log evidence separate from visual observations. Do not treat prompt-active state or input detection as proof that text rendered in the menu.
 
 ## Current objective
 
-Add **G Recruit** to the unarmed lock-on menu for a focused human NPC. This is a prompt-display test only: pressing G must not recruit the NPC or change gang membership.
+Display **G Recruit** as an action prompt in the unarmed lock-on menu for a focused human NPC. This is a prompt-display test only. Pressing G must not recruit the NPC or change gang membership.
 
 ## Current status
 
-The latest tested version combined a standard G prompt with ILO registration using `prompt=0`. `Test_Log.txt` dated `2026-11-08 22:38` records ILO registration, target-group assignment, visible/enabled calls, and the prompt becoming active. The user reported that **G Recruit did not appear** in the unarmed lock-on menu.
+The user reports that **G Recruit did not appear** in the unarmed lock-on menu.
 
-The `prompt=0` ILO test did not solve the display problem. The earlier ILO-handle test also failed visually. Do not repeat either ILO variant unchanged.
+The latest checked-in `Test_Log.txt` records prompt creation, target-group assignment, visible/enabled calls, and the prompt becoming active. Those log entries do not establish that the prompt text rendered.
 
-The next test removes ILO registration and tests only the Dog Companion standard-prompt path: create with `VAR_STRING`, assign the focused target’s prompt group, then set visible and enabled. It does not change the ped’s displayed name or add an outer-radius label. This test has not yet been built or run.
+The current `Test.cs` created and registered the prompt, then assigned it to the target’s group. However, it looked up the target’s group before prompt construction. The Dog Companion trace constructs/registers its prompt first, then obtains and assigns the target group.
 
-## Established test findings
+A replacement `Test.cs` has been prepared to follow that order. It passes the literal `Recruit` through `VAR_STRING(10, "LITERAL_STRING", PromptText)`, sets the returned text on the prompt, registers it, then looks up and assigns the focused target’s group, and finally makes the prompt visible and enabled.
+
+**The replacement has not been built or run. No new runtime or visual result is recorded.**
+
+## Dog Companion Ghidra findings
+
+The source is `TestingAndResearch/DogCompanion/GhidraTrace.md`, cross-checked against `NativeReferenceGuide.md`.
+
+- Dog Companion’s language file is `Lang.dat`, beside `DogCompanion.asi`.
+- The relevant entry is `interaction.accompany.promptLabel=Bond`.
+- In `FUN_180008370`, Dog Companion resolves that key with `FUN_18000bb90(...)`.
+- It passes the resolved label and a control hash to `FUN_180014510(...)`.
+- `FUN_180014510` calls the prompt factory in standard mode.
+- The factory’s prompt-construction path formats the text with `VAR_STRING(10, "LITERAL_STRING", text)`, passes the result to `_UI_PROMPT_SET_TEXT`, initializes the prompt group to `(0, 0)`, sets standard mode and attribute `0x12 = 1`, and ends registration.
+- After the factory returns, Dog Companion calls `FUN_180014980(prompt, entity)`. That helper obtains the entity’s prompt group and assigns it to the prompt.
+- Dog Companion then makes the prompt visible and enabled, in that order.
+- This traced path does not show `REGISTER_INTERACTION_LOCKON_PROMPT`.
+
+The replacement test reconstructs this sequence with the literal `Recruit`. It does not call Dog Companion’s private helper.
+
+## Test history and observations
 
 ### Focused target and group
 
+Earlier tests established that:
+
 - `PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY` found the focused target in the tested scenario.
 - `PED.IS_PED_HUMAN` identified the tested NPC as human.
-- `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY` returned the target’s prompt group.
+- `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY` returned a group ID.
 - `_UI_PROMPT_SET_GROUP` assigned the test prompt to that group.
-- The active-page query changed from `-1` to `0` in earlier logged tests.
-- Active-page and prompt-active results do not prove that the prompt was visibly rendered.
+- Prompt-active and active-page results did not prove visible rendering.
 
-### Earlier `VAR_STRING` test
+### Earlier `VAR_STRING` and screen-display comparison
 
-`Test_Log.txt` dated `2026-11-08 13:16` records prompt creation, a focused human target, prompt assignment to the target’s group, and an active-page transition. It contains no G input or prompt-pressed entry.
+A screen-display comparison passed `VAR_STRING(10, "LITERAL_STRING", "Recruit")` to `UI._DISPLAY_TEXT`.
 
-**User observation:** `Recruit` did not appear in the menu.
+**User observation:** `Recruit` appeared near the top center of the screen, not in the prompt menu.
 
-**Conclusion:** That test did not establish that `VAR_STRING` text rendered in the prompt menu or that G activated the prompt.
-
-### Screen-display comparison
-
-The test passed `VAR_STRING(10, "LITERAL_STRING", "Recruit")` to `UI._DISPLAY_TEXT` while a human target was focused.
-
-**User observation:** `Recruit` appeared near the top center of the screen; it did not appear in the prompt menu.
-
-**Conclusion:** The string was visible through the screen-display path in that run. This does not establish that it will display through `_UI_PROMPT_SET_TEXT`.
-
-**Do not repeat:** This screen-display comparison.
+This demonstrates the screen-display path for that test only. It does not establish prompt-menu rendering.
 
 ### Registered-label and focused-ped tests
 
-- A registered-label test used `CUTSCENE_SKIP` with G.
-- Logs recorded a focused target, group assignment, active-page transition, active prompt state, raw G input, and a prompt-pressed event.
-- The user reported that **G Skip did not appear** in the unarmed lock-on menu.
-- `_SET_PED_PROMPT_NAME` made the focused NPC name display as **Recruit** in the tested setup. The user also saw **Recruit** as the outer-radius label.
-- The action prompt still did not visibly appear.
+A registered-label test used `CUTSCENE_SKIP` with G. Logs recorded a focused target, group assignment, active-page transition, active prompt state, raw G input, and a prompt-pressed event.
 
-These are separate display elements. The focused-ped name and outer-radius label are not evidence that the action prompt rendered.
+**User observation:** G Skip did not appear in the unarmed lock-on menu.
+
+`_SET_PED_PROMPT_NAME` also made the focused NPC name display as `Recruit` in the tested setup, and the user saw `Recruit` as the outer-radius label. Those are separate display elements and are not evidence that the action prompt rendered.
 
 ### ILO prompt-handle test
 
-`Test_Log.txt` dated `2026-11-08 17:05` records:
+`Test_Log.txt` dated `2026-11-08 17:05` records a created prompt handle, a focused human target, successful ILO registration using the handle, target-group assignment, an active-page change, an active prompt, raw G input, and a prompt-pressed event.
 
-- Created G prompt handle `189442`.
-- Focused human target `184322`.
-- ILO registration succeeded with handle `189442` as the prompt argument.
-- The prompt was assigned to group `268566577`.
-- The group’s active page changed from `-1` to `0`.
-- The prompt became active; raw G input and `G PROMPT PRESSED` were logged.
-
-**User observation:** **G Skip did not appear.**
-
-**Conclusion:** The handle variant did not produce a visible action prompt under the tested conditions. Registration, active-page, active-prompt, and input logs do not prove visible rendering.
-
-**Do not repeat:** The same ILO-handle test unchanged.
+**User observation:** G Skip did not appear.
 
 ### ILO `prompt=0` test
 
-`Test_Log.txt` dated `2026-11-08 22:38` records:
+`Test_Log.txt` dated `2026-11-08 22:38` records ILO registration with `promptArg=0`, target-group assignment, visible/enabled calls, and the prompt becoming active.
 
-- ILO registration for target `203266`, with `promptArg=0`.
-- Prompt group `268566611` assigned to that target.
-- Visible and enabled state applied.
-- Prompt active state changed from `false` to `true`.
+**User observation:** G Recruit did not appear.
 
-**User observation:** **G Recruit did not appear** in the unarmed lock-on menu.
+Do not repeat either ILO variant unchanged.
 
-**Conclusion:** The `prompt=0` ILO variant did not produce a visible action prompt under the tested conditions. Do not treat successful registration or active state as proof of rendering.
+### Standard-prompt test log
 
-### Dog Companion Ghidra findings
+The checked-in `Test_Log.txt` dated `2026-11-09 11:02–11:03` records a standard G Recruit prompt, target-group assignment, visible/enabled calls, and an active-state change from false to true.
 
-The user reports that Dog Companion displays **B Bond**. Its `Lang.data` file, beside `DogCompanion.asi`, contains:
+**User observation:** G Recruit did not appear in the unarmed lock-on menu.
 
-```text
-interaction.accompany.promptLabel=Bond
-```
+The log does not report a visible rendering result; preserve the user observation separately from the runtime state.
+
+## Next step
+
+Build and run the replacement `Test.cs`. Record the fresh log and the user’s visual observation separately. Do not infer visibility from prompt creation, group assignment, active state, or input detection. Do not add recruitment behavior as part of this display test.

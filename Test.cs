@@ -24,12 +24,12 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Focus-triggered Dog Companion sequence: G Recruit ===");
-        Log("Prompt label: " + PromptText);
-        Log("Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F.");
-        Log("No ILO registration; no ped prompt-name change; no outer-radius label.");
-        Log("Display-only test: pressing G does not recruit or change gang membership.");
-        Log("Prompt will be created only after a focused human and target group are found.");
+        Log("=== Dog Companion factory-order reproduction: G Recruit ===");
+        Log("Prompt label input: " + PromptText);
+        Log("Text path: VAR_STRING(10, \"LITERAL_STRING\", PromptText) -> _UI_PROMPT_SET_TEXT.");
+        Log("Prompt-display test only; no recruitment or gang-membership changes.");
+        Log("No ILO registration and no ped prompt-name or outer-radius-label changes.");
+        Log("Target prompt group will be queried after prompt registration.");
 
         Tick += OnTick;
         Aborted += OnAborted;
@@ -54,23 +54,14 @@ public class Test : Script
             return;
         }
 
-        int groupId;
-        if (!TryGetTargetPromptGroup(targetHandle, out groupId))
-        {
-            DeleteCurrentPrompt();
-            LogRawGPress();
-            return;
-        }
-
         bool targetChanged =
             _promptHandle <= 0 ||
-            _targetHandle != targetHandle ||
-            _targetGroupId != groupId;
+            _targetHandle != targetHandle;
 
         if (targetChanged)
         {
             DeleteCurrentPrompt();
-            CreatePromptForTarget(targetHandle, groupId);
+            CreatePromptForTarget(targetHandle);
         }
 
         if (_promptHandle > 0)
@@ -82,7 +73,7 @@ public class Test : Script
         LogRawGPress();
     }
 
-    private void CreatePromptForTarget(int targetHandle, int groupId)
+    private void CreatePromptForTarget(int targetHandle)
     {
         try
         {
@@ -96,27 +87,33 @@ public class Test : Script
             }
 
             _promptHandle = promptHandle;
+            _targetHandle = targetHandle;
+            _targetGroupId = -1;
+            _hasLoggedActiveState = false;
 
             RDR2.Native.HUD._UI_PROMPT_SET_CONTROL_ACTION(
                 promptHandle,
                 InputInteractOption1);
 
-            string text = RDR2.Native.MISC.VAR_STRING(
+            string formattedText = RDR2.Native.MISC.VAR_STRING(
                 10,
                 "LITERAL_STRING",
                 PromptText);
 
+            Log("VAR_STRING RESULT: " + formattedText);
+
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 promptHandle,
-                text);
+                formattedText);
 
-            // Dog Companion's factory initializes group (0, 0).
+            Log("PROMPT TEXT SET: " + PromptText);
+
+            // Match Dog Companion's prompt-factory setup.
             RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 promptHandle,
                 0,
                 PromptGroupTab);
 
-            // Dog Companion calls FUN_180014510 with mode 0 (standard).
             RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
                 promptHandle,
                 true);
@@ -130,33 +127,37 @@ public class Test : Script
                 promptHandle);
 
             Log(
-                "PROMPT CREATED FOR FOCUSED TARGET: handle=" +
+                "PROMPT REGISTERED: handle=" +
                 promptHandle +
                 "; target=" +
                 targetHandle +
-                "; group=" +
-                groupId +
                 "; standard mode; attribute=0x12:true");
 
-            // Dog Companion assigns the entity's group after register-end.
+            // Dog Companion obtains and assigns the target's prompt group
+            // after its prompt factory returns.
+            int groupId;
+            if (!TryGetTargetPromptGroup(targetHandle, out groupId))
+            {
+                DeleteCurrentPrompt();
+                return;
+            }
+
             RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 promptHandle,
                 groupId,
                 PromptGroupTab);
 
-            _targetHandle = targetHandle;
             _targetGroupId = groupId;
-            _hasLoggedActiveState = false;
 
             Log(
-                "PROMPT GROUP ASSIGNED: target=" +
+                "TARGET GROUP ASSIGNED: target=" +
                 targetHandle +
                 "; group=" +
                 groupId +
                 "; tab=" +
                 PromptGroupTab);
 
-            // Match Dog Companion's show-then-enable sequence.
+            // Match Dog Companion's show-then-enable order.
             RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
                 promptHandle,
                 true);
@@ -165,14 +166,11 @@ public class Test : Script
                 promptHandle,
                 true);
 
-            Log("PROMPT VISIBLE-THEN-ENABLED STATE: True");
+            Log("PROMPT VISIBLE, THEN ENABLED.");
         }
         catch (Exception exception)
         {
-            Log(
-                "PROMPT SETUP ERROR: " +
-                InnermostMessage(exception));
-
+            Log("PROMPT SETUP ERROR: " + InnermostMessage(exception));
             DeleteCurrentPrompt();
         }
     }
@@ -229,6 +227,12 @@ public class Test : Script
             groupId =
                 RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
                     targetHandle);
+
+            Log(
+                "TARGET GROUP LOOKUP AFTER REGISTRATION: target=" +
+                targetHandle +
+                "; group=" +
+                groupId);
 
             if (groupId < 0)
             {
