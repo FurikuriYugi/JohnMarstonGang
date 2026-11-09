@@ -28,19 +28,19 @@ If the repository cannot be accessed, wait a moment and try again, if not, try a
 
 ### Testing mode
 - Focus on the current test files, test logs, and relevant API/native references.
-- Do not change `StoryBoard.md`.
-- Record new findings in `ResearchNotes.md` and `NativeReferenceGuide.md`.
-- Logs and `Test.cs` may be ahead of the documentation; check them first.
+- Do not change `StoryBoard.md` and don't look at any other files than the test files and documents.
+- Record new findings in `ResearchNotes.md` and `NativeReferenceGuide.md`.  NativeReferenceGuide.md is for mapping ScriptHook and is legacy now that we have mapped the ScriptHook API totally. Pending review and removal, discuss in the next session.
+- Logs and `Test.cs` will usually be ahead of the documentation; check them first.
 
 ### Development mode
 - Consult and maintain `StoryBoard.md` while designing or building features.
-- Also update `ResearchNotes.md` and `NativeReferenceGuide.md` when new information is learned.
+- Also update `ResearchNotes.md` and `NativeReferenceGuide.md` (See Testing mode for discussion on this file) when new information is learned.
 
 ## 4. Code and File Output Rules
 
 - When I ask you to update, give, or fix code/files, provide the result in chat so I can update the repository.
 - Before providing code, inspect the relevant current files in the repository.
-- Provide complete updated files, not partial code or pseudocode.
+- Provide complete updated files, not partial code or pseudo-code.
 - Exclude namespace declarations when giving code because files are handled individually.
 - Do not use `System.Text.Json`; use Newtonsoft.Json instead.
 - Treat each owning file as the source of truth for its members and elements. Make requesting files match that contract exactly unless I explicitly say otherwise.
@@ -115,7 +115,7 @@ We are testing how to add **G Recruit** to the unarmed lock-on menu. This is a p
 
 ## Current research direction
 
-Ghidra analysis of Dog Companion found that its B Bond prompt uses a standard prompt built with `VAR_STRING`, assigned to the target entity’s prompt group, then shown and enabled. The new test should mirror that path and record its visual result. See `ResearchNotes.md` and `NativeReferenceGuide.md`.
+Ghidra analysis of Dog Companion found that its B Bond prompt uses a standard prompt built with `VAR_STRING`, assigned to the target entity’s prompt group, then shown and enabled. The new test should mirror that path and record its visual result. See `ResearchNotes.md` and `NativeReferenceGuide.md` (See Testing mode for discussion on this file).
 
 ### Latest user-verified result
 
