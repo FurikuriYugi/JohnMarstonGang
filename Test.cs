@@ -10,10 +10,9 @@ public class Test : Script
     private const int PromptAttribute = 0x12;
     private const string PromptText = "Recruit";
 
-    // Run once as false, then as true for the comparison.
-    // false: pass "Recruit" directly to _UI_PROMPT_SET_TEXT.
-    // true:  pass VAR_STRING(10, "LITERAL_STRING", "Recruit")'s result.
-    private const bool UseVarStringResult = false;
+    // Next run: use the VAR_STRING result as the text input to the
+    // same _UI_PROMPT_SET_TEXT wrapper used by the direct-string run.
+    private const bool UseVarStringResult = true;
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
@@ -29,7 +28,7 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== G Recruit prompt text-path comparison ===");
+        Log("=== G Recruit VAR_STRING prompt-text test ===");
         Log("Prompt label input: " + PromptText);
         Log("UseVarStringResult: " + UseVarStringResult);
         Log("Control: INPUT_INTERACT_OPTION1 (G).");

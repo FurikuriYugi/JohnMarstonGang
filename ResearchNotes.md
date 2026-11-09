@@ -4,36 +4,25 @@
 
 Display **G Recruit** in the unarmed lock-on menu when the player focuses on a human NPC.
 
-This is a prompt-display test only. Pressing the prompt must not recruit the NPC or alter gang membership. G is the chosen control; control selection is not the current issue.
+This is a prompt-display test only. Pressing G must not recruit the NPC or change gang membership. Control choice is not the current issue.
 
 ## Current status
 
-The latest previously checked-in `Test_Log.txt` records a standard prompt being created, assigned to a focused target's prompt group, made visible and enabled, and becoming active. It also records `VAR_STRING` returning `Recruit`.
+The latest checked-in `Test.cs` is a prompt-text comparison test. It has a `UseVarStringResult` switch:
 
-The user reports that **G Recruit did not appear** in the unarmed lock-on menu.
+- `false`: pass `"Recruit"` directly to `_UI_PROMPT_SET_TEXT`.
+- `true`: call `VAR_STRING(10, "LITERAL_STRING", "Recruit")`, then pass the returned managed string to `_UI_PROMPT_SET_TEXT`.
 
-Prompt-active state, successful target-group lookup, and a `VAR_STRING` result are not proof that the label rendered.
+The latest checked-in `Test_Log.txt` is from the `false` run. It records the direct text path, successful prompt registration, target-group assignment, visibility/enabled calls, and the prompt becoming active.
 
-A new differential test is prepared in `Test.cs`. It has two text paths controlled by `UseVarStringResult`:
+The Bootstrap records the latest user-verified visual result: **G Recruit did not appear in the unarmed lock-on menu**.
 
-- `false`: pass the managed string `"Recruit"` directly to `_UI_PROMPT_SET_TEXT`.
-- `true`: pass the result of `VAR_STRING(10, "LITERAL_STRING", "Recruit")` to `_UI_PROMPT_SET_TEXT`.
+The next test is the `true` branch. This tests whether applying `VAR_STRING` formatting changes the result. It does **not** establish whether a native string pointer survives the managed wrapper round trip, because both branches pass a C# `string` to the same `_UI_PROMPT_SET_TEXT` wrapper.
 
-The new test has not yet been run. Compare the two runs while keeping all other setup unchanged.
+## Latest checked-in test and log
 
-## Sources reviewed
-
-- `Context/GhidraTrace-001.md` through `Context/GhidraTrace-005.md`
-- `TestingAndResearch/DogCompanion/GhidraTrace.md`
-- `TestingAndResearch/DogCompanion/Lang.dat`
-- The current `Test.cs` and `Test_Log.txt`
-
-The Dog Companion directory listing was not available through the fetch tool, so this note records the individual files reviewed rather than claiming the directory contents are exhaustive.
-
-## Dog Companion localization evidence
-
-`Lang.dat` contains 22 localization entries. The relevant entry is:
+`Test.cs` currently uses:
 
 ```text
-interaction.accompany.promptLabel=Bond
+UseVarStringResult = false
 ```
