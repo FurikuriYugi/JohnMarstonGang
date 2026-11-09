@@ -1,19 +1,12 @@
-2026-11-08 22:55:28.831 === Dog Companion standard-prompt sequence: G Recruit ===
-2026-11-08 22:55:28.831 Prompt label: Recruit
-2026-11-08 22:55:28.832 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F.
-2026-11-08 22:55:28.832 No ILO registration; no ped prompt-name change; no outer-radius label.
-2026-11-08 22:55:28.832 Display-only test: pressing G does not recruit or change gang membership.
-2026-11-08 22:55:28.843 PROMPT VISIBLE-THEN-ENABLED STATE: False
-2026-11-08 22:55:28.844 PROMPT CREATED: handle=210434; standard mode; attribute=0x12:true
-2026-11-08 22:55:39.899 PROMPT GROUP ASSIGNED: target=199170; group=268566613; tab=0
-2026-11-08 22:55:39.899 PROMPT VISIBLE-THEN-ENABLED STATE: True
-2026-11-08 22:55:39.900 PROMPT ACTIVE: target=199170; group=268566613; active=False
-2026-11-08 22:55:39.911 PROMPT ACTIVE: target=199170; group=268566613; active=True
-2026-11-08 22:55:50.768 PROMPT VISIBLE-THEN-ENABLED STATE: False
-2026-11-08 22:55:50.769 PROMPT GROUP CLEARED: previousTarget=199170; previousGroup=268566613
-2026-11-08 22:55:51.317 PROMPT GROUP ASSIGNED: target=199170; group=268566613; tab=0
-2026-11-08 22:55:51.317 PROMPT VISIBLE-THEN-ENABLED STATE: True
-2026-11-08 22:55:51.318 PROMPT ACTIVE: target=199170; group=268566613; active=False
-2026-11-08 22:55:51.330 PROMPT ACTIVE: target=199170; group=268566613; active=True
-2026-11-08 22:55:53.876 PROMPT VISIBLE-THEN-ENABLED STATE: False
-2026-11-08 22:55:53.876 PROMPT GROUP CLEARED: previousTarget=199170; previousGroup=268566613
+2026-11-09 11:02:41.795 === Focus-triggered Dog Companion sequence: G Recruit ===
+2026-11-09 11:02:41.795 Prompt label: Recruit
+2026-11-09 11:02:41.795 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F.
+2026-11-09 11:02:41.795 No ILO registration; no ped prompt-name change; no outer-radius label.
+2026-11-09 11:02:41.796 Display-only test: pressing G does not recruit or change gang membership.
+2026-11-09 11:02:41.796 Prompt will be created only after a focused human and target group are found.
+2026-11-09 11:03:50.464 PROMPT CREATED FOR FOCUSED TARGET: handle=295683; target=195330; group=268566604; standard mode; attribute=0x12:true
+2026-11-09 11:03:50.464 PROMPT GROUP ASSIGNED: target=195330; group=268566604; tab=0
+2026-11-09 11:03:50.465 PROMPT VISIBLE-THEN-ENABLED STATE: True
+2026-11-09 11:03:50.465 PROMPT ACTIVE: target=195330; group=268566604; active=False
+2026-11-09 11:03:50.475 PROMPT ACTIVE: target=195330; group=268566604; active=True
+2026-11-09 11:03:53.313 PROMPT DELETED: 295683
