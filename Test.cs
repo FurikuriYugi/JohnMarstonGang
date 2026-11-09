@@ -10,6 +10,11 @@ public class Test : Script
     private const int PromptAttribute = 0x12;
     private const string PromptText = "Recruit";
 
+    // Run once as false, then as true for the comparison.
+    // false: pass "Recruit" directly to _UI_PROMPT_SET_TEXT.
+    // true:  pass VAR_STRING(10, "LITERAL_STRING", "Recruit")'s result.
+    private const bool UseVarStringResult = false;
+
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
@@ -24,12 +29,12 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Dog Companion factory-order reproduction: G Recruit ===");
+        Log("=== G Recruit prompt text-path comparison ===");
         Log("Prompt label input: " + PromptText);
-        Log("Text path: VAR_STRING(10, \"LITERAL_STRING\", PromptText) -> _UI_PROMPT_SET_TEXT.");
-        Log("Prompt-display test only; no recruitment or gang-membership changes.");
-        Log("No ILO registration and no ped prompt-name or outer-radius-label changes.");
-        Log("Target prompt group will be queried after prompt registration.");
+        Log("UseVarStringResult: " + UseVarStringResult);
+        Log("Control: INPUT_INTERACT_OPTION1 (G).");
+        Log("Prompt-display test only; no recruitment or gang changes.");
+        Log("No ILO registration or ped prompt-name changes.");
 
         Tick += OnTick;
         Aborted += OnAborted;
@@ -41,24 +46,21 @@ public class Test : Script
         bool targetIsHuman;
         int targetHandle;
 
-        if (!TryGetFocusedHuman(
-                out targetFound,
-                out targetHandle,
-                out targetIsHuman) ||
+        bool lookupSucceeded = TryGetFocusedHuman(
+            out targetFound,
+            out targetHandle,
+            out targetIsHuman);
+
+        if (!lookupSucceeded ||
             !targetFound ||
             targetHandle <= 0 ||
             !targetIsHuman)
         {
             DeleteCurrentPrompt();
-            LogRawGPress();
             return;
         }
 
-        bool targetChanged =
-            _promptHandle <= 0 ||
-            _targetHandle != targetHandle;
-
-        if (targetChanged)
+        if (_promptHandle <= 0 || _targetHandle != targetHandle)
         {
             DeleteCurrentPrompt();
             CreatePromptForTarget(targetHandle);
@@ -69,8 +71,6 @@ public class Test : Script
             LogPromptState();
             LogPromptPress();
         }
-
-        LogRawGPress();
     }
 
     private void CreatePromptForTarget(int targetHandle)
@@ -95,20 +95,31 @@ public class Test : Script
                 promptHandle,
                 InputInteractOption1);
 
-            string formattedText = RDR2.Native.MISC.VAR_STRING(
-                10,
-                "LITERAL_STRING",
-                PromptText);
+            string textToSet;
 
-            Log("VAR_STRING RESULT: " + formattedText);
+            if (UseVarStringResult)
+            {
+                textToSet =
+                    RDR2.Native.MISC.VAR_STRING(
+                        10,
+                        "LITERAL_STRING",
+                        PromptText);
+
+                Log("VAR_STRING RESULT: " + textToSet);
+            }
+            else
+            {
+                textToSet = PromptText;
+                Log("DIRECT MANAGED TEXT: " + textToSet);
+            }
 
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 promptHandle,
-                formattedText);
+                textToSet);
 
-            Log("PROMPT TEXT SET: " + PromptText);
+            Log("PROMPT TEXT SET: " + textToSet);
 
-            // Match Dog Companion's prompt-factory setup.
+            // Match the Dog Companion factory's initial group setup.
             RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 promptHandle,
                 0,
@@ -131,11 +142,10 @@ public class Test : Script
                 promptHandle +
                 "; target=" +
                 targetHandle +
-                "; standard mode; attribute=0x12:true");
+                "; mode=standard; attribute=0x12:true");
 
-            // Dog Companion obtains and assigns the target's prompt group
-            // after its prompt factory returns.
             int groupId;
+
             if (!TryGetTargetPromptGroup(targetHandle, out groupId))
             {
                 DeleteCurrentPrompt();
@@ -294,23 +304,6 @@ public class Test : Script
         catch (Exception exception)
         {
             Log("PROMPT PRESS CHECK ERROR: " + InnermostMessage(exception));
-        }
-    }
-
-    private void LogRawGPress()
-    {
-        try
-        {
-            if (RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
-                    0,
-                    InputInteractOption1))
-            {
-                Log("RAW INPUT_INTERACT_OPTION1 PRESS DETECTED");
-            }
-        }
-        catch (Exception exception)
-        {
-            Log("RAW INPUT CHECK ERROR: " + InnermostMessage(exception));
         }
     }
 

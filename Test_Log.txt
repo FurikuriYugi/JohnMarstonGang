@@ -1,15 +1,15 @@
-2026-11-09 12:46:40.791 === Dog Companion factory-order reproduction: G Recruit ===
-2026-11-09 12:46:40.791 Prompt label input: Recruit
-2026-11-09 12:46:40.791 Text path: VAR_STRING(10, "LITERAL_STRING", PromptText) -> _UI_PROMPT_SET_TEXT.
-2026-11-09 12:46:40.791 Prompt-display test only; no recruitment or gang-membership changes.
-2026-11-09 12:46:40.791 No ILO registration and no ped prompt-name or outer-radius-label changes.
-2026-11-09 12:46:40.791 Target prompt group will be queried after prompt registration.
-2026-11-09 12:46:51.423 VAR_STRING RESULT: Recruit
-2026-11-09 12:46:51.423 PROMPT TEXT SET: Recruit
-2026-11-09 12:46:51.424 PROMPT REGISTERED: handle=263170; target=206082; standard mode; attribute=0x12:true
-2026-11-09 12:46:51.425 TARGET GROUP LOOKUP AFTER REGISTRATION: target=206082; group=268566626
-2026-11-09 12:46:51.425 TARGET GROUP ASSIGNED: target=206082; group=268566626; tab=0
-2026-11-09 12:46:51.426 PROMPT VISIBLE, THEN ENABLED.
-2026-11-09 12:46:51.426 PROMPT ACTIVE: target=206082; group=268566626; active=False
-2026-11-09 12:46:51.438 PROMPT ACTIVE: target=206082; group=268566626; active=True
-2026-11-09 12:47:00.935 PROMPT DELETED: 263170
+2026-11-09 15:34:58.700 === G Recruit prompt text-path comparison ===
+2026-11-09 15:34:58.701 Prompt label input: Recruit
+2026-11-09 15:34:58.701 UseVarStringResult: False
+2026-11-09 15:34:58.701 Control: INPUT_INTERACT_OPTION1 (G).
+2026-11-09 15:34:58.701 Prompt-display test only; no recruitment or gang changes.
+2026-11-09 15:34:58.701 No ILO registration or ped prompt-name changes.
+2026-11-09 15:35:05.232 DIRECT MANAGED TEXT: Recruit
+2026-11-09 15:35:05.233 PROMPT TEXT SET: Recruit
+2026-11-09 15:35:05.235 PROMPT REGISTERED: handle=243970; target=197890; mode=standard; attribute=0x12:true
+2026-11-09 15:35:05.235 TARGET GROUP LOOKUP AFTER REGISTRATION: target=197890; group=268566604
+2026-11-09 15:35:05.235 TARGET GROUP ASSIGNED: target=197890; group=268566604; tab=0
+2026-11-09 15:35:05.236 PROMPT VISIBLE, THEN ENABLED.
+2026-11-09 15:35:05.237 PROMPT ACTIVE: target=197890; group=268566604; active=False
+2026-11-09 15:35:05.247 PROMPT ACTIVE: target=197890; group=268566604; active=True
+2026-11-09 15:35:10.045 PROMPT DELETED: 243970
