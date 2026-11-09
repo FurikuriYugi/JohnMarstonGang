@@ -1,33 +1,23 @@
-# Research Notes
+# G Recruit lock-on prompt research
 
 ## Objective
 
 Display **G Recruit** in the unarmed lock-on menu when the player focuses on a human NPC.
 
-This is a prompt-display test only. Pressing G must not recruit the NPC or change gang membership.
+This is a prompt-display test only. Do not recruit the NPC or change gang membership.
 
-## Current repository state
+## Safety constraints
 
-The current `Test.cs` uses:
+- Do not press G during display tests.
+- Do not add recruitment or gang-membership actions to the test.
+- Unregister any ILO registration when the target changes or the script aborts.
+- Save each test run's log separately before running another test.
 
-- `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) for G.
-- `VAR_STRING(10, "LITERAL_STRING", "Recruit")`, with the returned managed string passed to `_UI_PROMPT_SET_TEXT`.
-- A standard prompt with attribute `0x12` enabled.
-- The focused human NPC's target prompt group, tab 0.
-- Visible-then-enabled ordering.
-- No ILO registration.
+## API and reference findings
 
-The current test is display-only: pressing G only logs that the prompt was pressed.
+The ScriptHookRDRNetAPI inventory used for this research is version `2.2.0.0`.
 
-The current `Test_Log.txt` is from the `UseVarStringResult = true` run. It records the prompt being registered, the target group being assigned, and the prompt becoming active (`active=False`, then `active=True`). It does not record ILO registration. The Bootstrap records the latest user-verified visual result: **G Recruit did not appear in the unarmed lock-on menu**.
-
-An active prompt is not proof that it is visibly rendered in the focused lock-on menu.
-
-## Context and API findings
-
-The ScriptHookRDRNetAPI inventory is for version `2.2.0.0`.
-
-The Dog Companion Ghidra trace shows a standard prompt being created with a `VAR_STRING` label, assigned to the target entity's prompt group, and then made visible and enabled. No ILO-registration call appears in that traced creation-and-attachment path.
+The Dog Companion Ghidra trace shows a standard prompt being created with a `VAR_STRING` label, assigned to the target entity's prompt group, and then made visible and enabled. No ILO-registration call appears in the traced creation-and-attachment path.
 
 The API inventory documents:
 
@@ -37,32 +27,78 @@ The API inventory documents:
 - `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(int entity, string text, float radius, float p3, int flag, float p5, float p6, int prompt, bool p8, int p9)`, returning `bool`
 - `RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(int entity)`, returning `bool`
 
-The entity group and ILO registration are separate mechanisms. The group prompt is the candidate action shown when the entity is focused. The ILO registration has separate approach-prompt parameters; its `prompt` argument is the eighth parameter.
+The target prompt group and ILO registration are separate mechanisms. A prompt being registered or active does not prove that it is visibly rendered in the focused lock-on menu.
 
-The proposal to pass the registered G prompt handle as that ILO `prompt` argument is unverified. Do not treat it as a confirmed requirement or native behavior.
+Passing a registered HUD prompt handle as the ILO `prompt` argument was an experimental variation, not an established requirement.
 
-## Next test: ILO prompt-argument comparison
+## Test history and results
 
-The new `Test.cs` adds ILO registration while preserving the current prompt creation and target-group setup. It defaults to `UsePromptHandleForIlo = true`.
+### Standard HUD prompt test
 
-Run the test with that setting, record the log and the visual result, then change only that constant to `false` and repeat under the same conditions. The false run registers the ILO with prompt argument `0`; the true run uses the registered G prompt handle.
+The test created a standard prompt with:
 
-The two runs keep the other ILO arguments fixed:
+- `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) for G.
+- `VAR_STRING(10, "LITERAL_STRING", "Recruit")`, with the returned string passed to `_UI_PROMPT_SET_TEXT`.
+- Prompt attribute `0x12` enabled.
+- The focused human NPC's target prompt group, tab 0.
+- Visible-then-enabled ordering.
+
+The prompt was registered, assigned to a target group, and reported active. The user observed that **G Recruit did not appear** in the unarmed lock-on menu.
+
+### Combined HUD prompt and ILO test
+
+The test added `REGISTER_INTERACTION_LOCKON_PROMPT` while preserving the standard HUD prompt setup.
+
+The ILO prompt argument was tested as both:
+
+- The registered HUD prompt handle.
+- `0`.
+
+The approach-prompt flag was also tested in the reported runs. The user reported that **G Recruit never appeared**.
+
+The test used these experimental values:
 
 - Radius: `3.0f`
 - Focus distance (`p3`): `3.0f`
 - Flag: `0`
 - `p5`, `p6`: `0.0f`
-- `p8`: `false`, suppressing the approach prompt during this focus-menu test
+- `p8`: tested as an approach-prompt flag
 - `p9`: `-1`
 
-These are controlled test values, not values established by the Dog Companion trace. The test logs the registration and unregistration return values, target handle, prompt argument, prompt-group ID, active state, and G press. It does not recruit or alter gang membership.
+These values have not been established as correct by the Dog Companion trace.
 
-Unregister the test ILO and delete the prompt on target change or script abort. Because ILO behavior and the meaning of several parameters are not fully established here, observe any change to the NPC's existing focus prompts and report it with the log.
+### Current conclusion
 
-## Interpretation
+- Changing the ILO prompt argument did not make G Recruit appear.
+- The reported approach-prompt test also did not make it appear.
+- The available results do not establish whether ILO registration succeeded; check and record its return value.
+- The combined test did not isolate ILO registration from the standard HUD prompt setup.
 
-- If only the handle run displays G Recruit, the result supports the handle-argument hypothesis for this setup; it does not establish that all ILO prompt handles work.
-- If both runs display it, the test does not show that the handle is needed.
-- If neither run displays it, the ILO argument alone is not the fix. Continue investigating why the entity-group prompt is active but not visible.
-- If registration returns `false`, record that separately from whether the HUD prompt appears.
+## Next test: ILO only
+
+`Test.cs` now performs an ILO-only test:
+
+- It creates no standard HUD prompt.
+- It does not assign a HUD prompt group.
+- It registers the ILO prompt with argument `0`.
+- It uses the same fixed ILO parameters for the run.
+- It unregisters the ILO prompt when the target changes or the script aborts.
+- It does not perform any action when G is pressed.
+
+Use the same unarmed lock-on conditions. Do not press G.
+
+Record:
+
+- Whether G Recruit appears.
+- The focused target handle and whether the target is human.
+- `ILO REGISTER RESULT`, including its return value.
+- `ILO UNREGISTER RESULT`, including its return value.
+- Any change to the NPC's existing lock-on prompts.
+
+Save the log from this run separately.
+
+## Interpreting the ILO-only test
+
+- If G Recruit appears only in ILO-only mode, the standard HUD prompt setup may have interfered with the combined test.
+- If G Recruit does not appear and registration returns `false`, investigate why the ILO registration is rejected.
+- If G Recruit does not appear and registration returns `true`, the tested call and parameters still do not produce the desired visible entry. A `true` return value is not proof that the prompt was rendered.
