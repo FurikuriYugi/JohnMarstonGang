@@ -40,13 +40,13 @@ This file records ScriptHookRDR2DotNet-V2 API and native findings. Distinguish w
 - **Earlier local test:** The user saw `Recruit` through `UI._DISPLAY_TEXT`, but not through the tested prompt-menu path.
 - **Dog Companion Ghidra evidence:** `FUN_180014530` calls `VAR_STRING` with `10`, a pointer to the `LITERAL_STRING` format token, and its text parameter; the result is passed directly to `_UI_PROMPT_SET_TEXT`.
 - **User observation:** Dog Companion displays B Bond using the localized `Bond` prompt text.
-- **Conclusion:** The upstream report that custom `VAR_STRING` text may fail in `_UI_PROMPT_SET_TEXT` remains relevant, but the Dog Companion path is a local counterexample in its own setup. Do not generalize either result beyond its conditions.
+- **Conclusion:** The earlier screen-display and prompt-menu results differ. Do not generalize either result beyond its tested conditions.
 
 ### `RDR2.Native.HUD._UI_PROMPT_SET_TEXT`
 
 - **Wrapper signature:** Not recorded; verify.
 - **Dog Companion Ghidra usage:** Receives the return value from `VAR_STRING(10, "LITERAL_STRING", text)`.
-- **Earlier local result:** The user reported that custom `Recruit` did not appear in the tested prompt menu.
+- **Local test result:** The user reported that custom `Recruit` did not appear in the tested prompt menu.
 
 ### `RDR2.Native.UI._DISPLAY_TEXT`
 
@@ -96,7 +96,7 @@ The exact managed wrapper signatures for these calls should be checked against `
 
 - **Wrapper signature:** Not recorded; verify.
 - **Ghidra usage:** Dog Companion assigns the prompt to the target entity’s group with tab `0`.
-- **Earlier test:** Assignment and active-page results were logged, but those do not prove visible rendering.
+- **Earlier tests:** Assignment and active-page results were logged, but those do not prove visible rendering.
 
 ### Prompt state natives
 
@@ -106,9 +106,9 @@ The exact managed wrapper signatures for these calls should be checked against `
 
 ### `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT`
 
-- **Wrapper signature and argument meanings:** Not verified.
-- **Previous test:** Passing the runtime handle as the prompt argument succeeded in registration, but the user reported that **G Skip** did not appear.
-- **Conclusion:** Do not repeat that test unchanged or treat successful registration as proof that the prompt rendered.
+- **Wrapper signature and argument meanings:** Not verified against the API map.
+- **Tests:** Both the prompt-handle argument and `prompt=0` variants were tried. The user reported that neither G Skip nor G Recruit appeared in the unarmed lock-on menu.
+- **Conclusion:** ILO registration has not been shown to solve this prompt-display problem. The current Dog Companion comparison test omits it.
 
 ## Controls
 

@@ -119,7 +119,7 @@ Ghidra analysis of Dog Companion found that its B Bond prompt uses a standard pr
 
 ### Latest user-verified result
 
-The ILO-handle test created a G prompt, assigned it to the focused target’s group, reported an active page and prompt, and detected G input. The user reported that **G Skip did not appear**. Do not repeat that unchanged test.
+G Recruit didn't show in the unarmed lock on menu.
 
 ### Interpretation and next-step caution
 The observed **Recruit** outer-radius label is not proof that the G action prompt appears in the focused lock-on menu. Inspect the latest `Test.cs` and logs before changing anything; they may already contain additional diagnostics or newer results. Keep test changes focused on isolating the prompt-display problem, and do not implement actual recruitment as part of this prompt test unless explicitly requested.
@@ -128,4 +128,4 @@ A proposed test of passing the registered G prompt handle as the ILO registratio
 
 # Mode: Testing mode
 ## 7. Current Task
-Keep using our database and research to find a way to add custom string to unarmed lock on menu and then building new test files updating the documents and testing. we learned about the outer label and now the npc name when focused so we can remove those from the tests. We need to focus on the unarmed lock on menu (figure out what it is called in the api, find how to add custom item G Recruit) and remember to log useful information and update the documents as we go and learn.
+Keep using our database and research to find a way to add custom string to unarmed lock on menu and then building new test files updating the documents and testing. 
