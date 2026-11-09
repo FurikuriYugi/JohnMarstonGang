@@ -7,74 +7,35 @@ public class Test : Script
 {
     private const uint InputInteractOption1 = 0x760A9C6Fu;
     private const int PromptGroupTab = 0;
-    private const string RegisteredPromptLabel = "CUTSCENE_SKIP";
-    private const string LockOnPromptText = "Recruit";
-    private const string FocusedPedPromptName = "Recruit";
-    private const float LockOnRadius = 8.0f;
-    private const float LockOnFocusDistance = 8.0f;
-    private const int LockOnFlags = 0;
-    private const float LockOnParameter5 = 0.0f;
-    private const float LockOnParameter6 = 0.0f;
-    private const bool ShowLockOnPromptWhenApproaching = true;
-    private const int LockOnParameter9 = -1;
+    private const int PromptAttribute = 0x12;
+    private const string PromptText = "Recruit";
 
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
 
     private int _promptHandle;
-    private int _lockOnTargetHandle;
-    private bool _lockOnRegistrationSucceeded;
-    private int _pedPromptNameTargetHandle = int.MinValue;
-    private bool _hasLoggedTargetState;
-    private bool _lastNativeFoundTarget;
-    private int _lastTargetHandle = int.MinValue;
-    private bool _lastTargetIsHuman;
-    private bool _hasLoggedGroupActivePage;
-    private int _lastActivePageGroupId = int.MinValue;
-    private int _lastGroupActivePage = int.MinValue;
-    private bool _hasLoggedPromptActiveState;
-    private bool _lastPromptActiveState;
-    private int _lastAssignedTargetHandle = int.MinValue;
-    private int _lastAssignedGroupId = int.MinValue;
+    private int _targetHandle;
+    private int _targetGroupId = -1;
+
+    private bool _promptShown;
+    private bool _hasLoggedActiveState;
+    private bool _lastActiveState;
+
     private string _lastTargetError;
-    private string _lastInputError;
     private string _lastGroupError;
-    private string _lastGroupActivePageError;
     private string _lastPromptError;
-    private string _lastLockOnError;
-    private string _lastPedPromptNameError;
+    private string _lastInputError;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Focused NPC prompt-name and G prompt handle test ===");
-        Log(
-            "Focused ped prompt name: " +
-            FocusedPedPromptName);
-        Log(
-            "ILO approach prompt text: " +
-            LockOnPromptText +
-            "; radius=" +
-            LockOnRadius +
-            "; focusDistance=" +
-            LockOnFocusDistance +
-            "; prompt argument=created G prompt handle.");
-        Log(
-            "G prompt uses registered label: " +
-            RegisteredPromptLabel +
-            "; expected action text: G Skip.");
-        Log(
-            "Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.");
-        Log(
-            "The ILO prompt argument will be the runtime handle returned " +
-            "when the G prompt is created.");
-        Log(
-            "This test changes the focused human ped's prompt name. " +
-            "It does not restore the prior name because the original name " +
-            "is not available through the current test.");
-        Log("G only logs a test press; no recruitment is performed.");
+        Log("=== Dog Companion-style G Recruit prompt test ===");
+        Log("Text source: VAR_STRING(10, \"LITERAL_STRING\", \"Recruit\").");
+        Log("Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.");
+        Log("Prompt is assigned to the focused human target's prompt group.");
+        Log("No ILO registration call; no recruitment is performed.");
 
         CreatePrompt();
 
@@ -99,35 +60,42 @@ public class Test : Script
                 _promptHandle,
                 InputInteractOption1);
 
-            string promptText =
-                RDR2.Native.MISC.VAR_STRING(
-                    10,
-                    RegisteredPromptLabel);
+            string text = RDR2.Native.MISC.VAR_STRING(
+                10,
+                "LITERAL_STRING",
+                PromptText);
 
             RDR2.Native.HUD._UI_PROMPT_SET_TEXT(
                 _promptHandle,
-                promptText);
+                text);
+
+            // Match Dog Companion's prompt-construction sequence.
+            RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
+                _promptHandle,
+                0,
+                PromptGroupTab);
 
             RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
                 _promptHandle,
                 true);
 
+            // Expected wrapper signature: (prompt, attribute, bool).
+            RDR2.Native.HUD._UI_PROMPT_SET_ATTRIBUTE(
+                _promptHandle,
+                PromptAttribute,
+                true);
+
             RDR2.Native.HUD._UI_PROMPT_REGISTER_END(
                 _promptHandle);
 
-            RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
-                _promptHandle,
-                false);
-
-            RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
-                _promptHandle,
-                false);
+            SetPromptShown(false);
 
             Log(
-                "G PROMPT CREATED: handle=" +
+                "PROMPT CREATED: handle=" +
                 _promptHandle +
-                "; label=" +
-                RegisteredPromptLabel);
+                "; text=" +
+                PromptText +
+                "; mode=standard; attribute=0x12:1");
         }
         catch (Exception exception)
         {
@@ -139,62 +107,98 @@ public class Test : Script
 
     private void OnTick(object sender, EventArgs e)
     {
-        bool nativeFoundTarget;
         int targetHandle;
+        bool targetFound;
         bool targetIsHuman;
 
-        ReadFocusedTarget(
-            out nativeFoundTarget,
-            out targetHandle,
-            out targetIsHuman);
-
-        LogTargetStateIfChanged(
-            nativeFoundTarget,
-            targetHandle,
-            targetIsHuman);
-
-        LogInputPresses();
-
-        bool hasValidHumanTarget =
-            nativeFoundTarget &&
-            targetHandle > 0 &&
-            targetIsHuman;
-
-        if (!hasValidHumanTarget)
+        if (!TryGetFocusedHuman(
+                out targetFound,
+                out targetHandle,
+                out targetIsHuman))
         {
-            UpdatePrompt(false);
-            _hasLoggedGroupActivePage = false;
+            HideAndDetachPrompt();
+            LogRawGPress();
             return;
         }
 
-        ApplyFocusedPedPromptName(targetHandle);
-        RegisterLockOnPromptForTarget(targetHandle);
-
-        int targetGroupId;
-
-        if (!TryGetTargetPromptGroup(targetHandle, out targetGroupId))
+        if (!targetFound || targetHandle <= 0 || !targetIsHuman)
         {
-            UpdatePrompt(false);
+            HideAndDetachPrompt();
+            LogRawGPress();
             return;
         }
 
-        bool promptAssigned;
+        int groupId;
+        if (!TryGetTargetPromptGroup(targetHandle, out groupId))
+        {
+            HideAndDetachPrompt();
+            LogRawGPress();
+            return;
+        }
 
-        AssignPromptToTargetGroup(
-            targetHandle,
-            targetGroupId,
-            out promptAssigned);
+        if (_targetHandle != targetHandle || _targetGroupId != groupId)
+        {
+            try
+            {
+                RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
+                    _promptHandle,
+                    groupId,
+                    PromptGroupTab);
 
-        LogGroupActivePageIfChanged(targetGroupId);
-        UpdatePrompt(promptAssigned);
+                _targetHandle = targetHandle;
+                _targetGroupId = groupId;
+
+                Log(
+                    "PROMPT GROUP ASSIGNED: target=" +
+                    targetHandle +
+                    "; group=" +
+                    groupId +
+                    "; tab=" +
+                    PromptGroupTab);
+            }
+            catch (Exception exception)
+            {
+                LogErrorOnce(
+                    ref _lastPromptError,
+                    "PROMPT GROUP ASSIGNMENT ERROR: " +
+                    InnermostMessage(exception));
+
+                HideAndDetachPrompt();
+                LogRawGPress();
+                return;
+            }
+        }
+
+        SetPromptShown(true);
+        LogPromptState();
+        LogRawGPress();
+
+        try
+        {
+            if (_promptHandle > 0 &&
+                RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(_promptHandle) &&
+                RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(_promptHandle))
+            {
+                Log("G RECRUIT PROMPT PRESSED: no recruitment performed.");
+            }
+
+            _lastPromptError = null;
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                ref _lastPromptError,
+                "PROMPT STATE ERROR: " +
+                InnermostMessage(exception));
+        }
     }
 
-    private void ReadFocusedTarget(
-        out bool nativeFoundTarget,
+    private bool TryGetFocusedHuman(
+        out bool targetFound,
         out int targetHandle,
         out bool targetIsHuman)
     {
-        nativeFoundTarget = false;
+        targetFound = false;
         targetHandle = 0;
         targetIsHuman = false;
 
@@ -204,19 +208,18 @@ public class Test : Script
 
             unsafe
             {
-                nativeFoundTarget =
-                    RDR2.Native.PLAYER
-                        .GET_PLAYER_INTERACTION_TARGET_ENTITY(
-                            Game.Player.Handle,
-                            &focusedTargetHandle,
-                            true,
-                            true);
+                targetFound =
+                    RDR2.Native.PLAYER.GET_PLAYER_INTERACTION_TARGET_ENTITY(
+                        Game.Player.Handle,
+                        &focusedTargetHandle,
+                        true,
+                        true);
             }
 
-            if (!nativeFoundTarget || focusedTargetHandle <= 0)
+            if (!targetFound || focusedTargetHandle <= 0)
             {
                 _lastTargetError = null;
-                return;
+                return true;
             }
 
             targetHandle = focusedTargetHandle;
@@ -224,10 +227,11 @@ public class Test : Script
                 RDR2.Native.PED.IS_PED_HUMAN(targetHandle);
 
             _lastTargetError = null;
+            return true;
         }
         catch (Exception exception)
         {
-            nativeFoundTarget = false;
+            targetFound = false;
             targetHandle = 0;
             targetIsHuman = false;
 
@@ -235,143 +239,164 @@ public class Test : Script
                 ref _lastTargetError,
                 "TARGET LOOKUP ERROR: " +
                 InnermostMessage(exception));
+
+            return false;
         }
     }
 
-    private void ApplyFocusedPedPromptName(int targetHandle)
+    private bool TryGetTargetPromptGroup(
+        int targetHandle,
+        out int groupId)
     {
-        if (_pedPromptNameTargetHandle == targetHandle)
-        {
-            return;
-        }
+        groupId = -1;
 
         try
         {
-            RDR2.Native.PED._SET_PED_PROMPT_NAME(
-                targetHandle,
-                FocusedPedPromptName);
+            groupId =
+                RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
+                    targetHandle);
 
-            _pedPromptNameTargetHandle = targetHandle;
-            _lastPedPromptNameError = null;
+            if (groupId < 0)
+            {
+                LogErrorOnce(
+                    ref _lastGroupError,
+                    "GROUP LOOKUP RETURNED INVALID VALUE: " +
+                    groupId);
 
-            Log(
-                "PED FOCUS PROMPT NAME SET: target=" +
-                targetHandle +
-                "; name=" +
-                FocusedPedPromptName);
+                return false;
+            }
+
+            _lastGroupError = null;
+            return true;
         }
         catch (Exception exception)
         {
             LogErrorOnce(
-                ref _lastPedPromptNameError,
-                "PED FOCUS PROMPT NAME ERROR: " +
+                ref _lastGroupError,
+                "GROUP LOOKUP ERROR: " +
                 InnermostMessage(exception));
+
+            return false;
         }
     }
 
-    private void RegisterLockOnPromptForTarget(int targetHandle)
+    private void SetPromptShown(bool shown)
     {
-        if (_lockOnTargetHandle == targetHandle)
+        if (_promptHandle <= 0 || _promptShown == shown)
         {
             return;
         }
 
-        UnregisterCurrentLockOnTarget();
-
         try
         {
-            bool registered =
-                RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
-                    targetHandle,
-                    LockOnPromptText,
-                    LockOnRadius,
-                    LockOnFocusDistance,
-                    LockOnFlags,
-                    LockOnParameter5,
-                    LockOnParameter6,
+            if (shown)
+            {
+                // Match Dog Companion's order: visible, then enabled.
+                RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
                     _promptHandle,
-                    ShowLockOnPromptWhenApproaching,
-                    LockOnParameter9);
+                    true);
 
-            _lockOnTargetHandle = targetHandle;
-            _lockOnRegistrationSucceeded = registered;
-            _lastLockOnError = null;
+                RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
+                    _promptHandle,
+                    true);
+            }
+            else
+            {
+                RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
+                    _promptHandle,
+                    false);
 
-            Log(
-                "ILO REGISTRATION: target=" +
-                targetHandle +
-                "; text=" +
-                LockOnPromptText +
-                "; promptHandle=" +
-                _promptHandle +
-                "; succeeded=" +
-                registered);
+                RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
+                    _promptHandle,
+                    false);
+            }
+
+            _promptShown = shown;
+            Log("PROMPT SHOWN/ENABLED STATE: " + shown);
+            _lastPromptError = null;
         }
         catch (Exception exception)
         {
-            _lockOnTargetHandle = 0;
-            _lockOnRegistrationSucceeded = false;
-
             LogErrorOnce(
-                ref _lastLockOnError,
-                "ILO REGISTRATION ERROR: " +
+                ref _lastPromptError,
+                "PROMPT VISIBILITY/ENABLE ERROR: " +
                 InnermostMessage(exception));
         }
     }
 
-    private void UnregisterCurrentLockOnTarget()
+    private void HideAndDetachPrompt()
     {
-        if (_lockOnTargetHandle <= 0)
+        SetPromptShown(false);
+
+        if (_promptHandle <= 0 ||
+            (_targetHandle == 0 && _targetGroupId < 0))
         {
-            return;
-        }
-
-        int targetToUnregister = _lockOnTargetHandle;
-        bool registrationSucceeded = _lockOnRegistrationSucceeded;
-
-        _lockOnTargetHandle = 0;
-        _lockOnRegistrationSucceeded = false;
-
-        if (!registrationSucceeded)
-        {
-            Log(
-                "ILO UNREGISTER SKIPPED: prior registration did not succeed; " +
-                "target=" +
-                targetToUnregister);
             return;
         }
 
         try
         {
-            bool unregistered =
-                RDR2.Native.MISC
-                    .UNREGISTER_INTERACTION_LOCKON_PROMPT(
-                        targetToUnregister);
+            RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
+                _promptHandle,
+                0,
+                PromptGroupTab);
 
             Log(
-                "ILO UNREGISTER: target=" +
-                targetToUnregister +
-                "; succeeded=" +
-                unregistered);
+                "PROMPT GROUP CLEARED: previousTarget=" +
+                _targetHandle +
+                "; previousGroup=" +
+                _targetGroupId);
 
-            _lastLockOnError = null;
+            _targetHandle = 0;
+            _targetGroupId = -1;
+            _lastPromptError = null;
         }
         catch (Exception exception)
         {
             LogErrorOnce(
-                ref _lastLockOnError,
-                "ILO UNREGISTER ERROR: " +
+                ref _lastPromptError,
+                "PROMPT GROUP CLEAR ERROR: " +
                 InnermostMessage(exception));
         }
     }
 
-    private void LogInputPresses()
+    private void LogPromptState()
+    {
+        try
+        {
+            bool active =
+                RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(_promptHandle);
+
+            if (!_hasLoggedActiveState || active != _lastActiveState)
+            {
+                _hasLoggedActiveState = true;
+                _lastActiveState = active;
+
+                Log(
+                    "PROMPT ACTIVE: text=" +
+                    PromptText +
+                    "; active=" +
+                    active);
+            }
+
+            _lastPromptError = null;
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                ref _lastPromptError,
+                "PROMPT ACTIVE CHECK ERROR: " +
+                InnermostMessage(exception));
+        }
+    }
+
+    private void LogRawGPress()
     {
         try
         {
             if (RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
-                0,
-                InputInteractOption1))
+                    0,
+                    InputInteractOption1))
             {
                 Log("RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED");
             }
@@ -387,231 +412,10 @@ public class Test : Script
         }
     }
 
-    private bool TryGetTargetPromptGroup(
-        int targetHandle,
-        out int targetGroupId)
-    {
-        targetGroupId = -1;
-
-        try
-        {
-            targetGroupId =
-                RDR2.Native.HUD
-                    ._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(
-                        targetHandle);
-
-            if (targetGroupId < 0)
-            {
-                LogErrorOnce(
-                    ref _lastGroupError,
-                    "GROUP LOOKUP RETURNED INVALID VALUE: " +
-                    targetGroupId);
-                return false;
-            }
-
-            _lastGroupError = null;
-            return true;
-        }
-        catch (Exception exception)
-        {
-            LogErrorOnce(
-                ref _lastGroupError,
-                "GROUP LOOKUP ERROR: " +
-                InnermostMessage(exception));
-            return false;
-        }
-    }
-
-    private void AssignPromptToTargetGroup(
-        int targetHandle,
-        int targetGroupId,
-        out bool assignedForCurrentTarget)
-    {
-        assignedForCurrentTarget = false;
-
-        if (_promptHandle <= 0)
-        {
-            return;
-        }
-
-        try
-        {
-            if (_lastAssignedTargetHandle != targetHandle ||
-                _lastAssignedGroupId != targetGroupId)
-            {
-                RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
-                    _promptHandle,
-                    targetGroupId,
-                    PromptGroupTab);
-
-                _lastAssignedTargetHandle = targetHandle;
-                _lastAssignedGroupId = targetGroupId;
-
-                Log(
-                    "G PROMPT GROUP ASSIGNED: target=" +
-                    targetHandle +
-                    "; group=" +
-                    targetGroupId);
-            }
-
-            assignedForCurrentTarget =
-                _lastAssignedTargetHandle == targetHandle &&
-                _lastAssignedGroupId == targetGroupId;
-
-            _lastPromptError = null;
-        }
-        catch (Exception exception)
-        {
-            LogErrorOnce(
-                ref _lastPromptError,
-                "G PROMPT GROUP ASSIGNMENT ERROR: " +
-                InnermostMessage(exception));
-        }
-    }
-
-    private void LogGroupActivePageIfChanged(int groupId)
-    {
-        try
-        {
-            int activePage =
-                RDR2.Native.HUD
-                    ._UI_PROMPT_GET_GROUP_ACTIVE_PAGE(
-                        (uint)groupId);
-
-            if (!_hasLoggedGroupActivePage ||
-                groupId != _lastActivePageGroupId ||
-                activePage != _lastGroupActivePage)
-            {
-                _hasLoggedGroupActivePage = true;
-                _lastActivePageGroupId = groupId;
-                _lastGroupActivePage = activePage;
-
-                Log(
-                    "PROMPT GROUP ACTIVE PAGE: group=" +
-                    groupId +
-                    "; page=" +
-                    activePage +
-                    "; active=" +
-                    (activePage >= 0));
-            }
-
-            _lastGroupActivePageError = null;
-        }
-        catch (Exception exception)
-        {
-            LogErrorOnce(
-                ref _lastGroupActivePageError,
-                "GROUP ACTIVE-PAGE LOOKUP ERROR: " +
-                InnermostMessage(exception));
-        }
-    }
-
-    private void UpdatePrompt(bool shouldShow)
-    {
-        if (_promptHandle <= 0)
-        {
-            return;
-        }
-
-        try
-        {
-            RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
-                _promptHandle,
-                shouldShow);
-
-            RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
-                _promptHandle,
-                shouldShow);
-
-            bool promptActive =
-                RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(
-                    _promptHandle);
-
-            if (!_hasLoggedPromptActiveState ||
-                promptActive != _lastPromptActiveState)
-            {
-                _hasLoggedPromptActiveState = true;
-                _lastPromptActiveState = promptActive;
-
-                Log(
-                    "G PROMPT ACTIVE: label=" +
-                    RegisteredPromptLabel +
-                    "; active=" +
-                    promptActive);
-            }
-
-            if (promptActive &&
-                RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(
-                    _promptHandle))
-            {
-                Log(
-                    "G PROMPT PRESSED: label=" +
-                    RegisteredPromptLabel +
-                    "; no recruitment performed.");
-            }
-
-            _lastPromptError = null;
-        }
-        catch (Exception exception)
-        {
-            LogErrorOnce(
-                ref _lastPromptError,
-                "G PROMPT UPDATE ERROR: " +
-                InnermostMessage(exception));
-        }
-    }
-
-    private void LogTargetStateIfChanged(
-        bool nativeFoundTarget,
-        int targetHandle,
-        bool targetIsHuman)
-    {
-        if (_hasLoggedTargetState &&
-            nativeFoundTarget == _lastNativeFoundTarget &&
-            targetHandle == _lastTargetHandle &&
-            targetIsHuman == _lastTargetIsHuman)
-        {
-            return;
-        }
-
-        _hasLoggedTargetState = true;
-        _lastNativeFoundTarget = nativeFoundTarget;
-        _lastTargetHandle = targetHandle;
-        _lastTargetIsHuman = targetIsHuman;
-
-        Log(
-            "TARGET: nativeFound=" +
-            nativeFoundTarget +
-            "; handle=" +
-            (targetHandle > 0
-                ? targetHandle.ToString()
-                : "none") +
-            "; human=" +
-            targetIsHuman);
-    }
-
-    private void LogErrorOnce(
-        ref string lastError,
-        string message)
-    {
-        if (lastError == message)
-        {
-            return;
-        }
-
-        lastError = message;
-        Log(message);
-    }
-
     private void OnAborted(object sender, EventArgs e)
     {
-        UpdatePrompt(false);
-        UnregisterCurrentLockOnTarget();
-        DeletePrompt();
-    }
+        HideAndDetachPrompt();
 
-    private void DeletePrompt()
-    {
         if (_promptHandle <= 0)
         {
             return;
@@ -619,21 +423,8 @@ public class Test : Script
 
         try
         {
-            RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(
-                _promptHandle,
-                false);
-
-            RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
-                _promptHandle,
-                false);
-
-            RDR2.Native.HUD._UI_PROMPT_DELETE(
-                _promptHandle);
-
-            Log(
-                "G PROMPT DELETED: label=" +
-                RegisteredPromptLabel);
-
+            RDR2.Native.HUD._UI_PROMPT_DELETE(_promptHandle);
+            Log("PROMPT DELETED: " + PromptText);
             _promptHandle = 0;
         }
         catch (Exception exception)
@@ -642,6 +433,17 @@ public class Test : Script
                 "PROMPT CLEANUP ERROR: " +
                 InnermostMessage(exception));
         }
+    }
+
+    private void LogErrorOnce(ref string lastError, string message)
+    {
+        if (lastError == message)
+        {
+            return;
+        }
+
+        lastError = message;
+        Log(message);
     }
 
     private string InnermostMessage(Exception exception)

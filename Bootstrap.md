@@ -111,12 +111,15 @@ NPCs should also offer jobs based on their knowledge of the player and gang, the
 
 ## 6. Current Testing Focus
 
-We are testing a native right-mouse lock-on prompt for recruiting an NPC. **G** is the test action key. The goal is to build the test, try it in-game, and record the results. Do not treat this test as completed recruitment functionality.
+We are testing how to add **G Recruit** to the unarmed lock-on menu. This is a prompt-display test only; G must not recruit the NPC or change gang membership.
 
-### Latest reported in-game result
-- The outer-radius label near the NPC displayed **Recruit**.
-- **G Skip** did not appear in the unarmed lock-on menu.
-- I pressed G.
+## Current research direction
+
+Ghidra analysis of Dog Companion found that its B Bond prompt uses a standard prompt built with `VAR_STRING`, assigned to the target entity’s prompt group, then shown and enabled. The new test should mirror that path and record its visual result. See `ResearchNotes.md` and `NativeReferenceGuide.md`.
+
+### Latest user-verified result
+
+The ILO-handle test created a G prompt, assigned it to the focused target’s group, reported an active page and prompt, and detected G input. The user reported that **G Skip did not appear**. Do not repeat that unchanged test.
 
 ### Interpretation and next-step caution
 The observed **Recruit** outer-radius label is not proof that the G action prompt appears in the focused lock-on menu. Inspect the latest `Test.cs` and logs before changing anything; they may already contain additional diagnostics or newer results. Keep test changes focused on isolating the prompt-display problem, and do not implement actual recruitment as part of this prompt test unless explicitly requested.
