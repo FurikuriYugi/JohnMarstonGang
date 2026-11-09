@@ -23,6 +23,7 @@ If the repository cannot be accessed, wait a moment and try again, if not, try a
 - API: `ScriptHookRDRNetAPI.dll`, version 2.2.0
   - Source: https://github.com/Halen84/ScriptHookRDR2DotNet-V2
   - API mapping is available in the repository’s `Context/` folder.
+- Note about github repos. for folder view add tree/main to the address and then the folder and for files use blob/main (Example: I can view the base directory https://github.com/FurikuriYugi/JohnMarstonGang but when I try to look at Context it shows 404 or something so you use https://github.com/FurikuriYugi/JohnMarstonGang/tree/main/Context and then you can view the contents of that folder and then for a file in there called main you can search the folder now and see that there is Main-001.md etc so now you can use https://github.com/FurikuriYugi/JohnMarstonGang/blob/main/Main-001.md etc etc and it works.)
 
 ## 3. Modes and Documentation Rules
 
@@ -113,7 +114,7 @@ NPCs should also offer jobs based on their knowledge of the player and gang, the
 
 We are testing how to add **G Recruit** to the unarmed lock-on menu. This is a prompt-display test only; G must not recruit the NPC or change gang membership.
 
-## Current research direction
+### Current research direction
 
 Ghidra analysis of Dog Companion found that its B Bond prompt uses a standard prompt built with `VAR_STRING`, assigned to the target entity’s prompt group, then shown and enabled. The new test should mirror that path and record its visual result. See `ResearchNotes.md`.
 
