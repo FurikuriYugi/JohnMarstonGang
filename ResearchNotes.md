@@ -8,19 +8,28 @@ Display **G Recruit** as an action prompt in the unarmed lock-on menu for a focu
 
 ## Current status
 
-The user reports that **G Recruit did not appear** in the unarmed lock-on menu.
+The user reports that **G Recruit did not appear** in the unarmed lock-on menu during the latest standard-prompt test.
 
-The latest checked-in `Test_Log.txt` records prompt creation, target-group assignment, visible/enabled calls, and the prompt becoming active. Those log entries do not establish that the prompt text rendered.
+The latest checked-in `Test_Log.txt` is dated `2026-11-09 12:46–12:47`. It records:
 
-The current `Test.cs` created and registered the prompt, then assigned it to the target's group. However, it looked up the target's group before prompt construction. The Dog Companion trace constructs and registers its prompt first, then obtains and assigns the target group.
+- The label input as `Recruit`.
+- `VAR_STRING(10, "LITERAL_STRING", PromptText)` returning `Recruit`.
+- The returned text being passed to `_UI_PROMPT_SET_TEXT`.
+- Prompt registration in standard mode.
+- Target-group lookup after registration and group assignment.
+- Calls to make the prompt visible and enabled.
+- The prompt changing from inactive to active.
+- Prompt deletion.
 
-A replacement `Test.cs` has been prepared to follow that order. It passes the literal `Recruit` through `VAR_STRING(10, "LITERAL_STRING", PromptText)`, sets the returned text on the prompt, registers it, then looks up and assigns the focused target's group, and finally makes the prompt visible and enabled.
+These log entries do not establish that the prompt text rendered.
 
-**The replacement has not been built or run. No new runtime or visual result is recorded.**
+The current test follows the Dog Companion trace’s construction order: create and register the prompt, then obtain and assign the focused target’s prompt group. It does not use ILO registration or change the ped prompt name.
+
+**Latest test result:** the runtime log shows the expected string value and an active prompt, but the user reports that the label is still not visible in the unarmed lock-on menu.
 
 ## Dog Companion research
 
-The source is `TestingAndResearch/DogCompanion/GhidraTrace.md`, cross-checked against the native reference findings below. These findings describe how Dog Companion builds a working prompt. They are not verified wrapper signatures, and prompt-active status does not prove the prompt renders.
+The source is `TestingAndResearch/DogCompanion/GhidraTrace.md`, cross-checked against the native reference findings below. These findings describe how Dog Companion builds a working prompt. They do not, by themselves, verify the managed wrapper signatures or prove that the project test renders.
 
 ### Localization and label
 
@@ -32,7 +41,10 @@ The source is `TestingAndResearch/DogCompanion/GhidraTrace.md`, cross-checked ag
 
 ### Control hash
 
-The B control's hash comes from a string constant passed through a string-to-hash native. Do not use Dog Companion's static addresses in project code. Document the literal control-name string from its data address if needed.
+- The B control's hash comes from a string constant passed through a string-to-hash native.
+- Do not use Dog Companion's static addresses in project code.
+- Document the literal control-name string from its data address if needed.
+- The project uses G; control selection is not the current problem under investigation.
 
 ### Ghidra-mapped native hashes
 
@@ -60,7 +72,7 @@ Hashes used by project tests:
 
 - `FUN_180014530` constructs the prompt with the control, a `VAR_STRING` text argument, group `(0, 0)`, the selected mode, attribute `0x12 = 1`, and then register-end.
 - `FUN_180014510` calls that factory with mode `0`, which is the standard mode.
-- The factory's text path formats the text with `VAR_STRING(10, "LITERAL_STRING", text)` and passes the result directly to `_UI_PROMPT_SET_TEXT`.
+- The factory formats the text with `VAR_STRING(10, "LITERAL_STRING", text)` and passes the native result directly to `_UI_PROMPT_SET_TEXT`.
 - After the factory returns, `FUN_180014980(prompt, entity)` obtains the entity's prompt group with `_UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY` and applies it through `_UI_PROMPT_SET_GROUP`.
 - `FUN_1800147F0` directly wraps `_UI_PROMPT_SET_GROUP(prompt, groupId, tab)`. Dog Companion uses tab `0`.
 
@@ -72,10 +84,7 @@ Hashes used by project tests:
 - `FUN_180014870` clears the visible flag and applies the hidden/disabled state.
 - `FUN_180014A40` applies the enabled and visible state through the two prompt natives.
 - Group assignment and active-page results do not prove visible rendering. Group IDs are runtime-specific.
-
-This traced path does not show `REGISTER_INTERACTION_LOCKON_PROMPT`.
-
-The replacement test reconstructs this sequence with the literal `Recruit`. It does not call Dog Companion's private helpers.
+- This traced path does not show `REGISTER_INTERACTION_LOCKON_PROMPT`.
 
 ## Native reference findings
 
@@ -86,11 +95,15 @@ The replacement test reconstructs this sequence with the literal `Recruit`. It d
 
 ### Unverified wrapper signatures
 
-- `RDR2.Native.PED.IS_PED_HUMAN`: not recorded; verify against `Context/` or the Object Browser. Confirmed for the tested NPC.
-- `RDR2.Native.HUD._UI_PROMPT_SET_TEXT`: not recorded; verify.
-- `RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY`: not recorded; verify.
-- `RDR2.Native.HUD._UI_PROMPT_SET_GROUP`: not recorded; verify.
-- `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT`: not verified against the API map. Argument meanings are unconfirmed.
+Verify these against `Context/` or the Object Browser before relying on their managed argument or return types:
+
+- `RDR2.Native.PED.IS_PED_HUMAN`
+- `RDR2.Native.HUD._UI_PROMPT_SET_TEXT`
+- `RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY`
+- `RDR2.Native.HUD._UI_PROMPT_SET_GROUP`
+- `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT`
+
+In particular, the wrapper and `InputArgument` handling for `VAR_STRING` and `_UI_PROMPT_SET_TEXT` have not yet been confirmed against the API map.
 
 ### Project-wide notes
 
@@ -142,22 +155,55 @@ Do not repeat either ILO variant unchanged. ILO registration has not been shown 
 
 ### Standard-prompt test
 
-The checked-in `Test_Log.txt` dated `2026-11-09 11:02–11:03` records a standard G Recruit prompt, target-group assignment, visible/enabled calls, and an active-state change from false to true.
+The latest checked-in `Test_Log.txt` is dated `2026-11-09 12:46–12:47`. It records:
+
+- `VAR_STRING RESULT: Recruit`
+- `PROMPT TEXT SET: Recruit`
+- A standard-mode prompt registered with attribute `0x12:true`
+- Target-group lookup after registration and assignment with tab `0`
+- The prompt made visible, then enabled
+- The prompt becoming active
+- The prompt subsequently being deleted
 
 **User observation:** G Recruit did not appear in the unarmed lock-on menu.
 
-The log does not report a visible rendering result. Preserve the user observation separately from the runtime state.
+The log does not report a visible rendering result. Preserve the user's observation separately from runtime state.
 
 ### Controls
 
-- `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) is mapped to G in tests. Raw G press and prompt-pressed events were recorded. Input detection does not prove visible rendering.
+- `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) is mapped to G in tests.
+- Raw G press and prompt-pressed events were recorded in earlier tests.
+- Input detection does not prove visible rendering.
+- The user has specified that G is the chosen control. Do not treat control selection as the open issue.
+
+## Current assessment
+
+The latest test establishes that the managed `VAR_STRING` call returned the text `Recruit`, and the prompt reached an active state after being assigned to the focused target's group. It does **not** establish that the prompt menu accepted or rendered the label.
+
+A plausible string-specific lead is a difference in how the text reaches the native:
+
+- The Dog Companion trace passes the native result of `VAR_STRING` directly into `_UI_PROMPT_SET_TEXT`.
+- The project wrapper exposes `VAR_STRING` as a managed C# `string`; the test then passes that value to `_UI_PROMPT_SET_TEXT`.
+- The log confirms the managed value is `Recruit`, but it does not prove that the wrapper passes the same native representation as Dog Companion.
+
+This is a hypothesis, not a confirmed cause. The next check is the API map's exact signatures and argument handling for `VAR_STRING`, `_UI_PROMPT_SET_TEXT`, and `InputArgument`. If the wrapper converts the native result to ordinary managed text and re-marshals it, test a path that preserves the native `VAR_STRING` result through to `_UI_PROMPT_SET_TEXT`, if the project's API allows it.
+
+Other possible causes remain open, including whether a standard prompt assigned to this target group is rendered by the specific unarmed lock-on menu. Active state, group assignment, and input detection alone cannot distinguish that from a string-marshalling issue.
 
 ## Open questions
 
-- Earlier screen-display tests showed `Recruit` through `UI._DISPLAY_TEXT`, but the prompt-menu path did not show it. Do not generalize either result beyond its tested conditions.
-- The `_SET_PED_PROMPT_NAME` test showed the focused NPC as `Recruit`, but it does not restore the NPC's previous name.
-- ILO registration with both the prompt handle and `prompt=0` did not make G Skip or G Recruit appear. The replacement test omits ILO registration.
+- Does the managed `VAR_STRING` wrapper return ordinary display text, a native string representation, or a wrapper-specific value suitable for passing back to `_UI_PROMPT_SET_TEXT`?
+- What exact managed signature and parameter types does `_UI_PROMPT_SET_TEXT` use?
+- Does the API wrapper marshal the `VAR_STRING` return value identically to the raw native result used by Dog Companion?
+- Is a standard prompt assigned to the focused entity's prompt group expected to render in this specific unarmed lock-on menu?
+- Is there a menu-context or registration requirement not present in the Dog Companion trace?
 
 ## Next step
 
-Build and run the replacement `Test.cs`. Record the fresh log and the user's visual observation separately. Do not infer visibility from prompt creation, group assignment, active state, or input detection. Do not add recruitment behavior as part of this display test.
+1. Verify the `VAR_STRING` and `_UI_PROMPT_SET_TEXT` wrapper signatures and `InputArgument` conversion in `Context/` or the Object Browser.
+2. Compare the wrapper's text-marshalling path with the raw native call sequence in `TestingAndResearch/DogCompanion/GhidraTrace.md`.
+3. If the wrapper path differs, run a focused test that changes only how the text is passed to `_UI_PROMPT_SET_TEXT`. Keep the control, prompt mode, group, visibility, and target logic unchanged.
+4. Record the fresh runtime log and the user's visual observation separately.
+5. If the string path is shown to match, investigate whether this prompt type and target group are rendered by the unarmed lock-on menu.
+
+Do not infer visibility from prompt creation, group assignment, active state, or input detection. Do not add recruitment behavior as part of this display test.
