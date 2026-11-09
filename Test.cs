@@ -11,7 +11,7 @@ public class Test : Script
     private const string PromptText = "Recruit";
 
     // Run once with true, then set false and repeat with the same test conditions.
-    private const bool UsePromptHandleForIlo = true;
+    private const bool UsePromptHandleForIlo = false;
 
     // Controlled test values; keep identical between the true/false runs.
     private const float IloRadius = 3.0f;

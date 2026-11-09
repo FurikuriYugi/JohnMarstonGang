@@ -1,15 +1,17 @@
-2026-11-09 16:48:39.524 === G Recruit ILO prompt-argument test ===
-2026-11-09 16:48:39.525 Prompt label: Recruit
-2026-11-09 16:48:39.525 Control: INPUT_INTERACT_OPTION1 (G).
-2026-11-09 16:48:39.525 UsePromptHandleForIlo: True
-2026-11-09 16:48:39.525 ILO settings: radius=3; focusDistance=3; flag=0; p5=0; p6=0; showApproachPrompt=False; p9=-1
-2026-11-09 16:48:39.525 Prompt-display test only; no recruitment or gang changes.
-2026-11-09 16:48:46.870 VAR_STRING RESULT: Recruit
-2026-11-09 16:48:46.871 PROMPT TEXT SET: Recruit
-2026-11-09 16:48:46.872 PROMPT REGISTERED: handle=243970; target=200706; mode=standard; attribute=0x12:true
-2026-11-09 16:48:46.872 TARGET GROUP LOOKUP AFTER REGISTRATION: target=200706; group=268566613
-2026-11-09 16:48:46.873 TARGET GROUP ASSIGNED: target=200706; group=268566613; tab=0
-2026-11-09 16:48:46.873 PROMPT VISIBLE, THEN ENABLED.
-2026-11-09 16:48:46.874 ILO REGISTER RESULT: target=200706; promptArgument=243970; returned=True
-2026-11-09 16:48:46.875 PROMPT ACTIVE: target=200706; group=268566613; active=False
-2026-11-09 16:48:46.885 PROMPT ACTIVE: target=200706; group=268566613; active=True
+2026-11-09 16:58:19.949 === G Recruit ILO prompt-argument test ===
+2026-11-09 16:58:19.949 Prompt label: Recruit
+2026-11-09 16:58:19.949 Control: INPUT_INTERACT_OPTION1 (G).
+2026-11-09 16:58:19.950 UsePromptHandleForIlo: False
+2026-11-09 16:58:19.950 ILO settings: radius=3; focusDistance=3; flag=0; p5=0; p6=0; showApproachPrompt=False; p9=-1
+2026-11-09 16:58:19.950 Prompt-display test only; no recruitment or gang changes.
+2026-11-09 16:58:31.618 VAR_STRING RESULT: Recruit
+2026-11-09 16:58:31.618 PROMPT TEXT SET: Recruit
+2026-11-09 16:58:31.619 PROMPT REGISTERED: handle=253186; target=196610; mode=standard; attribute=0x12:true
+2026-11-09 16:58:31.620 TARGET GROUP LOOKUP AFTER REGISTRATION: target=196610; group=268566604
+2026-11-09 16:58:31.620 TARGET GROUP ASSIGNED: target=196610; group=268566604; tab=0
+2026-11-09 16:58:31.621 PROMPT VISIBLE, THEN ENABLED.
+2026-11-09 16:58:31.622 ILO REGISTER RESULT: target=196610; promptArgument=0; returned=True
+2026-11-09 16:58:31.622 PROMPT ACTIVE: target=196610; group=268566604; active=False
+2026-11-09 16:58:31.632 PROMPT ACTIVE: target=196610; group=268566604; active=True
+2026-11-09 16:58:38.959 ILO UNREGISTER RESULT: target=196610; returned=True
+2026-11-09 16:58:38.960 PROMPT DELETED: 253186
