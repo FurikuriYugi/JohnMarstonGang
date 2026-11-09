@@ -10,13 +10,20 @@ public class Test : Script
     private const int PromptAttribute = 0x12;
     private const string PromptText = "Recruit";
 
+    // Test range: large enough that range should not prevent the ILO prompt
+    // from appearing while testing a focused ped.
+    private const float IloRadius = 25.0f;
+    private const float IloFocusDistance = 25.0f;
+
     private readonly string _logPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
         "Test_Log.txt");
 
     private int _promptHandle;
-    private int _targetHandle;
+    private int _iloTargetHandle;
+    private int _groupTargetHandle;
     private int _targetGroupId = -1;
+
     private bool _promptStateApplied;
     private bool _promptShown;
     private bool _hasLoggedActiveState;
@@ -25,17 +32,18 @@ public class Test : Script
     private string _lastTargetError;
     private string _lastGroupError;
     private string _lastPromptError;
+    private string _lastIloError;
     private string _lastInputError;
 
     public Test()
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Dog Companion-sequence G Recruit prompt test ===");
-        Log("Prompt text: VAR_STRING(10, \"LITERAL_STRING\", \"Recruit\").");
-        Log("Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.");
-        Log("Assigns the focused human target's prompt group before showing.");
-        Log("Display-only test: no ILO registration or recruitment.");
+        Log("=== G Recruit ILO + standard-prompt test ===");
+        Log("Prompt label: " + PromptText);
+        Log("Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F.");
+        Log("ILO custom-prompt argument: 0; standard prompt is attached separately.");
+        Log("Display-only test: pressing G does not recruit.");
 
         CreatePrompt();
 
@@ -69,13 +77,13 @@ public class Test : Script
                 _promptHandle,
                 text);
 
-            // Dog Companion initializes the prompt with group (0, 0).
+            // Initialize the prompt in the default group, as in the
+            // Dog Companion prompt construction path.
             RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 _promptHandle,
                 0,
                 PromptGroupTab);
 
-            // Standard mode, then attribute, then registration end.
             RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
                 _promptHandle,
                 true);
@@ -94,9 +102,7 @@ public class Test : Script
             Log(
                 "PROMPT CREATED: handle=" +
                 _promptHandle +
-                "; text=" +
-                PromptText +
-                "; mode=standard; attribute=0x12:1");
+                "; standard mode; attribute=0x12:true");
         }
         catch (Exception exception)
         {
@@ -123,14 +129,14 @@ public class Test : Script
             out targetHandle,
             out targetIsHuman))
         {
-            HideAndDetachPrompt();
+            ClearCurrentTarget();
             LogRawGPress();
             return;
         }
 
         if (!targetFound || targetHandle <= 0 || !targetIsHuman)
         {
-            HideAndDetachPrompt();
+            ClearCurrentTarget();
             LogRawGPress();
             return;
         }
@@ -138,16 +144,23 @@ public class Test : Script
         int groupId;
         if (!TryGetTargetPromptGroup(targetHandle, out groupId))
         {
-            HideAndDetachPrompt();
+            ClearCurrentTarget();
             LogRawGPress();
             return;
         }
 
-        bool targetOrGroupChanged =
-            _targetHandle != targetHandle ||
+        if (!EnsureIloRegistered(targetHandle))
+        {
+            ClearCurrentTarget();
+            LogRawGPress();
+            return;
+        }
+
+        bool groupChanged =
+            _groupTargetHandle != targetHandle ||
             _targetGroupId != groupId;
 
-        if (targetOrGroupChanged)
+        if (groupChanged)
         {
             try
             {
@@ -156,7 +169,7 @@ public class Test : Script
                     groupId,
                     PromptGroupTab);
 
-                _targetHandle = targetHandle;
+                _groupTargetHandle = targetHandle;
                 _targetGroupId = groupId;
 
                 Log(
@@ -174,18 +187,71 @@ public class Test : Script
                     "PROMPT GROUP ASSIGNMENT ERROR: " +
                     InnermostMessage(exception));
 
-                HideAndDetachPrompt();
+                ClearCurrentTarget();
                 LogRawGPress();
                 return;
             }
         }
 
-        // Apply Dog Companion's visible-then-enabled sequence after group assignment.
-        SetPromptShown(true, targetOrGroupChanged);
+        // Assign the target group first, then show, then enable.
+        SetPromptShown(true, groupChanged);
 
         LogPromptState();
         LogPromptPress();
         LogRawGPress();
+    }
+
+    private bool EnsureIloRegistered(int targetHandle)
+    {
+        if (_iloTargetHandle == targetHandle)
+        {
+            return true;
+        }
+
+        UnregisterIlo();
+
+        try
+        {
+            string iloText = RDR2.Native.MISC.VAR_STRING(
+                10,
+                "LITERAL_STRING",
+                PromptText);
+
+            RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(
+                targetHandle,       // entity
+                iloText,            // ILO text
+                IloRadius,          // radius
+                IloFocusDistance,   // focus distance
+                0,                  // flags
+                0.0f,               // p5
+                0.0f,               // p6
+                0,                  // custom prompt handle
+                true,               // show ILO prompt when approaching
+                -1);                // p9
+
+            _iloTargetHandle = targetHandle;
+            _lastIloError = null;
+
+            Log(
+                "ILO REGISTERED: target=" +
+                targetHandle +
+                "; radius=" +
+                IloRadius +
+                "; focusDistance=" +
+                IloFocusDistance +
+                "; flags=0; promptArg=0; p8=true; p9=-1");
+
+            return true;
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                ref _lastIloError,
+                "ILO REGISTRATION ERROR: " +
+                InnermostMessage(exception));
+
+            return false;
+        }
     }
 
     private bool TryGetFocusedHuman(
@@ -226,10 +292,6 @@ public class Test : Script
         }
         catch (Exception exception)
         {
-            targetFound = false;
-            targetHandle = 0;
-            targetIsHuman = false;
-
             LogErrorOnce(
                 ref _lastTargetError,
                 "TARGET LOOKUP ERROR: " +
@@ -255,7 +317,9 @@ public class Test : Script
             {
                 LogErrorOnce(
                     ref _lastGroupError,
-                    "GROUP LOOKUP RETURNED INVALID VALUE: " +
+                    "GROUP LOOKUP INVALID: target=" +
+                    targetHandle +
+                    "; group=" +
                     groupId);
 
                 return false;
@@ -314,9 +378,9 @@ public class Test : Script
 
             _promptShown = shown;
             _promptStateApplied = true;
-
-            Log("PROMPT SHOWN/ENABLED STATE: " + shown);
             _lastPromptError = null;
+
+            Log("PROMPT VISIBLE-THEN-ENABLED STATE: " + shown);
         }
         catch (Exception exception)
         {
@@ -327,40 +391,67 @@ public class Test : Script
         }
     }
 
-    private void HideAndDetachPrompt()
+    private void ClearCurrentTarget()
     {
         SetPromptShown(false, false);
 
-        if (_promptHandle <= 0 ||
-            (_targetHandle == 0 && _targetGroupId < 0))
+        if (_promptHandle > 0 &&
+            (_groupTargetHandle != 0 || _targetGroupId >= 0))
+        {
+            try
+            {
+                RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
+                    _promptHandle,
+                    0,
+                    PromptGroupTab);
+
+                Log(
+                    "PROMPT GROUP CLEARED: previousTarget=" +
+                    _groupTargetHandle +
+                    "; previousGroup=" +
+                    _targetGroupId);
+            }
+            catch (Exception exception)
+            {
+                LogErrorOnce(
+                    ref _lastPromptError,
+                    "PROMPT GROUP CLEAR ERROR: " +
+                    InnermostMessage(exception));
+            }
+        }
+
+        _groupTargetHandle = 0;
+        _targetGroupId = -1;
+
+        UnregisterIlo();
+    }
+
+    private void UnregisterIlo()
+    {
+        if (_iloTargetHandle <= 0)
         {
             return;
         }
 
+        int previousTarget = _iloTargetHandle;
+
         try
         {
-            RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
-                _promptHandle,
-                0,
-                PromptGroupTab);
+            RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(
+                previousTarget);
 
-            Log(
-                "PROMPT GROUP CLEARED: previousTarget=" +
-                _targetHandle +
-                "; previousGroup=" +
-                _targetGroupId);
-
-            _targetHandle = 0;
-            _targetGroupId = -1;
-            _lastPromptError = null;
+            Log("ILO UNREGISTERED: target=" + previousTarget);
+            _lastIloError = null;
         }
         catch (Exception exception)
         {
             LogErrorOnce(
-                ref _lastPromptError,
-                "PROMPT GROUP CLEAR ERROR: " +
+                ref _lastIloError,
+                "ILO UNREGISTER ERROR: " +
                 InnermostMessage(exception));
         }
+
+        _iloTargetHandle = 0;
     }
 
     private void LogPromptState()
@@ -376,8 +467,10 @@ public class Test : Script
                 _lastActiveState = active;
 
                 Log(
-                    "PROMPT ACTIVE: text=" +
-                    PromptText +
+                    "PROMPT ACTIVE: target=" +
+                    _groupTargetHandle +
+                    "; group=" +
+                    _targetGroupId +
                     "; active=" +
                     active);
             }
@@ -400,7 +493,7 @@ public class Test : Script
             if (RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(_promptHandle) &&
                 RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(_promptHandle))
             {
-                Log("G RECRUIT PROMPT PRESSED: no recruitment performed.");
+                Log("G RECRUIT PROMPT PRESSED; no recruitment performed.");
             }
 
             _lastPromptError = null;
@@ -422,7 +515,7 @@ public class Test : Script
                 0,
                 InputInteractOption1))
             {
-                Log("RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED");
+                Log("RAW INPUT_INTERACT_OPTION1 PRESS DETECTED");
             }
 
             _lastInputError = null;
@@ -431,14 +524,14 @@ public class Test : Script
         {
             LogErrorOnce(
                 ref _lastInputError,
-                "INPUT READ ERROR: " +
+                "RAW INPUT CHECK ERROR: " +
                 InnermostMessage(exception));
         }
     }
 
     private void OnAborted(object sender, EventArgs e)
     {
-        HideAndDetachPrompt();
+        ClearCurrentTarget();
 
         if (_promptHandle <= 0)
         {
@@ -448,7 +541,7 @@ public class Test : Script
         try
         {
             RDR2.Native.HUD._UI_PROMPT_DELETE(_promptHandle);
-            Log("PROMPT DELETED: " + PromptText);
+            Log("PROMPT DELETED: " + _promptHandle);
             _promptHandle = 0;
         }
         catch (Exception exception)

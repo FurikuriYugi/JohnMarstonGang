@@ -1,13 +1,15 @@
-2026-11-08 22:24:34.624 === Dog Companion-sequence G Recruit prompt test ===
-2026-11-08 22:24:34.625 Prompt text: VAR_STRING(10, "LITERAL_STRING", "Recruit").
-2026-11-08 22:24:34.625 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.
-2026-11-08 22:24:34.625 Assigns the focused human target's prompt group before showing.
-2026-11-08 22:24:34.625 Display-only test: no ILO registration or recruitment.
-2026-11-08 22:24:34.636 PROMPT SHOWN/ENABLED STATE: False
-2026-11-08 22:24:34.637 PROMPT CREATED: handle=209154; text=Recruit; mode=standard; attribute=0x12:1
-2026-11-08 22:24:45.189 PROMPT GROUP ASSIGNED: target=196354; group=268566604; tab=0
-2026-11-08 22:24:45.189 PROMPT SHOWN/ENABLED STATE: True
-2026-11-08 22:24:45.190 PROMPT ACTIVE: text=Recruit; active=False
-2026-11-08 22:24:45.202 PROMPT ACTIVE: text=Recruit; active=True
-2026-11-08 22:24:51.779 PROMPT SHOWN/ENABLED STATE: False
-2026-11-08 22:24:51.779 PROMPT GROUP CLEARED: previousTarget=196354; previousGroup=268566604
+2026-11-08 22:38:24.650 === G Recruit ILO + standard-prompt test ===
+2026-11-08 22:38:24.650 Prompt label: Recruit
+2026-11-08 22:38:24.651 Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F.
+2026-11-08 22:38:24.651 ILO custom-prompt argument: 0; standard prompt is attached separately.
+2026-11-08 22:38:24.651 Display-only test: pressing G does not recruit.
+2026-11-08 22:38:24.666 PROMPT VISIBLE-THEN-ENABLED STATE: False
+2026-11-08 22:38:24.666 PROMPT CREATED: handle=215298; standard mode; attribute=0x12:true
+2026-11-08 22:38:32.241 ILO REGISTERED: target=203266; radius=25; focusDistance=25; flags=0; promptArg=0; p8=true; p9=-1
+2026-11-08 22:38:32.242 PROMPT GROUP ASSIGNED: target=203266; group=268566611; tab=0
+2026-11-08 22:38:32.242 PROMPT VISIBLE-THEN-ENABLED STATE: True
+2026-11-08 22:38:32.243 PROMPT ACTIVE: target=203266; group=268566611; active=False
+2026-11-08 22:38:32.254 PROMPT ACTIVE: target=203266; group=268566611; active=True
+2026-11-08 22:38:49.144 PROMPT VISIBLE-THEN-ENABLED STATE: False
+2026-11-08 22:38:49.145 PROMPT GROUP CLEARED: previousTarget=203266; previousGroup=268566611
+2026-11-08 22:38:49.146 ILO UNREGISTERED: target=203266
