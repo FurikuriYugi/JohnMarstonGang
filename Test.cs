@@ -17,7 +17,7 @@ public class Test : Script
     private int _promptHandle;
     private int _targetHandle;
     private int _targetGroupId = -1;
-
+    private bool _promptStateApplied;
     private bool _promptShown;
     private bool _hasLoggedActiveState;
     private bool _lastActiveState;
@@ -31,11 +31,11 @@ public class Test : Script
     {
         File.WriteAllText(_logPath, string.Empty);
 
-        Log("=== Dog Companion-style G Recruit prompt test ===");
-        Log("Text source: VAR_STRING(10, \"LITERAL_STRING\", \"Recruit\").");
+        Log("=== Dog Companion-sequence G Recruit prompt test ===");
+        Log("Prompt text: VAR_STRING(10, \"LITERAL_STRING\", \"Recruit\").");
         Log("Control: INPUT_INTERACT_OPTION1; hash=0x760A9C6F; expected key: G.");
-        Log("Prompt is assigned to the focused human target's prompt group.");
-        Log("No ILO registration call; no recruitment is performed.");
+        Log("Assigns the focused human target's prompt group before showing.");
+        Log("Display-only test: no ILO registration or recruitment.");
 
         CreatePrompt();
 
@@ -69,17 +69,17 @@ public class Test : Script
                 _promptHandle,
                 text);
 
-            // Match Dog Companion's prompt-construction sequence.
+            // Dog Companion initializes the prompt with group (0, 0).
             RDR2.Native.HUD._UI_PROMPT_SET_GROUP(
                 _promptHandle,
                 0,
                 PromptGroupTab);
 
+            // Standard mode, then attribute, then registration end.
             RDR2.Native.HUD._UI_PROMPT_SET_STANDARD_MODE(
                 _promptHandle,
                 true);
 
-            // Expected wrapper signature: (prompt, attribute, bool).
             RDR2.Native.HUD._UI_PROMPT_SET_ATTRIBUTE(
                 _promptHandle,
                 PromptAttribute,
@@ -88,7 +88,8 @@ public class Test : Script
             RDR2.Native.HUD._UI_PROMPT_REGISTER_END(
                 _promptHandle);
 
-            SetPromptShown(false);
+            // Explicitly start hidden and disabled.
+            SetPromptShown(false, true);
 
             Log(
                 "PROMPT CREATED: handle=" +
@@ -107,14 +108,20 @@ public class Test : Script
 
     private void OnTick(object sender, EventArgs e)
     {
-        int targetHandle;
+        if (_promptHandle <= 0)
+        {
+            LogRawGPress();
+            return;
+        }
+
         bool targetFound;
         bool targetIsHuman;
+        int targetHandle;
 
         if (!TryGetFocusedHuman(
-                out targetFound,
-                out targetHandle,
-                out targetIsHuman))
+            out targetFound,
+            out targetHandle,
+            out targetIsHuman))
         {
             HideAndDetachPrompt();
             LogRawGPress();
@@ -136,7 +143,11 @@ public class Test : Script
             return;
         }
 
-        if (_targetHandle != targetHandle || _targetGroupId != groupId)
+        bool targetOrGroupChanged =
+            _targetHandle != targetHandle ||
+            _targetGroupId != groupId;
+
+        if (targetOrGroupChanged)
         {
             try
             {
@@ -169,28 +180,12 @@ public class Test : Script
             }
         }
 
-        SetPromptShown(true);
+        // Apply Dog Companion's visible-then-enabled sequence after group assignment.
+        SetPromptShown(true, targetOrGroupChanged);
+
         LogPromptState();
+        LogPromptPress();
         LogRawGPress();
-
-        try
-        {
-            if (_promptHandle > 0 &&
-                RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(_promptHandle) &&
-                RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(_promptHandle))
-            {
-                Log("G RECRUIT PROMPT PRESSED: no recruitment performed.");
-            }
-
-            _lastPromptError = null;
-        }
-        catch (Exception exception)
-        {
-            LogErrorOnce(
-                ref _lastPromptError,
-                "PROMPT STATE ERROR: " +
-                InnermostMessage(exception));
-        }
     }
 
     private bool TryGetFocusedHuman(
@@ -280,9 +275,16 @@ public class Test : Script
         }
     }
 
-    private void SetPromptShown(bool shown)
+    private void SetPromptShown(bool shown, bool forceApply)
     {
-        if (_promptHandle <= 0 || _promptShown == shown)
+        if (_promptHandle <= 0)
+        {
+            return;
+        }
+
+        if (!forceApply &&
+            _promptStateApplied &&
+            _promptShown == shown)
         {
             return;
         }
@@ -291,7 +293,6 @@ public class Test : Script
         {
             if (shown)
             {
-                // Match Dog Companion's order: visible, then enabled.
                 RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(
                     _promptHandle,
                     true);
@@ -312,6 +313,8 @@ public class Test : Script
             }
 
             _promptShown = shown;
+            _promptStateApplied = true;
+
             Log("PROMPT SHOWN/ENABLED STATE: " + shown);
             _lastPromptError = null;
         }
@@ -326,7 +329,7 @@ public class Test : Script
 
     private void HideAndDetachPrompt()
     {
-        SetPromptShown(false);
+        SetPromptShown(false, false);
 
         if (_promptHandle <= 0 ||
             (_targetHandle == 0 && _targetGroupId < 0))
@@ -390,13 +393,34 @@ public class Test : Script
         }
     }
 
+    private void LogPromptPress()
+    {
+        try
+        {
+            if (RDR2.Native.HUD._UI_PROMPT_IS_ACTIVE(_promptHandle) &&
+                RDR2.Native.HUD._UI_PROMPT_IS_JUST_PRESSED(_promptHandle))
+            {
+                Log("G RECRUIT PROMPT PRESSED: no recruitment performed.");
+            }
+
+            _lastPromptError = null;
+        }
+        catch (Exception exception)
+        {
+            LogErrorOnce(
+                ref _lastPromptError,
+                "PROMPT PRESS CHECK ERROR: " +
+                InnermostMessage(exception));
+        }
+    }
+
     private void LogRawGPress()
     {
         try
         {
             if (RDR2.Native.PAD.IS_CONTROL_JUST_PRESSED(
-                    0,
-                    InputInteractOption1))
+                0,
+                InputInteractOption1))
             {
                 Log("RAW G / INPUT_INTERACT_OPTION1 PRESS DETECTED");
             }
