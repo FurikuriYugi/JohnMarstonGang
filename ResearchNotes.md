@@ -10,40 +10,55 @@ This is a prompt-display test only. Do not recruit the NPC or change gang member
 
 - Do not press G during display tests.
 - Do not add recruitment or gang-membership actions to the test.
-- Unregister any ILO registration when the target changes or the script aborts.
+- Delete test prompts when the target changes or the script aborts.
 - Save each test run's log separately before running another test.
 
-## API and reference findings
+## API map findings
 
 The ScriptHookRDRNetAPI inventory used for this research is version `2.2.0.0`.
 
+A standard HUD prompt and its prompt group are separate pieces of state:
+
+1. Create and register the prompt.
+2. Assign it to the focused entity's prompt group with `_UI_PROMPT_SET_GROUP`.
+3. Activate that group every frame with `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME`.
+
+Assigning a prompt to a group does **not** activate the group. The active-group call must be made each frame that the group should be displayed. Active prompt groups are exclusive for that frame, so the test calls the native only while a human entity is the current focused target.
+
+The API map documents these relevant natives:
+
+- `RDR2.Native.HUD._UI_PROMPT_REGISTER_BEGIN()`
+- `RDR2.Native.HUD._UI_PROMPT_SET_CONTROL_ACTION(int prompt, int control)`
+- `RDR2.Native.HUD._UI_PROMPT_SET_TEXT(int prompt, string text)`
+- `RDR2.Native.HUD._UI_PROMPT_SET_ATTRIBUTE(int prompt, int attribute, bool enabled)`
+- `RDR2.Native.HUD._UI_PROMPT_REGISTER_END(int prompt)`
+- `RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(int entity)`
+- `RDR2.Native.HUD._UI_PROMPT_SET_GROUP(int prompt, int groupId, int tab)`
+- `RDR2.Native.HUD._UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME(int groupId, string name, int tabAmount, int tabDefaultIndex, int p4, int prompt)`
+- `RDR2.Native.HUD._UI_PROMPT_SET_VISIBLE(int prompt, bool visible)`
+- `RDR2.Native.HUD._UI_PROMPT_SET_ENABLED(int prompt, bool enabled)`
+- `RDR2.Native.HUD._UI_PROMPT_DELETE(int prompt)`
+- `RDR2.Native.MISC.VAR_STRING(int format, string type, string text)`
+
 The Dog Companion Ghidra trace shows a standard prompt being created with a `VAR_STRING` label, assigned to the target entity's prompt group, and then made visible and enabled. No ILO-registration call appears in the traced creation-and-attachment path.
 
-The API inventory documents:
-
-- `RDR2.Native.HUD._UI_PROMPT_SET_GROUP(int prompt, int groupId, int tab)`
-- `RDR2.Native.HUD._UI_PROMPT_GET_GROUP_ID_FOR_TARGET_ENTITY(int entity)`
-- `RDR2.Native.HUD._UI_PROMPT_SET_TEXT(int prompt, string text)`
-- `RDR2.Native.MISC.REGISTER_INTERACTION_LOCKON_PROMPT(int entity, string text, float radius, float p3, int flag, float p5, float p6, int prompt, bool p8, int p9)`, returning `bool`
-- `RDR2.Native.MISC.UNREGISTER_INTERACTION_LOCKON_PROMPT(int entity)`, returning `bool`
-
-The target prompt group and ILO registration are separate mechanisms. A prompt being registered or active does not prove that it is visibly rendered in the focused lock-on menu.
-
-Passing a registered HUD prompt handle as the ILO `prompt` argument was an experimental variation, not an established requirement.
+`REGISTER_INTERACTION_LOCKON_PROMPT` is not the operation that activates a custom G action in the focused entity's HUD prompt group. Earlier ILO-only tests returned success but did not make G Recruit visible.
 
 ## Test history and results
 
-### Standard HUD prompt test
+### Standard HUD prompt without active-group-per-frame call
 
-The test created a standard prompt with:
+The initial standard prompt test used:
 
 - `INPUT_INTERACT_OPTION1` (`0x760A9C6F`) for G.
-- `VAR_STRING(10, "LITERAL_STRING", "Recruit")`, with the returned string passed to `_UI_PROMPT_SET_TEXT`.
+- `VAR_STRING(10, "LITERAL_STRING", "Recruit")`.
 - Prompt attribute `0x12` enabled.
 - The focused human NPC's target prompt group, tab 0.
-- Visible-then-enabled ordering.
+- Visible and enabled prompt state.
 
-The prompt was registered, assigned to a target group, and reported active. The user observed that **G Recruit did not appear** in the unarmed lock-on menu.
+The prompt was reported active and assigned to the target group, but the user observed that **G Recruit did not appear**.
+
+The test did not activate the target group every frame. Therefore, the prior result does not test whether a per-frame active-group call makes the prompt visible.
 
 ### Combined HUD prompt and ILO test
 
@@ -54,51 +69,51 @@ The ILO prompt argument was tested as both:
 - The registered HUD prompt handle.
 - `0`.
 
-The approach-prompt flag was also tested in the reported runs. The user reported that **G Recruit never appeared**.
+The approach-prompt flag was also tested in the reported runs. The user observed that **G Recruit did not appear**.
 
-The test used these experimental values:
+### ILO-only test
 
-- Radius: `3.0f`
-- Focus distance (`p3`): `3.0f`
-- Flag: `0`
-- `p5`, `p6`: `0.0f`
-- `p8`: tested as an approach-prompt flag
-- `p9`: `-1`
+The ILO-only run logged:
 
-These values have not been established as correct by the Dog Companion trace.
+- Focused target: `199170`
+- Human target: `True`
+- ILO registration: `True`
+- ILO unregister: `True`
 
-### Current conclusion
+The user observed that **G Recruit did not appear**.
 
-- Changing the ILO prompt argument did not make G Recruit appear.
-- The reported approach-prompt test also did not make it appear.
-- The available results do not establish whether ILO registration succeeded; check and record its return value.
-- The combined test did not isolate ILO registration from the standard HUD prompt setup.
+This shows that target detection and ILO registration/unregistration succeeded in that run. It does not show that an ILO registration activates or displays a custom HUD prompt group.
 
-## Next test: ILO only
+## Current conclusion
 
-`Test.cs` now performs an ILO-only test:
+The most relevant missed step in the earlier HUD prompt test was activating the focused entity's prompt group every frame. The prompt had been assigned to the group, but the group had not been activated with `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME`.
 
-- It creates no standard HUD prompt.
-- It does not assign a HUD prompt group.
-- It registers the ILO prompt with argument `0`.
-- It uses the same fixed ILO parameters for the run.
-- It unregisters the ILO prompt when the target changes or the script aborts.
-- It does not perform any action when G is pressed.
+## Current test: focused entity-group activation
 
-Use the same unarmed lock-on conditions. Do not press G.
+`Test.cs` now:
+
+- Detects the currently focused human entity.
+- Gets that entity's prompt-group ID.
+- Creates a standard HUD prompt using `INPUT_INTERACT_OPTION1` and the text `Recruit`.
+- Assigns the prompt to the entity's group.
+- Makes the prompt visible and enabled.
+- Calls `_UI_PROMPT_SET_ACTIVE_GROUP_THIS_FRAME` every tick while that entity remains focused.
+- Does not register an ILO prompt.
+- Does not perform any action when G is pressed.
+
+Run the test in the same unarmed lock-on scenario. Do not press G.
 
 Record:
 
 - Whether G Recruit appears.
-- The focused target handle and whether the target is human.
-- `ILO REGISTER RESULT`, including its return value.
-- `ILO UNREGISTER RESULT`, including its return value.
-- Any change to the NPC's existing lock-on prompts.
+- The `FOCUSED TARGET` line.
+- The `TARGET GROUP` line.
+- The `PROMPT CREATED` line.
+- The `ACTIVE GROUP SET THIS FRAME` line.
+- Any native errors.
 
-Save the log from this run separately.
+## Interpreting the current test
 
-## Interpreting the ILO-only test
-
-- If G Recruit appears only in ILO-only mode, the standard HUD prompt setup may have interfered with the combined test.
-- If G Recruit does not appear and registration returns `false`, investigate why the ILO registration is rejected.
-- If G Recruit does not appear and registration returns `true`, the tested call and parameters still do not produce the desired visible entry. A `true` return value is not proof that the prompt was rendered.
+- If G Recruit appears, the missing per-frame group activation was the cause of the earlier display failure.
+- If it does not appear, check the log first. Confirm that the focused human target and nonzero group ID were found, and that the active-group call ran without error.
+- If all those conditions are met but G Recruit remains invisible, investigate prompt-group tab assignment and whether the game's lock-on menu is replacing the activated group on that frame. Do not return to ILO argument variations unless new API-map evidence supports doing so.
